@@ -6,8 +6,9 @@
 # Overleaf (for LaTeX): https://www.overleaf.com/8292382672fdvtwjpdqdth#e70ea4
 # The embedding model: https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
 
+from sentence_transformers import SentenceTransformer
+
 # Theorems extracted from 'Some remarks on the theory of graphs' by Erdos, 1947
-#%%
 
 theorems_1 = [
 
@@ -186,11 +187,7 @@ Every finite tree satisfies
 
 theorems = theorems_0 + theorems_1 + theorems_2
 
-from sentence_transformers import SentenceTransformer
-
 model = SentenceTransformer("math-similarity/Bert-MLM_arXiv-MP-class_zbMath")
-
-print("Model device:", model.device)
 
 embeddings = model.encode(theorems)
 
@@ -198,7 +195,7 @@ embeddings = model.encode(theorems)
 similarities = model.similarity(embeddings, embeddings)
 similarities
 
-# the first theorem (similarity 0.7) is THE EXACT same theorem -- it works
+# the first theorem (similarity 0.9) is THE EXACT same theorem -- it works
 # the next 4 are about graphs and combinatorics
 # the last 3 are about differential geometry -- very different
 
@@ -206,16 +203,5 @@ user_query = "a tree on n vertices has n-1 edges"
 
 query_embedding = model.encode(user_query)
 print(model.similarity(query_embedding, embeddings))
-# %%
-similarities.device
-# %%
-# Keep the embeddings as tensors on the GPU
-query_embedding_gpu = model.encode(user_query, convert_to_tensor=True, device=model.device)
-embeddings_gpu = model.encode(theorems, convert_to_tensor=True, device=model.device)
 
-print("Device of query embedding:", query_embedding_gpu.device)
-# Output: Device of query embedding: cuda:0
-
-# Similarity calculation will now also happen on the GPU
-similarities_gpu = model.similarity(query_embedding_gpu, embeddings_gpu)
-#%%
+# Prints: 0.9049, 0.1921, 0.1977, 0.2557, 0.5589, 0.2979, 0.2763, 0.1874
