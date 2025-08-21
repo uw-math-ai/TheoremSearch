@@ -83,19 +83,35 @@ def extract_theorems(main_file_path: str) -> list:
 
 # Run
 if __name__ == "__main__":
-    # 1. Set the target URL
-    arxiv_url = "https://arxiv.org/abs/2507.22091"
-    
-    # 2. Get the ID from the URL
+    arxiv_url = "https://arxiv.org/abs/2407.13526"
     arxiv_id = arxiv_url.split('/')[-1]
     
-    # 3. Run the functions in order
     source_directory = download_and_extract_source(arxiv_id)
     if source_directory:
         main_tex_file = find_main_tex_file(source_directory)
         if main_tex_file:
             theorems = extract_theorems(main_tex_file)
-            # 4. Print the final results
+            
             if theorems:
                 print(f"\n--- Found {len(theorems)} Theorem-Like Environments ---")
-                # ... loops to print each theorem ...
+                
+                # --- NEW: Code to save the results ---
+                output_filename = f"{arxiv_id}_theorems.txt"
+                with open(output_filename, 'w', encoding='utf-8') as f:
+                    print(f"Saving results to {output_filename}...")
+                    for i, theorem in enumerate(theorems, 1):
+                        f.write(f"{i}. Type: {theorem['type']}\n")
+                        f.write("-" * 20 + "\n")
+                        f.write(theorem['content'] + "\n")
+                        f.write("-" * 20 + "\n\n")
+                print("Save complete! ✅")
+                # ----------------------------------------
+                
+                # You can still print them to the screen as well if you like
+                for i, theorem in enumerate(theorems, 1):
+                    print(f"\n{i}. Type: {theorem['type']}")
+                    print("-" * 20)
+                    print(theorem['content'])
+                    print("-" * 20)
+            else:
+                print("No theorem-like environments were found.")
