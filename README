@@ -1,1 +1,3 @@
 A mathematician's copilot -- find theorems faster!
+
+`streamlit run test_app.py` to run the streamlit app
