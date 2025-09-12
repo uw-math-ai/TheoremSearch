@@ -29,6 +29,7 @@ def call_gemini_for_global_assumptions(full_text: str) -> str:
     - Do not interpret, summarize, or add any information not present in the text.
     - If no such global assumptions are explicitly stated, respond with "No global assumptions were explicitly stated in the document."
 
+
 Your entire response must consist only of the list of assumptions or the "no assumptions" message. Do not add any introductory or concluding phrases.
 
 ---

@@ -83,7 +83,7 @@ def extract_theorems(main_file_path: str) -> list:
 
 # Run
 if __name__ == "__main__":
-    arxiv_url = "https://arxiv.org/abs/2407.13526"
+    arxiv_url = "https://arxiv.org/abs/2507.22091"
     arxiv_id = arxiv_url.split('/')[-1]
     
     source_directory = download_and_extract_source(arxiv_id)
