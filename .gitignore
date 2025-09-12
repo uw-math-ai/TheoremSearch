@@ -1,3 +1,10 @@
-settings.json
-00README.json (efe0236)
-CVPDE-HT-2nd.tex (efe0236)
+.env
+*.json
+*.tex
+*.bib
+*.sty
+*.cls
+*.png
+*.bbl
+*.pdf
+*.txt
