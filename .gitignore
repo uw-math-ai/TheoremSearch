@@ -8,3 +8,6 @@
 *.bbl
 *.pdf
 *.txt
+downloaded_sources/
+parsed_papers/
+!requirements.txt
