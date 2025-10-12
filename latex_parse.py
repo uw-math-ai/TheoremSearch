@@ -21,7 +21,7 @@ def _scanner(pat: Pattern, data: str, ) -> list:
     return theorems
 
 
-def alias_handling(data: str) -> tuple[dict, dict]:
+def alias_handling(data: str) -> str:
     """
     Translates alias counters in source document so theorems can be properly counted.
     (See: TeX \\newaliascnt)
@@ -47,7 +47,7 @@ def alias_handling(data: str) -> tuple[dict, dict]:
     for start, end, repl in sorted(replacements, key=lambda x: x[0], reverse=True): # backward to ensure indices line up
         data = data[:start] + repl + data[end:]
 
-    return data, {} # envs_translations
+    return data
 
 
 def macro_handling(data: str) -> str:
@@ -66,7 +66,7 @@ def macro_handling(data: str) -> str:
     return data
 
 
-def environment_handling(data: str, envs_translations: dict) -> str:
+def environment_handling(data: str) -> str:
     """
     Translates user-defined environments back to normal and countable forms
     (See: TeX \\newenvironment)
@@ -94,39 +94,16 @@ def environment_handling(data: str, envs_translations: dict) -> str:
                 )
                 data = data + new_theorem_command # add new theorem definition to data
 
-        """
-        # if environment calls another environment within
-        if name in envs_translations.keys():
-            latex_form = "\\" + envs_translations[name]
-            begin_cmd = begin_cmd.replace(latex_form, "")
-            end_cmd = end_cmd.replace("\end" + latex_form[1:], "")
-
-        # find all \begin{name} instances
-        thm_scan = _scanner(SPECIFICTHEOREM(name), data)
-        amendments = []
-        for item in thm_scan:
-            start, end = item.span()
-            amendments.append((start, end))
-
-        # insert the env commands in place of \env
-        for start, end in sorted(amendments, key=lambda x: x[0], reverse=True): # backward to ensure indices line up
-            data = data[:start] + begin_cmd + data[start:end] + end_cmd + data[end:]
-        """
-
     return data
 
 
-def locate_theorems(data: str, envs_translations: dict) -> tuple[list, list]:
+def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
     """
     Locates and splits theorems into sets based on position and numeration
     (numbered, non-numbered, appendix)
     """
     theorem_locations = []
     theorem_names = []
-
-    for item in envs_translations:
-        data = regex.sub(rf"\\begin\s*\{{{regex.escape(item)}\*?\}}", rf"\\begin{{{envs_translations[item]}}}", data)
-        data = regex.sub(rf"\\end\s*\{{{regex.escape(item)}\*?\}}", rf"\\end{{{envs_translations[item]}}}", data)
 
     m = regex.search(r"\\begin\{appendix\}", data) # locate the appendix, if it exists
     appendix = m.start() if m else None
@@ -199,7 +176,7 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     return res
 
 
-def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms: list=None) -> dict:
+def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms: list=None) -> list:
     
     res = []
     num_list = []
@@ -233,12 +210,12 @@ def extract(filename: str) -> dict:
         data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
 
         # translation of various user-defined macros
-        data, envs = alias_handling(data)
+        data = alias_handling(data)
         data = macro_handling(data)
-        data = environment_handling(data, envs)
+        data = environment_handling(data)
 
         # locate and split theorems
-        data, num_thms, appx_thms, thm_scan = locate_theorems(data, envs)
+        data, num_thms, appx_thms, thm_scan = locate_theorems(data)
 
         # label theorems accordingly
         num_thms = label_theorems(num_thms, thm_scan, False, data)
