@@ -10,6 +10,9 @@ import time
 from urllib.error import URLError
 import argparse
 
+from latex_parse import extract
+from patterns import *
+
 # --- 1. Configure the Google API Key and Model ---
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -153,7 +156,9 @@ if __name__ == "__main__":
         
         if main_tex_file:
             # FIXED: Corrected the variable name from 'main_file_path' to 'main_tex_file'
-            theorems_list = extract_raw_theorems(main_tex_file)
+            theorems_list = extract(main_tex_file)
+            theorems_list = [{"type": thm, "content": body} for thm, body in theorems_list]
+
             print(f"\nFound {len(theorems_list)} theorem-like environments with regex.")
             
             with open(main_tex_file, 'r', encoding='utf-8', errors='ignore') as f:
