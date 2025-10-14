@@ -171,6 +171,11 @@ if __name__ == "__main__":
                 "title": result.title,
                 "authors": [author.name for author in result.authors],
                 "url": result.entry_id,
+                "last_updated": result.updated.isoformat(),
+                "summary": result.summary, # potential source of greater context
+                "journal_ref": result.journal_ref, # None if not in a journal yet
+                "primary_category": result.primary_category, # primary category, for filters
+                "categories": result.categories, # secondary categories, needs regex parsing
                 "global_notations": global_context.get("global_notations", ""),
                 "global_definitions": global_context.get("global_definitions", ""),
                 "global_assumptions": global_context.get("global_assumptions", ""),
