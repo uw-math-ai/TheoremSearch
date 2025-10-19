@@ -8,7 +8,9 @@ from typing import Pattern
 from patterns import *
 
 # TODO:
-#   more regex for different versions of macros \newmathoperater, \def, etc.
+#   more regex for different versions of macros:
+#       \providecommand, \DeclareRobustCommand, 
+#       \DeclareMathOperator, \NewDocumentCommand,
 #   \renew commands
 #   \input from other files in TeX source
 
@@ -19,6 +21,35 @@ def _scanner(pat: Pattern, data: str, ) -> list:
     """
     theorems = list(regex.finditer(pat, data, regex.VERBOSE | regex.DOTALL | regex.MULTILINE))
     return theorems
+
+
+def def_handling(data: str) -> str:
+    """
+    Translates user-defined \\def macros (a LaTeX primitive) back into their raw LaTeX definitions
+    """
+    translation = {}
+    macros = _scanner(NEWDEF, data)
+
+    for item in macros:
+        params = (item.group('params') or "").count('#')
+        translation[item.group('name')] = (params, item.group('body'))
+
+    for key in sorted(translation.keys(), key=len, reverse=True):
+        assemble = regex.escape(rf"{key}") + r"(?:(?=[^A-Za-z@])|(?=\s*\{))"
+        assemble = assemble + "".join(
+            fr"\s*\{{(?P<arg_{i}>[^{{}}]*)\}}"   # capture anything not { or }
+            for i in range(1, translation[key][0]+1)
+        )
+        captures = _scanner(assemble, data)
+        
+        for item in captures:
+            new_cmd = translation[key][1]
+            old_cmd = regex.escape(rf"{key}") + r"(?:(?=[^A-Za-z@])|(?=\s*\{))"
+            for j in range(len(item.groups())):
+                old_cmd += r"\s*\{" + regex.escape(item.group(j+1)) + r"\}"
+                new_cmd = new_cmd.replace(rf"#{j+1}", item.group(j+1))
+            data = regex.sub(old_cmd, lambda _m: new_cmd, data)
+    return data
 
 
 def alias_handling(data: str) -> str:
@@ -210,6 +241,7 @@ def extract(filename: str) -> dict:
         data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
 
         # translation of various user-defined macros
+        data = def_handling(data)
         data = alias_handling(data)
         data = macro_handling(data)
         data = environment_handling(data)
@@ -225,6 +257,25 @@ def extract(filename: str) -> dict:
         # bundle results
         return bundle_theorems(thm_scan, data, num_thms, appx_thms)
 
+def attach_imports(data: str) -> str:
+    """
+    Attach any imported TeX to document. Used when document contains  \\include{...} or \\input{...}
+    """
+    latex_inputs = _scanner(NEWINPUT, data)
+    for item in latex_inputs:
+        file_name = item.group("file_name")
+        with open(file_name,'r', encoding="utf-8") as file:
+            new_data = file.read()
+            data = new_data + data # append the new data onto the document
+
+    latex_includes = _scanner(NEWINCLUDE, data)
+    for item in latex_includes:
+        file_name = item.group("file_name")
+        with open(file_name,'r', encoding="utf-8") as file:
+            new_data = file.read()
+            data = new_data + data # append the new data onto the document
+
+    return data
 
 # if you want to run it standalone
 if __name__ == "__main__":
