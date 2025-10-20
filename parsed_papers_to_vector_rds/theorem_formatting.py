@@ -37,7 +37,7 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     texts_to_embed = []
 
     for theorem in parsed_paper.get("theorems", []):
-        texts_to_embed.append(f"{global_context}\n\n**{theorem['type'].capitalize()}:**\n{theorem['content']}")
+        texts_to_embed.append(theorem["content"])
 
         theorem_embeddings.append({
             "id": None,
