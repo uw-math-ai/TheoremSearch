@@ -1,18 +1,14 @@
 from embeddings import embed_texts
 from openai import OpenAI
+import os
 
 def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     """
     Converts a parsed paper JSON into an embedding-ready string.
     """
-    prompt = "Suppose you are an expert in mathematics and Algebraic Geometry." \
-    "Your task is to rewrite a LaTeX description of a theorem into a succinct " \
-    "slogan that can accurately describe the theorem in 1-2 sentences with natural language" \
-    " (no TeX formulas). Please return the slogan you come up with in quotation marks"
-    with open("api_key.txt", "r") as f:
-        API_KEY = f.read().strip() # open ai key
+    prompt = "I would like you to give me accurate summary of the statement. It has to be accurate. Keep LaTeX notation to a minimum. Aim between 2 and 6 sentences for each. Make sure to include the relevant info that might be used to query the statement."
 
-    client = OpenAI(api_key=API_KEY)
+    client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
 
     global_notations = parsed_paper.get("global_notations", "")
     global_definitions = parsed_paper.get("global_definitions", "")
@@ -46,13 +42,17 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     theorem_embeddings = []
     texts_to_embed = []
 
-    for theorem in parsed_paper.get("theorems", []):
-        texts_to_embed.append(theorem["content"])
+    print(" > Creating theorem slogans")
 
-        print("Querying OpenAI...")
+    for i, theorem in enumerate(parsed_paper.get("theorems", [])):
+        print(f"    > Working on theorem {i+1}'s slogan")
+
+        texts_to_embed.append(theorem["content"])
         response = client.responses.create(
             model="gpt-5",
-            input=prompt + "\n" + theorem.get("content")
+            input=[
+                {"role": "user", "content": prompt + "\n" + theorem.get("content")}
+            ]
         )
 
         theorem_embeddings.append({
@@ -63,6 +63,8 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
             "theorem_body": theorem.get("content"),
             "embedding": None
         })
+
+    print(" > Creating theorem embeddings")
 
     embeddings = embed_texts(texts_to_embed)
 

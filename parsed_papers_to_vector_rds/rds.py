@@ -57,11 +57,12 @@ def upload_theorem_metadata_and_embeddings(
         for th in theorem_embeddings:
             cur.execute("""
                 INSERT INTO theorem_embedding
-                    (paper_id, theorem_name, theorem_body, embedding)
-                VALUES (%s, %s, %s, %s);
+                    (paper_id, theorem_name, theorem_slogan, theorem_body, embedding)
+                VALUES (%s, %s, %s, %s, %s);
             """, (
                 paper_id,
                 th.get("theorem_name"),
+                th.get("theorem_slogan"),
                 th.get("theorem_body"),
                 th.get("embedding"),
             ))
