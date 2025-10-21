@@ -35,7 +35,7 @@ def compare_embeddings(model, latex_texts, concept_texts, top_k=3):
 
 
 #%%
-latex_tokens_text = ["Trivial stabilizers in the fiber product imply representability of the projection.",
+queries = ["Trivial stabilizers in the fiber product imply representability of the projection.",
                 "Isomorphisms over codimension ≥2 open subsets extend uniquely for stacks with affine diagonal.",
                 "Points with trivial stabilizers under a good moduli space form an open subset.",
                 "Isomorphism in codimension ≥2 and S_2 implies equality of structure sheaves.",
@@ -48,7 +48,7 @@ latex_tokens_text = ["Trivial stabilizers in the fiber product imply representab
                 "Semistable locus via GIT realizes the DM substack.",
                 "Stable quasimaps to KSBA-type stacks admit proper DM compactifications."
                 ]
-latex_tokens = [
+theorems = [
     r"Let $f:\cX\to \cY$ and $g:\cZ\to \cY$ be morphisms of algebraic stacks, with $\cF:=\cX\times_\cY\cZ$. Let $x\in \cF$ such that $\Aut_{\cF}(x)=\{1\}$. Then $f$ is representable at $\pi_1(x)$, where $\pi_1:\cF\to \cX$ is the first projection.",
     r"Let $\cX$ be an algebraic stack with affine diagonal, let $S$ be an $S_2$ algebraic stack, and let $U\subset S$ an open subset with complement of codimension at least two. Assume we are given two morphisms $f,g: S\to \cX$ which are isomorphic when restricted on $U$. Then the isomorphism extends uniquely to $S$.",
     r"Let $\cX\to X$ a good moduli space, with $X$ separated. Then the set $\cS:=\{x\in X:\pi^{-1}(x)\to x$ is an isomorphism\} is open in $X$.",
@@ -61,6 +61,34 @@ latex_tokens = [
     r"Let $(\phi:\sC\to \cX,\Sigma_1,\ldots,\Sigma_n)$ be a stable quasimap of class $\beta$. Then the topological type of $C$, the number of stacky points of $\sC$ and the automorphism groups of the stacky points are bounded.",
     r"Assuming \Cref{assumptions:extension of line bundle}, there is a group $G'$, a character $\chi:G'\to \Gm$ and an action on $\bA^n$, such that there is a locally closed embedding $\iota:\cX\to [\bA^n/G']$ satisfying $\iota^{-1}([\bA^n(\Bbbk_\chi)^{ss}/G'])=\cX_\dm$.",
     r""" Set $\cX:=\cD\cP^{\CY}_m$ and $\cX_\dm=\cD\cP^{\operatorname{KSBA}}_m$. Then the assumptions of \Cref{teo_intro_cX_contains_open_proper_dm} apply for the inclusion $\cX_\dm\subseteq \cX$. In particular: \begin{enumerate} \item the stack $\cQ_g(\cX,\cX_\dm,\beta)$ compactifies the space of maps $\pi\colon(Y,cD)\to C$ with fibers in $\cX$ such that: \begin{itemize} \item[(Q)] the curve $C$ is smooth and the generic fiber of $\pi$ has klt singularities, \item[(S)] either $\omega_C$ is ample, or not all the fibers of $\pi$ are $S$-equivalent, \item[(N)] the family $\pi$ comes from a map $C\to \cX$ of class $\beta$ from a curve of genus $g$. \end{itemize} \item the boundary of $\cQ_g(\cX,\cX_\dm,\beta)$ parametrizes families $\pi:(\sY,c\sD)\to \sC$ of pairs in $\cX$ with fibers in $\cX$, fibered over a twisted curve $\sC$, such that: \begin{itemize} \item[(Q)] the set $\Delta:=\{p\in \sC:(\sY_p,(c+\epsilon)\sD_p)$ does \underline{not} have semi-log-canonical singularities for any $0<\epsilon \ll 1\}$ is a finite union of smooth points $\sC$, \item[(S)] if $\sR\subseteq \sC$ is an irreducible component such that $\deg(\omega_\sC |_\sR)< 0$, then not all the fibers of $\pi|_\sR\colon(\sY|_\sR,c\sD|_\sR)\to \sR$ are $S$-equivalent; whereas if $\deg(\omega_\sC |_\sR)=0$, then not all fibers of $\pi|_\sR$ are isomorphic, and \item[(N)] the family $\pi$ comes from a map $\sC\to \cX$ of class $\beta$ from a twisted curve of genus $g$. \end{itemize} \end{enumerate}""",
+]
+
+# Prompt:
+# "I would like you to give me accurate summary of each statement. It has to be accurate. Keep LaTeX notation to a minimum. Aim between 2 and 6 sentences for each. Make sure to include the relevant info that might be used to query the statement."
+slogans = [
+    "Given morphisms f: X → Y and g: Z → Y of algebraic stacks, form the fiber product F = X ×_Y Z. If a point x ∈ F has trivial automorphism group, then f is representable at the image π₁(x) ∈ X under the first projection. This means near x, f behaves like a morphism between algebraic spaces rather than stacks.",
+
+    "Let X be an algebraic stack with affine diagonal, and S an S₂ stack with an open subset U whose complement has codimension ≥ 2. If two morphisms f, g: S → X are isomorphic on U, the isomorphism extends uniquely to all of S. This gives an extension criterion for morphisms from S₂ stacks across codimension-two subsets.",
+
+    "For a good moduli space π: 𝓧 → X with X separated, the subset of points x ∈ X where the fiber π⁻¹(x) → x is an isomorphism is open in X. That is, points where the stack structure of 𝓧 trivializes form an open subset of the moduli space.",
+
+    "Let φ: 𝓧 → 𝓨 be a morphism between separated Deligne–Mumford stacks with coarse spaces X and Y such that X → Y is an isomorphism. Assume both stacks are S₂ and φ is an isomorphism over a dense open subset of 𝓨 with complement of codimension ≥ 2. Then O_𝓨 → φ_*O_𝓧 is an isomorphism, so φ is the relative coarse moduli space morphism.",
+
+    "If an algebraic stack 𝓧 → X has a dense open U ⊂ X where 𝓧 ×_X U is Deligne–Mumford, there exists a larger stack 𝓧̃ containing 𝓧 as an open substack. This 𝓧̃ has the same good moduli space X and carries a line bundle L_DM such that its semistable locus is Deligne–Mumford and proper over X. If 𝓧 is a global quotient, so is 𝓧̃. Moreover, a morphism π: 𝓧̃ → 𝓧 exists, restricting to an isomorphism over U. This construction yields proper DM compactifications used in defining quasimap moduli spaces.",
+
+    "Let S be a separated Deligne–Mumford stack of dimension 2 with finite quotient singularities, and let 𝓧 → X be a stack with a good moduli space. Given a diagram extending a map S\\{s} → 𝓧 compatible with a map S → X, there exists a unique S₂ Deligne–Mumford stack 𝓢 → S extending it. The morphism 𝓢 → S is a relative coarse moduli space, is representable, and is an isomorphism outside s. If S is smooth, then 𝓢 → S is globally an isomorphism.",
+
+    "The inclusion of the quasimap stack 𝓠_{g,n}(𝓧, 𝓧_DM) into the larger moduli stack 𝔔_{g,n}(𝓧, 𝓧_DM) is an open embedding. Hence, 𝓠_{g,n}(𝓧, 𝓧_DM) is an algebraic stack locally of finite type over the twisted curve moduli space 𝔐_{g,n}^{tw}.",
+
+    "Given a DVR R with generic point η, any n-marked stable quasimap over η admits a unique extension to a stable quasimap over Spec(R), possibly after a finite base change. This ensures the valuative criterion for properness of the quasimap moduli stack.",
+
+    "If the stack 𝓧 satisfies certain extension-of-line-bundle assumptions, the quasimap moduli stack 𝓠_{g,n}(𝓧, 𝓧_DM, β) is of finite type. Thus, the space of quasimaps of class β has bounded geometry and finitely many components.",
+
+    "For any stable quasimap (φ: C → 𝓧, Σ₁,…,Σₙ) of class β, the topological type of C, the number of stacky points, and their automorphism groups are bounded. This provides finiteness and boundedness properties essential for the moduli stack’s finite type.",
+
+    "Assuming the extension-of-line-bundle condition, there exist a group G′, a character χ: G′ → G_m, and an action on affine space Aⁿ giving a locally closed embedding 𝓧 → [Aⁿ/G′]. The inverse image of the semistable locus under this embedding corresponds exactly to 𝓧_DM. Hence, 𝓧 can be realized as a quotient stack fitting into a GIT-type presentation.",
+
+    "For 𝓧 = 𝓓𝓟_m^{CY} and its open substack 𝓧_DM = 𝓓𝓟_m^{KSBA}, the general construction of Theorem 1 applies. The quasimap stack 𝓠_g(𝓧, 𝓧_DM, β) compactifies families of maps π: (Y, cD) → C whose fibers lie in 𝓧, with conditions ensuring klt fibers (Q), stability or non-isotriviality (S), and correct numerical class (N). Its boundary parametrizes twisted families satisfying analogous conditions, describing degenerations where semi-log-canonical or S-equivalence behavior changes along special fibers."
 ]
 
 # not used at the moment
@@ -197,10 +225,10 @@ def ndcg_at_k(ranked, qrels, k=3):
     return float(np.mean(ndcgs))
 
 # ---------- main entry ----------
-def evaluate_retrieval(model, latex_texts, concept_texts, qrels, top_k_report=3):
+def evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3):
     # encode
-    l_emb = model.encode(latex_texts, convert_to_tensor=True)
-    c_emb = model.encode(concept_texts, convert_to_tensor=True)
+    l_emb = model.encode(theorems, convert_to_tensor=True)
+    c_emb = model.encode(queries, convert_to_tensor=True)
     sim_matrix = util.cos_sim(l_emb, c_emb).cpu().numpy()
 
     ranked = rank_concepts(sim_matrix)
@@ -222,8 +250,8 @@ def evaluate_retrieval(model, latex_texts, concept_texts, qrels, top_k_report=3)
         topk = order[:top_k_report]
         row = {
             "query_idx": qi,
-            "query": latex_texts[qi],
-            "topk": [(int(di), concept_texts[di], float(sims[di])) for di in topk],
+            "query": theorems[qi],
+            "topk": [(int(di), queries[di], float(sims[di])) for di in topk],
             "relevant_docs": sorted([(int(di), int(rel)) for di,rel in qrels.get(qi, {}).items()],
                                     key=lambda x: -x[1]),
         }
@@ -233,41 +261,45 @@ def evaluate_retrieval(model, latex_texts, concept_texts, qrels, top_k_report=3)
 #%%
 # Build graded qrels by text → text
 qrels = make_qrels_by_text(
-    latex_tokens_text, latex_tokens,
+    queries, theorems,
     {
         # 0
-        latex_tokens_text[0]: [(latex_tokens[0],3), (latex_tokens[2],2), (latex_tokens[5],1)],
+        queries[0]: [(theorems[0],3), (theorems[2],2), (theorems[5],1)],
         # 1
-        latex_tokens_text[1]: [(latex_tokens[1],3), (latex_tokens[3],2), (latex_tokens[2],1)],
+        queries[1]: [(theorems[1],3), (theorems[3],2), (theorems[2],1)],
         # 2
-        latex_tokens_text[2]: [(latex_tokens[2],3), (latex_tokens[0],2), (latex_tokens[10],1)],
+        queries[2]: [(theorems[2],3), (theorems[0],2), (theorems[10],1)],
         # 3
-        latex_tokens_text[3]: [(latex_tokens[3],3), (latex_tokens[1],2), (latex_tokens[2],1)],
+        queries[3]: [(theorems[3],3), (theorems[1],2), (theorems[2],1)],
         # 4
-        latex_tokens_text[4]: [(latex_tokens[4],3), (latex_tokens[10],2), (latex_tokens[11],1)],
+        queries[4]: [(theorems[4],3), (theorems[10],2), (theorems[11],1)],
         # 5
-        latex_tokens_text[5]: [(latex_tokens[5],3), (latex_tokens[7],2), (latex_tokens[0],1)],
+        queries[5]: [(theorems[5],3), (theorems[7],2), (theorems[0],1)],
         # 6
-        latex_tokens_text[6]: [(latex_tokens[6],3), (latex_tokens[8],2), (latex_tokens[9],1)],
+        queries[6]: [(theorems[6],3), (theorems[8],2), (theorems[9],1)],
         # 7
-        latex_tokens_text[7]: [(latex_tokens[7],3), (latex_tokens[5],2), (latex_tokens[4],1)],
+        queries[7]: [(theorems[7],3), (theorems[5],2), (theorems[4],1)],
         # 8
-        latex_tokens_text[8]: [(latex_tokens[8],3), (latex_tokens[6],2), (latex_tokens[9],1)],
+        queries[8]: [(theorems[8],3), (theorems[6],2), (theorems[9],1)],
         # 9
-        latex_tokens_text[9]: [(latex_tokens[9],3), (latex_tokens[8],2), (latex_tokens[6],1)],
+        queries[9]: [(theorems[9],3), (theorems[8],2), (theorems[6],1)],
         # 10
-        latex_tokens_text[10]: [(latex_tokens[10],3), (latex_tokens[4],2), (latex_tokens[6],1)],
+        queries[10]: [(theorems[10],3), (theorems[4],2), (theorems[6],1)],
         # 11
-        latex_tokens_text[11]: [(latex_tokens[11],3), (latex_tokens[4],2), (latex_tokens[10],1)],
+        queries[11]: [(theorems[11],3), (theorems[4],2), (theorems[10],1)],
     }
 )
 
-# Run the evaluator
+
+# Choose the embedder
 # model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
 # model_name = "google/embeddinggemma-300m"
 model_name = "Qwen/Qwen3-Embedding-0.6B" # Qwen3 0.6B is the best of three embedders
 model = load_model(model_name)
-metrics, per_query = evaluate_retrieval(model, latex_tokens_text, latex_tokens, qrels, top_k_report=3)
+
+# Choose whether to use slogans or theorems
+# metrics, per_query = evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3)
+metrics, per_query = evaluate_retrieval(model, slogans, theorems, qrels, top_k_report=3) # slogans perform much better than raw theorems
 
 # pretty-print metrics with 4 decimal places
 rounded_metrics = {k: float(f"{v:.4f}") for k, v in metrics.items()}
