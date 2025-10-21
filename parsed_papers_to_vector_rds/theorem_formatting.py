@@ -1,9 +1,19 @@
 from embeddings import embed_texts
+from openai import OpenAI
 
 def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     """
     Converts a parsed paper JSON into an embedding-ready string.
     """
+    prompt = "Suppose you are an expert in mathematics and Algebraic Geometry." \
+    "Your task is to rewrite a LaTeX description of a theorem into a succinct " \
+    "slogan that can accurately describe the theorem in 1-2 sentences with natural language" \
+    " (no TeX formulas). Please return the slogan you come up with in quotation marks"
+    with open("api_key.txt", "r") as f:
+        API_KEY = f.read().strip() # open ai key
+
+    client = OpenAI(api_key=API_KEY)
+
     global_notations = parsed_paper.get("global_notations", "")
     global_definitions = parsed_paper.get("global_definitions", "")
     global_assumptions = parsed_paper.get("global_assumptions", "")
@@ -28,9 +38,9 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
         "journal_ref": parsed_paper.get("journal_ref"),
         "primary_category": parsed_paper.get("primary_category"),
         "categories": parsed_paper.get("categories"),
-        "global_notations": [global_notations],
-        "global_definitions": [global_definitions],
-        "global_assumptions": [global_assumptions]
+        "global_notations": global_notations,
+        "global_definitions": global_definitions,
+        "global_assumptions": global_assumptions
     }
 
     theorem_embeddings = []
@@ -39,10 +49,17 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     for theorem in parsed_paper.get("theorems", []):
         texts_to_embed.append(theorem["content"])
 
+        print("Querying OpenAI...")
+        response = client.responses.create(
+            model="gpt-5",
+            input=prompt + "\n" + theorem.get("content")
+        )
+
         theorem_embeddings.append({
             "id": None,
             "paper_id": None,
             "theorem_name": theorem.get("type"),
+            "theorem_slogan": response.output_text,
             "theorem_body": theorem.get("content"),
             "embedding": None
         })
