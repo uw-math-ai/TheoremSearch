@@ -25,7 +25,7 @@ ALLOWED_TYPES = [
     "theorem", "lemma", "proposition", "corollary", "definition", "remark", "assumption"
 ]
 
-# The mock data is updated to use a type from the allowed list.
+# The mock data is updated to include a journal publication status for arXiv papers.
 MOCK_THEOREMS_DATA = [
     {
         "paper_title": "On Thom Spectra, Orientability, and Cobordism",
@@ -36,6 +36,7 @@ MOCK_THEOREMS_DATA = [
         "type": "Theorem",
         "year": 1997,
         "source": "arXiv",
+        "journal_published": True,
         "content": r"The cobordism ring $\Omega_n(X)$ is naturally isomorphic to the $n$-th stable homotopy group of the Thom spectrum $MT(X)$. That is, $\Omega_n(X) \cong \pi_n^{S}(MT(X))$",
         "global_context": "**Global Notations:**\nLet $X$ be a topological space and $V \to X$ be a vector bundle."
     },
@@ -48,6 +49,7 @@ MOCK_THEOREMS_DATA = [
         "type": "Definition",
         "year": 2022,
         "source": "arXiv",
+        "journal_published": False,
         "content": r"For any link $L$, the Jones polynomial $V(L)$ is a Laurent polynomial in the variable $t^{1/2}$ with integer coefficients, characterized by the skein relation $t^{-1}V(L_+) - tV(L_-) = (t^{1/2} - t^{-1/2})V(L_0)$.",
         "global_context": "**Global Notations:**\nLet $V(L)$ be the Jones polynomial of a link $L$."
     },
@@ -60,6 +62,7 @@ MOCK_THEOREMS_DATA = [
         "type": "Proposition",
         "year": 1994,
         "source": "arXiv",
+        "journal_published": True,
         "content": r"Let $D$ be a Dirac operator on a compact Riemannian manifold $M$. Then the heat kernel $e^{-tD^2}$ admits an asymptotic expansion as $t \to 0^+$.",
         "global_context": "**Global Definitions:**\nA Dirac operator is a first-order differential operator whose square is a generalized Laplacian."
     },
@@ -69,7 +72,7 @@ MOCK_THEOREMS_DATA = [
         "authors": ["Aise Johan de Jong (Editor)"],
         "citations": 5000,
         "primary_math_tag": "Schemes",
-        "type": "Remark", # Changed from "Tag" to "Remark"
+        "type": "Remark",
         "year": 2023,
         "source": "Stacks Project",
         "content": r"An open source textbook and reference work on algebraic geometry. Its goal is to build up algebraic geometry from basic definitions to the research frontier.",
@@ -116,7 +119,6 @@ def search_and_display_mockup(query, filters):
     # 1. Filter the mock data based on all sidebar selections
     filtered_results = []
     for item in MOCK_THEOREMS_DATA:
-        # Check against each filter. `not filters[...]` handles empty filter selections.
         type_match = not filters['types'] or item['type'].lower() in filters['types']
         tag_match = not filters['tags'] or item['primary_math_tag'] in filters['tags']
         author_match = not filters['authors'] or any(author in item['authors'] for author in filters['authors'])
@@ -127,7 +129,14 @@ def search_and_display_mockup(query, filters):
         if filters['year_range'] and item['source'] == 'arXiv':
             year_match = filters['year_range'][0] <= item['year'] <= filters['year_range'][1]
 
-        if all([type_match, tag_match, author_match, source_match, year_match, citation_match]):
+        journal_match = True
+        if item['source'] == 'arXiv':
+            if filters['journal_status'] == "Journal Article":
+                journal_match = item.get('journal_published', False)
+            elif filters['journal_status'] == "Preprint Only":
+                journal_match = not item.get('journal_published', False)
+
+        if all([type_match, tag_match, author_match, source_match, year_match, citation_match, journal_match]):
             filtered_results.append({
                 "info": item,
                 "similarity": random.uniform(0.75, 0.98)
@@ -176,7 +185,7 @@ st.success(f"Displaying {len(MOCK_THEOREMS_DATA)} mock theorems. Ready for UI te
 with st.sidebar:
     st.header("Search Filters")
 
-    # STEP 1: Display ONLY the source filter initially. It starts empty by default.
+    # STEP 1: Display ONLY the source filter initially.
     all_sources = sorted(list(AVAILABLE_TAGS.keys()))
     selected_sources = st.multiselect(
         "Filter by Source(s):",
@@ -185,11 +194,11 @@ with st.sidebar:
     )
 
     # Initialize all filter variables with default values.
-    # This ensures the `filters` dictionary can be built even if no source is selected.
     selected_authors = []
     selected_types = []
     selected_tags = []
     year_range = None
+    journal_status = "All"
     citation_range = (0, 1000000)
     top_k_results = 5
 
@@ -211,11 +220,16 @@ with st.sidebar:
         tags_to_display = sorted(list(set(tags_to_display)))
         selected_tags = st.multiselect("Filter by Math Tag/Category:", tags_to_display)
 
-        # Conditional Year Filter (only appears for arXiv)
+        # Conditional Filters for arXiv
         if 'arXiv' in selected_sources:
             year_range = st.slider(
                 "Filter by Year (for arXiv):",
                 min_value=1991, max_value=2025, value=(1991, 2025)
+            )
+            journal_status = st.radio(
+                "Publication Status (for arXiv):",
+                ["All", "Journal Article", "Preprint Only"],
+                horizontal=True,
             )
 
         # Other Filters
@@ -225,14 +239,14 @@ with st.sidebar:
         )
         top_k_results = st.slider("Number of results to display:", 1, 20, 5)
 
-# Build the filters dictionary from the variables, which will either have user-selected
-# values or the initial default values.
+# Build the filters dictionary from the variables
 filters = {
     "authors": selected_authors,
-    "types": selected_types,
+    "types": [t.lower() for t in selected_types],
     "tags": selected_tags,
     "sources": selected_sources,
     "year_range": year_range,
+    "journal_status": journal_status,
     "citation_range": citation_range,
     "top_k": top_k_results
 }
