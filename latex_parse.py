@@ -9,10 +9,10 @@ from patterns import *
 
 # TODO:
 #   more regex for different versions of macros:
-#       \providecommand, \DeclareRobustCommand, 
-#       \DeclareMathOperator, \NewDocumentCommand,
+#       \NewDocumentCommand, will require its own method
 #   \renew commands
 #   \input from other files in TeX source
+#   remove newlines from theorem statements
 
 
 def _scanner(pat: Pattern, data: str, ) -> list:
@@ -83,17 +83,49 @@ def alias_handling(data: str) -> str:
 
 def macro_handling(data: str) -> str:
     """
-    Translates user-defined macros back into their raw TeX definitions
-    (See: TeX \\newcommand and its derivatives)
+    Translates user-defined \\def macros (a LaTeX primitive) back into their raw LaTeX definitions
     """
     translation = {}
+
+    data = operator_handling(data) # replace dec. math operators
+
     macros = _scanner(NEWCOMMAND, data)
 
     for item in macros:
-        translation[item.group(1)] = item.group(2)
+        params = int(item.group('num_args') or "0")
+        translation[item.group('name_braced')] = (params, item.group('body'))
 
     for key in sorted(translation.keys(), key=len, reverse=True):
-        data = data.replace(key, translation[key])
+        assemble = regex.escape(rf"{key}") + r"(?:(?=[^A-Za-z@])|(?=\s*\{))"
+        assemble = assemble + "".join(
+            fr"\s*\{{(?P<arg_{i}>[^{{}}]*)\}}"   # capture anything not { or }
+            for i in range(1, translation[key][0]+1)
+        )
+        captures = _scanner(assemble, data)
+        
+        for item in captures:
+            new_cmd = translation[key][1]
+            old_cmd = regex.escape(rf"{key}") + r"(?:(?=[^A-Za-z@])|(?=\s*\{))"
+            for j in range(len(item.groups())):
+                old_cmd += r"\s*\{" + regex.escape(item.group(j+1)) + r"\}"
+                new_cmd = new_cmd.replace(rf"#{j+1}", item.group(j+1))
+            data = regex.sub(old_cmd, lambda _m: new_cmd, data)
+    return data
+
+
+def operator_handling(data: str) -> str:
+    """
+    Replaces operator Commands with raw text
+    (See: TeX \\DeclareMathOperator)
+    """
+    translation = {}
+    macros = _scanner(NEWMATHOPERATOR, data)
+
+    for item in macros:
+        translation[item.group('cmd')] = item.group('text')
+
+    for key in sorted(translation.keys(), key=len, reverse=True):
+        data = data.replace(key, r"\text{" + translation[key] + r"}")
     return data
 
 
@@ -223,11 +255,29 @@ def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms
 
     # parse and add to lists
     theorems = _scanner(STATEMENTBODY, data)
-    print(len(theorems), len(num_thms))
+
+    labeled_thms = grab_labels(theorems)
+
     for i in range(len(num_thms)):
-        res.append((num_thms[i], theorems[i].group(0)))
+        res.append((num_thms[i],) + labeled_thms[i])
     for i in range(len(theorems) - len(num_thms)):
-        res.append((app_thms[i], theorems[i].group(0)))
+        res.append((app_thms[i],) + labeled_thms[i + len(num_thms)])
+    return res
+
+
+def grab_labels(theorems: regex.Scanner) -> list:
+    """
+    Extracts labels from theorem statements when present
+    """
+    res = []
+    for item in theorems:
+        t = item.group(0)
+        label = regex.search(NEWLABEL, t)
+        if label and (lbl := label.group('label')):
+            t = t.replace(r"\label{" + lbl + r"}", "")
+            res.append((t, lbl))
+        else:
+            res.append((t, None))
 
     return res
 
@@ -295,6 +345,6 @@ if __name__ == "__main__":
 
     x = extract(args.filepath)
 
-    data = [{"theorem": thm, "body": body} for thm, body in x]
+    data = [{"theorem": thm, "body": body, "label": label} for thm, body, label in x]
     with open(output.replace('.tex', '.json'), 'w') as f:
         json.dump(data, f, indent=4) # minor note: '\' gets printed as '\\' in json

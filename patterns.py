@@ -4,23 +4,6 @@ from typing import Pattern, Dict
 def _c(rx: str, flags=0) -> Pattern[str]:
     return regex.compile(rx, flags | regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
 
-# captures macro commands
-NEWCOMMAND: Pattern[str] = r"""
-\\newcommand\*?
-\s*\{(?P<name>\\[A-Za-z@]+)\}
-\s*(?:\[\d+\])?
-\s*(?:\[[^\]]*\])?
-\s*\{
-  (?P<body>
-    (?:
-      [^{}]
-      |
-      \{(?P>body)\}
-    )*
-  )
-\}
-"""
-
 # captures theorem commands
 NEWTHEOREM: Pattern[str] = r"""
 \\newtheorem(?P<star>\*)?           # optional * captured as 'star'
@@ -140,87 +123,49 @@ NEWMATHOPERATOR = r"""
     \}
     """
 
-NEWPROVIDECOMMAND = r"""
-    \\(?P<op>providecommand\*?)                    # \providecommand or \providecommand*
-    (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)          # gaps/comments
-
-    \{                                             # { \cmd }
-      (?P<cmd>\\[A-Za-z@]+)                        #   control word name
-    \}
-    (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)          # gaps/comments
-
-    # Optional [nargs]
-    (?:\[
-        (?P<nargs>[1-9])                           #   number of arguments (1..9)
-      \]
-      (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)        #   gaps/comments
-    )?
-
-    # Optional [default] (only meaningful if nargs >= 1, but we don't enforce here)
-    (?:\[
-        (?P<default>
-          (?:
-            [^\[\]]+                               #   anything but [ or ]
-            | \{ (?:(?:[^{}]+)|\{(?0)\})* \}       #   allow balanced {...} inside default
-          )*?
-        )
-      \]
-      (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)        #   gaps/comments
-    )?
-
-    \{                                             # { body }
-      (?P<body>
-        (?:
-          [^{}]+
-          | \{ (?P>body) \}                        # recursive for balanced braces
-        )*
-      )
-    \}
-    """
-
-NEWROBUSTCOMMAND = r"""
-    \\(?P<op>DeclareRobustCommand\*?)                    # \providecommand or \providecommand*
-    (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)          # gaps/comments
-
-    \{                                             # { \cmd }
-      (?P<cmd>\\[A-Za-z@]+)                        #   control word name
-    \}
-    (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)          # gaps/comments
-
-    # Optional [nargs]
-    (?:\[
-        (?P<nargs>[1-9])                           #   number of arguments (1..9)
-      \]
-      (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)        #   gaps/comments
-    )?
-
-    # Optional [default] (only meaningful if nargs >= 1, but we don't enforce here)
-    (?:\[
-        (?P<default>
-          (?:
-            [^\[\]]+                               #   anything but [ or ]
-            | \{ (?:(?:[^{}]+)|\{(?0)\})* \}       #   allow balanced {...} inside default
-          )*?
-        )
-      \]
-      (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)        #   gaps/comments
-    )?
-
-    \{                                             # { body }
-      (?P<body>
-        (?:
-          [^{}]+
-          | \{ (?P>body) \}                        # recursive for balanced braces
-        )*
-      )
-    \}
-    """
-
 NEWALIASCNT = r'''\\newaliascnt\s*{\s*([A-Za-z@]+)\s*}\s*{\s*([A-Za-z@]+)\s*}'''
 STATEMENTBODY = r"(?<=\\begin\{theorem\}).*?(?=\\end\{theorem\})"
 NEWSECTION = r"\\section\{([^}]*)\}"
 NEWINPUT = r""
 NEWINCLUDE = r""
+
+NEWCOMMAND: Pattern[str] = r"""
+    \\(?P<cmd>newcommand|providecommand|DeclareRobustCommand)
+    (?P<star>\*)?                       # \newcommand or \newcommand*
+    (?:\s|%[^\n]*\n)*                               # whitespace/comments
+
+    # Command name: either {\foo} or \foo
+    (?:
+        \{(?P<name_braced>\\[A-Za-z@]+)\}           # {\foo}
+      | (?P<name_unbraced>\\[A-Za-z@]+)             # \foo
+    )
+    (?:\s|%[^\n]*\n)*
+
+    # Optional [n] number of arguments
+    (?:\[(?P<num_args>\d+)\])?
+    (?:\s|%[^\n]*\n)*
+
+    # Optional [default] (only meaningful if num_args >= 1; we don't enforce here)
+    (?:\[(?P<default>[^\[\]\{\}]*)\])?
+    (?:\s|%[^\n]*\n)*
+
+    # Definition body with balanced/nested braces
+    \{
+        (?P<body>
+            (?:
+                [^{}]                               # any non-brace
+              | \{(?P>body)\}                       # recursively match nested {...}
+            )*
+        )
+    \}
+    """
+
+
+NEWLABEL = regex.compile(r"""
+\\label                             # match literal \label
+\s*                                 # optional whitespace
+\{(?P<label>[^{}]+)\}               # capture everything inside {...} as 'label'
+""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
 
 def SPECIFICTHEOREM(name: str) -> Pattern[str]:
     name = regex.escape(name) # distinguishes between "theorem" and "theorem*"
@@ -233,4 +178,4 @@ __all__ = ["NEWTHEOREM", "NEWCOMMAND", "NEWENVIRONMENT",
            "NEWALIASCNT", "SPECIFICTHEOREM", "NEWSECTION", 
            "STATEMENTBODY", "NEWINPUT", "NEWINCLUDE",
            "NEWDEF", "NEWLET", "NEWMATHOPERATOR",
-           "NEWPROVIDECOMMAND", "NEWROBUSTCOMMAND"]
+           "NEWLABEL"]
