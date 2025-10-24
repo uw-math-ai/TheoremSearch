@@ -1,14 +1,22 @@
 from embeddings import embed_texts
-from openai import OpenAI
-import os
+from slogans import generate_theorem_slogans
 
-def get_theorem_metadata_and_embeddings(parsed_paper: dict):
+def get_theorem_metadata_and_embeddings(parsed_paper: dict) -> tuple[dict, list[dict]]:
     """
-    Converts a parsed paper JSON into an embedding-ready string.
-    """
-    prompt = "I would like you to give me accurate summary of the statement. It has to be accurate. Keep LaTeX notation to a minimum. Aim between 2 and 6 sentences for each. Make sure to include the relevant info that might be used to query the statement."
+    Converts a parsed paper JSON into RDS-ready paper metadata and theorem embeddings.
 
-    client = OpenAI(api_key=os.getenv("OPENAI_KEY"))
+    Parameters
+    ----------
+    parsed_paper: dict
+        JSON object describing a paper's metadata and its theorems
+
+    Returns
+    -------
+    theorem_metadata: dict
+        RDS-ready objects describing the paper's metadata
+    theorem_embeddings: list[dict]
+        RDS-ready list of objects describing a theorem
+    """
 
     global_notations = parsed_paper.get("global_notations", "")
     global_definitions = parsed_paper.get("global_definitions", "")
@@ -25,7 +33,7 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     global_context = "\n\n".join(global_context_parts)
 
     theorem_metadata = {
-        "paper_id": None,
+        # "paper_id": None,
         "title": parsed_paper.get("title"),
         "authors": parsed_paper.get("authors", []),
         "link": parsed_paper.get("url"),
@@ -40,35 +48,28 @@ def get_theorem_metadata_and_embeddings(parsed_paper: dict):
     }
 
     theorem_embeddings = []
-    texts_to_embed = []
+    theorems = []
 
-    print(" > Creating theorem slogans")
-
-    for i, theorem in enumerate(parsed_paper.get("theorems", [])):
-        print(f"    > Working on theorem {i+1}'s slogan")
-
-        texts_to_embed.append(theorem["content"])
-        response = client.responses.create(
-            model="gpt-5",
-            input=[
-                {"role": "user", "content": prompt + "\n" + theorem.get("content")}
-            ]
-        )
+    for theorem in parsed_paper.get("theorems", []):
+        theorems.append(theorem["content"])
 
         theorem_embeddings.append({
-            "id": None,
-            "paper_id": None,
+            # "id": None,
+            # "paper_id": None,
             "theorem_name": theorem.get("type"),
-            "theorem_slogan": response.output_text,
+            "theorem_slogan": None,
             "theorem_body": theorem.get("content"),
             "embedding": None
         })
 
+    print(" > Creating theorem slogans")
+    slogans = generate_theorem_slogans(theorems, global_context)
+
     print(" > Creating theorem embeddings")
+    embeddings = embed_texts(slogans)
 
-    embeddings = embed_texts(texts_to_embed)
-
-    for theorem_embedding, embedding in zip(theorem_embeddings, embeddings):
+    for theorem_embedding, slogan, embedding in zip(theorem_embeddings, slogans, embeddings):
+        theorem_embedding["theorem_slogan"] = slogan
         theorem_embedding["embedding"] = embedding
 
     return theorem_metadata, theorem_embeddings
