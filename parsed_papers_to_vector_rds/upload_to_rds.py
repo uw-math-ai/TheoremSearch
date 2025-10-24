@@ -1,3 +1,7 @@
+"""
+Script to upload parsed paper theorem metadata and embeddings into the AWS RDS databse.
+"""
+
 from theorem_formatting import get_theorem_metadata_and_embeddings
 import json
 from rds import get_rds_connection, upload_theorem_metadata_and_embeddings

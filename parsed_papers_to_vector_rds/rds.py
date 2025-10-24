@@ -5,6 +5,15 @@ import boto3
 from psycopg2.extensions import connection
 
 def get_rds_connection() -> connection:
+    """
+    Provides a connection to the AWS RDS database.
+
+    Returns
+    -------
+    conn: connection
+        Connection to the RDS database
+    """
+
     region = os.getenv("AWS_REGION", "us-west-2")
     secret_arn = os.getenv("RDS_SECRET_ARN")
     host = os.getenv("RDS_HOST", "")
@@ -30,6 +39,19 @@ def upload_theorem_metadata_and_embeddings(
     theorem_metadata: dict,
     theorem_embeddings: list[dict]
 ):
+    """
+    Uploads theorem metadata and embeddings to the AWS RDS database.
+
+    Parameters
+    ----------
+    conn: connection
+        Connection to a RDS database
+    theorem_metadata: dict
+        RDS-ready objects describing the paper's metadata
+    theorem_embeddings: list[dict]
+        RDS-ready list of objects describing a theorem
+    """
+
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO theorem_metadata
