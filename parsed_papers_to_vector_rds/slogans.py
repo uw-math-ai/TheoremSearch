@@ -17,7 +17,7 @@ class Slogan(BaseModel):
 class TheoremSlogans(BaseModel):
     slogans: List[Slogan]
 
-def _chunks(items, batch_size=4):
+def _chunks(items, batch_size=10):
     for i in range(0, len(items), batch_size):
         yield items[i:i+batch_size]
 
@@ -64,21 +64,39 @@ def _generate_theorem_slogans_batch(client, theorem_batch, global_context: str) 
 def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[str]:
     id_to_slogan = {}
     
-    theorems_list = [
+    theorems_left = [
         {
             "id": str(i),
             "theorem": theorem
         }
         for i, theorem in enumerate(theorems)
     ]
-    theorem_batches = list(_chunks(theorems_list, batch_size=6))
 
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        futs = {
-            ex.submit(_generate_theorem_slogans_batch, client, batch, global_context)
-            for batch in theorem_batches
-        }
-        for fut in as_completed(futs):
-            id_to_slogan.update(fut.result())
+    retries = 0
+
+    while True:
+        if not theorems_left:
+            break
+        if retries > 4:
+            raise ValueError()
+
+        retries += 1
+
+        theorem_batches = list(_chunks(theorems_left, batch_size=6))
+
+        with ThreadPoolExecutor(max_workers=5) as ex:
+            futs = {
+                ex.submit(_generate_theorem_slogans_batch, client, batch, global_context)
+                for batch in theorem_batches
+            }
+            for fut in as_completed(futs):
+                id_to_slogan.update(fut.result())
+
+        theorems_left_orig = theorems_left.copy()
+        theorems_left = []
+
+        for theorem_left in theorems_left_orig:
+            if theorem_left["id"] not in id_to_slogan:
+                theorems_left.append(theorem_left)
 
     return [id_to_slogan[str(i)] for i in range(len(theorems))]

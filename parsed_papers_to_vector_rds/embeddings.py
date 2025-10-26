@@ -4,6 +4,9 @@ Helpers for embeddings texts into vectors.
 
 from sentence_transformers import SentenceTransformer
 import torch
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module='tqdm')
 
 def _get_embedder():
     return SentenceTransformer("math-similarity/Bert-MLM_arXiv-MP-class_zbMath")
@@ -24,6 +27,7 @@ def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
     """
 
     embedder = _get_embedder()
+
     with torch.no_grad():
         all_embeddings = embedder.encode(
             texts_to_embed,
