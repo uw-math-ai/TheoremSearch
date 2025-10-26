@@ -2,71 +2,83 @@
 Helpers for converting theorems into slogans.
 """
 
-from openai import OpenAI
-import os
+import os, json
 from typing import List
-from pydantic import BaseModel
-import json
+from google import genai
+from pydantic import BaseModel, Field
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+class Slogan(BaseModel):
+    id: str = Field(..., description="ID of the theorem")
+    summary: str = Field(..., description="<= 4 sentence ASCII brief summary")
 
 class TheoremSlogans(BaseModel):
-    slogans: List[str]
+    slogans: List[Slogan]
 
-def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[str]:
-    """
-    Converts a list of theorems and global_context into a list of accurate theorem slogans.
+def _chunks(items, batch_size=4):
+    for i in range(0, len(items), batch_size):
+        yield items[i:i+batch_size]
 
-    Parameters
-    ----------
-    theorems: List[str]
-        A list of theorem strings
-    global_context: str
-        A string describing notations, definitions, and assumptions shared across theorems.
+def _generate_theorem_slogans_batch(client, theorem_batch, global_context: str) -> List[str]:
+    theorems_json = {
+        "theorems": theorem_batch
+    }
     
-    Returns
-    -------
-    slogans: List[str]
-        A list of theorem slogans matching the length of theorems
-
-    Raises
-    ----------
-        ValueError: If generated slogans list length doesn't match theorems list length
-    """
-    
-    SYSTEM_MSG = (
-        "You generate accurate summaries of all theorems. "
-        "Summaries must be accurate and between 2-6 sentences. "
-        "No formatting, just provide sentences. "
-        "Keep LaTeX notation to a minimum, but never use unicode. "
-        "You ensure relevant info is included that might be used to query the theorem. "
+    PROMPT = (
+        "You generate accurate summaries of math theorems. "
+        "Your summaries must be accurate, brief, and <= 4 sentences. "
+        "Summaries have no formatting, just sentences in ASCII with no Unicode. "
+        "Describe but never reference the theorems with 'This theorem...' or similar. "
+        "Keep LateX minimal. Include identifiers that aid retrieval. "
+        "Summaries output must correspond with theorems input by ID.\n"
+        "---\n"
+        "**Input Theorems JSON:**\n"
+        f"{json.dumps(theorems_json)}"
     )
 
-    USER_INSTRUCTIONS = (
-        "Return only JSON matching the schema. "
-        "Input is a list of thorems. "
-        "Please reference the global context and other theorems when making theorem slogans. "
-    )
+    try:
+        res = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=PROMPT,
+            config={
+                "response_mime_type": "application/json",
+                "response_schema": TheoremSlogans
+            }
+        )
+        
+        slogans_json = res.parsed
+    except Exception as e:
+        print(f"An error occured: {e}")
 
-    user_input = {
-        "instructions": USER_INSTRUCTIONS,
-        "global_context": global_context,
-        "theorems": theorems
+        return []
+    
+    id_to_slogan = {
+        slogan_with_id.id: slogan_with_id.summary
+        for slogan_with_id in slogans_json.slogans
     }
 
-    res = client.responses.parse(
-        model="gpt-5-mini",
-        temperature=0,
-        text_format=TheoremSlogans,
-        input=[
-            {"role": "system", "content": SYSTEM_MSG},
-            {"role": "user", "content": json.dumps(user_input)}
-        ]
-    )
+    return id_to_slogan
 
-    slogans = res.output_parsed.slogans
+def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[str]:
+    id_to_slogan = {}
+    
+    theorems_list = [
+        {
+            "id": str(i),
+            "theorem": theorem
+        }
+        for i, theorem in enumerate(theorems)
+    ]
+    theorem_batches = list(_chunks(theorems_list, batch_size=6))
 
-    if len(slogans) != len(theorems):
-        raise ValueError(f"Slogans length ({len(slogans)}) != theorems length ({len(theorems)})")
-        
-    return slogans
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        futs = {
+            ex.submit(_generate_theorem_slogans_batch, client, batch, global_context)
+            for batch in theorem_batches
+        }
+        for fut in as_completed(futs):
+            id_to_slogan.update(fut.result())
+
+    return [id_to_slogan[str(i)] for i in range(len(theorems))]
