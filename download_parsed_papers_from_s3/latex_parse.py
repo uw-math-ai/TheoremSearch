@@ -1,6 +1,6 @@
 import regex
 import bisect
-import theorem_forms
+import theorem_forms as theorem_forms
 import json
 import argparse
 import os
