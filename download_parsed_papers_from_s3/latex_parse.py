@@ -1,6 +1,6 @@
 import regex
 import bisect
-import theorem_forms as theorem_forms
+import theorem_forms
 import json
 import argparse
 import os
@@ -273,7 +273,7 @@ def grab_labels(theorems: regex.Scanner) -> list:
     for item in theorems:
         h += 1
         t = item.group(0)
-        t = t[15:-15]
+        t = t[15:-13] # removes \begin{theorem} and \end{theorem}
         label = regex.search(NEWLABEL, t)
         if label and (lbl := label.group('label')):
             t = t.replace(r"\label{" + lbl + r"}", "")
