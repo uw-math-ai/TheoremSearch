@@ -37,8 +37,14 @@ def download_and_parse_papers(
 
         tar_out = local_paper_path.replace(".tar.gz", "")
 
-        with tarfile.open(local_paper_path, "r:gz") as tar:
-            tar.extractall(path=tar_out)
+        # extract from tar.gz or gzip
+        try:
+            with tarfile.open(local_paper_path, "r:*") as tar:
+                tar.extractall(path=tar_out)
+        except:
+            with gzip.open(local_parsed_paper_path, "rb") as f_in, open(tar_out, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+                
         file = find_main_tex_file(tar_out)
 
         if file is None:
@@ -46,6 +52,9 @@ def download_and_parse_papers(
         
         with open(file, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
+            # remove any commented out imports
+            content = regex.sub(r"(?<!\\)%.*", "", content)
+            content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', content, flags=regex.DOTALL)
 
         import_appends = collect_imports("", tar_out, content, NEWINPUT)
         import_appends = collect_imports(import_appends, tar_out, content, NEWUSEPACKAGE)
