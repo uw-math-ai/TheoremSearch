@@ -8,6 +8,7 @@ def get_paper_metadata(paper_id: str):
     result = next(arxiv.Client().results(arxiv.Search(id_list=[paper_id])))
 
     return {
+        "paper_id": result.entry_id.split("/")[-1],
         "title": result.title,
         "authors": [author.name for author in result.authors],
         "link": result.entry_id,
