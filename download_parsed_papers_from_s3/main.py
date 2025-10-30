@@ -3,6 +3,7 @@ import os
 import tarfile
 import json
 import shutil
+import gzip
 from patterns import *
 from tex_files import find_main_tex_file, collect_imports
 from latex_parse import extract
