@@ -11,3 +11,4 @@
 downloaded_sources/
 parsed_papers/
 !requirements.txt
+*pyc
