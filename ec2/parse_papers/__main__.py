@@ -97,6 +97,10 @@ def parse_papers(
                         paper_id, name, body, label
                     )
                     VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (paper_id, name) DO UPDATE
+                    SET 
+                        body = EXCLUDED.body,
+                        label = EXCLUDED.label;
                 """, (
                     paper_id,
                     theorem_metadata.get("name"),
