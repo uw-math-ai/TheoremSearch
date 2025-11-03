@@ -11,43 +11,19 @@ _MATH_ENVS = [
 def _fix_truncated_end_braces(s: str) -> str:
     return re.sub(r'(\\end\{[A-Za-z]+(?:\*)?)(?=\s|$)', r'\1}', s)
 
-def _close_unclosed_envs(s: str) -> str:
-    token = re.compile(
-        r'\\begin\{(?P<b_env>[A-Za-z]+)(?P<b_star>\*)?\}'
-        r'|\\end\{(?P<e_env>[A-Za-z]+)(?P<e_star>\*)?}?',
-        re.DOTALL
-    )
-
-    stack = []
-    for m in token.finditer(s):
-        if m.group('b_env'):
-            env = m.group('b_env')
-            star = m.group('b_star') or ''
-            if env in _MATH_ENVS:
-                stack.append((env, star))
-        else:
-            env = m.group('e_env')
-            star = m.group('e_star') or ''
-            if stack and stack[-1] == (env, star):
-                stack.pop()
-
-    if not stack:
-        return s
-
-    # Append missing delimiters in reverse order
-    closers = ''.join(f'\n\\end{{{env}{star}}}' for env, star in reversed(stack))
-    return s + closers
-
 def _balance_math_fences(s: str) -> str:
+    # {}
+    if len(re.findall(r'\{', s)) > len(re.findall(r'\}', s)):
+        s = s.rstrip() + r'\}'
     # $$ blocks
-    if s.count('$$') % 2 == 1:
-        s = s.rstrip() + '\n$$'
+    if s.count('$') % 2 == 1:
+        s = s.rstrip() + r'$'
     # \[ \]
-    if len(re.findall(r'\\\[', s)) > len(re.findall(r'\\\]', s)):
-        s = s.rstrip() + '\n\\]'
+    if len(re.findall(r'\[', s)) > len(re.findall(r'\]', s)):
+        s = s.rstrip() + r']'
     # \( \)
-    if len(re.findall(r'\\\(', s)) > len(re.findall(r'\\\)', s)):
-        s = s.rstrip() + '\\)'
+    if len(re.findall(r'\(', s)) > len(re.findall(r'\)', s)):
+        s = s.rstrip() + r')'
 
     return s
 
@@ -56,9 +32,6 @@ def _repair_unbalanced_math(text: str) -> str:
     text = text.replace('\r\n', '\n').replace('\r', '\n')
     # fix truncated \end{env
     text = _fix_truncated_end_braces(text)
-    text = text + "]"
-    # append closing \end{...} for any unclosed math envs we care about
-    text = _close_unclosed_envs(text)
     # make sure $$ / \[ / \( are closed
     text = _balance_math_fences(text)
     return text
