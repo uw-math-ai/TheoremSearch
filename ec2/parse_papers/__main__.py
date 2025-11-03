@@ -52,10 +52,11 @@ def parse_papers(
 
         try:
             theorems = extract(paper_content, import_appends)
+
+            paper_metadata = get_paper_metadata(paper_id)
         except Exception as e:
             continue
-
-        paper_metadata = get_paper_metadata(paper_id)
+        
         theorem_metadatas = [
             {
                 "name": thm,
