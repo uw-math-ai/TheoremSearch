@@ -55,12 +55,13 @@ def upload_theorem_metadata_and_embeddings(
     with conn.cursor() as cur:
         cur.execute("""
             INSERT INTO theorem_metadata
-                (title, authors, link, last_updated, summary,
+                (paper_id, title, authors, link, last_updated, summary,
                  journal_ref, primary_category, categories,
                  global_notations, global_definitions, global_assumptions)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            RETURNING paper_id;
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            ON CONFLICT (paper_id) DO NOTHING;
         """, (
+            theorem_metadata.get("paper_id"),
             theorem_metadata.get("title"),
             theorem_metadata.get("authors"),
             theorem_metadata.get("link"),
@@ -73,8 +74,6 @@ def upload_theorem_metadata_and_embeddings(
             theorem_metadata.get("global_definitions"),
             theorem_metadata.get("global_assumptions"),
         ))
-
-        paper_id = cur.fetchone()[0]
         
         for th in theorem_embeddings:
             cur.execute("""
@@ -82,7 +81,7 @@ def upload_theorem_metadata_and_embeddings(
                     (paper_id, theorem_name, theorem_slogan, theorem_body, embedding)
                 VALUES (%s, %s, %s, %s, %s);
             """, (
-                paper_id,
+                theorem_metadata.get("paper_id"),
                 th.get("theorem_name"),
                 th.get("theorem_slogan"),
                 th.get("theorem_body"),

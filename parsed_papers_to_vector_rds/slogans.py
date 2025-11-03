@@ -2,13 +2,15 @@
 Helpers for converting theorems into slogans.
 """
 
-import os, json
+import json
 from typing import List
-from google import genai
 from pydantic import BaseModel, Field
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import instructor
+from litellm import completion
+import time
 
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+client = instructor.from_litellm(completion)
 
 class Slogan(BaseModel):
     id: str = Field(..., description="ID of the theorem")
@@ -32,27 +34,30 @@ def _generate_theorem_slogans_batch(client, theorem_batch, global_context: str) 
         "Summaries have no formatting, just sentences in ASCII with no Unicode. "
         "Describe but never reference the theorems with 'This theorem...' or similar. "
         "Keep LateX minimal. Include identifiers that aid retrieval. "
-        "Summaries output must correspond with theorems input by ID.\n"
-        "---\n"
-        "**Input Theorems JSON:**\n"
-        f"{json.dumps(theorems_json)}"
+        "Summaries output must correspond with theorems input by ID"
     )
 
     try:
-        res = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=PROMPT,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": TheoremSlogans
-            }
+        res = client.chat.completions.create(
+            model="deepseek/deepseek-chat",
+            response_model=TheoremSlogans,
+            messages=[
+                {
+                    "role": "user",
+                    "content": PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": json.dumps(theorems_json)
+                }
+            ]
         )
         
-        slogans_json = res.parsed
+        slogans_json = res
     except Exception as e:
-        print(f"An error occured: {e}")
+        print(f"Chat completions error: {e}")
 
-        return []
+        return {}
     
     id_to_slogan = {
         slogan_with_id.id: slogan_with_id.summary
@@ -61,7 +66,15 @@ def _generate_theorem_slogans_batch(client, theorem_batch, global_context: str) 
 
     return id_to_slogan
 
-def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[str]:
+def generate_theorem_slogans(
+    theorems: List[str], 
+    global_context: str, 
+    max_retries=4,
+    max_workers=16,
+    batch_size=5
+) -> List[str]:
+    start_time = time.time()
+
     id_to_slogan = {}
     
     theorems_left = [
@@ -77,14 +90,15 @@ def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[s
     while True:
         if not theorems_left:
             break
-        if retries > 4:
-            raise ValueError()
+        else:
+            retries += 1
 
-        retries += 1
+        if retries > max_retries:
+            raise ValueError(f"Max retries ({max_retries}) reached for slogan generation.")
 
-        theorem_batches = list(_chunks(theorems_left, batch_size=6))
+        theorem_batches = list(_chunks(theorems_left, batch_size))
 
-        with ThreadPoolExecutor(max_workers=5) as ex:
+        with ThreadPoolExecutor(max_workers) as ex:
             futs = {
                 ex.submit(_generate_theorem_slogans_batch, client, batch, global_context)
                 for batch in theorem_batches
@@ -98,5 +112,7 @@ def generate_theorem_slogans(theorems: List[str], global_context: str) -> List[s
         for theorem_left in theorems_left_orig:
             if theorem_left["id"] not in id_to_slogan:
                 theorems_left.append(theorem_left)
+
+    print(f"({time.time() - start_time} sec)")
 
     return [id_to_slogan[str(i)] for i in range(len(theorems))]

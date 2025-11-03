@@ -1,0 +1,9 @@
+python-dotenv
+arxiv
+numpy
+sentence-transformers
+dotenv
+boto3
+psycopg2-binary
+litellm
+instructor

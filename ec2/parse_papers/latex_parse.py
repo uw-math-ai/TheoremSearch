@@ -1,11 +1,11 @@
 import regex
 import bisect
-import theorem_forms
+from . import theorem_forms
 import json
 import argparse
 import os
 from typing import Pattern
-from patterns import *
+from .patterns import *
 
 # TODO:
 #   more regex for different versions of macros:
@@ -48,7 +48,6 @@ def def_handling(data: str) -> str:
                 old_cmd += r"\s*\{" + regex.escape(item.group(j+1)) + r"\}"
                 new_cmd = new_cmd.replace(rf"#{j+1}", item.group(j+1))
             data = regex.sub(old_cmd, lambda _m: new_cmd, data)
-
     return data
 
 
@@ -65,8 +64,6 @@ def alias_handling(data: str) -> str:
         translation[item.group(1)] = item.group(2)
     
     matches = _scanner(NEWTHEOREM, data)
-    matches.extend(_scanner(NEWDECLARETHEOREM, data))
-
     if translation:
         for m in matches:
             if m.group('shared') is None:
@@ -90,6 +87,7 @@ def macro_handling(data: str) -> str:
     translation = {}
 
     data = operator_handling(data) # replace dec. math operators
+
     macros = _scanner(NEWCOMMAND, data)
 
     for item in macros:
@@ -126,7 +124,7 @@ def operator_handling(data: str) -> str:
         translation[item.group('cmd')] = item.group('text')
 
     for key in sorted(translation.keys(), key=len, reverse=True):
-        data = regex.sub(rf"{regex.escape(key)}(?![A-Za-z])", regex.escape(rf"\\text{{{translation[key]}}}"), data)
+        data = data.replace(key, r"\text{" + translation[key] + r"}")
     return data
 
 
@@ -138,7 +136,6 @@ def environment_handling(data: str) -> str:
     cmds = []
 
     thms_list = _scanner(NEWTHEOREM, data)
-    thms_list.extend(_scanner(NEWDECLARETHEOREM, data))
     for item in thms_list:
         cmds.append(item)
 
@@ -174,7 +171,6 @@ def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
     appendix = m.start() if m else None
 
     thm_scan = _scanner(NEWTHEOREM, data)
-    thm_scan.extend(_scanner(NEWDECLARETHEOREM, data))
     for theoremtype in thm_scan:
         locator = _scanner(SPECIFICTHEOREM(theoremtype.group('env')), data)
         for t in locator:
@@ -202,35 +198,13 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     """
     Labels theorems based on their specified counters
     """
-    # find beginning of doc
-    begin_doc = _scanner(r"\\begin\{document\}", data)[0].start()
 
     # gather sections
     section_locations = []
     sections = _scanner(NEWSECTION, data)
     for s in sections:
-        if s.group(1) == "*" or s.start() < begin_doc:
-            continue
         section_locations.append(s.start())
     sctns = dict(zip(section_locations, ["section"] * len(section_locations)))
-
-    cur = len(section_locations)
-
-    sections = _scanner(NEWSUBSECTION, data)
-    for s in sections:
-        if s.group(1) == "*" or s.start() < begin_doc:
-            continue
-        section_locations.append(s.start())
-    sctns = sctns | dict(zip(section_locations[cur:], ["subsection"] * (len(section_locations) - cur)))
-
-    cur = len(section_locations)
-
-    sections = _scanner(NEWSUBSUBSECTION, data)
-    for s in sections:
-        if s.group(1) == "*" or s.start() < begin_doc:
-            continue
-        section_locations.append(s.start())
-    sctns = sctns | dict(zip(section_locations[cur:], ["subsubsection"] * (len(section_locations) - cur)))
 
     tn = theorem_forms.TheoremNumberer()
 
@@ -244,18 +218,9 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
             for idx in section_locations[:i]:
                 sctns.pop(idx)
 
-    # check counters
-    counter = _scanner(NEWNUMBERWITHIN, data)
-    for item in counter:
-        tn.numberwithin(item.group("child"), item.group("parent"))
-
     # load theorem commands into numberer
     for item in thm_scan:
-        if 'BRACED' in item.groupdict().keys():
-            starred, env, shared, title, within = None, item.group("env"), item.group("shared"), item.group("title"), item.group("within")
-        else:
-            starred, env, shared, title, within = item.groupdict().values()
-            
+        starred, env, shared, title, within = item.groupdict().values()
         if starred == "*":
             starred = True
         tn.define_newtheorem(starred, env, shared, title, within)
@@ -267,10 +232,6 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     for item in sorted(labels):
         if labels[item] == "section":
             tn.increment("section")
-        elif labels[item] == "subsection":
-            tn.increment("subsection")
-        elif labels[item] == "subsubsection":
-            tn.increment("subsubsection")
         else:
             res.append(tn.begin(labels[item]))
 
@@ -296,7 +257,6 @@ def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms
 
     labeled_thms = grab_labels(theorems)
 
-    print(len(num_thms), len(labeled_thms))
     for i in range(len(num_thms)):
         res.append((num_thms[i],) + labeled_thms[i])
     for i in range(len(theorems) - len(num_thms)):
@@ -309,53 +269,46 @@ def grab_labels(theorems: regex.Scanner) -> list:
     Extracts labels from theorem statements when present
     """
     res = []
-    captured = []
     h = 0
-    for item in reversed(theorems):
+    for item in theorems:
         h += 1
         t = item.group(0)
         t = t[15:-13] # removes \begin{theorem} and \end{theorem}
-        t = regex.sub(r'\s*\n\s*', ' ', t) # get rid of newlines in body
         label = regex.search(NEWLABEL, t)
         if label and (lbl := label.group('label')):
-            if lbl in captured:
-                t = t.replace(r"\label{" + lbl + r"}", "")
-                res.append((t, None))
-                continue
             t = t.replace(r"\label{" + lbl + r"}", "")
-            captured.append(lbl)
             res.append((t, lbl))
         else:
             res.append((t, None))
 
-    res.reverse()
     return res
 
 
-def extract(filename: str) -> dict:
-    with open(filename, 'r', encoding="utf-8", errors="replace") as file:
-        data = file.read()
+def extract(paper_content: str, imports: str) -> dict:
+    data = paper_content
 
-        # remove any comments, single or multiline
-        data = regex.sub(r"(?<!\\)%.*", "", data)
-        data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
+    data = imports + data
 
-        # translation of various user-defined macros
-        data = def_handling(data)
-        data = alias_handling(data)
-        data = macro_handling(data)
-        data = environment_handling(data)
+    # remove any comments, single or multiline
+    data = regex.sub(r"(?<!\\)%.*", "", data)
+    data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
 
-        # locate and split theorems
-        data, num_thms, appx_thms, thm_scan = locate_theorems(data)
+    # translation of various user-defined macros
+    data = def_handling(data)
+    data = alias_handling(data)
+    data = macro_handling(data)
+    data = environment_handling(data)
 
-        # label theorems accordingly
-        num_thms = label_theorems(num_thms, thm_scan, False, data)
-        
-        appx_thms = label_theorems(appx_thms, thm_scan, True, data)
+    # locate and split theorems
+    data, num_thms, appx_thms, thm_scan = locate_theorems(data)
 
-        # bundle results
-        return bundle_theorems(thm_scan, data, num_thms, appx_thms)
+    # label theorems accordingly
+    num_thms = label_theorems(num_thms, thm_scan, False, data)
+
+    appx_thms = label_theorems(appx_thms, thm_scan, True, data)
+
+    # bundle results
+    return bundle_theorems(thm_scan, data, num_thms, appx_thms)
 
 
 # if you want to run it standalone
@@ -374,7 +327,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     output = os.path.join(THM_DIR, args.filepath)
 
-    x = extract(args.filepath)
+    x = extract(args.filepath, "")
 
     data = [{"theorem": thm, "body": body, "label": label} for thm, body, label in x]
     with open(output.replace('.tex', '.json'), 'w') as f:

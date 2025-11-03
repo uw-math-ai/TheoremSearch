@@ -16,5 +16,6 @@ def get_paper_metadata(paper_id: str):
         "summary": result.summary,
         "journal_ref": result.journal_ref,
         "primary_category": result.primary_category,
-        "categories": result.categories
+        "categories": result.categories,
+        "citations": None
     }
