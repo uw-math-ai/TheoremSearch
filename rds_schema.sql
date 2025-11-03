@@ -16,7 +16,9 @@ CREATE TABLE theorem (
     paper_id TEXT NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     body TEXT NOT NULL,
-    label TEXT
+    label TEXT,
+
+    UNIQUE (paper_id, name)
 );
 
 CREATE TABLE theorem_slogan_prompt (
