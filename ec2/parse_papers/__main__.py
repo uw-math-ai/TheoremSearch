@@ -13,7 +13,7 @@ import regex
 from .patterns import *
 from .latex_parse import extract
 from .arxiv_metadata import get_paper_metadata
-from ..rds import get_rds_connection
+from ..rds.connect import get_rds_connection
 
 S3_BUCKET_NAME = "arxiv-full-dataset"
 
