@@ -21,17 +21,11 @@ CREATE TABLE theorem (
     UNIQUE (paper_id, name)
 );
 
-CREATE TABLE theorem_slogan_prompt (
-    prompt_id BIGSERIAL PRIMARY KEY,
-    template TEXT NOT NULL,
-    context_items TEXT[] NOT NULL
-);
-
 CREATE TABLE theorem_slogan (
     slogan_id BIGSERIAL PRIMARY KEY,
     theorem_id BIGINT NOT NULL REFERENCES theorem(theorem_id) ON DELETE CASCADE,
     model TEXT NOT NULL,
-    prompt_id BIGINT NOT NULL REFERENCES theorem_slogan_prompt(prompt_id),
+    prompt_id TEXT NOT NULL,
     slogan TEXT NOT NULL,
 
     UNIQUE (theorem_id, model, prompt_id)
