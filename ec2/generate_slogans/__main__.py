@@ -71,8 +71,6 @@ def generate_slogans(
 
         conn.commit()
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(

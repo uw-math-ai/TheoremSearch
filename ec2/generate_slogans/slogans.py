@@ -64,7 +64,8 @@ def generate_theorem_slogans(
                 if slogans[i] is None
             }
             for fut in as_completed(futs):
-                slogans[fut[0]] = fut[1]
+                res = fut.result()
+                slogans[res[0]] = res[1]
 
             retries += 1
 
