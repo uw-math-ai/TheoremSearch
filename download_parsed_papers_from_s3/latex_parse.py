@@ -171,7 +171,13 @@ def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
     theorem_names = []
 
     m = regex.search(r"\\begin\{appendix\}", data) # locate the appendix, if it exists
-    appendix = m.start() if m else None
+    n = regex.search(r"\\appendix", data)
+
+    appendix = None
+    if m:
+        appendix = m.start()
+    elif n:
+        appendix = n.start()
 
     thm_scan = _scanner(NEWTHEOREM, data)
     thm_scan.extend(_scanner(NEWDECLARETHEOREM, data))
@@ -236,7 +242,13 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
 
     if is_appendix:
         m = regex.search(r"\\begin\{appendix\}", data) # locate the appendix, if it exists
-        appendix = m.start() if m else None
+        n = regex.search(r"\\appendix", data)
+
+        appendix = None
+        if m:
+            appendix = m.start()
+        elif n:
+            appendix = n.start()
 
         if appendix:
             tn.in_appendix = True
