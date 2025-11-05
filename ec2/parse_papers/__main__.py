@@ -22,7 +22,8 @@ conn = get_rds_connection()
 
 def parse_papers(
     s3_papers_dir: str,
-    s3_bucket_name: str = S3_BUCKET_NAME
+    s3_bucket_name: str = S3_BUCKET_NAME,
+    overwrite: bool = False
 ):
     papers_res = s3.list_objects_v2(Bucket=s3_bucket_name, Prefix=s3_papers_dir)
     paper_keys = [o["Key"] for o in papers_res.get("Contents", []) if o["Key"].endswith(".tar.gz")]
@@ -30,7 +31,18 @@ def parse_papers(
     for paper_key in tqdm(paper_keys, ncols=80):
         paper_id = paper_key.replace(".tar.gz", "").split("/")[-1].split("_")[-1]
 
-        # TODO: Check for and handle paper_id conflicts
+        if not overwrite:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM paper
+                        WHERE paper_id = 'your_paper_id_here'
+                    );
+                """)
+
+                if cur.fetchone()[0]:
+                    continue
 
         paper_res = s3.get_object(Bucket=s3_bucket_name, Key=paper_key)
         paper_obj = io.BytesIO(paper_res["Body"].read())
@@ -40,15 +52,13 @@ def parse_papers(
         try:
             with tarfile.open(fileobj=paper_obj, mode="r:*") as tar:
                 paper_content = extract_main_tex_file_content(tar)
-        except Exception as e:
-            continue
-
-        paper_content = regex.sub(r"(?<!\\)%.*", "", paper_content)
-        paper_content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', paper_content, flags=regex.DOTALL)
-
-        with tarfile.open(fileobj=paper_obj, mode="r:*") as tar:
-            import_appends = collect_imports("", tar, paper_content, NEWINPUT)
-            import_appends = collect_imports(import_appends, tar, paper_content, NEWUSEPACKAGE)
+                paper_content = regex.sub(r"(?<!\\)%.*", "", paper_content)
+                paper_content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', paper_content, flags=regex.DOTALL)
+                
+                import_appends = collect_imports("", tar, paper_content, NEWINPUT)
+                import_appends = collect_imports(import_appends, tar, paper_content, NEWUSEPACKAGE)
+        except:
+            continue 
 
         try:
             theorems = extract(paper_content, import_appends)
@@ -59,12 +69,12 @@ def parse_papers(
         
         theorem_metadatas = [
             {
-                "name": thm,
+                "name": name,
                 "body": body,
                 "label": label
             }
-            for thm, body, label in theorems
-            if thm.lower().split(" ")[0] in set(["theorem", "proposition", "lemma"])
+            for name, body, label in theorems
+            if name.lower().split(" ")[0] in set(["theorem", "proposition", "lemma"])
         ]
 
         if not theorem_metadatas:
@@ -119,6 +129,16 @@ if __name__ == "__main__":
         help="The directory including papers to parse"
     )
 
+    parser.add_argument(
+        "--overwrite", 
+        type=bool, 
+        required=False,
+        default=False
+    )
+
     args = parser.parse_args()
 
-    parse_papers(args.dir)
+    parse_papers(
+        s3_papers_dir=args.dir,
+        overwrite=args.overwrite
+    )
