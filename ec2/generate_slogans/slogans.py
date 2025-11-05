@@ -17,9 +17,8 @@ def _generate_theorem_slogan(
     i: int
 ) -> tuple[int, str]:
     theorem_context = theorem_context.copy()
-
-    del theorem_context["paper.paper_id"]
-    del theorem_context["theorem.theorem_id"]
+    if "theorem_id" in theorem_context:
+        del theorem_context["theorem_id"]
 
     try:
         res = client.chat.completions.create(

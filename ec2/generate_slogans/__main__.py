@@ -32,8 +32,9 @@ def generate_slogans(
         prompt = json.loads(f.read())
 
     prompt["instructions"] = " ".join(prompt["instructions"])
+    prompt["context"] = [c + " AS " + c.replace(".", "_") for c in prompt["context"]]
 
-    select_cols = ", ".join(set(["paper.paper_id", "theorem.theorem_id", *prompt["context"]]))
+    select_cols = ", ".join(set(["theorem.theorem_id", *prompt["context"]]))
 
     for theorem_contexts in paginate_query(
         conn,
@@ -63,7 +64,7 @@ def generate_slogans(
                     SET
                         slogan = EXCLUDED.slogan
                 """, (
-                    theorem_context["theorem.theorem_id"],
+                    theorem_context["theorem_id"],
                     model,
                     prompt_id,
                     slogan
