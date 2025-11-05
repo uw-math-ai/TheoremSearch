@@ -55,7 +55,7 @@ ALLOWED_TYPES = [
 ]
 
 ARXIV_ID_RE = re.compile(
-    r'arxiv\.org/(?:abs|pdf)/((?:\d{4}\.\d{4,5}|[a-z\-]+/\d{7}))(?:v\d+)?',
+    r'(?:arxiv\.org/(?:abs|pdf)/)?((?:\d{4}\.\d{4,5}|[a-z\-]+/\d{7}))',
     re.IGNORECASE
 )
 
@@ -262,42 +262,108 @@ def add_citations(candidates: list[dict], max_workers: int = 6) -> None:
             except Exception:
                 pass
 
+def extract_arxiv_id(s: str) -> str | None:
+    """Return normalized arXiv ID if present in s (URL or raw), else None."""
+    if not s:
+        return None
+    m = ARXIV_ID_RE.search(s.strip())
+    return m.group(1) if m else None
+
+def normalize_title(s: str) -> str:
+    return (s or "").casefold().strip()
+
+def parse_paper_filter_input(raw: str) -> dict:
+    """
+    Parse user input into two sets: arxiv_ids and title substrings.
+    Multiple entries may be comma-separated.
+    e.g. "2401.12345, Optimal Transport" -> {"ids":{"2401.12345"}, "titles":{"optimal transport"}}
+    """
+    ids, titles = set(), set()
+    if not raw:
+        return {"ids": ids, "titles": titles}
+    for token in [t.strip() for t in raw.split(",") if t.strip()]:
+        arx = extract_arxiv_id(token)
+        if arx:
+            ids.add(arx.lower())
+        else:
+            titles.add(normalize_title(token))
+    return {"ids": ids, "titles": titles}
+
+def item_matches_paper_filter(item: dict, paper_filter: dict) -> bool:
+    """
+    True if the item matches at least one requested arXiv ID or one title substring.
+    If paper_filter is empty (both sets empty), always True.
+    """
+    ids = paper_filter.get("ids", set())
+    titles = paper_filter.get("titles", set())
+    if not ids and not titles:
+        return True
+
+    # Compare IDs (extract once from url)
+    url = item.get("paper_url") or ""
+    item_id = extract_arxiv_id(url)
+    if item_id and item_id.lower() in ids:
+        return True
+
+    # Compare titles (substring, case-insensitive)
+    t = normalize_title(item.get("paper_title"))
+    if t and any(sub in t for sub in titles):
+        return True
+
+    return False
+
 # --- Search and Display ---
 def search_and_display_with_filters(query, model, theorems_data, embeddings_db, filters):
-    if not query:
-        st.info("Please enter a search query.")
-        return
     if not filters['sources']:
         st.warning("Please select at least one source.")
         return
 
-    query_embedding = model.encode(query, convert_to_tensor=True)
-    cosine_scores = util.cos_sim(query_embedding, embeddings_db)[0]
+    if query:
+        query_embedding = model.encode(query, convert_to_tensor=True)
+        cosine_scores = util.cos_sim(query_embedding, embeddings_db)[0]
+    else:
+        cosine_scores = torch.zeros(len(theorems_data))
+
+    low, high = filters['citation_range']
 
     # Get a larger pool to filter from
     top_k_pool = min(200, len(theorems_data))
     top_indices = torch.topk(cosine_scores, k=top_k_pool, sorted=True).indices
-    pool_items = [theorems_data[int(i.item())] for i in top_indices]
-    add_citations(pool_items)
+    top_indices = top_indices.tolist()
+
+    paper_filter = filters.get("paper_filter", {"ids": set(), "titles": set()})
+    matched_indices = []
+    if paper_filter and (paper_filter.get("ids") or paper_filter.get("titles")):
+        for i, it in enumerate(theorems_data):
+            if item_matches_paper_filter(it, paper_filter):
+                matched_indices.append(i)
+
+    pool_indices = list(dict.fromkeys(top_indices + matched_indices))
+    pool = [(i, theorems_data[i]) for i in pool_indices]
+
+    # Fetch citations in parallel
+    if ('arXiv' in filters['sources']):
+        add_citations([it for _, it in pool])
 
     results = []
-    low, high = filters['citation_range']
 
     # Filter results
-    for item in pool_items:
-        type_match    = (not filters['types']) or (item.get('type','').lower() in filters['types'])
-        tag_match     = (not filters['tags'])  or (item.get('primary_category') in filters['tags'])
-        author_match  = (not filters['authors']) or any(a in (item.get('authors') or []) for a in filters['authors'])
-        source_match  = item.get('source') in filters['sources']
+    for idx, item in pool:
+        type_match = (not filters['types']) or (item.get('type','').lower() in filters['types'])
+        tag_match = (not filters['tags'])  or (item.get('primary_category') in filters['tags'])
+        author_match = (not filters['authors']) or any(a in (item.get('authors') or []) for a in filters['authors'])
+        source_match = item.get('source') in filters['sources']
+        paper_match = item_matches_paper_filter(item, filters['paper_filter'])
 
-        # Citations & year & journal only meaningful for arXiv
-        cit = item.get('citations')
-        if cit is None:
+        # Citations & year & journal only for arXiv
+        citations = item.get('citations')
+        log_cit = np.log1p(int(citations)) if citations is not None else 0.0
+        if citations is None:
             if not filters['include_unknown_citations']:
                 continue
             citation_match = True
         else:
-            citation_match = (low <= int(cit) <= high)
+            citation_match = (low <= int(citations) <= high)
 
         year_match = True
         if filters['year_range'] and item.get('source') == 'arXiv':
@@ -314,10 +380,15 @@ def search_and_display_with_filters(query, model, theorems_data, embeddings_db, 
             elif status == "Preprint Only":
                 journal_match = not jp
 
-        if all([type_match, tag_match, author_match, source_match, citation_match, year_match, journal_match]):
-            results.append({"info": item, "similarity": float(cosine_scores[theorems_data.index(item)].item())})
+        if all([type_match, tag_match, author_match, source_match, paper_match, citation_match, year_match, journal_match]):
+            # Similarity = cosine_similary + citation_weight * log(citation_count)
+            similarity = float(cosine_scores[idx].item()) + filters['citation_weight'] * log_cit
+            results.append({"idx": idx, "info": item, "similarity": similarity})
             if len(results) >= filters['top_k']:
                 break
+
+    results.sort(key=lambda r: r["similarity"], reverse=True)
+    results = results[:filters['top_k']]
 
     st.subheader(f"Found {len(results)} Matching Results")
     if not results:
@@ -327,17 +398,23 @@ def search_and_display_with_filters(query, model, theorems_data, embeddings_db, 
     for i, r in enumerate(results):
         info = r["info"]
         expander_title = f"**Result {i+1} | Similarity: {r['similarity']:.4f} | Type: {info.get('type','').title()}**"
-        with st.expander(expander_title):
+        with st.expander(expander_title, expanded=True):
             st.markdown(f"**Paper:** *{info.get('paper_title','Unknown')}*")
             st.markdown(f"**Authors:** {', '.join(info.get('authors') or []) or 'N/A'}")
-            st.markdown(f"**Source:** {info.get('source')} ([Link]({info.get('paper_url')}))")
-            cit = info.get("citations")
-            cit_str = "Unknown" if cit is None else str(cit)
+            st.markdown(f"**Source:** {info.get('source')} ({info.get('paper_url')})")
+            citations = info.get("citations")
+            cit_str = "Unknown" if citations is None else str(citations)
             st.markdown(
                 f"**Math Tag:** `{info.get('primary_category')}` | "
                 f"**Citations:** {cit_str} | "
                 f"**Year:** {info.get('year', 'N/A')}"
             )
+            # Testing only
+            if filters['citation_weight'] > 0:
+                base = float(cosine_scores[r["idx"]].item())
+                log_cit = np.log1p(int(citations)) if citations is not None else 0.0
+                st.caption(
+                    f"base_cosine={base:.4f}  |  log(citations)={log_cit:.4f}  |  weight={filters['citation_weight']:.2f}")
             st.markdown("---")
 
             if info.get("theorem_slogan"):
@@ -348,8 +425,12 @@ def search_and_display_with_filters(query, model, theorems_data, embeddings_db, 
                 st.markdown("> " + cleaned_ctx.replace("\n", "\n> ") )
 
             cleaned_content = clean_latex_for_display(info['theorem_body'])
-            st.markdown("**Theorem Body:**")
+            st.markdown(f"**{info['theorem_name'] or 'Theorem Body.'}**")
             st.markdown(cleaned_content)
+
+            # Testing only
+            st.markdown('**Paper ID (testing only)**')
+            st.markdown(info['paper_id'])
 
 # --- Main App Interface ---
 st.set_page_config(page_title="Theorem Search Demo", layout="wide")
@@ -380,6 +461,8 @@ if model and theorems_data:
         selected_authors, selected_types, selected_tags = [], [], []
         year_range, journal_status = None, "All"
         citation_range = (0, 1000)
+        citation_weight = 0.0
+        include_unknown_citations = True
         top_k_results = 5
 
         if selected_sources:
@@ -388,36 +471,41 @@ if model and theorems_data:
             all_authors = sorted(list(set(a for it in theorems_data for a in (it.get('authors') or []))))
             selected_authors = st.multiselect("Filter by Author(s):", all_authors)
 
-            # Tags come from union of categories per selected source
+            # Tags come from the union of categories per selected source
             from collections import defaultdict
             tags_per_source = defaultdict(set)
             for it in theorems_data:
                 tags_per_source[it['source']].add(it.get('primary_category'))
             union_tags = sorted({t for s in selected_sources for t in tags_per_source.get(s, set()) if t})
             selected_tags = st.multiselect("Filter by Math Tag/Category:", union_tags)
-
+            paper_filter_raw = st.text_input("Filter by Paper",
+                                             value="",
+                                             placeholder="e.g., 2401.12345, Finite Hilbert stability",
+                                             help="Filter by title substring or arXiv ID/URL. Use commas for multiple.")
             if 'arXiv' in selected_sources:
-                year_range = st.slider("Filter by Year (for arXiv):", 1991, 2025, (1991, 2025))
-                journal_status = st.radio("Publication Status (for arXiv):", ["All", "Journal Article", "Preprint Only"], horizontal=True)
-
-            citation_range = st.slider("Filter by Citations:", 0, 1000, (0, 1000))
-            include_unknown_citations = st.checkbox(
-                "Include entries with unknown citation counts",
-                value=True,
-                help="If unchecked, results with unknown citation counts are excluded."
-            )
-            top_k_results = st.slider("Number of results to display:", 1, 20, 5)
+                year_range = st.slider("Filter by Year:", 1991, 2025, (1991, 2025))
+                journal_status = st.radio("Publication Status:", ["All", "Journal Article", "Preprint Only"], horizontal=True)
+                citation_range = st.slider("Filter by Citations:", 0, 1000, (0, 1000))
+                citation_weight = st.slider("Citation Weight:", 0.0, 1.0, 0.0, step=0.01)
+                include_unknown_citations = st.checkbox(
+                    "Include entries with unknown citation counts",
+                    value=True,
+                    help="If unchecked, results with unknown citation counts are excluded."
+                )
+            top_k_results = st.slider("Number of Results to Display:", 1, 20, 5)
 
     filters = {
         "authors": selected_authors,
         "types": [t.lower() for t in selected_types],
         "tags": selected_tags,
         "sources": selected_sources,
+        "paper_filter": parse_paper_filter_input(paper_filter_raw),
         "year_range": year_range,
         "journal_status": journal_status,
         "citation_range": citation_range,
+        "citation_weight": citation_weight,
         "include_unknown_citations": include_unknown_citations,
-        "top_k": top_k_results
+        "top_k": top_k_results,
     }
 
     user_query = st.text_input("Enter your query:", "")
