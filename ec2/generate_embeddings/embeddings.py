@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 import torch
 
 def _get_embedder():
-    return SentenceTransformer("Qwen/Qwen3-Embedding-0.6B")
+    return SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu")
 
 def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
     """
@@ -24,6 +24,8 @@ def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
     """
 
     embedder = _get_embedder()
+
+    print("Embedding...")
 
     with torch.no_grad():
         all_embeddings = embedder.encode(
