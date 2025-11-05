@@ -1,11 +1,12 @@
 from ..rds.connect import get_rds_connection
 from ..rds.paginate import paginate_query
-from .embeddings import embed_texts
+from .embeddings import get_embedder, embed_texts
 import argparse
 
 # TODO: Allow user to filter which slogans get embedded
 
 conn = get_rds_connection()
+embedder = get_embedder()
 
 def generate_embeddings(
     page_size: int = 128,
@@ -52,6 +53,7 @@ def generate_embeddings(
         print(f" > Page {page_index + 1}: {n_slogans}/{n_results}")
 
         embeddings = embed_texts(
+            embedder,
             [s["slogan"] for s in slogans],
             batch_size=batch_size
         )

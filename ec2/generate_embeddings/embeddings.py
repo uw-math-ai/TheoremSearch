@@ -4,11 +4,16 @@ Helpers for embeddings texts into vectors.
 
 from sentence_transformers import SentenceTransformer
 import torch
+import os
 
-def _get_embedder():
-    return SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu")
+def get_embedder():
+    model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu")
+    model.eval()
+
+    return model
 
 def embed_texts(
+    embedder,
     texts_to_embed: list[str],
     batch_size: int = 16
 ) -> list[list[float]]:
@@ -25,10 +30,11 @@ def embed_texts(
     all_embeddings: list[list[float]]
         An array of embedding vectors
     """
+    torch.set_num_threads(1)
+    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    os.environ.setdefault("MKL_NUM_THREADS", "1")
 
-    embedder = _get_embedder()
-
-    with torch.no_grad():
+    with torch.inference_mode():
         all_embeddings = embedder.encode(
             texts_to_embed,
             convert_to_numpy=True,
