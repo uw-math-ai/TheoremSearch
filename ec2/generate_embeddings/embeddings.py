@@ -25,14 +25,13 @@ def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
 
     embedder = _get_embedder()
 
-    print("Embedding...")
-
     with torch.no_grad():
         all_embeddings = embedder.encode(
             texts_to_embed,
             convert_to_numpy=True,
             normalize_embeddings=True,
-            show_progress_bar=False
+            show_progress_bar=False,
+            batch_size=8
         )
 
     return all_embeddings.tolist()
