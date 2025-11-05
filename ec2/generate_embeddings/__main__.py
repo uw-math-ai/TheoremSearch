@@ -1,23 +1,60 @@
 from ..rds.connect import get_rds_connection
 from ..rds.paginate import paginate_query
 from .embeddings import embed_texts
+import argparse
 
 # TODO: Allow user to filter which slogans get embedded
 
 conn = get_rds_connection()
 
-def generate_embeddings():
-    for slogans in paginate_query(
+def generate_embeddings(
+    page_size: int = 128,
+    batch_size: int = 16,
+    overwrite: bool = False
+):
+    base_sql = """
+        SELECT slogan_id, slogan
+        FROM theorem_slogan
+    """
+    count_sql = """
+        SELECT COUNT(*)
+        FROM theorem_slogan
+    """
+
+    if not overwrite:
+        where_condition = """
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM theorem_embedding_qwen AS teq
+                WHERE teq.slogan_id = theorem_slogan.slogan_id
+            )
+        """
+
+        base_sql += " " + where_condition
+        count_sql += " " + where_condition
+
+    with conn.cursor() as cur:
+        cur.execute(count_sql)
+        n_results = cur.fetchone()[0]
+
+    print(f"Generating embeddings for {n_results} matching slogans:")
+    n_slogans = 0
+
+    for page_index, slogans in enumerate(paginate_query(
         conn,
-        base_sql="""
-            SELECT slogan_id, slogan
-            FROM theorem_slogan
-        """,
+        base_sql=base_sql,
         base_params=(),
         order_by="slogan_id",
-        descending=False
-    ):
-        embeddings = embed_texts([s["slogan"] for s in slogans])
+        descending=False,
+        page_size=page_size
+    )):
+        n_slogans += len(slogans)
+        print(f" > Page {page_index + 1}: {n_slogans}/{n_results}")
+
+        embeddings = embed_texts(
+            [s["slogan"] for s in slogans],
+            batch_size=batch_size
+        )
 
         for slogan, embedding in zip(slogans, embeddings):
             with conn.cursor() as cur:
@@ -35,4 +72,33 @@ def generate_embeddings():
         conn.commit()
 
 if __name__ == "__main__":
-    generate_embeddings()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--page-size",
+        type=int,
+        required=False,
+        default=128
+    )
+
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        required=False,
+        default=16
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        type=bool,
+        required=False,
+        default=False
+    )
+
+    args = parser.parse_args()
+
+    generate_embeddings(
+        page_size=args.page_size,
+        batch_size=args.batch_size,
+        overwrite=args.overwrite
+    )

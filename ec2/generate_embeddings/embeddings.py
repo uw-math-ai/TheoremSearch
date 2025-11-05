@@ -8,7 +8,10 @@ import torch
 def _get_embedder():
     return SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu")
 
-def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
+def embed_texts(
+    texts_to_embed: list[str],
+    batch_size: int = 16
+) -> list[list[float]]:
     """
     Embeds a list of texts into vectors.
 
@@ -30,8 +33,8 @@ def embed_texts(texts_to_embed: list[str]) -> list[list[float]]:
             texts_to_embed,
             convert_to_numpy=True,
             normalize_embeddings=True,
-            show_progress_bar=False,
-            batch_size=8
+            show_progress_bar=True,
+            batch_size=batch_size
         )
 
     return all_embeddings.tolist()
