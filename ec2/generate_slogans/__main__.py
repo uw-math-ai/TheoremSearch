@@ -3,12 +3,12 @@ Given theorem filters, generates slogans for all theorems in 'theorem' satisfyin
 and uploads them to the 'theorem_slogan' table in the RDS.
 """
 
-from typing import Optional
 from ..rds.connect import get_rds_connection
 import argparse
 from ..rds.paginate import paginate_query
 import os
 import json
+import math
 from .slogans import generate_theorem_slogans
 
 # TODO: Add support for more filters (i.e. paper categories, paper name patterns, 
@@ -17,9 +17,12 @@ from .slogans import generate_theorem_slogans
 conn = get_rds_connection()
 
 def generate_slogans(
-    paper_id: Optional[str],
     model: str,
-    prompt_id: str
+    prompt_id: str,
+    paper_ids: list[str] = [],
+    authors: list[str] = [],
+    overwrite: bool = False,
+    workers: int = 16
 ):
     current_dir = os.path.dirname(__file__)
     path_to_prompt = os.path.join(
@@ -36,23 +39,69 @@ def generate_slogans(
 
     select_cols = ", ".join(set(["theorem.theorem_id", *prompt["context"]]))
 
-    for theorem_contexts in paginate_query(
+    base_sql = f"""
+        SELECT {select_cols}
+        FROM theorem
+        INNER JOIN paper
+        ON theorem.paper_id = paper.paper_id
+    """
+    count_sql = f"""
+        SELECT COUNT(*)
+        FROM theorem
+        INNER JOIN paper
+        ON theorem.paper_id = paper.paper_id
+    """
+
+    where_conditions = []
+    base_params = []
+
+    if not overwrite:
+        where_conditions.append("""
+            NOT EXISTS (
+                SELECT 1
+                FROM theorem_slogan AS ts
+                WHERE ts.theorem_id = theorem.theorem_id
+                    AND ts.model = %s
+                    AND ts.prompt_id = %s
+            )
+        """)
+        base_params.append(model)
+        base_params.append(prompt_id)
+
+    if paper_ids:
+        where_conditions.append("paper.paper_id IN %s")
+        base_params.append(paper_ids)
+
+    if authors:
+        where_conditions.append("paper.authors && %s")
+        base_params.append(authors)
+
+    if where_conditions:
+        base_sql += " WHERE " + " AND ".join(where_conditions)
+        count_sql += " WHERE " + " AND ".join(where_conditions)
+
+    with conn.cursor() as cur:
+        cur.execute(count_sql, (*base_params,))
+        n_results = cur.fetchone()[0]
+
+    print(f"Generating slogans for {n_results} matching theorems:")
+    n_theorems = 0
+
+    for page, theorem_contexts in enumerate(paginate_query(
         conn,
-        base_sql=f"""
-            SELECT {select_cols}
-            FROM theorem
-            INNER JOIN paper
-            ON theorem.paper_id = paper.paper_id
-            WHERE paper.paper_id = %s
-        """,
-        base_params=(paper_id,),
+        base_sql=base_sql,
+        base_params=(*base_params,),
         order_by="theorem_id",
         descending=False
-    ):
+    )):
+        n_theorems += len(theorem_contexts)
+        print(f" > Page {1 + page}: {n_theorems}/{n_results}")
+
         slogans = generate_theorem_slogans(
             theorem_contexts,
             instructions=prompt["instructions"],
-            model=model
+            model=model,
+            max_workers=workers
         )
         
         for slogan, theorem_context in zip(slogans, theorem_contexts):
@@ -72,14 +121,10 @@ def generate_slogans(
 
         conn.commit()
 
+        print("> Uploaded page to RDS")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--paper-id", 
-        type=str, 
-        required=False,
-        default=None
-    )
 
     parser.add_argument(
         "--model",
@@ -94,6 +139,29 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--paper-ids", 
+        nargs="+",
+        type=str,
+        required=False,
+        default=[]
+    )
+
+    parser.add_argument(
+        "--authors", 
+        nargs="+",
+        type=str,
+        required=False,
+        default=[]
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        type=bool,
+        required=False,
+        default=False
+    )
+
+    parser.add_argument(
         "--workers",
         type=int,
         required=False,
@@ -103,7 +171,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_slogans(
-        args.paper_id, 
-        args.model,
-        args.prompt_id
+        model=args.model,
+        prompt_id=args.prompt_id,
+        paper_ids=args.paper_ids,
+        authors=args.authors,
+        overwrite=args.overwrite,
+        workers=args.workers
     )

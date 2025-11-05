@@ -3,6 +3,7 @@ from litellm import completion
 from pydantic import BaseModel
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 client = instructor.from_litellm(completion)
 
@@ -52,7 +53,7 @@ def generate_theorem_slogans(
     slogans = [None for _ in theorem_contexts]
     retries = 0
 
-    with ThreadPoolExecutor(max_workers) as ex:
+    with ThreadPoolExecutor(max_workers) as ex, tqdm(total=len(theorem_contexts), ncols=80) as pbar:
         while None in slogans:
             if retries > max_retries:
                 break
@@ -65,6 +66,9 @@ def generate_theorem_slogans(
             for fut in as_completed(futs):
                 res = fut.result()
                 slogans[res[0]] = res[1]
+
+                if res[1] is not None:
+                    pbar.update(1)
 
             retries += 1
 
