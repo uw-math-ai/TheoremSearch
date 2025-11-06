@@ -4,11 +4,12 @@ import numpy as np
 from sentence_transformers import SentenceTransformer, util
 import os
 import re
+import pandas as pd
 
 #%%
 # --- 1. Load the Embedding Model ---
 def load_model(model_name='math-similarity/Bert-MLM_arXiv-MP-class_zbMath'):
-    return SentenceTransformer(model_name)
+    return SentenceTransformer(model_name, trust_remote_code=True)
 
 def compare_embeddings(model, latex_texts, concept_texts, top_k=3):
     """
@@ -227,10 +228,13 @@ def ndcg_at_k(ranked, qrels, k=3):
 # ---------- main entry ----------
 def evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3):
     # encode
+    print("encoding")
     l_emb = model.encode(theorems, convert_to_tensor=True)
     c_emb = model.encode(queries, convert_to_tensor=True)
+    print("creating sim_matrix")
     sim_matrix = util.cos_sim(l_emb, c_emb).cpu().numpy()
 
+    print("ranking concepts")
     ranked = rank_concepts(sim_matrix)
 
     # metrics
@@ -259,47 +263,91 @@ def evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3):
     return metrics, reports
 
 #%%
+# collect theorem slogans from rds
+
+import dotenv
+import pandas as pd
+from ec2.rds.paginate import paginate_query
+from ec2.rds.connect import get_rds_connection
+
+# select context window to pull slogans from
+# context_window = "body-only-v1"
+context_window = 'body-only-v1'
+
+
+validation_set = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
+validation_set[context_window] = None
+dotenv.load_dotenv()
+conn = get_rds_connection()
+
+for idx, row in validation_set.iterrows():
+
+    paper_like = str(row['paper_id']) + '%'
+    theorem_name = str(row['theorem'])
+    query_1 = """
+    SELECT theorem_id
+    FROM theorem
+    WHERE paper_id LIKE %s
+    AND name = %s
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query_1, (paper_like, theorem_name))
+            cols = [d[0] for d in cur.description]
+            rows_raw = cur.fetchall()
+        query_2 = """
+            SELECT slogan
+            FROM theorem_slogan
+            WHERE prompt_id = %s
+            AND theorem_id = %s
+        """
+        with conn.cursor() as cur:
+            cur.execute(query_2, (context_window, rows_raw[0][0]))
+            cols = [d[0] for d in cur.description]
+            rows_raw = cur.fetchall()
+        validation_set.loc[idx, context_window] = rows_raw[0][0]
+    except:
+        print(f"theorem info not found for: {row['paper_id'], row['theorem']}")
+        continue
+
+print(validation_set[validation_set[context_window].notnull()])
+
+validation_set.to_csv('validation_set.csv')
+
+
+#%%
 # Build graded qrels by text → text
+
+# select context window to test
+context_window = "body-and-summary-v1"
+
+vals = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
+vals = vals[vals[context_window].notnull()]
+queries = vals['query'].tolist()
+theorem_slogans = vals[context_window].tolist()
+mapping = {}
+for i in range(len(vals)):
+    mapping[queries[i]] = [(theorem_slogans[i], 3)]
+
 qrels = make_qrels_by_text(
-    queries, theorems,
-    {
-        # 0
-        queries[0]: [(theorems[0],3), (theorems[2],2), (theorems[5],1)],
-        # 1
-        queries[1]: [(theorems[1],3), (theorems[3],2), (theorems[2],1)],
-        # 2
-        queries[2]: [(theorems[2],3), (theorems[0],2), (theorems[10],1)],
-        # 3
-        queries[3]: [(theorems[3],3), (theorems[1],2), (theorems[2],1)],
-        # 4
-        queries[4]: [(theorems[4],3), (theorems[10],2), (theorems[11],1)],
-        # 5
-        queries[5]: [(theorems[5],3), (theorems[7],2), (theorems[0],1)],
-        # 6
-        queries[6]: [(theorems[6],3), (theorems[8],2), (theorems[9],1)],
-        # 7
-        queries[7]: [(theorems[7],3), (theorems[5],2), (theorems[4],1)],
-        # 8
-        queries[8]: [(theorems[8],3), (theorems[6],2), (theorems[9],1)],
-        # 9
-        queries[9]: [(theorems[9],3), (theorems[8],2), (theorems[6],1)],
-        # 10
-        queries[10]: [(theorems[10],3), (theorems[4],2), (theorems[6],1)],
-        # 11
-        queries[11]: [(theorems[11],3), (theorems[4],2), (theorems[10],1)],
-    }
+    queries,
+    theorem_slogans,
+    mapping
 )
 
+print("number of theorems testing: ", len(vals))
+print("context window: ", context_window)
 
 # Choose the embedder
 # model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
 # model_name = "google/embeddinggemma-300m"
+# model_name = "nvidia/llama-embed-nemotron-8b"
 model_name = "Qwen/Qwen3-Embedding-0.6B" # Qwen3 0.6B is the best of three embedders
 model = load_model(model_name)
 
 # Choose whether to use slogans or theorems
 # metrics, per_query = evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3)
-metrics, per_query = evaluate_retrieval(model, slogans, theorems, qrels, top_k_report=3) # slogans perform much better than raw theorems
+metrics, per_query = evaluate_retrieval(model, queries, theorem_slogans, qrels, top_k_report=3) # slogans perform much better than raw theorems
 
 # pretty-print metrics with 4 decimal places
 rounded_metrics = {k: float(f"{v:.4f}") for k, v in metrics.items()}
@@ -312,7 +360,7 @@ explanations = {
     "MAP@3": "Mean Average Precision at 3 — average precision considering relevant docs up to rank 3.",
     "nDCG@3": "Normalized Discounted Cumulative Gain at 3 — graded ranking quality up to rank 3.",
 }
-
+print("Model: ", model_name)
 print("Evaluation metrics:")
 for key in ["P@1", "P@3", "R@3", "MRR", "MAP@3", "nDCG@3"]:
     val = rounded_metrics.get(key, metrics.get(key, 0.0))
