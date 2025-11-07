@@ -1,84 +1,135 @@
-"""
-Parses research papers stored on S3 or elsewhere and adds paper metadata to the 'paper' table
-in the RDS and theorem data to the 'theorem' table in the RDS.
-"""
-
-import boto3
-import tarfile
-import io
+from .arxiv_client import search_arxiv
 import argparse
-from tqdm import tqdm
-from .tex import extract_main_tex_file_content, collect_imports
+import shutil
+import os
+from ..rds.connect import get_rds_connection
+import tarfile
+import gzip
+from .tex import find_main_tex_file, collect_imports
 import regex
 from .patterns import *
 from .latex_parse import extract
-from .arxiv_metadata import get_paper_metadata
-from ..rds.connect import get_rds_connection
+from .citations import fetch_citations
+from arxiv import Result
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
+from typing import Literal
 
-S3_BUCKET_NAME = "arxiv-full-dataset"
+TMP_DIR = "papers_tmp"
 
-s3 = boto3.client("s3")
-conn = get_rds_connection()
+Status = Literal["upserted", "skipped", "error"]
 
-def parse_papers(
-    s3_papers_dir: str,
-    s3_bucket_name: str = S3_BUCKET_NAME,
-    overwrite: bool = False
-):
-    papers_res = s3.list_objects_v2(Bucket=s3_bucket_name, Prefix=s3_papers_dir)
-    paper_keys = [o["Key"] for o in papers_res.get("Contents", []) if o["Key"].endswith(".tar.gz")]
+def _parse_paper(
+    paper_res: Result,
+    overwrite: bool = False,
+    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"])
+) -> Status:
+    conn = get_rds_connection()
 
-    for paper_key in tqdm(paper_keys, ncols=80):
-        paper_id = paper_key.replace(".tar.gz", "").split("/")[-1].split("_")[-1]
+    paper_id = paper_res.get_short_id()
 
-        if not overwrite:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT EXISTS (
-                        SELECT 1
-                        FROM paper
-                        WHERE paper_id = 'your_paper_id_here'
-                    );
-                """)
+    try:
+        tar_path = paper_res.download_source(
+            dirpath=TMP_DIR, 
+            filename=paper_id.replace("/", "_") + ".tar.gz"
+        )
+    except Exception as e:
+        # print(f"Error: {e}")
 
-                if cur.fetchone()[0]:
-                    continue
+        conn.rollback()
+        return "error"
 
-        paper_res = s3.get_object(Bucket=s3_bucket_name, Key=paper_key)
-        paper_obj = io.BytesIO(paper_res["Body"].read())
+    tar_out = tar_path.replace(".tar.gz", "")
 
-        paper_content = None
+    def clean_up():
+        conn.rollback()
 
-        try:
-            with tarfile.open(fileobj=paper_obj, mode="r:*") as tar:
-                paper_content = extract_main_tex_file_content(tar)
-                paper_content = regex.sub(r"(?<!\\)%.*", "", paper_content)
-                paper_content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', paper_content, flags=regex.DOTALL)
-                
-                import_appends = collect_imports("", tar, paper_content, NEWINPUT)
-                import_appends = collect_imports(import_appends, tar, paper_content, NEWUSEPACKAGE)
-        except:
-            continue 
-
-        try:
-            theorems = extract(paper_content, import_appends)
-
-            paper_metadata = get_paper_metadata(paper_id)
-        except Exception as e:
-            continue
+        if os.path.exists(tar_out):
+            shutil.rmtree(tar_out)
+        if os.path.exists(tar_path):
+            os.remove(tar_path)
         
-        theorem_metadatas = [
-            {
-                "name": name,
-                "body": body,
-                "label": label
-            }
+    if not overwrite:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM paper
+                    WHERE paper_id = %s
+                );
+            """, (paper_id,))
+
+            res = cur.fetchone()
+
+            if res[0]:
+                # print(f"Prevented overwrite")
+
+                clean_up()
+                return "skipped"
+
+    try:
+        with tarfile.open(tar_path, "r:*") as tar:
+            tar.extractall(path=tar_out)
+    except:
+        try:
+            os.makedirs(tar_out)
+            with gzip.open(tar_path, "rb") as f_in, open(os.path.join(tar_out, "main.tex"), "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        except Exception as e:
+            # print(f"Error: {e}")
+
+            clean_up()
+            return "error"
+
+    file = find_main_tex_file(tar_out)
+
+    if file is None:
+        # print(f"Error: No main .tex file found")
+
+        clean_up()
+        return "error"
+
+    with open(file, "r+", encoding="utf-8", errors="ignore") as f:
+        content = f.read()
+
+        # remove any commented out imports
+        content = regex.sub(r"(?<!\\)%.*", "", content)
+        content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', content, flags=regex.DOTALL)
+    
+        f.seek(0)
+        f.write(content)
+        f.truncate()
+
+    # places all imports in main file
+    collect_imports(tar_out, file, NEWINPUT)
+    collect_imports(tar_out, file, NEWUSEPACKAGE)
+
+    try:
+        theorems = extract(file)
+        theorem_rows = [
+            (name, body, label)
             for name, body, label in theorems
-            if name.lower().split(" ")[0] in set(["theorem", "proposition", "lemma"])
+            if name.lower().split(" ")[0] in allowed_theorem_types
         ]
 
-        if not theorem_metadatas:
-            continue
+        if not theorem_rows:
+            # print(f"Error: No theorems found")
+
+            clean_up()
+            return "error"
+
+        paper_row = (
+            paper_id,
+            paper_res.title,
+            [author.name for author in paper_res.authors],
+            paper_res.entry_id, # link
+            paper_res.updated.isoformat(),
+            paper_res.summary,
+            paper_res.journal_ref,
+            paper_res.primary_category,
+            paper_res.categories,
+            fetch_citations(paper_res.entry_id, paper_res.title)
+        )
 
         with conn.cursor() as cur:
             cur.execute("""
@@ -87,21 +138,13 @@ def parse_papers(
                     primary_category, categories, citations
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (paper_id) DO NOTHING;
-            """, (
-                paper_metadata.get("paper_id"),
-                paper_metadata.get("title"),
-                paper_metadata.get("authors"),
-                paper_metadata.get("link"),
-                paper_metadata.get("last_updated"),
-                paper_metadata.get("summary"),
-                paper_metadata.get("journal_ref"),
-                paper_metadata.get("primary_category"),
-                paper_metadata.get("categories"),
-                paper_metadata.get("citations"),
-            ))
+                ON CONFLICT (paper_id) DO UPDATE
+                SET
+                    last_updated = EXCLUDED.last_updated,
+                    citations = EXCLUDED.citations
+            """, paper_row)
 
-            for theorem_metadata in theorem_metadatas:
+            for theorem_row in theorem_rows:
                 cur.execute("""
                     INSERT INTO theorem (
                         paper_id, name, body, label
@@ -113,32 +156,90 @@ def parse_papers(
                         label = EXCLUDED.label;
                 """, (
                     paper_id,
-                    theorem_metadata.get("name"),
-                    theorem_metadata.get("body"),
-                    theorem_metadata.get("label")
+                    *theorem_row
                 ))
-
+        
         conn.commit()
+
+        clean_up()
+        return "upserted"
+
+    except Exception as e:
+        # print(f"Error: {e}")
+
+        clean_up()
+        return "error"
+
+def parse_papers(
+    query: str,
+    overwrite: bool = False,
+    limit: int = 10,
+    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
+    max_workers: int = 3
+):
+    try:
+        upserts = 0
+        skips = 0
+        errors = 0
+
+        os.makedirs(TMP_DIR, exist_ok=True)
+        with tqdm(total=limit, ncols=80) as pbar:
+            for papers_res in search_arxiv(query, page_size=3):
+                if upserts >= limit:
+                    break
+                
+                with ThreadPoolExecutor(max_workers) as ex:
+                    futs = {
+                        ex.submit(_parse_paper, paper_res, overwrite, allowed_theorem_types)
+                        for paper_res in papers_res
+                    }
+
+                    for fut in as_completed(futs):
+                        status = fut.result()
+                        
+                        if status == "upserted":
+                            upserts += 1
+                            pbar.update(1)
+                        elif status == "error":
+                            errors += 1
+                        elif status == "skipped":
+                            skips += 1
+
+                        pbar.set_postfix({"skip": skips, "err": errors})
+    except KeyboardInterrupt:
+        raise
+    finally:    
+        if os.path.exists(TMP_DIR):
+            shutil.rmtree(TMP_DIR, ignore_errors=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
-        "--dir", 
-        type=str, 
+        "--query",
+        type=str,
         required=True,
-        help="The directory including papers to parse"
+        help="A valid arXiv search query"
     )
 
     parser.add_argument(
-        "--overwrite", 
-        type=bool, 
+        "-o",
+        "--overwrite",
+        help="Whether to overwrite prexisting paper and theorem data"
+    )
+
+    parser.add_argument(
+        "--limit",
+        type=int,
         required=False,
-        default=False
+        default=-1,
+        help="Maximum number of papers to add (if no overwrite) or update/add (if overwrite)"
     )
 
     args = parser.parse_args()
 
     parse_papers(
-        s3_papers_dir=args.dir,
-        overwrite=args.overwrite
+        args.query,
+        args.overwrite,
+        args.limit
     )

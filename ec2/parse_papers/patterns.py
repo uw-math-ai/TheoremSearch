@@ -124,14 +124,14 @@ NEWMATHOPERATOR = r"""
     """
 
 NEWALIASCNT = r'''\\newaliascnt\s*{\s*([A-Za-z@]+)\s*}\s*{\s*([A-Za-z@]+)\s*}'''
-
-STATEMENTBODY_OLD = r"(?<=\\begin\{theorem\}).*?(?=\\end\{theorem\})"
-
 STATEMENTBODY = r"""
 (?s)(\\begin\{theorem\})(?:(?!\\begin\{theorem\}|\\end\{theorem\}).|(?R))*\\end\{theorem\}
 """
+NEWNUMBERWITHIN = r"\\numberwithin\{(?P<child>[A-Za-z*]+)\}\{(?P<parent>[A-Za-z*]+)\}"
+NEWSECTION = r"\\section(\*?)\{([^}]*)\}"
+NEWSUBSECTION = r"\\subsection(\*?)\{([^}]*)\}"
+NEWSUBSUBSECTION = r"\\subsubsection(\*?)\{([^}]*)\}"
 
-NEWSECTION = r"\\section\{([^}]*)\}"
 NEWINPUT = r"""
 \\input                # match literal \input
 \s*                    # optional whitespace
@@ -142,7 +142,6 @@ NEWUSEPACKAGE = r"""
 \s*                    # optional whitespace
 \{(?P<filepath>[^{}]+)\}  # capture contents inside {...} as 'filepath'
 """
-
 NEWCOMMAND: Pattern[str] = r"""
     \\(?P<cmd>newcommand|providecommand|DeclareRobustCommand)
     (?P<star>\*)?                       # optional star
@@ -170,39 +169,52 @@ NEWCOMMAND: Pattern[str] = r"""
         )
     \}
 """
-
-
-NEWCOMMANDOLD: Pattern[str] = r"""
-    \\(?P<cmd>newcommand|providecommand|DeclareRobustCommand)
-    (?P<star>\*)?                       # \newcommand or \newcommand*
-    (?:\s|%[^\n]*\n)*                               # whitespace/comments
-
-    # Command name: either {\foo} or \foo
-    (?:
-        \{(?P<name_braced>\\[A-Za-z@]+)\}           # {\foo}
-      | (?P<name_unbraced>\\[A-Za-z@]+)             # \foo
+NEWDECLARETHEOREM: Pattern[str] = r"""
+\\declaretheorem
+\s*
+(?:\[
+    (?(DEFINE)
+        (?P<BRACED> (?: [^{}] | \{ (?&BRACED) \} )* )
     )
-    (?:\s|%[^\n]*\n)*
-
-    # Optional [n] number of arguments
-    (?:\[(?P<num_args>\d+)\])?
-    (?:\s|%[^\n]*\n)*
-
-    # Optional [default] (only meaningful if num_args >= 1; we don't enforce here)
-    (?:\[(?P<default>[^\[\]\{\}]*)\])?
-    (?:\s|%[^\n]*\n)*
-
-    # Definition body with balanced/nested braces
-    \{
-        (?P<body>
-            (?:
-                [^{}]                               # any non-brace
-              | \{(?P>body)\}                       # recursively match nested {...}
-            )*
+    (?:
+        \s*
+        (?:
+            # name = { ... }  |  name = token
+            name \s* = \s*
+              (?:
+                \{ (?P<title>(?&BRACED)) \}
+              |
+                (?P<title>[^,{}\]]+)
+              )
+          |
+            # sibling / sharenumber = { ... } | token
+            (?: sibling | sharenumber ) \s* = \s*
+              (?:
+                \{ (?P<shared>(?&BRACED)) \}
+              |
+                (?P<shared>[^,{}\]]+)
+              )
+          |
+            # within / numberwithin = { ... } | token
+            (?: within | numberwithin ) \s* = \s*
+              (?:
+                \{ (?P<within>(?&BRACED)) \}
+              |
+                (?P<within>[^,{}\]]+)
+              )
+          |
+            # anything else: skip (until comma or ])
+            [^,\]]*
         )
-    \}
-    """
-
+        \s*
+        (?: , | (?=\]) )
+    )+
+  \]
+)?
+\s*
+\{ (?P<env> [^{}]+ ) \}
+(?=\s*(?:\\|%|\Z))
+"""
 
 NEWLABEL = regex.compile(r"""
 \\label                             # match literal \label
@@ -221,4 +233,5 @@ __all__ = ["NEWTHEOREM", "NEWCOMMAND", "NEWENVIRONMENT",
            "NEWALIASCNT", "SPECIFICTHEOREM", "NEWSECTION", 
            "STATEMENTBODY", "NEWINPUT", "NEWUSEPACKAGE",
            "NEWDEF", "NEWLET", "NEWMATHOPERATOR",
-           "NEWLABEL"]
+           "NEWLABEL", "NEWSUBSECTION", "NEWSUBSUBSECTION",
+           "NEWNUMBERWITHIN", "NEWDECLARETHEOREM"]
