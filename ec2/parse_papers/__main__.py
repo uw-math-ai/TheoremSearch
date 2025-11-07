@@ -175,7 +175,7 @@ def parse_papers(
     overwrite: bool = False,
     limit: int = 10,
     allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
-    max_workers: int = 3
+    max_workers: int = 8
 ):
     try:
         upserts = 0
