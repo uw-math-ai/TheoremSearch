@@ -2,6 +2,7 @@ import arxiv
 import time
 import random
 from typing import Iterable, List, Optional, Set
+import random
 
 def search_arxiv(
     query: str,
@@ -9,12 +10,12 @@ def search_arxiv(
     *,
     delay_seconds: float = 0.4,
     jitter: float = 0.15,
-    sort_by: arxiv.SortCriterion = arxiv.SortCriterion.SubmittedDate,
+    sort_by: arxiv.SortCriterion = arxiv.SortCriterion.LastUpdatedDate,
     num_retries: int = 3,
     max_results: Optional[int] = None
 ) -> Iterable[List[arxiv.Result]]:
     client = arxiv.Client(
-        page_size=100,
+        page_size=random.randint(64, 128),
         delay_seconds=delay_seconds,
         num_retries=num_retries,
     )
@@ -48,7 +49,7 @@ def search_arxiv(
                 break
 
             except arxiv.UnexpectedEmptyPageError:
-                client.page_size = max(10, client.page_size // 2)
+                client.page_size = random.randint(64, 128)
                 time.sleep(1.5)
                 continue 
 
