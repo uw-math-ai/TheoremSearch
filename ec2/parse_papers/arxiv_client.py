@@ -19,33 +19,38 @@ def search_arxiv(
         num_retries=num_retries,
     )
 
+    def _sleep():
+        if delay_seconds:
+            time.sleep(max(0.0, delay_seconds * (1.0 + random.uniform(-jitter, jitter))))
+
+    buf: List[arxiv.Result] = []
+    seen: Set[str] = set()
+
     search = arxiv.Search(
         query=query,
         sort_by=sort_by,
         max_results=max_results,
     )
 
-    buf: List[arxiv.Result] = []
-    seen: Set[str] = set()
-    key = (lambda r: r.get_short_id())
-    yielded = 0
-
     try:
-        for res in client.results(search):
-            if delay_seconds:
-                time.sleep(max(0.0, delay_seconds * (1.0 + random.uniform(-jitter, jitter))))
+        while True:
+            try:
+                for res in client.results(search):
+                    _sleep()
+                    sid = res.get_short_id()
+                    if sid in seen:
+                        continue
+                    seen.add(sid)
+                    buf.append(res)
+                    if len(buf) == page_size:
+                        yield buf
+                        buf = []
+                break
 
-            k = key(res)
-            if k in seen:
-                continue
-            seen.add(k)
-
-            buf.append(res)
-
-            if len(buf) == page_size:
-                yield buf
-                yielded += len(buf)
-                buf = []
+            except arxiv.UnexpectedEmptyPageError:
+                client.page_size = max(10, client.page_size // 2)
+                time.sleep(1.5)
+                continue 
 
         if buf:
             yield buf
