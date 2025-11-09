@@ -36,4 +36,4 @@ def embed_texts(embedder, texts_to_embed: list[str], batch_size: int = 16):
                 batch_size=batch_size
             )
 
-    return embeddings
+    return embeddings.tolist()
