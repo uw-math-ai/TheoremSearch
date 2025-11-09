@@ -7,6 +7,7 @@ import random
 def search_arxiv(
     query: str,
     page_size: int = 8,
+    skip: int = 0,
     *,
     delay_seconds: float = 0.4,
     jitter: float = 0.15,
@@ -36,7 +37,7 @@ def search_arxiv(
     try:
         while True:
             try:
-                for res in client.results(search):
+                for res in client.results(search, offset=skip):
                     _sleep()
                     sid = res.get_short_id()
                     if sid in seen:

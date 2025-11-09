@@ -22,7 +22,7 @@ Status = Literal["upserted", "skipped", "error"]
 def _parse_paper(
     paper_res: Result,
     overwrite: bool = False,
-    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"])
+    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
 ) -> Status:
     conn = get_rds_connection()
 
@@ -174,6 +174,7 @@ def parse_papers(
     query: str,
     overwrite: bool = False,
     limit: int = 10,
+    skip: int = 0,
     allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
     max_workers: int = 8
 ):
@@ -184,7 +185,7 @@ def parse_papers(
 
         os.makedirs(TMP_DIR, exist_ok=True)
         with tqdm(total=limit, ncols=80) as pbar:
-            for papers_res in search_arxiv(query, page_size=3):
+            for papers_res in search_arxiv(query, skip=skip):
                 if upserts >= limit:
                     break
                 
@@ -236,10 +237,19 @@ if __name__ == "__main__":
         help="Maximum number of papers to add (if no overwrite) or update/add (if overwrite)"
     )
 
+    parser.add_argument(
+        "--skip",
+        type=int,
+        required=False,
+        default=0,
+        help="Number of results to skip before attempting parsing"
+    )
+
     args = parser.parse_args()
 
     parse_papers(
         args.query,
         args.overwrite,
-        args.limit
+        args.limit,
+        args.skip
     )
