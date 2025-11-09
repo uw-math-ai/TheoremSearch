@@ -58,18 +58,13 @@ def generate_embeddings(
             batch_size=batch_size
         )
 
-        for slogan, embedding in zip(slogans, embeddings):
-            with conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO theorem_embedding_qwen (slogan_id, embedding)
-                    VALUES (%s, %s)
-                    ON CONFLICT (slogan_id) DO UPDATE
-                    SET
-                        embedding = EXCLUDED.embedding
-                """, (
-                    slogan["slogan_id"],
-                    embedding
-                ))
+        with conn.cursor() as cur:
+            cur.executemany("""
+                INSERT INTO theorem_embedding_qwen (slogan_id, embedding)
+                VALUES (%s, %s)
+                ON CONFLICT (slogan_id) DO UPDATE
+                SET embedding = EXCLUDED.embedding
+            """, [(s["slogan_id"], e) for s, e in zip(slogans, embeddings)]) 
 
         conn.commit()
 

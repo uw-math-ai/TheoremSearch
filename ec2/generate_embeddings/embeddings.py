@@ -1,46 +1,39 @@
 """
-Helpers for embeddings texts into vectors.
+Helpers for embedding texts into vectors.
 """
 
 from sentence_transformers import SentenceTransformer
 import torch
-import os
+import multiprocessing
 
 def get_embedder():
-    model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device="cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device=device)
     model.eval()
-
     return model
 
-def embed_texts(
-    embedder,
-    texts_to_embed: list[str],
-    batch_size: int = 16
-) -> list[list[float]]:
+def embed_texts(embedder, texts_to_embed: list[str], batch_size: int = 16):
     """
-    Embeds a list of texts into vectors.
-
-    Parameters
-    ----------
-    texts_to_embed: list[str]
-        A list of strings to embed
-
-    Returns
-    -------
-    all_embeddings: list[list[float]]
-        An array of embedding vectors
+    Embeds a list of texts into vectors using multiprocessing if available.
+    Returns a NumPy array for maximum efficiency.
     """
-    torch.set_num_threads(1)
-    os.environ.setdefault("OMP_NUM_THREADS", "1")
-    os.environ.setdefault("MKL_NUM_THREADS", "1")
+    torch.set_num_threads(multiprocessing.cpu_count())
 
     with torch.inference_mode():
-        all_embeddings = embedder.encode(
-            texts_to_embed,
-            convert_to_numpy=True,
-            normalize_embeddings=True,
-            show_progress_bar=True,
-            batch_size=batch_size
-        )
+        if len(texts_to_embed) < batch_size:
+            embeddings = embedder.encode(
+                texts_to_embed,
+                normalize_embeddings=True,
+                show_progress_bar=False,
+                batch_size=batch_size
+            )
+        else:
+            embeddings = embedder.encode_multi_process(
+                texts_to_embed,
+                pool=None,
+                normalize_embeddings=True,
+                show_progress_bar=True,
+                batch_size=batch_size
+            )
 
-    return all_embeddings.tolist()
+    return embeddings
