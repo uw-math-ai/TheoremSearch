@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 import numpy as np
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 import os
 import boto3
 import psycopg2
@@ -54,7 +54,7 @@ AVAILABLE_TAGS = {
 }
 
 ALLOWED_TYPES = [
-    "theorem", "lemma", "proposition", "corollary", "definition", "remark", "assumption"
+    "theorem", "lemma", "proposition"
 ]
 
 ARXIV_ID_RE = re.compile(
@@ -75,6 +75,14 @@ def load_model():
         st.error(f"Error loading the embedding model: {e}")
         return None
 
+def infer_type(name: str) -> str:
+    if not name:
+        return "theorem"
+    lower = name.lower()
+    for t in ["theorem", "lemma", "proposition"]:
+        if t in lower:
+            return t
+    return "theorem"
 
 # Load Data from RDS
 @st.cache_data
@@ -131,15 +139,6 @@ def load_papers_from_rds():
                 source = "Stacks Project"
 
             # Determine type from name
-            def infer_type(name: str) -> str:
-                if not name:
-                    return "theorem"
-                lower = name.lower()
-                for t in ["theorem", "lemma", "proposition", "corollary", "definition", "remark", "assumption"]:
-                    if t in lower:
-                        return t
-                return "theorem"
-
             inferred_type = infer_type(theorem_name or "")
 
             all_theorems_data.append({
@@ -387,15 +386,6 @@ def search_and_display(query: str, model, filters: dict):
         link_str = link or ""
         source = "arXiv" if link_str.startswith(
             ("http://arxiv.org", "https://arxiv.org")) or "arxiv.org" in link_str else "Stacks Project"
-
-        def infer_type(name: str) -> str:
-            if not name:
-                return "theorem"
-            lower = name.lower()
-            for t in ["theorem", "lemma", "proposition", "corollary", "definition", "remark", "assumption"]:
-                if t in lower:
-                    return t
-            return "theorem"
 
         inferred_type = infer_type(theorem_name or "")
 
