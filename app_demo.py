@@ -505,7 +505,7 @@ if model and theorems_data:
                 journal_status = st.radio("Publication Status:",
                                           ["All", "Journal Article", "Preprint Only"],
                                           horizontal=True)
-                citation_range = st.slider("Filter by Citations:", 0, 1000, 1000, step=10)
+                citation_range = st.slider("Filter by Citations:", 0, 1000, (0,1000), step=10)
                 citation_weight = st.slider("Citation Weight:", 0.0, 1.0, 0.0, step=0.01,
                                             help="If nonzero, results are ranked by base_score $+$ weight $\\times$ "
                                                  "$\\log($citations$)$.")
