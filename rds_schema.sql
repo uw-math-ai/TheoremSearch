@@ -3,11 +3,11 @@ CREATE TABLE paper (
     title TEXT NOT NULL,
     authors TEXT[] NOT NULL,
     link TEXT NOT NULL,
-    last_updated TIMESTAMPTZ NOT NULL,
-    summary TEXT NOT NULL,
+    last_updated TIMESTAMPTZ,
+    summary TEXT,
     journal_ref TEXT,
-    primary_category TEXT NOT NULL,
-    categories TEXT[] NOT NULL,
+    primary_category TEXT,
+    categories TEXT[],
     citations INT
 );
 
@@ -17,6 +17,7 @@ CREATE TABLE theorem (
     name TEXT NOT NULL,
     body TEXT NOT NULL,
     label TEXT,
+    link TEXT,
 
     UNIQUE (paper_id, name)
 );
