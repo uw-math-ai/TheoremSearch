@@ -272,7 +272,7 @@ from ec2.rds.connect import get_rds_connection
 
 # select context window to pull slogans from
 # context_window = "body-only-v1"
-context_window = 'body-only-v1'
+context_window = 'body-and-summary-v1'
 
 
 validation_set = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
@@ -339,10 +339,10 @@ print("number of theorems testing: ", len(vals))
 print("context window: ", context_window)
 
 # Choose the embedder
-# model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
 # model_name = "google/embeddinggemma-300m"
-# model_name = "nvidia/llama-embed-nemotron-8b"
-model_name = "Qwen/Qwen3-Embedding-0.6B" # Qwen3 0.6B is the best of three embedders
+# model_name = "Qwen/Qwen3-Embedding-0.6B"
+# model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
+model_name = "nvidia/llama-embed-nemotron-8b" # Qwen3 0.6B is the best of three embedders
 model = load_model(model_name)
 
 # Choose whether to use slogans or theorems
