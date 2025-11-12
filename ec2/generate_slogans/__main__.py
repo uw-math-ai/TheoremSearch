@@ -21,6 +21,7 @@ def generate_slogans(
     paper_ids: list[str] = [],
     authors: list[str] = [],
     overwrite: bool = False,
+    page_size: int = 100,
     workers: int = 16
 ):
     current_dir = os.path.dirname(__file__)
@@ -92,7 +93,7 @@ def generate_slogans(
         base_params=(*base_params,),
         order_by="theorem_id",
         descending=False,
-        page_size=100
+        page_size=page_size
     )):
         n_theorems += len(theorem_contexts)
         print(f" > Page {1 + page}: {n_theorems}/{n_results}")
@@ -162,6 +163,13 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--page_size",
+        type=int,
+        required=False,
+        default=100
+    )
+
+    parser.add_argument(
         "--workers",
         type=int,
         required=False,
@@ -176,5 +184,6 @@ if __name__ == "__main__":
         paper_ids=args.paper_ids,
         authors=args.authors,
         overwrite=args.overwrite,
+        page_size=args.page_size,
         workers=args.workers
     )
