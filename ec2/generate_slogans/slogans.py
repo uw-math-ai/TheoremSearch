@@ -1,47 +1,47 @@
-import instructor
-from litellm import completion
-from pydantic import BaseModel
+from litellm import completion, completion_cost
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-
-client = instructor.from_litellm(completion)
-
-class TheoremSlogan(BaseModel):
-    slogan: str
+from .cost import format_USD
 
 def _generate_theorem_slogan(
-    client, 
     instructions: str,
     theorem_context: dict,
     model: str,
     i: int
-) -> tuple[int, str]:
+) -> tuple[int, str, float]:
     theorem_context = theorem_context.copy()
     if "theorem_id" in theorem_context:
         del theorem_context["theorem_id"]
 
+    cost = 0
+
     try:
-        res = client.chat.completions.create(
+        theorem_context_str = json.dumps(theorem_context)
+
+        messages = [
+            {
+                "role": "user",
+                "content": instructions
+            },
+            {
+                "role": "user",
+                "content": theorem_context_str
+            }
+        ]
+
+        res = completion(
             model=model,
-            response_model=TheoremSlogan,
-            messages=[
-                {
-                    "role": "user",
-                    "content": instructions
-                },
-                {
-                    "role": "user",
-                    "content": json.dumps(theorem_context)
-                }
-            ]
+            messages=messages
         )
 
-        slogan = res.slogan
+        slogan = res.choices[0].message["content"]
 
-        return i, slogan
+        cost += completion_cost(res)
+
+        return i, slogan, cost 
     except Exception as e:
-        return i, None
+        return i, None, cost
 
 def generate_theorem_slogans(
     theorem_contexts: list[dict],
@@ -53,22 +53,32 @@ def generate_theorem_slogans(
     slogans = [None for _ in theorem_contexts]
     retries = 0
 
-    with ThreadPoolExecutor(max_workers) as ex, tqdm(total=len(theorem_contexts), ncols=80) as pbar:
+    total_cost = 0
+    slogans_generated = 0
+
+    with ThreadPoolExecutor(max_workers) as ex, tqdm(total=len(theorem_contexts)) as pbar:
         while None in slogans:
             if retries > max_retries:
                 break
 
             futs = {
-                ex.submit(_generate_theorem_slogan, client, instructions, theorem_context, model, i)
+                ex.submit(_generate_theorem_slogan, instructions, theorem_context, model, i)
                 for i, theorem_context in enumerate(theorem_contexts)
                 if slogans[i] is None
             }
             for fut in as_completed(futs):
                 res = fut.result()
                 slogans[res[0]] = res[1]
+                total_cost += res[2]
 
                 if res[1] is not None:
                     pbar.update(1)
+                    slogans_generated += 1
+                
+                pbar.set_postfix({
+                    "cost": format_USD(total_cost), 
+                    "avg": format_USD(0 if slogans_generated == 0 else total_cost / slogans_generated)
+                })
 
             retries += 1
 

@@ -8,7 +8,6 @@ import argparse
 from ..rds.paginate import paginate_query
 import os
 import json
-import math
 from .slogans import generate_theorem_slogans
 
 # TODO: Add support for more filters (i.e. paper categories, paper name patterns, 
@@ -92,7 +91,8 @@ def generate_slogans(
         base_sql=base_sql,
         base_params=(*base_params,),
         order_by="theorem_id",
-        descending=False
+        descending=False,
+        page_size=100
     )):
         n_theorems += len(theorem_contexts)
         print(f" > Page {1 + page}: {n_theorems}/{n_results}")
