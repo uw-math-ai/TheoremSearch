@@ -28,6 +28,24 @@ def _parse_paper(
 
     paper_id = paper_res.get_short_id()
 
+    if not overwrite:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM paper
+                    WHERE paper_id = %s
+                );
+            """, (paper_id,))
+
+            res = cur.fetchone()
+
+            if res[0]:
+                # print(f"Prevented overwrite")
+
+                conn.rollback()
+                return "skipped"
+
     try:
         tar_path = paper_res.download_source(
             dirpath=TMP_DIR, 
@@ -48,24 +66,6 @@ def _parse_paper(
             shutil.rmtree(tar_out)
         if os.path.exists(tar_path):
             os.remove(tar_path)
-        
-    if not overwrite:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM paper
-                    WHERE paper_id = %s
-                );
-            """, (paper_id,))
-
-            res = cur.fetchone()
-
-            if res[0]:
-                # print(f"Prevented overwrite")
-
-                clean_up()
-                return "skipped"
 
     try:
         with tarfile.open(tar_path, "r:*") as tar:
