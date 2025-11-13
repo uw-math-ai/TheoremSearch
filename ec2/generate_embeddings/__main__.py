@@ -86,10 +86,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--overwrite",
-        type=bool,
-        required=False,
-        default=False
+        "-o",
+        "--overwrite"
     )
 
     args = parser.parse_args()

@@ -156,14 +156,12 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--overwrite",
-        type=bool,
-        required=False,
-        default=False
+        "-o",
+        "--overwrite"
     )
 
     parser.add_argument(
-        "--page_size",
+        "--page-size",
         type=int,
         required=False,
         default=100
