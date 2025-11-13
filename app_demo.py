@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit.components.v1 import html
 import json
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -54,7 +55,7 @@ AVAILABLE_TAGS = {
 }
 
 ALLOWED_TYPES = [
-    "theorem", "lemma", "proposition"
+    "theorem", "lemma", "proposition", "corollary"
 ]
 
 ARXIV_ID_RE = re.compile(
@@ -79,7 +80,7 @@ def infer_type(name: str) -> str:
     if not name:
         return "theorem"
     lower = name.lower()
-    for t in ["theorem", "lemma", "proposition"]:
+    for t in ["theorem", "lemma", "proposition", "corollary"]:
         if t in lower:
             return t
     return "theorem"
@@ -131,31 +132,45 @@ def load_papers_from_rds():
              journal_ref, primary_category, categories,
              theorem_name, theorem_slogan, theorem_body) = row
 
+            # Determine type from name
+            inferred_type = infer_type(theorem_name or "")
+
             # Determine source from url
             link_str = link or ""
             if link_str.startswith("http://arxiv.org") or link_str.startswith("https://arxiv.org"):
                 source = "arXiv"
+                all_theorems_data.append({
+                    "paper_id": paper_id,
+                    "authors": authors,
+                    "paper_title": title,
+                    "paper_url": link,
+                    "year": last_updated.year,
+                    "primary_category": primary_category,
+                    "source": source,
+                    "type": inferred_type,
+                    "journal_published": bool(journal_ref),
+                    "citations": None,
+                    "theorem_name": theorem_name,
+                    "theorem_slogan": theorem_slogan,
+                    "theorem_body": theorem_body,
+                })
             else:
                 source = "Stacks Project"
-
-            # Determine type from name
-            inferred_type = infer_type(theorem_name or "")
-
-            all_theorems_data.append({
-                "paper_id": paper_id,
-                "authors": authors,
-                "paper_title": title,
-                "paper_url": link,
-                "year": last_updated.year,
-                "primary_category": primary_category,
-                "source": source,
-                "type": inferred_type,
-                "journal_published": bool(journal_ref),
-                "citations": None,
-                "theorem_name": theorem_name,
-                "theorem_slogan": theorem_slogan,
-                "theorem_body": theorem_body,
-            })
+                all_theorems_data.append({
+                    "paper_id": paper_id,
+                    "authors": authors,
+                    "paper_title": title,
+                    "paper_url": link,
+                    "year": None,
+                    "primary_category": primary_category,
+                    "source": source,
+                    "type": inferred_type,
+                    "journal_published": None,
+                    "citations": None,
+                    "theorem_name": theorem_name,
+                    "theorem_slogan": theorem_slogan,
+                    "theorem_body": theorem_body,
+                })
 
         return all_theorems_data
 
@@ -277,6 +292,42 @@ def compute_score(similarity: float, citations: int, weight: float) -> float:
     if c == 0:
         return float(similarity)
     return float(similarity) + float(weight) * np.log(c)
+
+def on_click_url(query: str, url: str, theorem_name: str, filters: dict):
+    nav_to(url)
+    safe_filters = make_json_safe(filters)
+    filters_json = json.dumps(safe_filters)
+    conn = get_rds_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO queries (query, url, theorem_name, filters) VALUES (%s, %s, %s, %s)",
+        (query, url, theorem_name, filters_json)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def nav_to(url):
+    open_script = """
+        <script type="text/javascript">
+            window.open('%s', '_blank').focus();
+        </script>
+    """ % url
+    html(open_script)
+
+def make_json_safe(obj):
+    if isinstance(obj, dict):
+        return {k: make_json_safe(v) for k, v in obj.items()}
+    elif isinstance(obj, set):
+        return list(obj)
+    elif isinstance(obj, tuple):
+        return list(obj)
+    elif isinstance(obj, list):
+        return [make_json_safe(v) for v in obj]
+    elif hasattr(obj, "item"):  # catches numpy types like np.int64, np.float32
+        return obj.item()
+    else:
+        return obj
 
 # --- Search and Display ---
 def search_and_display(query: str, model, filters: dict):
@@ -428,7 +479,11 @@ def search_and_display(query: str, model, filters: dict):
         with st.expander(expander_title, expanded=True):
             st.markdown(f"**Paper:** *{info.get('paper_title', 'Unknown')}*")
             st.markdown(f"**Authors:** {', '.join(info.get('authors') or []) or 'N/A'}")
-            st.markdown(f"**Source:** {info.get('source')} ({info.get('paper_url')})")
+            st.markdown(f"**Source:** {info.get('source')}")
+            st.button(f"{info.get('paper_url')}",
+                      info.get("paper_id") + info.get("theorem_name"),
+                      on_click=on_click_url,
+                      args=(query, info.get("paper_url"), info.get("theorem_name"), filters))
             citations = info.get("citations")
             cit_str = "Unknown" if citations is None else str(citations)
             st.markdown(
