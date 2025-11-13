@@ -22,7 +22,7 @@ Status = Literal["upserted", "skipped", "error"]
 def _parse_paper(
     paper_res: Result,
     overwrite: bool = False,
-    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
+    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
 ) -> Status:
     conn = get_rds_connection()
 

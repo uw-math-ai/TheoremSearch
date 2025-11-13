@@ -12,7 +12,7 @@ conn = get_rds_connection()
 def upsert_stacks(
     stack_parsed_zip_path: str = STACKS_PARSED_ZIP_PATH,
     tags_path: str = TAGS_PATH,
-    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
+    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
 ):
     section_to_tag = get_section_to_tag_map(tags_path)
 
