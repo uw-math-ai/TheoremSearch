@@ -1,63 +1,41 @@
 import arxiv
-import time
-import random
-from typing import Iterable, List, Optional, Set
-import random
+from typing import Iterable, List
+import tqdm
 
-def search_arxiv(
+ArXivBatch = List[arxiv.Result]
+
+def fetch_arxiv_papers(
     query: str,
-    page_size: int = 8,
-    skip: int = 0,
-    *,
-    delay_seconds: float = 0.4,
-    jitter: float = 0.15,
-    sort_by: arxiv.SortCriterion = arxiv.SortCriterion.LastUpdatedDate,
-    num_retries: int = 3,
-    max_results: Optional[int] = None
-) -> Iterable[List[arxiv.Result]]:
+    start: int = 0,
+    sort_by: arxiv.SortCriterion = arxiv.SortCriterion.SubmittedDate,
+    page_size: int = 100,
+    delay_seconds: float = 3,
+    max_retries: int = 3
+) -> Iterable[ArXivBatch]:
     client = arxiv.Client(
-        page_size=random.randint(64, 128),
+        page_size=page_size,
         delay_seconds=delay_seconds,
-        num_retries=num_retries,
+        num_retries=max_retries
     )
-
-    def _sleep():
-        if delay_seconds:
-            time.sleep(max(0.0, delay_seconds * (1.0 + random.uniform(-jitter, jitter))))
-
-    buf: List[arxiv.Result] = []
-    seen: Set[str] = set()
 
     search = arxiv.Search(
         query=query,
-        sort_by=sort_by,
-        max_results=max_results,
+        sort_by=sort_by
     )
 
-    try:
-        while True:
-            try:
-                for res in client.results(search, offset=skip):
-                    _sleep()
-                    sid = res.get_short_id()
-                    if sid in seen:
-                        continue
-                    seen.add(sid)
-                    buf.append(res)
-                    if len(buf) == page_size:
-                        yield buf
-                        buf = []
-                break
+    while True:
+        try:
+            for paper_res in client.results(search, offset=start):
+                start += 1
+                yield paper_res
 
-            except arxiv.UnexpectedEmptyPageError:
-                client.page_size = random.randint(64, 128)
-                time.sleep(1.5)
-                continue 
+            break
+        except Exception as e:
+            start += 1
 
-        if buf:
-            yield buf
+            print(f"reset @ start={start}")
 
-    except KeyboardInterrupt:
-        if buf:
-            yield buf
-        raise
+if __name__ == "__main__":
+    with tqdm.tqdm(total=50_000) as pbar:
+        for paper_res in fetch_arxiv_papers(query="cat:math.AG", delay_seconds=0.3):
+            pbar.update(1)

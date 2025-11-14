@@ -9,19 +9,20 @@ from .tex import find_main_tex_file, collect_imports
 import regex
 from .patterns import *
 from .latex_parse import extract
-from .citations import fetch_citations
+from ..upsert_arxiv.citations import get_paper_citations
 from arxiv import Result
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
-from typing import Literal
+from typing import Literal, Optional
 
 TMP_DIR = "papers_tmp"
 
-Status = Literal["upserted", "skipped", "error"]
+Status = Literal["upserted", "skipped", "error", "low quality"]
 
 def _parse_paper(
     paper_res: Result,
     overwrite: bool = False,
+    min_citations: Optional[int] = None,
     allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
 ) -> Status:
     conn = get_rds_connection()
@@ -46,6 +47,23 @@ def _parse_paper(
                 conn.rollback()
                 return "skipped"
 
+    # 1) Can find highest quality (has journal_ref) by updating --query
+    # 2) Can filter out papers with less than k citations
+    # 3) TODO: How to to filter out authors not in trusted institutions?
+    # 4) TODO: How to filter out authors with less than k citations
+
+    # --- QUALITY FILTERS ---
+
+    paper_citations = None
+
+    if min_citations is not None:
+        paper_citations = get_paper_citations(paper_id, paper_res)
+
+        if (paper_citations is None) or (paper_citations < min_citations):
+            conn.rollback()
+
+            return "low quality"
+        
     try:
         tar_path = paper_res.download_source(
             dirpath=TMP_DIR, 
@@ -118,6 +136,9 @@ def _parse_paper(
             clean_up()
             return "error"
 
+        if not paper_citations:
+            paper_citations = get_paper_citations(paper_id, paper_res)
+
         paper_row = (
             paper_id,
             paper_res.title,
@@ -128,7 +149,7 @@ def _parse_paper(
             paper_res.journal_ref,
             paper_res.primary_category,
             paper_res.categories,
-            fetch_citations(paper_res.entry_id, paper_res.title)
+            paper_citations
         )
 
         with conn.cursor() as cur:
