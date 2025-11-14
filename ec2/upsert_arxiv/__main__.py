@@ -44,7 +44,7 @@ def _upsert_arxiv_paper(paper_res: arxiv.Result):
             }
         )
 
-    # conn.commit()
+    conn.commit()
     conn.close()
 
 def _upsert_arxiv_batch(paper_res_batch: List[arxiv.Result], max_workers: int, pbar: tqdm):
