@@ -12,7 +12,8 @@ def find_main_tex_file(source_dir: str):
                 file_path = os.path.join(root, file)
                 try:
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        if r"\documentclass" in f.read() and r"%\documentclass" not in f.read(): # might need its own regex ptrn
+                        content = f.read()
+                        if r"\documentclass" in content and r"%\documentclass" not in content: # might need its own regex ptrn
                             # print(f"Found main .tex file: {file_path}")
                             return file_path
                 except Exception:

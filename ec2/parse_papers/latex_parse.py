@@ -203,7 +203,12 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     Labels theorems based on their specified counters
     """
     # find beginning of doc
-    begin_doc = _scanner(r"\\begin\{document\}", data)[0].start()
+    begin_matches = _scanner(r"\\begin\{document\}", data)
+
+    if begin_matches:
+        begin_doc = begin_matches[0].start()
+    else:
+        begin_doc = 0
 
     # gather sections
     section_locations = []
