@@ -8,7 +8,7 @@ import tarfile, regex, os, shutil, gzip
 from .tex import find_main_tex_file, collect_imports
 from .patterns import *
 from .latex_parse import extract
-from typing import Set
+from typing import Set, List, Dict
 from ..rds.upsert import upsert_rows
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
 
@@ -31,11 +31,8 @@ def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
 def _parse_arxiv_paper(
     paper_id: str,
     allowed_theorem_types: Set[str]
-) -> bool:
+) -> List[Dict]:
     # print(f"[START] {paper_id}", flush=True)
-
-    success = False
-    conn = get_rds_connection()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
@@ -87,30 +84,15 @@ def _parse_arxiv_paper(
                 if name.lower().split(" ")[0] in allowed_theorem_types
             ]
 
-            with conn.cursor() as cur:
-                if theorem_rows:
-                    upsert_rows(
-                        cur,
-                        table="theorem",
-                        rows=theorem_rows,
-                        on_conflict={
-                            "with": ["paper_id", "name"],
-                            "replace": ["body", "label"]
-                        }
-                    )
-
-            conn.commit()
-            success = True
             # print(f"[DONE]  {paper_id}", flush=True)
+
+            return theorem_rows
 
         except Exception as e:
             # print(f"[ERROR] {paper_id}: {e!r}", flush=True)
-            success = False
+            pass
 
-        finally:
-            conn.close()
-
-    return success
+        return []
 
 
 def parse_arxiv_papers(
@@ -122,7 +104,7 @@ def parse_arxiv_papers(
     per_paper_timeout: int,
     allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"])
 ):
-    search_conn = get_rds_connection()
+    conn = get_rds_connection()
 
     base_sql = """
         SELECT paper_id, last_updated
@@ -156,18 +138,16 @@ def parse_arxiv_papers(
         base_sql += " WHERE " + " AND ".join(where_conditions)
         count_sql += " WHERE " + " AND ".join(where_conditions)
 
-    with search_conn.cursor() as search_cur:
+    with conn.cursor() as search_cur:
         search_cur.execute(count_sql, (*base_params,))
         n_results = search_cur.fetchone()[0]
 
     n_errors = 0
     n_successes = 0
 
-    with ProcessPoolExecutor(max_workers=max_workers) as ex, \
-         tqdm(total=n_results) as pbar:
-
+    with ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1) as ex, tqdm(total=n_results) as pbar:
         for papers in paginate_query(
-            search_conn,
+            conn,
             base_sql=base_sql,
             base_params=(*base_params,),
             order_by="last_updated",
@@ -175,9 +155,9 @@ def parse_arxiv_papers(
             page_size=batch_size
         ):
 
-            # Submit this batch
             futures = []
             paper_ids = []
+            batch_theorem_rows = []
 
             for paper in papers:
                 paper_id = paper["paper_id"]
@@ -187,16 +167,17 @@ def parse_arxiv_papers(
 
             for paper_id, fut in zip(paper_ids, futures):
                 try:
-                    success = fut.result(timeout=per_paper_timeout)
+                    theorem_rows = fut.result(timeout=per_paper_timeout)
                 except TimeoutError:
-                    # print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
-                    success = False
+                    print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
+                    theorem_rows = []
                 except Exception as e:
-                    # print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
-                    success = False
+                    print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
+                    theorem_rows = []
 
-                if success:
+                if theorem_rows:
                     n_successes += 1
+                    batch_theorem_rows.extend(theorem_rows)
                 else:
                     n_errors += 1
 
@@ -205,7 +186,21 @@ def parse_arxiv_papers(
                     "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
                 })
 
-    search_conn.close()
+            with conn.cursor() as cur:
+                if batch_theorem_rows:
+                    upsert_rows(
+                        cur,
+                        table="theorem",
+                        rows=batch_theorem_rows,
+                        on_conflict={
+                            "with": ["paper_id", "name"],
+                            "replace": ["body", "label"]
+                        }
+                    )
+
+            conn.commit()
+
+    conn.close()
 
 
 if __name__ == "__main__":
@@ -252,7 +247,7 @@ if __name__ == "__main__":
         "--per-paper-timeout",
         type=int,
         required=False,
-        default=10,
+        default=30,
         help="Maximum seconds allowed per paper parse before timing out"
     )
 
