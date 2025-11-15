@@ -89,7 +89,7 @@ def _parse_arxiv_paper(
             return theorem_rows
 
         except Exception as e:
-            # print(f"[ERROR] {paper_id}: {e!r}", flush=True)
+            print(f"[ERROR] {paper_id}: {e!r}", flush=True)
             pass
 
         return []
@@ -145,7 +145,7 @@ def parse_arxiv_papers(
     n_errors = 0
     n_successes = 0
 
-    with ProcessPoolExecutor(max_workers=max_workers, max_tasks_per_child=1) as ex, tqdm(total=n_results) as pbar:
+    with ProcessPoolExecutor(max_workers=max_workers) as ex, tqdm(total=n_results) as pbar:
         for papers in paginate_query(
             conn,
             base_sql=base_sql,
