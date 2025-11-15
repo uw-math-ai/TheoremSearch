@@ -13,21 +13,13 @@ from ..rds.upsert import upsert_rows
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def _parse_arxiv_paper(
-    client: arxiv.Client, 
-    paper_id: str,
+    paper_res: arxiv.Result,
     allowed_theorem_types: Set[str]
 ) -> bool:
     success = False
 
     conn = get_rds_connection()
-
-    search = arxiv.Search(id_list=[paper_id], max_results=1)
-    paper_res = client.results(search).__next__()
-
-    if not paper_res:
-        conn.close()
-
-        return success
+    paper_id = paper_res.get_short_id()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
@@ -158,10 +150,12 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
+            search = arxiv.Search(id_list=[paper["paper_id"] for paper in papers])
+
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futs = {
-                    ex.submit(_parse_arxiv_paper, client, paper["paper_id"], allowed_theorem_types)
-                    for paper in papers
+                    ex.submit(_parse_arxiv_paper, paper_res, allowed_theorem_types)
+                    for paper_res in client.results(search)
                 }
 
                 for fut in as_completed(futs):
