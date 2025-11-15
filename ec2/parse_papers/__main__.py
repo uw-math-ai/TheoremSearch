@@ -103,6 +103,7 @@ def parse_arxiv_papers(
     batch_size: int,
     max_workers: int,
     per_paper_timeout: int,
+    batch_skip: int,
     allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"])
 ):
     conn = get_rds_connection()
@@ -155,6 +156,10 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
+            if batch_skip > 0:
+                batch_skip -= 1
+                pbar.update(batch_size)
+                continue
 
             futures = []
             paper_ids = []
@@ -253,6 +258,14 @@ if __name__ == "__main__":
         help="Maximum seconds allowed per paper parse before timing out"
     )
 
+    parser.add_argument(
+        "--batch-skip",
+        type=int,
+        required=False,
+        default=0,
+        help="Number of batches to skip in parsing"
+    )
+
     args = parser.parse_args()
 
     retries = 0
@@ -265,14 +278,15 @@ if __name__ == "__main__":
                 overwrite=args.overwrite,
                 batch_size=args.batch_size,
                 max_workers=args.max_workers,
-                per_paper_timeout=args.per_paper_timeout
+                per_paper_timeout=args.per_paper_timeout,
+                batch_skip=args.batch_skip
             )
 
         except KeyboardInterrupt:
             break
 
         except Exception as e:
-            print("[RESTART] {e}")
+            print(f"[RESTART] {e}")
 
             retries += 1
 
