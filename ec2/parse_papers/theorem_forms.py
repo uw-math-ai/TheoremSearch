@@ -28,7 +28,7 @@ class TheoremNumberer:
             raise ValueError(f"Environment '{env}' already defined")
 
         if shared and within:
-            print("ERR", starred, env, shared, caption, within)
+            # print("ERR", starred, env, shared, caption, within)
             raise ValueError(f"Use either shared=[{shared}] or within=[{within}], not both.")
 
         counter = shared if shared else env

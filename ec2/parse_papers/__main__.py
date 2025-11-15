@@ -172,7 +172,7 @@ def parse_arxiv_papers(
 
                     continue
                 
-                fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types)
+                fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types, verbose)
                 futures.append(fut)
                 paper_ids.append(paper_id)
 
