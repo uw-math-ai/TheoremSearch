@@ -31,7 +31,8 @@ def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
 
 def _parse_arxiv_paper(
     paper_id: str,
-    allowed_theorem_types: Set[str]
+    allowed_theorem_types: Set[str],
+    verbose: bool
 ) -> List[Dict]:
     # print(f"[START] {paper_id}", flush=True)
 
@@ -90,7 +91,8 @@ def _parse_arxiv_paper(
             return theorem_rows
 
         except Exception as e:
-            print(f"[ERROR] {paper_id}: {e!r}", flush=True)
+            if verbose:
+                print(f"[ERROR] {paper_id}: {e!r}", flush=True)
             pass
 
         return []
@@ -104,6 +106,7 @@ def parse_arxiv_papers(
     max_workers: int,
     per_paper_timeout: int,
     unparsable_paper_ids: Set[str],
+    verbose: bool,
     allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
 ):
     conn = get_rds_connection()
@@ -168,7 +171,7 @@ def parse_arxiv_papers(
                     n_errors += 1
 
                     continue
-
+                
                 fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types)
                 futures.append(fut)
                 paper_ids.append(paper_id)
@@ -177,12 +180,14 @@ def parse_arxiv_papers(
                 try:
                     theorem_rows = fut.result(timeout=per_paper_timeout)
                 except TimeoutError:
-                    print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
+                    if verbose:
+                        print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
                     theorem_rows = []
 
                     unparsable_paper_ids.add(paper_id)
                 except Exception as e:
-                    print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
+                    if verbose:
+                        print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
                     theorem_rows = []
 
                     unparsable_paper_ids.add(paper_id)
@@ -269,6 +274,12 @@ if __name__ == "__main__":
         default=64,
         help="Maximum retries"
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Whether to print errors or not"
+    )
 
     args = parser.parse_args()
     retries = 0
@@ -284,7 +295,8 @@ if __name__ == "__main__":
                 batch_size=args.batch_size,
                 max_workers=args.max_workers,
                 per_paper_timeout=args.per_paper_timeout,
-                unparsable_paper_ids=unparsable_paper_ids
+                unparsable_paper_ids=unparsable_paper_ids,
+                verbose=args.verbose
             )
 
         except KeyboardInterrupt:
