@@ -11,6 +11,7 @@ from .latex_parse import extract
 from typing import Set, List, Dict
 from ..rds.upsert import upsert_rows
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
+import time
 
 
 def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
@@ -202,6 +203,7 @@ def parse_arxiv_papers(
 
     conn.close()
 
+MAX_RETRIES = 64
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -253,11 +255,26 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    parse_arxiv_papers(
-        min_citations=args.min_citations,
-        in_journal=args.in_journal,
-        overwrite=args.overwrite,
-        batch_size=args.batch_size,
-        max_workers=args.max_workers,
-        per_paper_timeout=args.per_paper_timeout
-    )
+    retries = 0
+
+    while retries < 64:
+        try:
+            parse_arxiv_papers(
+                min_citations=args.min_citations,
+                in_journal=args.in_journal,
+                overwrite=args.overwrite,
+                batch_size=args.batch_size,
+                max_workers=args.max_workers,
+                per_paper_timeout=args.per_paper_timeout
+            )
+
+        except KeyboardInterrupt:
+            break
+
+        except Exception as e:
+            print("[RESTART] {e}")
+
+            retries += 1
+
+            time.sleep(retries * 30 + 1)
+
