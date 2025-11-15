@@ -103,8 +103,8 @@ def parse_arxiv_papers(
     batch_size: int,
     max_workers: int,
     per_paper_timeout: int,
-    batch_skip: int,
-    allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"])
+    unparsable_paper_ids: Set[str],
+    allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
 ):
     conn = get_rds_connection()
 
@@ -156,10 +156,6 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
-            if batch_skip > 0:
-                batch_skip -= 1
-                pbar.update(batch_size)
-                continue
 
             futures = []
             paper_ids = []
@@ -167,6 +163,12 @@ def parse_arxiv_papers(
 
             for paper in papers:
                 paper_id = paper["paper_id"]
+
+                if paper_id in unparsable_paper_ids:
+                    n_errors += 1
+
+                    continue
+
                 fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types)
                 futures.append(fut)
                 paper_ids.append(paper_id)
@@ -177,9 +179,13 @@ def parse_arxiv_papers(
                 except TimeoutError:
                     print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
                     theorem_rows = []
+
+                    unparsable_paper_ids.add(paper_id)
                 except Exception as e:
                     print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
                     theorem_rows = []
+
+                    unparsable_paper_ids.add(paper_id)
 
                 if theorem_rows:
                     n_successes += 1
@@ -207,8 +213,6 @@ def parse_arxiv_papers(
             conn.commit()
 
     conn.close()
-
-MAX_RETRIES = 64
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -259,18 +263,19 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--batch-skip",
+        "--max-retries",
         type=int,
         required=False,
-        default=0,
-        help="Number of batches to skip in parsing"
+        default=64,
+        help="Maximum retries"
     )
 
     args = parser.parse_args()
-
     retries = 0
 
-    while retries < 64:
+    unparsable_paper_ids = set()
+
+    while retries < args.max_retries:
         try:
             parse_arxiv_papers(
                 min_citations=args.min_citations,
@@ -279,7 +284,7 @@ if __name__ == "__main__":
                 batch_size=args.batch_size,
                 max_workers=args.max_workers,
                 per_paper_timeout=args.per_paper_timeout,
-                batch_skip=args.batch_skip
+                unparsable_paper_ids=unparsable_paper_ids
             )
 
         except KeyboardInterrupt:
