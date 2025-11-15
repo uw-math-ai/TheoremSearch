@@ -2,7 +2,7 @@ import argparse
 from ..rds.paginate import paginate_query
 from ..rds.connect import get_rds_connection
 from tqdm import tqdm
-import arxiv
+import requests
 import tempfile
 import tarfile, regex, os, shutil, gzip
 from .tex import find_main_tex_file, collect_imports
@@ -12,21 +12,31 @@ from typing import Set
 from ..rds.upsert import upsert_rows
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
+    url = f"https://arxiv.org/e-print/{paper_id}"
+
+    resp = requests.get(url, stream=True, timeout=60)
+    resp.raise_for_status()
+
+    tar_path = os.path.join(dest_dir, paper_id.replace("/", "_") + ".tar.gz")
+    with open(tar_path, "wb") as f:
+        for chunk in resp.iter_content(chunk_size=8192):
+            if chunk:
+                f.write(chunk)
+
+    return tar_path
+
 def _parse_arxiv_paper(
-    paper_res: arxiv.Result,
+    paper_id: str,
     allowed_theorem_types: Set[str]
 ) -> bool:
     success = False
 
     conn = get_rds_connection()
-    paper_id = paper_res.get_short_id()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
-            tar_path = paper_res.download_source(
-                dirpath=tmp_dir,
-                filename=paper_id.replace("/", "_") + ".tar.gz"
-            )
+            tar_path = _download_arxiv_source(paper_id, tmp_dir)
             tar_out = tar_path.replace(".tar.gz", "")
 
             try:
@@ -136,8 +146,6 @@ def parse_arxiv_papers(
         search_cur.execute(count_sql, (*base_params,))
         n_results = search_cur.fetchone()[0]
 
-    client = arxiv.Client()
-
     n_errors = 0
     n_successes = 0
 
@@ -150,12 +158,11 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
-            search = arxiv.Search(id_list=[paper["paper_id"] for paper in papers])
 
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futs = {
-                    ex.submit(_parse_arxiv_paper, paper_res, allowed_theorem_types)
-                    for paper_res in client.results(search)
+                    ex.submit(_parse_arxiv_paper, paper["paper_id"], allowed_theorem_types)
+                    for paper in papers
                 }
 
                 for fut in as_completed(futs):
