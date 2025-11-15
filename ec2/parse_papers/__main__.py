@@ -10,12 +10,13 @@ from .patterns import *
 from .latex_parse import extract
 from typing import Set
 from ..rds.upsert import upsert_rows
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, TimeoutError
+
 
 def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
     url = f"https://arxiv.org/e-print/{paper_id}"
 
-    resp = requests.get(url, stream=True, timeout=60)
+    resp = requests.get(url, stream=True, timeout=10)
     resp.raise_for_status()
 
     tar_path = os.path.join(dest_dir, paper_id.replace("/", "_") + ".tar.gz")
@@ -26,12 +27,14 @@ def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
 
     return tar_path
 
+
 def _parse_arxiv_paper(
     paper_id: str,
     allowed_theorem_types: Set[str]
 ) -> bool:
-    success = False
+    # print(f"[START] {paper_id}", flush=True)
 
+    success = False
     conn = get_rds_connection()
 
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -42,31 +45,36 @@ def _parse_arxiv_paper(
             try:
                 with tarfile.open(tar_path, "r:*") as tar:
                     tar.extractall(path=tar_out)
-            except:
-                os.makedirs(tar_out)
-
-                with gzip.open(tar_path, "rb") as f_in, open(os.path.join(tar_out, "main.tex"), "wb") as f_out:
+            except Exception:
+                # Fallback: sometimes arXiv gives gzipped single .tex
+                os.makedirs(tar_out, exist_ok=True)
+                with gzip.open(tar_path, "rb") as f_in, \
+                     open(os.path.join(tar_out, "main.tex"), "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
 
             file = find_main_tex_file(tar_out)
-
             if file is None:
                 raise ValueError("No main .tex file found")
-            
-            with open(file, "r+", errors="ignore", ) as f:
+
+            # clean comments from main tex
+            with open(file, "r+", errors="ignore") as f:
                 content = f.read()
-
-                # remove any commented out imports
                 content = regex.sub(r"(?<!\\)%.*", "", content)
-                content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', content, flags=regex.DOTALL)
-
+                content = regex.sub(
+                    r'\\begin\{comment\}.*?\\end\{comment\}',
+                    '',
+                    content,
+                    flags=regex.DOTALL
+                )
                 f.seek(0)
                 f.write(content)
                 f.truncate()
 
+            # Collect imports (make sure collect_imports doesn't infinite-loop!)
             collect_imports(tar_out, file, NEWINPUT)
             collect_imports(tar_out, file, NEWUSEPACKAGE)
 
+            # Extract theorems
             theorems = extract(file)
             theorem_rows = [
                 {
@@ -80,25 +88,30 @@ def _parse_arxiv_paper(
             ]
 
             with conn.cursor() as cur:
-                upsert_rows(
-                    cur,
-                    table="theorem",
-                    rows=theorem_rows,
-                    on_conflict={
-                        "with": ["paper_id", "name"],
-                        "replace": ["body", "label"]
-                    }
-                )
+                if theorem_rows:
+                    upsert_rows(
+                        cur,
+                        table="theorem",
+                        rows=theorem_rows,
+                        on_conflict={
+                            "with": ["paper_id", "name"],
+                            "replace": ["body", "label"]
+                        }
+                    )
 
             conn.commit()
-            
             success = True
+            # print(f"[DONE]  {paper_id}", flush=True)
+
         except Exception as e:
-            pass
+            # print(f"[ERROR] {paper_id}: {e!r}", flush=True)
+            success = False
+
         finally:
             conn.close()
 
     return success
+
 
 def parse_arxiv_papers(
     min_citations: int,
@@ -106,11 +119,12 @@ def parse_arxiv_papers(
     overwrite: bool,
     batch_size: int,
     max_workers: int,
+    per_paper_timeout: int,
     allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"])
 ):
     search_conn = get_rds_connection()
 
-    base_sql = f"""
+    base_sql = """
         SELECT paper_id, last_updated
         FROM paper
     """
@@ -149,7 +163,9 @@ def parse_arxiv_papers(
     n_errors = 0
     n_successes = 0
 
-    with tqdm(total=n_results) as pbar:
+    with ProcessPoolExecutor(max_workers=max_workers) as ex, \
+         tqdm(total=n_results) as pbar:
+
         for papers in paginate_query(
             search_conn,
             base_sql=base_sql,
@@ -159,26 +175,38 @@ def parse_arxiv_papers(
             page_size=batch_size
         ):
 
-            with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futs = {
-                    ex.submit(_parse_arxiv_paper, paper["paper_id"], allowed_theorem_types)
-                    for paper in papers
-                }
+            # Submit this batch
+            futures = []
+            paper_ids = []
 
-                for fut in as_completed(futs):
-                    success = fut.result()
+            for paper in papers:
+                paper_id = paper["paper_id"]
+                fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types)
+                futures.append(fut)
+                paper_ids.append(paper_id)
 
-                    if success:
-                        n_successes += 1
-                    else:
-                        n_errors += 1
+            for paper_id, fut in zip(paper_ids, futures):
+                try:
+                    success = fut.result(timeout=per_paper_timeout)
+                except TimeoutError:
+                    # print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
+                    success = False
+                except Exception as e:
+                    # print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
+                    success = False
 
-                    pbar.update(1)
-                    pbar.set_postfix({
-                        "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
-                    })
+                if success:
+                    n_successes += 1
+                else:
+                    n_errors += 1
+
+                pbar.update(1)
+                pbar.set_postfix({
+                    "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
+                })
 
     search_conn.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -217,7 +245,15 @@ if __name__ == "__main__":
         type=int,
         required=False,
         default=16,
-        help="Number of concurrent workers to parse each batch"
+        help="Number of concurrent workers to parse each batch (processes)"
+    )
+
+    parser.add_argument(
+        "--per-paper-timeout",
+        type=int,
+        required=False,
+        default=10,
+        help="Maximum seconds allowed per paper parse before timing out"
     )
 
     args = parser.parse_args()
@@ -227,5 +263,6 @@ if __name__ == "__main__":
         in_journal=args.in_journal,
         overwrite=args.overwrite,
         batch_size=args.batch_size,
-        max_workers=args.max_workers
+        max_workers=args.max_workers,
+        per_paper_timeout=args.per_paper_timeout
     )
