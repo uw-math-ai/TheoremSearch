@@ -103,6 +103,7 @@ def parse_arxiv_papers(
     in_journal: bool,
     overwrite: bool,
     batch_size: int,
+    batch_skip: int,
     max_workers: int,
     per_paper_timeout: int,
     unparsable_paper_ids: Set[str],
@@ -159,10 +160,16 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
-
             futures = []
             paper_ids = []
             batch_theorem_rows = []
+            
+            if batch_skip > 0:
+                pbar.update(len(papers))
+                n_errors += len(papers)
+                batch_skip -= 1
+
+                continue
 
             for paper in papers:
                 paper_id = paper["paper_id"]
@@ -202,6 +209,10 @@ def parse_arxiv_papers(
                 pbar.set_postfix({
                     "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
                 })
+
+            pbar.set_postfix({
+                "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
+            })
 
             with conn.cursor() as cur:
                 if batch_theorem_rows:
@@ -252,6 +263,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--batch-skip",
+        type=int,
+        required=False,
+        default=0,
+        help="Number of batches to skip in parsing"
+    )
+
+    parser.add_argument(
         "--max-workers",
         type=int,
         required=False,
@@ -293,6 +312,7 @@ if __name__ == "__main__":
                 in_journal=args.in_journal,
                 overwrite=args.overwrite,
                 batch_size=args.batch_size,
+                batch_skip=args.batch_skip,
                 max_workers=args.max_workers,
                 per_paper_timeout=args.per_paper_timeout,
                 unparsable_paper_ids=unparsable_paper_ids,
