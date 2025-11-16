@@ -1,23 +1,52 @@
-import os
+import os, re
 import glob
 from .latex_parse import _scanner
 
+DOC_CLASS_RE = re.compile(
+    r"^[^%]*\\documentclass(\[.*?\])?\{.*?\}",
+    re.MULTILINE
+)
+
 def find_main_tex_file(source_dir: str):
     """
-    Finds the main .tex file in a directory by looking for '\\documentclass'.
+    Robustly find the main .tex file in an extracted arXiv source.
     """
+    candidates = []
+
     for root, _, files in os.walk(source_dir):
         for file in files:
             if file.endswith(".tex"):
                 file_path = os.path.join(root, file)
+
                 try:
                     with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        content = f.read()
-                        if r"\documentclass" in content and r"%\documentclass" not in content: # might need its own regex ptrn
-                            # print(f"Found main .tex file: {file_path}")
-                            return file_path
+                        # read only first 200 lines; faster & covers 99.9%
+                        head = "".join(f.readline() for _ in range(200))
                 except Exception:
                     continue
+
+                # actual preamble?
+                if DOC_CLASS_RE.search(head):
+                    return file_path   # definite main file
+
+                # As backup: collect all .tex files to analyze further
+                candidates.append(file_path)
+
+    # If no documentclass found:
+    # fallback: choose file that contains \begin{document}
+    for path in candidates:
+        try:
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                head = "".join(f.readline() for _ in range(200))
+        except:
+            continue
+        if "\\begin{document}" in head:
+            return path
+
+    # If STILL nothing: default to largest file (most commonly the root)
+    if candidates:
+        return max(candidates, key=os.path.getsize)
+
     return None
 
 def collect_imports(tarpath: str, file: str, pattern: str):
