@@ -157,7 +157,7 @@ if __name__ == "__main__":
         nargs="+",
         type=str,
         required=False,
-        default=[]
+        default=[],
         help="List of paper IDs whose theorems get slogan-ified"
     )
 
