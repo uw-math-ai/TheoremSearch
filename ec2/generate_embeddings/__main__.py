@@ -18,17 +18,17 @@ def generate_embeddings(
         SELECT slogan_id, slogan
         FROM theorem_slogan
         INNER JOIN theorem
-        ON slogan.theorem_id = theorem.theorem_id
+            ON theorem_slogan.theorem_id = theorem.theorem_id
         INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
+            ON theorem.paper_id = paper.paper_id
     """
     count_sql = """
         SELECT COUNT(*)
         FROM theorem_slogan
         INNER JOIN theorem
-        ON slogan.theorem_id = theorem.theorem_id
+            ON theorem_slogan.theorem_id = theorem.theorem_id
         INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
+            ON theorem.paper_id = paper.paper_id
     """
 
     where_conditions = []
