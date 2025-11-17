@@ -271,7 +271,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--max-workers",
+        "--workers",
         type=int,
         required=False,
         default=16,
