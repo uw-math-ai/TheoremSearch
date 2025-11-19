@@ -73,8 +73,8 @@ def upsert_arxiv(
 
     print(f"=== Upserting ArXiv paper metadata (Categories: {categories}) ===")
 
-    for category in categories:
-        print(f"[Category 1/{len(categories)}] {category}")
+    for category_index, category in enumerate(categories):
+        print(f"[Category {category_index + 1}/{len(categories)}] {category}")
         
         query = f"cat:math.{category}"
 
