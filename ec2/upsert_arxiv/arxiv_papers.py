@@ -42,7 +42,7 @@ def get_arxiv_papers(
     client: arxiv.Client, 
     query: str, 
     date_partition: DatePartition,
-    start_date: datetime = datetime(1991, 1, 1),
+    start_date: datetime = datetime(1992, 1, 1),
     end_date: datetime = datetime.now()
 ) -> Iterator[arxiv.Result]:
     for start, end in _get_date_partitions(date_partition, start_date, end_date):
