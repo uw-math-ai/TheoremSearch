@@ -9,6 +9,8 @@ import argparse
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+MATH_CATEGORIES = "AC,AG,AP,AT,CA,CO,CT,CV,DG,DS,FA,GM,GN,GR,GT,HO,IT,KT,LO,MG,MP,NA,NT,OA,OC,PR,QA,RA,RT,SG,SP,ST".split(",")
+
 def _get_papers_count_matching_query(query: str):
     arxiv_url = f"https://export.arxiv.org/api/query?search_query={query}&start=0&max_results=1"
 
@@ -54,45 +56,66 @@ def _upsert_arxiv_batch(paper_res_batch: List[arxiv.Result], max_workers: int, p
             for paper_res in paper_res_batch
         }
 
-        for fut in as_completed(futs):
+        for _ in as_completed(futs):
             pbar.update(1)
 
 def upsert_arxiv(
-    query: str,
+    categories: List[str],
+    date_partition: str,
     batch_size: int,
     max_workers: int,
     search_page_size: int = 100,
     search_delay_seconds: float = 3,
     search_max_retries: int = 3
 ):
-    client = arxiv.Client(
-        page_size=search_page_size,
-        delay_seconds=search_delay_seconds,
-        num_retries=search_max_retries
-    )
+    if not categories:
+        categories = MATH_CATEGORIES
 
-    paper_res_batch = []
+    print(f"=== Upserting ArXiv paper metadata (Categories: {categories}) ===")
 
-    with tqdm(total=_get_papers_count_matching_query(query)) as pbar:
-        for paper_res in get_arxiv_papers(client, query):
-            paper_res_batch.append(paper_res)
+    for category in categories:
+        print(f"[Category 1/{len(categories)}] {category}")
+        
+        query = f"cat:math.{category}"
 
-            if len(paper_res_batch) == batch_size:
+        client = arxiv.Client(
+            page_size=search_page_size,
+            delay_seconds=search_delay_seconds,
+            num_retries=search_max_retries
+        )
+
+        paper_res_batch = []
+
+        with tqdm(total=_get_papers_count_matching_query(query)) as pbar:
+            for paper_res in get_arxiv_papers(client, query, date_partition):
+                paper_res_batch.append(paper_res)
+
+                if len(paper_res_batch) == batch_size:
+                    _upsert_arxiv_batch(paper_res_batch, max_workers=max_workers, pbar=pbar)
+                    paper_res_batch = []
+
+            if len(paper_res_batch) > 0:
                 _upsert_arxiv_batch(paper_res_batch, max_workers=max_workers, pbar=pbar)
                 paper_res_batch = []
-
-        if len(paper_res_batch) > 0:
-            _upsert_arxiv_batch(paper_res_batch, max_workers=max_workers, pbar=pbar)
-            paper_res_batch = []
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--query",
+        "--categories",
         type=str,
-        required=True,
-        help="A valid arXiv search query"
+        required=False,
+        nargs="*",
+        default=[],
+        help="A list of valid math categories. If empty, does all math categories"
+    )
+
+    parser.add_argument(
+        "--date-partition",
+        type=str,
+        required=False,
+        default="month",
+        help="Date interval length to partition arXiv API queries"
     )
 
     parser.add_argument(
@@ -114,7 +137,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     upsert_arxiv(
-        query=args.query,
+        categories=args.categories,
+        date_partition=args.date_partition,
         batch_size=args.batch_size,
         max_workers=args.workers
     )
