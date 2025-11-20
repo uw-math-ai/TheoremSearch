@@ -100,6 +100,7 @@ def _parse_arxiv_paper(
 
 def parse_arxiv_papers(
     min_citations: int,
+    paper_ids: List[str],
     in_journal: bool,
     overwrite: bool,
     batch_size: int,
@@ -132,6 +133,10 @@ def parse_arxiv_papers(
                 WHERE theorem.paper_id = paper.paper_id
             )
         """)
+
+    if paper_ids:
+        where_conditions.append("paper_id LIKE ANY(%s)")
+        base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
 
     if min_citations >= 0:
         where_conditions.append("citations >= %s")
@@ -242,6 +247,15 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--paper-ids", 
+        nargs="+",
+        type=str,
+        required=False,
+        default=[],
+        help="List of paper IDs which get parsed"
+    )
+
+    parser.add_argument(
         "--in-journal",
         action="store_true",
         help="Whether to only parse papers with a journal reference"
@@ -309,11 +323,12 @@ if __name__ == "__main__":
         try:
             parse_arxiv_papers(
                 min_citations=args.min_citations,
+                paper_ids=args.paper_ids,
                 in_journal=args.in_journal,
                 overwrite=args.overwrite,
                 batch_size=args.batch_size,
                 batch_skip=args.batch_skip,
-                max_workers=args.max_workers,
+                max_workers=args.workers,
                 per_paper_timeout=args.per_paper_timeout,
                 unparsable_paper_ids=unparsable_paper_ids,
                 verbose=args.verbose

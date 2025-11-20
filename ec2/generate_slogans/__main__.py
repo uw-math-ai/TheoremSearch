@@ -69,8 +69,8 @@ def generate_slogans(
         base_params.append(prompt_id)
 
     if paper_ids:
-        where_conditions.append("paper.paper_id IN %s")
-        base_params.append(paper_ids)
+        where_conditions.append("paper.paper_id LIKE ANY(%s)")
+        base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
 
     if authors:
         where_conditions.append("paper.authors && %s")
