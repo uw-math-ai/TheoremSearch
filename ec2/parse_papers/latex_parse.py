@@ -72,6 +72,8 @@ def alias_handling(data: str) -> str:
             if m.group('shared') is None:
                 continue
             shared = m.group('shared')
+            if shared not in translation:
+                continue
 
             start, end = m.span('shared')
             new_shared = translation[shared]
@@ -287,6 +289,9 @@ def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms
     res = []
     num_list = []
 
+    if app_thms is None:
+        app_thms = []
+
     # grab theorem envs
     for item in thm_scan:
         num_list.append(item.group('env'))
@@ -301,11 +306,16 @@ def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms
 
     labeled_thms = grab_labels(theorems)
 
-    # print(len(num_thms), len(labeled_thms))
-    for i in range(len(num_thms)):
+    n_main = min(len(num_thms), len(labeled_thms))
+    for i in range(n_main):
         res.append((num_thms[i],) + labeled_thms[i])
-    for i in range(len(theorems) - len(num_thms)):
-        res.append((app_thms[i],) + labeled_thms[i + len(num_thms)])
+
+    remaining_labeled = len(labeled_thms) - n_main
+    remaining_theorems = len(theorems) - n_main
+    n_app = min(remaining_theorems, remaining_labeled, len(app_thms))
+
+    for i in range(n_app):
+        res.append((app_thms[i],) + labeled_thms[n_main + i])
     return res
 
 

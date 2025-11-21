@@ -2,35 +2,51 @@ import argparse
 from ..rds.paginate import paginate_query
 from ..rds.connect import get_rds_connection
 from tqdm import tqdm
-import requests
+import boto3
 import tempfile
 import tarfile, regex, os, shutil, gzip
 from .tex import find_main_tex_file, collect_imports
 from .patterns import *
 from .latex_parse import extract
-from typing import Set, List, Dict
+from typing import Set, List, Dict, Tuple
 from ..rds.upsert import upsert_rows
 from concurrent.futures import ProcessPoolExecutor, TimeoutError
 import time
 
+ARXIV_BUCKET = "arxiv"
 
-def _download_arxiv_source(paper_id: str, dest_dir: str) -> str:
-    url = f"https://arxiv.org/e-print/{paper_id}"
+s3 = boto3.client("s3")
 
-    resp = requests.get(url, stream=True, timeout=10)
-    resp.raise_for_status()
+def _download_arxiv_source(paper_arxiv_s3_loc: Tuple[str, int, int], dest_dir: str) -> str:
+    bundle_tar, bytes_start, bytes_end = paper_arxiv_s3_loc
+    byte_range = f"bytes={bytes_start}-{bytes_end}"
 
-    tar_path = os.path.join(dest_dir, paper_id.replace("/", "_") + ".tar.gz")
+    # Make filename unique per slice so you don't overwrite for same bundle
+    tar_path = os.path.join(
+        dest_dir,
+        f"{os.path.basename(bundle_tar)}.{bytes_start}-{bytes_end}.gz"
+    )
+
+    # Use get_object with Range + RequestPayer instead of download_fileobj
+    response = s3.get_object(
+        Bucket=ARXIV_BUCKET,
+        Key=bundle_tar,
+        Range=byte_range,
+        RequestPayer="requester",
+    )
+
+    body = response["Body"]
+
+    # Stream to disk in chunks
     with open(tar_path, "wb") as f:
-        for chunk in resp.iter_content(chunk_size=8192):
-            if chunk:
-                f.write(chunk)
+        for chunk in iter(lambda: body.read(8192), b""):
+            f.write(chunk)
 
     return tar_path
 
-
 def _parse_arxiv_paper(
     paper_id: str,
+    paper_arxiv_s3_loc: Tuple[str],
     allowed_theorem_types: Set[str],
     verbose: bool
 ) -> List[Dict]:
@@ -38,8 +54,8 @@ def _parse_arxiv_paper(
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
-            tar_path = _download_arxiv_source(paper_id, tmp_dir)
-            tar_out = tar_path.replace(".tar.gz", "")
+            tar_path = _download_arxiv_source(paper_arxiv_s3_loc, tmp_dir)
+            tar_out = tar_path.replace(".gz", "")
 
             try:
                 with tarfile.open(tar_path, "r:*") as tar:
@@ -114,12 +130,16 @@ def parse_arxiv_papers(
     conn = get_rds_connection()
 
     base_sql = """
-        SELECT paper_id, last_updated
+        SELECT paper.paper_id, last_updated, bundle_tar, bytes_start, bytes_end
         FROM paper
+        INNER JOIN paper_arxiv_s3_location paper_loc
+            ON paper_loc.paper_id = paper.paper_id
     """
     count_sql = """
         SELECT COUNT(*)
         FROM paper
+        INNER JOIN paper_arxiv_s3_location paper_loc
+            ON paper_loc.paper_id = paper.paper_id
     """
 
     where_conditions = ["link LIKE %s"]
@@ -183,8 +203,10 @@ def parse_arxiv_papers(
                     n_errors += 1
 
                     continue
+
+                paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
                 
-                fut = ex.submit(_parse_arxiv_paper, paper_id, allowed_theorem_types, verbose)
+                fut = ex.submit(_parse_arxiv_paper, paper_id, paper_arxiv_s3_loc, allowed_theorem_types, verbose)
                 futures.append(fut)
                 paper_ids.append(paper_id)
 

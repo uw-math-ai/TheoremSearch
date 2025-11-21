@@ -25,7 +25,8 @@ class TheoremNumberer:
     def define_newtheorem(self, starred: bool, env: str, shared: str | None,
                           caption: str, within: str | None):
         if env in self.envs:
-            raise ValueError(f"Environment '{env}' already defined")
+            return
+            # raise ValueError(f"Environment '{env}' already defined")
 
         if shared and within:
             # print("ERR", starred, env, shared, caption, within)
