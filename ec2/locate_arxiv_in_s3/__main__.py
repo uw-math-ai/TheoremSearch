@@ -104,8 +104,7 @@ def locate_arxiv_in_s3(bundle_start: int = 0):
                             if not member.isfile() or not member.name.endswith(".gz"):
                                 continue
 
-                            # member.name is something like "0003/quant-ph0003119.gz"
-                            member_id = member.name[:-3]  # drop ".gz"
+                            member_id = member.name[:-3]
                             paper_id_norm = _normalize_arxiv_id(
                                 _to_arxiv_id(member_id)
                             )
@@ -121,7 +120,6 @@ def locate_arxiv_in_s3(bundle_start: int = 0):
                                     "bytes_end": bytes_end,
                                 })
 
-                                # Remove so we don't look for it again
                                 del paper_ids[paper_id_norm]
 
                 if paper_locations:
@@ -148,7 +146,6 @@ def locate_arxiv_in_s3(bundle_start: int = 0):
                 break
 
     conn.close()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
