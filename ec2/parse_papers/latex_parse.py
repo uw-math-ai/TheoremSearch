@@ -265,6 +265,10 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
             
         if starred == "*":
             starred = True
+
+        if title is None or title.strip() == "":
+            title = env.capitalize()
+
         tn.define_newtheorem(starred, env, shared, title, within)
 
     labels = sctns | theorems
