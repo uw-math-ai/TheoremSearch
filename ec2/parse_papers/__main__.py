@@ -230,6 +230,8 @@ def parse_arxiv_papers(
                     n_successes += 1
                     batch_theorem_rows.extend(theorem_rows)
                 else:
+                    unparsable_paper_ids.add(paper_id)
+
                     if verbose:
                         print(f"[ERROR] {paper_id}: No theorems found", flush=True)
 
