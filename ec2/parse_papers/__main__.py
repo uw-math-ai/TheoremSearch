@@ -155,7 +155,7 @@ def parse_arxiv_papers(
         """)
 
     if paper_ids:
-        where_conditions.append("paper_id LIKE ANY(%s)")
+        where_conditions.append("paper.paper_id LIKE ANY(%s)")
         base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
 
     if min_citations >= 0:
@@ -230,6 +230,9 @@ def parse_arxiv_papers(
                     n_successes += 1
                     batch_theorem_rows.extend(theorem_rows)
                 else:
+                    if verbose:
+                        print(f"[ERROR] {paper_id}: No theorems found", flush=True)
+
                     n_errors += 1
 
                 pbar.update(1)
