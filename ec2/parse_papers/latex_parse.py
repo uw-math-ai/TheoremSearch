@@ -7,8 +7,9 @@ import os
 from typing import Pattern
 from .patterns import *
 
-DEFAULT_THEOREM_ENVS = ["theorem", "lemma", "proposition", "corollary", "claim", "definition", "remark", "example"]
+# TODO: How to handle '\noindent {\bf Proposition 4}. {\it For the BM ... are related as:}'?
 
+DEFAULT_THEOREM_ENVS = ["theorem", "lemma", "proposition", "corollary", "claim", "definition", "remark", "example"]
 
 def _scanner(pat: Pattern, data: str) -> list:
     """
@@ -177,6 +178,7 @@ def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
         for theoremtype in thm_scan:
             env = theoremtype.group("env")
             locator = _scanner(SPECIFICTHEOREM(env), data)
+
             for t in locator:
                 theorem_locations.append(t.start())
                 theorem_names.append(env)
@@ -362,10 +364,16 @@ def extract(filename: str) -> dict:
         data = regex.sub(r"(?<!\\)%.*", "", data)
         data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
 
+        print(data)
+
         data = def_handling(data)
         data = alias_handling(data)
         data = macro_handling(data)
         data = environment_handling(data)
+
+        # normalize any begin/end-like macros
+        data = regex.sub(r"\\beg[a-zA-Z]*\s*\{([^{}]+)\}", r"\\begin{\1}", data)
+        data = regex.sub(r"\\end[a-zA-Z]*\s*\{([^{}]+)\}", r"\\end{\1}", data)
 
         data, num_thms, appx_thms, thm_scan = locate_theorems(data)
 
