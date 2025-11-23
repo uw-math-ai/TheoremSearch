@@ -364,8 +364,6 @@ def extract(filename: str) -> dict:
         data = regex.sub(r"(?<!\\)%.*", "", data)
         data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
 
-        print(data)
-
         data = def_handling(data)
         data = alias_handling(data)
         data = macro_handling(data)
