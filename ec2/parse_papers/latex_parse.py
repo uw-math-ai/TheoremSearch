@@ -7,8 +7,6 @@ import os
 from typing import Pattern
 from .patterns import *
 
-# TODO: How to handle '\noindent {\bf Proposition 4}. {\it For the BM ... are related as:}'?
-
 DEFAULT_THEOREM_ENVS = ["theorem", "lemma", "proposition", "corollary", "claim", "definition", "remark", "example"]
 
 def _scanner(pat: Pattern, data: str) -> list:
@@ -17,7 +15,6 @@ def _scanner(pat: Pattern, data: str) -> list:
     """
     theorems = list(regex.finditer(pat, data, regex.VERBOSE | regex.DOTALL | regex.MULTILINE, overlapped=True))
     return theorems
-
 
 def def_handling(data: str) -> str:
     """
@@ -174,11 +171,21 @@ def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
     thm_scan = _scanner(NEWTHEOREM, data)
     thm_scan.extend(_scanner(NEWDECLARETHEOREM, data))
 
+    scanned_envs = {m.group("env") for m in thm_scan}
+
     if thm_scan:
         for theoremtype in thm_scan:
             env = theoremtype.group("env")
             locator = _scanner(SPECIFICTHEOREM(env), data)
 
+            for t in locator:
+                theorem_locations.append(t.start())
+                theorem_names.append(env)
+
+        for env in DEFAULT_THEOREM_ENVS:
+            if env in scanned_envs:
+                continue
+            locator = _scanner(SPECIFICTHEOREM(env), data)
             for t in locator:
                 theorem_locations.append(t.start())
                 theorem_names.append(env)
@@ -258,7 +265,24 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     for item in counter:
         tn.numberwithin(item.group("child"), item.group("parent"))
 
+        tn = theorem_forms.TheoremNumberer()
+
+    if is_appendix:
+        m = regex.search(r"\\begin\{appendix\}", data)
+        appendix = m.start() if m else None
+
+        if appendix:
+            tn.in_appendix = True
+            i = bisect.bisect_left(section_locations, appendix)
+            for idx in section_locations[:i]:
+                sctns.pop(idx, None)
+
+    counter = _scanner(NEWNUMBERWITHIN, data)
+    for item in counter:
+        tn.numberwithin(item.group("child"), item.group("parent"))
+
     if thm_scan:
+        defined_envs = set()
         for item in thm_scan:
             if 'BRACED' in item.groupdict().keys():
                 starred, env, shared, title, within = None, item.group("env"), item.group("shared"), item.group("title"), item.group("within")
@@ -272,6 +296,13 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
                 title = env.capitalize()
 
             tn.define_newtheorem(starred, env, shared, title, within)
+            defined_envs.add(env)
+
+        for env in sorted(set(theorems.values())):
+            if env in defined_envs:
+                continue
+            title = env.capitalize()
+            tn.define_newtheorem(False, env, None, title, None)
     else:
         envs = sorted(set(theorems.values()))
         for env in envs:
@@ -307,6 +338,10 @@ def bundle_theorems(thm_scan: regex.Scanner, data: str, num_thms: list, app_thms
             num_list.append(item.group('env'))
     else:
         num_list = DEFAULT_THEOREM_ENVS.copy()
+
+    for env in DEFAULT_THEOREM_ENVS:
+        if env not in num_list:
+            num_list.append(env)
 
     for t in num_list:
         data = regex.sub(rf"\\begin\s*\{{{t}\*?\}}", r"\\begin{theorem}", data)
