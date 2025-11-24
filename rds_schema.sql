@@ -50,3 +50,8 @@ CREATE TABLE theorem_embedding_qwen (
     slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
     embedding vector(1024) NOT NULL
 );
+
+CREATE TABLE theorem_embedding_gemma (
+    slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
+    embedding vector(768) NOT NULL
+);
