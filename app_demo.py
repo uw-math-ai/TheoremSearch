@@ -11,6 +11,7 @@ from pgvector.psycopg2 import register_vector
 import re
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from collections import defaultdict
 from dotenv import load_dotenv
 from latex_clean import clean_latex_for_display
 
@@ -179,86 +180,55 @@ def load_papers_from_rds():
         return []
 
 @st.cache_data(ttl=60*60*24) # cache for 24 hours
-def fetch_citations(paper_url: str, title: str) -> int | None:
-    """
-    Returns citation count if found, else None.
-    Tries the following sources in order:
-      1) OpenAlex by arXiv id
-      2) Semantic Scholar by arXiv id
-      3) Semantic Scholar by title
-    """
-    arx_id = None
-    if paper_url:
-        m = ARXIV_ID_RE.search(paper_url)
-        if m:
-            arx_id = m.group(1)
-    # OpenAlex by arXiv id
-    if arx_id:
-        try:
-            r = requests.get(f"https://api.openalex.org/works/arXiv:{arx_id}", timeout=10)
-            if r.ok:
-                data = r.json()
-                c = data.get("cited_by_count")
-                if isinstance(c, int):
-                    return c
-        except Exception:
-            pass
-    # Semantic Scholar by arXiv id
-    if arx_id:
-        try:
-            r = requests.get(
-                f"https://api.semanticscholar.org/graph/v1/paper/arXiv:{arx_id}",
-                params={"fields": "citationCount"},
-                timeout=10
-            )
-            if r.ok:
-                j = r.json()
-                c = j.get("citationCount")
-                if isinstance(c, int):
-                    return c
-        except Exception:
-            pass
-    # Fallback: Semantic Scholar by title
-    if title:
-        try:
-            r = requests.get(
-                "https://api.semanticscholar.org/graph/v1/paper/search",
-                params={"query": title, "limit": 1, "fields": "title,citationCount"},
-                timeout=10
-            )
-            if r.ok:
-                j = r.json()
-                if j.get("data"):
-                    c = j["data"][0].get("citationCount")
-                    if isinstance(c, int):
-                        return c
-        except Exception:
-            pass
+def load_authors():
+    conn = get_rds_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT DISTINCT unnest(p.authors) AS author
+        FROM paper p
+        WHERE p.authors IS NOT NULL
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    authors = sorted(r[0] for r in rows if r[0])
+    return authors
 
-    return None
+@st.cache_data(ttl=60*60*24) # cache for 24 hours
+def load_tags_per_source():
+    conn = get_rds_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT
+            CASE WHEN p.link ILIKE '%%arxiv.org%%'
+                 THEN 'arXiv'
+                 ELSE 'Stacks Project'
+            END AS source,
+            p.primary_category
+        FROM paper p
+        WHERE p.primary_category IS NOT NULL
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
 
-def add_citations(candidates: list[dict], max_workers: int = 6) -> None:
-    # Select targets with missing citations
-    targets = [
-        it for it in candidates
-        if it.get("source") == "arXiv" and (it.get("citations") in (None, 0))
-    ]
-    if not targets:
-        return
+    from collections import defaultdict
+    tags_per_source = defaultdict(set)
+    for source, cat in rows:
+        tags_per_source[source].add(cat)
 
-    with ThreadPoolExecutor(max_workers=max_workers) as exe:
-        fut2item = {
-            exe.submit(fetch_citations, it.get("paper_url"), it.get("paper_title")): it
-            for it in targets
-        }
-        for fut in as_completed(fut2item):
-            it = fut2item[fut]
-            try:
-                c = fut.result()
-                if c is not None:
-                    it["citations"] = c
-            except Exception:
-                pass
+    # Make them plain lists so Streamlit cache can serialize easily
+    return {src: sorted(cats) for src, cats in tags_per_source.items()}
+
+@st.cache_data(ttl=60*60*24) # cache for 24 hours
+def load_theorem_count():
+    conn = get_rds_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM theorem;")
+    (n,) = cur.fetchone()
+    cur.close()
+    conn.close()
+    return int(n)
 
 def extract_arxiv_id(s: str) -> str | None:
     """Return normalized arXiv ID if present in s (URL or raw), else None."""
@@ -335,6 +305,8 @@ def search_and_display(query: str, model, filters: dict):
         st.warning("Please select at least one source.")
         return
 
+    citation_weight = float(filters['citation_weight'])
+
     # Encode query to numpy array
     query_vec = model.encode(query or "", normalize_embeddings=True, convert_to_numpy=True)
 
@@ -391,34 +363,73 @@ def search_and_display(query: str, model, filters: dict):
     if pf_clauses:
         where.append("(" + " OR ".join(pf_clauses) + ")")
 
-    # Filter in SQL
+    # Result type
     if filters['types']:
         like_any = [f"%{t}%" for t in filters['types']]
         where.append(" lower(t.name) ILIKE ANY(%s) ")
         params.append(like_any)
 
+    # Citations
+    low, high = filters["citation_range"]
+    include_unknown = filters["include_unknown_citations"]
+
+    if include_unknown:
+        where.append("( (p.citations BETWEEN %s AND %s) OR p.citations IS NULL )")
+    else:
+        where.append("( p.citations IS NOT NULL AND (p.citations BETWEEN %s AND %s) )")
+
+    params.extend([low, high])
+
+    pool_size = max(50, int(filters['top_k']) * 10)
+
     sql = f"""
             WITH latest_slogan AS (
                 SELECT DISTINCT ON (ts.theorem_id)
-                       ts.theorem_id, ts.slogan_id, ts.slogan, ts.model
+                       ts.theorem_id, ts.slogan_id, ts.slogan
                 FROM theorem_slogan ts
                 ORDER BY ts.theorem_id, ts.slogan_id DESC
+            ),
+            candidates AS (
+                SELECT
+                    p.paper_id,
+                    p.title,
+                    p.authors,
+                    p.link,
+                    p.last_updated,
+                    p.summary,
+                    p.journal_ref,
+                    p.primary_category,
+                    p.categories,
+                    p.citations,
+                    t.theorem_id,
+                    t.name AS theorem_name,
+                    t.body AS theorem_body,
+                    ls.slogan AS theorem_slogan,
+                    (1.0 - (e.embedding <#> %s::vector)) AS similarity
+                FROM paper p
+                JOIN theorem t        ON t.paper_id = p.paper_id
+                JOIN latest_slogan ls ON ls.theorem_id = t.theorem_id
+                JOIN {EMBED_TABLE} e  ON e.slogan_id   = ls.slogan_id
+                {'WHERE ' + ' AND '.join(where) if where else ''}
+                ORDER BY e.embedding <#> %s::vector ASC
+                LIMIT {pool_size}
             )
             SELECT
-                p.paper_id, p.title, p.authors, p.link, p.last_updated, p.summary,
-                p.journal_ref, p.primary_category, p.categories,
-                t.theorem_id, t.name AS theorem_name, t.body AS theorem_body,
-                ls.slogan AS theorem_slogan,
-                (1.0 - (e.embedding <#> %s::vector)) AS similarity
-            FROM paper p
-            JOIN theorem t        ON t.paper_id = p.paper_id
-            JOIN latest_slogan ls ON ls.theorem_id = t.theorem_id
-            JOIN {EMBED_TABLE} e  ON e.slogan_id   = ls.slogan_id
-            {'WHERE ' + ' AND '.join(where) if where else ''}
-            ORDER BY e.embedding <#> %s::vector ASC
-            LIMIT %s
+                *,
+                (
+                    similarity +
+                    %s *
+                    CASE
+                        WHEN citations IS NOT NULL AND citations > 0
+                        THEN ln(citations::float)
+                        ELSE 0
+                    END
+                ) AS weighted_score
+            FROM candidates
+            ORDER BY weighted_score DESC, similarity DESC
+            LIMIT %s;
         """
-    exec_params = [query_vec, *params, query_vec, int(filters['top_k'])]
+    exec_params = [query_vec, *params, query_vec, citation_weight, int(filters['top_k'])]
 
     conn = get_rds_connection()
     cur = conn.cursor()
@@ -430,8 +441,8 @@ def search_and_display(query: str, model, filters: dict):
     # Populate result fields
     items = []
     for (paper_id, title, authors, link, last_updated, summary, journal_ref,
-         primary_category, categories, theorem_id, theorem_name, theorem_body,
-         theorem_slogan, similarity) in rows:
+         primary_category, categories, citations, theorem_id, theorem_name,
+         theorem_body, theorem_slogan, similarity, weighted_score) in rows:
 
         # Determine source from url
         link_str = link or ""
@@ -450,19 +461,16 @@ def search_and_display(query: str, model, filters: dict):
             "source": source,
             "type": inferred_type,
             "journal_published": bool(journal_ref),
-            "citations": None,
+            "citations": citations,
             "theorem_name": theorem_name,
             "theorem_slogan": theorem_slogan,
             "theorem_body": theorem_body,
             "similarity": float(similarity),
+            "score": weighted_score
         })
 
-    # Citations
-    if 'arXiv' in filters['sources']:
-        with st.spinner("Fetching citations..."):
-            add_citations(items)
+    # Compute weighted citation score if applicable
     for it in items:
-        # Compute weighted score if applicable
         it["score"] = compute_score(it["similarity"], it.get("citations"), citation_weight)
 
     # Sort results by weighted score, then cosine similarity, then paper id
@@ -514,10 +522,12 @@ st.title("Math Theorem Search")
 st.write("This demo finds mathematical theorems that are semantically similar to your query.")
 
 model = load_model()
-theorems_data = load_papers_from_rds()
+theorem_count = load_theorem_count()
+authors = load_authors()
+tags_per_source = load_tags_per_source()
 
-if model and theorems_data:
-    st.success(f"Successfully loaded {len(theorems_data)} theorems from arXiv and the Stacks Project. Ready to search!")
+if model:
+    st.success(f"Successfully loaded {theorem_count} theorems from arXiv and the Stacks Project. Ready to search!")
     # --- Sidebar filters ---
     with st.sidebar:
         st.header("Search Filters")
@@ -541,20 +551,23 @@ if model and theorems_data:
         if selected_sources:
             st.write("---")
             selected_types = st.multiselect("Filter by Type:", ALLOWED_TYPES)
-            all_authors = sorted(list(set(a for it in theorems_data for a in (it.get('authors') or []))))
-            selected_authors = st.multiselect("Filter by Author(s):", all_authors)
+            selected_authors = st.multiselect("Filter by Author(s):", authors)
 
-            # Tags come from the union of categories per selected source
-            from collections import defaultdict
+            # Tags per selected source(s)
             tags_per_source = defaultdict(set)
-            for it in theorems_data:
-                tags_per_source[it['source']].add(it.get('primary_category'))
-            union_tags = sorted({t for s in selected_sources for t in tags_per_source.get(s, set()) if t})
+            union_tags = sorted({
+                t
+                for s in selected_sources
+                for t in tags_per_source.get(s, [])
+                if t
+            })
             selected_tags = st.multiselect("Filter by Tag/Category:", union_tags)
+
             paper_filter = st.text_input("Filter by Paper",
                                              value="",
                                              placeholder="e.g., 2401.12345, Finite Hilbert stability",
                                              help="Filter by title substring or arXiv ID/URL. Use commas for multiple.")
+
             if 'arXiv' in selected_sources:
                 year_range = st.slider("Filter by Year:", 1991, 2025, (1991, 2025))
                 journal_status = st.radio("Publication Status:",
@@ -569,6 +582,7 @@ if model and theorems_data:
                     value=True,
                     help="If unchecked, results with unknown citation counts are excluded."
                 )
+
             top_k_results = st.slider("Number of Results to Display:", 1, 20, 5)
 
     filters = {
@@ -587,6 +601,7 @@ if model and theorems_data:
 
     user_query = st.text_input("Enter your query:", "")
     if st.button("Search") or user_query:
-        search_and_display(user_query, model, filters)
+        with st.spinner("Fetching theorems..."):
+            search_and_display(user_query, model, filters)
 else:
     st.error("Could not load the model or data from RDS. Please check your RDS database connection and credentials.")
