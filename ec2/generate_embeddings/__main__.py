@@ -3,17 +3,19 @@ from ..rds.paginate import paginate_query
 from .embeddings import get_embedder, embed_texts
 import argparse
 from ..rds.upsert import upsert_rows
-
-conn = get_rds_connection()
-embedder = get_embedder()
+from .embedders import EMBEDDERS
 
 def generate_embeddings(
+    embedder_alias: str,
     min_citations: int,
     in_journal: bool,
     page_size: int,
     batch_size: int,
     overwrite: bool
 ):
+    conn = get_rds_connection()
+    embedder = get_embedder(embedder_alias)
+
     base_sql = """
         SELECT slogan_id, slogan
         FROM theorem_slogan
@@ -35,10 +37,10 @@ def generate_embeddings(
     base_params = []
 
     if not overwrite:
-        where_conditions.append("""
+        where_conditions.append(f"""
             NOT EXISTS (
                 SELECT 1
-                FROM theorem_embedding_qwen AS teq
+                FROM theorem_embedding_{embedder_alias} AS teq
                 WHERE teq.slogan_id = theorem_slogan.slogan_id
             )
         """)
@@ -58,7 +60,7 @@ def generate_embeddings(
         cur.execute(count_sql)
         n_results = cur.fetchone()[0]
 
-    print(f"=== Generating embeddings for {n_results} slogans (Embedder: Qwen/Qwen3-Embedding-0.6B) ===")
+    print(f"=== Generating embeddings for {n_results} slogans (Embedder: {EMBEDDERS[embedder_alias]}) ===")
     n_slogans = 0
 
     for page_index, slogans in enumerate(paginate_query(
@@ -81,7 +83,7 @@ def generate_embeddings(
         with conn.cursor() as cur:
             upsert_rows(
                 cur,
-                table="theorem_embedding_qwen",
+                table=f"theorem_embedding_{embedder_alias}",
                 rows=[
                     {
                         "slogan_id": slogan["slogan_id"],
@@ -101,6 +103,13 @@ def generate_embeddings(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--embedder",
+        type=str,
+        required=True,
+        help="Alias (from EMBEDDERS.py) of HuggingFace embedder"
+    )
 
     parser.add_argument(
         "--min-citations",
@@ -138,6 +147,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_embeddings(
+        embedder_alias=args.embedder,
         min_citations=args.min_citations,
         in_journal=args.in_journal,
         page_size=args.page_size,
