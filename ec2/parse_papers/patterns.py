@@ -2,7 +2,7 @@ import regex
 from typing import Pattern
 
 # captures theorem commands
-NEWTHEOREM: Pattern[str] = regex.compile(r"""
+NEWTHEOREM: Pattern[str] = r"""
 \\newtheorem(?P<star>\*)?           # optional * captured as 'star'
 \s*\{(?P<env>[^{}]+)\}              # {env}
 \s*(?:\[(?P<shared>[^\]]*)\]\s*)?   # [shared] (optional)
@@ -17,10 +17,10 @@ NEWTHEOREM: Pattern[str] = regex.compile(r"""
 \}
 \s*(?:\[(?P<within>[^\]]*)\])?      # [within] (optional)
 (?=\s*(?:\\|%|\Z))                   # next token/comment/end
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+"""
 
 # captures environment macros
-NEWENVIRONMENT: Pattern[str] = regex.compile(r"""
+NEWENVIRONMENT: Pattern[str] = r"""
 \\newenvironment\*?                  # \newenvironment or \newenvironment*
 \s*\{(?P<name>[A-Za-z@]+)\}          # {name} (no backslash)
 \s*(?:\[(?P<num>\d+)\])?             # optional [num]
@@ -37,9 +37,9 @@ NEWENVIRONMENT: Pattern[str] = regex.compile(r"""
       | \{(?P>end)\}
     )*
 )\}
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+"""
 
-NEWDEF: Pattern[str] = regex.compile(r"""
+NEWDEF = r"""
 \\(?P<op>(?:e|g|x)?def)            # \def, \edef, \gdef, \xdef
 [ \t\r\n\f]*
 
@@ -71,9 +71,9 @@ NEWDEF: Pattern[str] = regex.compile(r"""
     )*
   )
 \}                                  # --- BODY END ---
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+"""
 
-NEWLET: Pattern[str] = regex.compile(r"""
+NEWLET = r"""
     # Optional \global prefix (capture if present), then \let
     (?:\\(?P<global>global)\b)?       
     (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)   # gaps/comments
@@ -98,9 +98,9 @@ NEWLET: Pattern[str] = regex.compile(r"""
       | \\[^A-Za-z@\s]
       | [^\s\\{}%#]
     )
-    """, regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+    """
 
-NEWMATHOPERATOR: Pattern[str] = regex.compile(r"""
+NEWMATHOPERATOR = r"""
     \\(?P<op>DeclareMathOperator\*?)                 # \DeclareMathOperator or starred
     (?:(?:[ \t\r\n\f]*|%[^\n]*(?:\n|$))*)            # gaps/comments
 
@@ -118,29 +118,28 @@ NEWMATHOPERATOR: Pattern[str] = regex.compile(r"""
         )*
       )
     \}
-    """, regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+    """
 
-NEWALIASCNT: Pattern[str] = regex.compile(r'''\\newaliascnt\s*{\s*([A-Za-z@]+)\s*}\s*{\s*([A-Za-z@]+)\s*}''', regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-STATEMENTBODY: Pattern[str] = regex.compile(r"""
+NEWALIASCNT = r'''\\newaliascnt\s*{\s*([A-Za-z@]+)\s*}\s*{\s*([A-Za-z@]+)\s*}'''
+STATEMENTBODY = r"""
 (?s)(\\begin\{theorem\})(?:(?!\\begin\{theorem\}|\\end\{theorem\}).|(?R))*\\end\{theorem\}
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWNUMBERWITHIN: Pattern[str] = regex.compile(r"\\numberwithin\{(?P<child>[A-Za-z*]+)\}\{(?P<parent>[A-Za-z*]+)\}", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWSECTION: Pattern[str] = regex.compile(r"\\section(\*?)\{([^}]*)\}", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWSUBSECTION: Pattern[str] = regex.compile(r"\\subsection(\*?)\{([^}]*)\}", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWSUBSUBSECTION: Pattern[str] = regex.compile(r"\\subsubsection(\*?)\{([^}]*)\}", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+"""
+NEWNUMBERWITHIN = r"\\numberwithin\{(?P<child>[A-Za-z*]+)\}\{(?P<parent>[A-Za-z*]+)\}"
+NEWSECTION = r"\\section(\*?)\{([^}]*)\}"
+NEWSUBSECTION = r"\\subsection(\*?)\{([^}]*)\}"
+NEWSUBSUBSECTION = r"\\subsubsection(\*?)\{([^}]*)\}"
 
-NEWINPUT: Pattern[str] = regex.compile(r"""
+NEWINPUT = r"""
 \\input                # match literal \input
 \s*                    # optional whitespace
 \{(?P<filepath>[^{}]+)\}  # capture contents inside {...} as 'filepath'
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWUSEPACKAGE: Pattern[str] = regex.compile(r"""
+"""
+NEWUSEPACKAGE = r"""
 \\usepackage                # match literal \usepackage
 \s*                    # optional whitespace
 \{(?P<filepath>[^{}]+)\}  # capture contents inside {...} as 'filepath'
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-
-NEWCOMMAND: Pattern[str] = regex.compile(r"""
+"""
+NEWCOMMAND: Pattern[str] = r"""
     \\(?P<cmd>newcommand|providecommand|DeclareRobustCommand)
     (?P<star>\*)?                       # optional star
     (?:\s|%[^\n]*\n)*                   # whitespace/comments
@@ -166,8 +165,8 @@ NEWCOMMAND: Pattern[str] = regex.compile(r"""
             )*
         )
     \}
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
-NEWDECLARETHEOREM: Pattern[str] = regex.compile(r"""
+"""
+NEWDECLARETHEOREM: Pattern[str] = r"""
 \\declaretheorem
 \s*
 (?:\[
@@ -212,7 +211,7 @@ NEWDECLARETHEOREM: Pattern[str] = regex.compile(r"""
 \s*
 \{ (?P<env> [^{}]+ ) \}
 (?=\s*(?:\\|%|\Z))
-""", regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+"""
 
 NEWLABEL = regex.compile(r"""
 \\label                             # match literal \label
