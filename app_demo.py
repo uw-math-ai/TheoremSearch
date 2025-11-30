@@ -9,8 +9,6 @@ import psycopg2
 from psycopg2.extensions import connection
 from pgvector.psycopg2 import register_vector
 import re
-import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 from dotenv import load_dotenv
 from latex_clean import clean_latex_for_display
@@ -40,21 +38,6 @@ def get_rds_connection() -> connection:
     register_vector(conn)
     return conn
 
-
-AVAILABLE_TAGS = {
-    "arXiv": [
-        "math.AC", "math.AG", "math.AP", "math.AT", "math.CA", "math.CO",
-        "math.CT", "math.CV", "math.DG", "math.DS", "math.FA", "math.GM",
-        "math.GN", "math.GR", "math.GT", "math.HO", "math.IT", "math.KT",
-        "math.LO", "math.MG", "math.MP", "math.NA", "math.NT", "math.OA",
-        "math.OC", "math.PR", "math.QA", "math.RA", "math.RT", "math.SG",
-        "math.SP", "math.ST", "Statistics Theory"
-    ],
-    "Stacks Project": [
-        "Sets", "Schemes", "Algebraic Stacks", "Étale Cohomology"
-    ]
-}
-
 ALLOWED_TYPES = [
     "theorem", "lemma", "proposition", "corollary"
 ]
@@ -81,7 +64,7 @@ def infer_type(name: str) -> str:
     if not name:
         return "theorem"
     lower = name.lower()
-    for t in ["theorem", "lemma", "proposition", "corollary"]:
+    for t in ALLOWED_TYPES:
         if t in lower:
             return t
     return "theorem"
@@ -294,7 +277,7 @@ def make_json_safe(obj):
         return list(obj)
     elif isinstance(obj, list):
         return [make_json_safe(v) for v in obj]
-    elif hasattr(obj, "item"):  # catches numpy types like np.int64, np.float32
+    elif hasattr(obj, "item"):
         return obj.item()
     else:
         return obj
@@ -380,16 +363,19 @@ def search_and_display(query: str, model, filters: dict):
 
     params.extend([low, high])
 
-    pool_size = max(50, int(filters['top_k']) * 10)
+    conn = get_rds_connection()
+    cur = conn.cursor()
 
-    sql = f"""
-            WITH latest_slogan AS (
-                SELECT DISTINCT ON (ts.theorem_id)
-                       ts.theorem_id, ts.slogan_id, ts.slogan
-                FROM theorem_slogan ts
-                ORDER BY ts.theorem_id, ts.slogan_id DESC
-            ),
-            candidates AS (
+    items = []
+
+    if citation_weight == 0.0:
+        sql = f"""
+                WITH latest_slogan AS (
+                    SELECT DISTINCT ON (ts.theorem_id)
+                           ts.theorem_id, ts.slogan_id, ts.slogan
+                    FROM theorem_slogan ts
+                    ORDER BY ts.theorem_id, ts.slogan_id DESC
+                )
                 SELECT
                     p.paper_id,
                     p.title,
@@ -412,69 +398,122 @@ def search_and_display(query: str, model, filters: dict):
                 JOIN {EMBED_TABLE} e  ON e.slogan_id   = ls.slogan_id
                 {'WHERE ' + ' AND '.join(where) if where else ''}
                 ORDER BY e.embedding <#> %s::vector ASC
-                LIMIT {pool_size}
-            )
-            SELECT
-                *,
-                (
-                    similarity +
-                    %s *
-                    CASE
-                        WHEN citations IS NOT NULL AND citations > 0
-                        THEN ln(citations::float)
-                        ELSE 0
-                    END
-                ) AS weighted_score
-            FROM candidates
-            ORDER BY weighted_score DESC, similarity DESC
-            LIMIT %s;
-        """
-    exec_params = [query_vec, *params, query_vec, citation_weight, int(filters['top_k'])]
+                LIMIT %s;
+            """
+        exec_params = [query_vec, *params, query_vec, int(filters['top_k'])]
 
-    conn = get_rds_connection()
-    cur = conn.cursor()
-    cur.execute(sql, exec_params)
-    rows = cur.fetchall()
+        cur.execute(sql, exec_params)
+        rows = cur.fetchall()
+
+        for (paper_id, title, authors, link, last_updated, summary, journal_ref,
+             primary_category, categories, citations, theorem_id, theorem_name,
+             theorem_body, theorem_slogan, similarity) in rows:
+            link_str = link or ""
+            source = "arXiv" if "arxiv.org" in link_str else "Stacks Project"
+            inferred_type = infer_type(theorem_name or "")
+            year = last_updated.year if last_updated else None
+
+            items.append({
+                "paper_id": paper_id,
+                "authors": authors,
+                "paper_title": title,
+                "paper_url": link,
+                "year": year,
+                "primary_category": primary_category,
+                "source": source,
+                "type": inferred_type,
+                "journal_published": bool(journal_ref),
+                "citations": citations,
+                "theorem_name": theorem_name,
+                "theorem_slogan": theorem_slogan,
+                "theorem_body": theorem_body,
+                "similarity": float(similarity),
+                "score": float(similarity),
+            })
+
+    else:
+        pool_size = max(50, int(filters['top_k']) * 10)
+
+        sql = f"""
+                WITH latest_slogan AS (
+                    SELECT DISTINCT ON (ts.theorem_id)
+                           ts.theorem_id, ts.slogan_id, ts.slogan
+                    FROM theorem_slogan ts
+                    ORDER BY ts.theorem_id, ts.slogan_id DESC
+                ),
+                candidates AS (
+                    SELECT
+                        p.paper_id,
+                        p.title,
+                        p.authors,
+                        p.link,
+                        p.last_updated,
+                        p.summary,
+                        p.journal_ref,
+                        p.primary_category,
+                        p.categories,
+                        p.citations,
+                        t.theorem_id,
+                        t.name AS theorem_name,
+                        t.body AS theorem_body,
+                        ls.slogan AS theorem_slogan,
+                        (1.0 - (e.embedding <#> %s::vector)) AS similarity
+                    FROM paper p
+                    JOIN theorem t        ON t.paper_id = p.paper_id
+                    JOIN latest_slogan ls ON ls.theorem_id = t.theorem_id
+                    JOIN {EMBED_TABLE} e  ON e.slogan_id   = ls.slogan_id
+                    {'WHERE ' + ' AND '.join(where) if where else ''}
+                    ORDER BY e.embedding <#> %s::vector ASC
+                    LIMIT {pool_size}
+                )
+                SELECT
+                    *,
+                    (
+                        similarity +
+                        %s * CASE
+                                WHEN citations IS NOT NULL AND citations > 0
+                                THEN ln(citations::float)
+                                ELSE 0
+                             END
+                    ) AS weighted_score
+                FROM candidates
+                ORDER BY weighted_score DESC, similarity DESC
+                LIMIT %s;
+            """
+
+        exec_params = [query_vec, *params, query_vec, citation_weight, int(filters['top_k'])]
+
+        cur.execute(sql, exec_params)
+        rows = cur.fetchall()
+
+        for (paper_id, title, authors, link, last_updated, summary, journal_ref,
+             primary_category, categories, citations, theorem_id, theorem_name,
+             theorem_body, theorem_slogan, similarity, weighted_score) in rows:
+            link_str = link or ""
+            source = "arXiv" if "arxiv.org" in link_str else "Stacks Project"
+            inferred_type = infer_type(theorem_name or "")
+            year = last_updated.year if last_updated else None
+
+            items.append({
+                "paper_id": paper_id,
+                "authors": authors,
+                "paper_title": title,
+                "paper_url": link,
+                "year": year,
+                "primary_category": primary_category,
+                "source": source,
+                "type": inferred_type,
+                "journal_published": bool(journal_ref),
+                "citations": citations,
+                "theorem_name": theorem_name,
+                "theorem_slogan": theorem_slogan,
+                "theorem_body": theorem_body,
+                "similarity": float(similarity),
+                "score": float(weighted_score),
+            })
+
     cur.close()
     conn.close()
-
-    # Populate result fields
-    items = []
-    for (paper_id, title, authors, link, last_updated, summary, journal_ref,
-         primary_category, categories, citations, theorem_id, theorem_name,
-         theorem_body, theorem_slogan, similarity, weighted_score) in rows:
-
-        # Determine source from url
-        link_str = link or ""
-        source = "arXiv" if link_str.startswith(
-            ("http://arxiv.org", "https://arxiv.org")) or "arxiv.org" in link_str else "Stacks Project"
-
-        inferred_type = infer_type(theorem_name or "")
-
-        items.append({
-            "paper_id": paper_id,
-            "authors": authors,
-            "paper_title": title,
-            "paper_url": link,
-            "year": last_updated.year,
-            "primary_category": primary_category,
-            "source": source,
-            "type": inferred_type,
-            "journal_published": bool(journal_ref),
-            "citations": citations,
-            "theorem_name": theorem_name,
-            "theorem_slogan": theorem_slogan,
-            "theorem_body": theorem_body,
-            "similarity": float(similarity),
-            "score": weighted_score
-        })
-
-    # Compute weighted citation score if applicable
-    for it in items:
-        it["score"] = compute_score(it["similarity"], it.get("citations"), citation_weight)
-
-    # Sort results by weighted score, then cosine similarity, then paper id
-    items.sort(key=lambda x: (x["score"], x["similarity"], str(x.get("paper_id"))), reverse=True)
 
     # Display results
     st.subheader(f"Found {len(items)} Matching Results")
