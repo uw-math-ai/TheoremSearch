@@ -9,12 +9,17 @@ from .patterns import *
 
 DEFAULT_THEOREM_ENVS = ["theorem", "lemma", "proposition", "corollary", "claim", "definition", "remark", "example"]
 
-def _scanner(pat: Pattern, data: str) -> list:
+BEGIN_APPENDIX = regex.compile(r"\\begin\{appendix\}")
+BEGIN_DOCUMENT = regex.compile(r"\\begin\{document\}")
+
+def _scanner(pat: Pattern | str, data: str) -> list:
     """
     Returns a list of regex matches based on a specified pattern
     """
-    theorems = list(regex.finditer(pat, data, regex.VERBOSE | regex.DOTALL | regex.MULTILINE, overlapped=True))
-    return theorems
+    if isinstance(pat, regex.Pattern):
+        return list(pat.finditer(data, overlapped=True))
+    return list(regex.finditer(pat, data, regex.VERBOSE | regex.DOTALL | regex.MULTILINE, overlapped=True))
+
 
 def def_handling(data: str) -> str:
     """
@@ -165,7 +170,7 @@ def locate_theorems(data: str) -> tuple[str, dict, dict, regex.Scanner]:
     theorem_locations = []
     theorem_names = []
 
-    m = regex.search(r"\\begin\{appendix\}", data)
+    m = BEGIN_APPENDIX.search(data)
     appendix = m.start() if m else None
 
     thm_scan = _scanner(NEWTHEOREM, data)
@@ -216,10 +221,9 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     """
     Labels theorems based on their specified counters
     """
-    begin_matches = _scanner(r"\\begin\{document\}", data)
-
-    if begin_matches:
-        begin_doc = begin_matches[0].start()
+    m = BEGIN_DOCUMENT.search(data)
+    if m:
+        begin_doc = m.start()
     else:
         begin_doc = 0
 
@@ -252,7 +256,7 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
     tn = theorem_forms.TheoremNumberer()
 
     if is_appendix:
-        m = regex.search(r"\\begin\{appendix\}", data)
+        m = BEGIN_APPENDIX.search(data)
         appendix = m.start() if m else None
 
         if appendix:
@@ -268,7 +272,7 @@ def label_theorems(theorems: dict, thm_scan: regex.Scanner, is_appendix: bool, d
         tn = theorem_forms.TheoremNumberer()
 
     if is_appendix:
-        m = regex.search(r"\\begin\{appendix\}", data)
+        m = BEGIN_APPENDIX.search(data)
         appendix = m.start() if m else None
 
         if appendix:
