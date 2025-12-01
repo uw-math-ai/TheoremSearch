@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit.components.v1 import html
+import streamlit_antd_components as sac
 import json
-import numpy as np
 from sentence_transformers import SentenceTransformer
 import os
 import boto3
@@ -15,7 +15,6 @@ from latex_clean import clean_latex_for_display
 
 # Config
 load_dotenv()
-
 
 def get_rds_connection() -> connection:
     region = os.getenv("AWS_REGION")
@@ -49,7 +48,6 @@ ARXIV_ID_RE = re.compile(
 
 EMBED_TABLE = "theorem_embedding_qwen"
 
-
 # Load the Embedding Model
 @st.cache_resource
 def load_model():
@@ -68,99 +66,6 @@ def infer_type(name: str) -> str:
         if t in lower:
             return t
     return "theorem"
-
-# Load Data from RDS
-@st.cache_data
-def load_papers_from_rds():
-    """
-    Loads the theorem data from the RDS database.
-    Returns a list of theorem dictionaries with all necessary fields.
-    """
-    try:
-        conn = get_rds_connection()
-        cur = conn.cursor()
-
-        # Fetch all papers with their theorems
-        cur.execute("""
-            WITH latest_slogan AS (SELECT DISTINCT
-            ON (ts.theorem_id)
-                ts.theorem_id, ts.slogan_id, ts.slogan
-            FROM theorem_slogan ts
-            ORDER BY ts.theorem_id, ts.slogan_id DESC
-                )
-            SELECT p.paper_id,
-                   p.title,
-                   p.authors,
-                   p.link,
-                   p.last_updated,
-                   p.summary,
-                   p.journal_ref,
-                   p.primary_category,
-                   p.categories,
-                   t.name    AS theorem_name,
-                   ls.slogan AS theorem_slogan,
-                   t.body    AS theorem_body
-            FROM paper p
-                     JOIN theorem t ON t.paper_id = p.paper_id
-                     LEFT JOIN latest_slogan ls ON ls.theorem_id = t.theorem_id
-            ORDER BY p.paper_id, t.name;
-        """)
-
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-
-        all_theorems_data = []
-        for row in rows:
-            (paper_id, title, authors, link, last_updated, summary,
-             journal_ref, primary_category, categories,
-             theorem_name, theorem_slogan, theorem_body) = row
-
-            # Determine type from name
-            inferred_type = infer_type(theorem_name or "")
-
-            # Determine source from url
-            link_str = link or ""
-            if link_str.startswith("http://arxiv.org") or link_str.startswith("https://arxiv.org"):
-                source = "arXiv"
-                all_theorems_data.append({
-                    "paper_id": paper_id,
-                    "authors": authors,
-                    "paper_title": title,
-                    "paper_url": link,
-                    "year": last_updated.year,
-                    "primary_category": primary_category,
-                    "source": source,
-                    "type": inferred_type,
-                    "journal_published": bool(journal_ref),
-                    "citations": None,
-                    "theorem_name": theorem_name,
-                    "theorem_slogan": theorem_slogan,
-                    "theorem_body": theorem_body,
-                })
-            else:
-                source = "Stacks Project"
-                all_theorems_data.append({
-                    "paper_id": paper_id,
-                    "authors": authors,
-                    "paper_title": title,
-                    "paper_url": link,
-                    "year": None,
-                    "primary_category": primary_category,
-                    "source": source,
-                    "type": inferred_type,
-                    "journal_published": None,
-                    "citations": None,
-                    "theorem_name": theorem_name,
-                    "theorem_slogan": theorem_slogan,
-                    "theorem_body": theorem_body,
-                })
-
-        return all_theorems_data
-
-    except Exception as e:
-        st.error(f"Error loading data from RDS: {e}")
-        return []
 
 @st.cache_data(ttl=60*60*24) # cache for 24 hours
 def load_authors():
@@ -194,13 +99,10 @@ def load_tags_per_source():
     rows = cur.fetchall()
     cur.close()
     conn.close()
-
-    from collections import defaultdict
     tags_per_source = defaultdict(set)
     for source, cat in rows:
         tags_per_source[source].add(cat)
 
-    # Make them plain lists so Streamlit cache can serialize easily
     return {src: sorted(cats) for src, cats in tags_per_source.items()}
 
 @st.cache_data(ttl=60*60*24) # cache for 24 hours
@@ -240,33 +142,10 @@ def parse_paper_filter(raw: str) -> dict:
             titles.add(normalize_title(token))
     return {"ids": ids, "titles": titles}
 
-def compute_score(similarity: float, citations: int, weight: float) -> float:
-    c = int(citations) if citations is not None else 0
-    if c == 0:
-        return float(similarity)
-    return float(similarity) + float(weight) * np.log(c)
-
-def on_click_url(query: str, url: str, theorem_name: str, filters: dict):
-    nav_to(url)
-    safe_filters = make_json_safe(filters)
-    filters_json = json.dumps(safe_filters)
+def save_feedback(feedback, query, url, theorem_name, filters):
     conn = get_rds_connection()
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO queries (query, url, theorem_name, filters) VALUES (%s, %s, %s, %s)",
-        (query, url, theorem_name, filters_json)
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
 
-def nav_to(url):
-    open_script = """
-        <script type="text/javascript">
-            window.open('%s', '_blank').focus();
-        </script>
-    """ % url
-    html(open_script)
 
 def make_json_safe(obj):
     if isinstance(obj, dict):
@@ -366,7 +245,9 @@ def search_and_display(query: str, model, filters: dict):
     conn = get_rds_connection()
     cur = conn.cursor()
 
-    items = []
+    results = []
+
+    # Fetch results from RDS
 
     if citation_weight == 0.0:
         sql = f"""
@@ -413,7 +294,7 @@ def search_and_display(query: str, model, filters: dict):
             inferred_type = infer_type(theorem_name or "")
             year = last_updated.year if last_updated else None
 
-            items.append({
+            results.append({
                 "paper_id": paper_id,
                 "authors": authors,
                 "paper_title": title,
@@ -424,6 +305,7 @@ def search_and_display(query: str, model, filters: dict):
                 "type": inferred_type,
                 "journal_published": bool(journal_ref),
                 "citations": citations,
+                "theorem_id": theorem_id,
                 "theorem_name": theorem_name,
                 "theorem_slogan": theorem_slogan,
                 "theorem_body": theorem_body,
@@ -494,7 +376,7 @@ def search_and_display(query: str, model, filters: dict):
             inferred_type = infer_type(theorem_name or "")
             year = last_updated.year if last_updated else None
 
-            items.append({
+            results.append({
                 "paper_id": paper_id,
                 "authors": authors,
                 "paper_title": title,
@@ -505,6 +387,7 @@ def search_and_display(query: str, model, filters: dict):
                 "type": inferred_type,
                 "journal_published": bool(journal_ref),
                 "citations": citations,
+                "theorem_id": theorem_id,
                 "theorem_name": theorem_name,
                 "theorem_slogan": theorem_slogan,
                 "theorem_body": theorem_body,
@@ -516,21 +399,25 @@ def search_and_display(query: str, model, filters: dict):
     conn.close()
 
     # Display results
-    st.subheader(f"Found {len(items)} Matching Results")
-    if not items:
+    st.subheader(f"Found {len(results)} Matching Results")
+    if not results:
         st.warning("No results found for the current filters.")
         return
 
-    for i, info in enumerate(items):
+    for i, info in enumerate(results):
         expander_title = f"**Result {i + 1} | Similarity: {info['score']:.4f} | {info.get('type', '').title()}**"
         with st.expander(expander_title, expanded=True):
             st.markdown(f"**Paper:** *{info.get('paper_title', 'Unknown')}*")
             st.markdown(f"**Authors:** {', '.join(info.get('authors') or []) or 'N/A'}")
             st.markdown(f"**Source:** {info.get('source')}")
-            st.button(f"{info.get('paper_url')}",
-                      info.get("paper_id") + info.get("theorem_name"),
-                      on_click=on_click_url,
-                      args=(query, info.get("paper_url"), info.get("theorem_name"), filters))
+            sac.buttons(
+                items=
+                [sac.ButtonsItem(label=info.get("paper_url"), icon="link-45deg", href=info.get("paper_url"))],
+                variant="outline",
+                color="violet",
+                index=-1,
+                key=f"link_{i}"
+            )
             citations = info.get("citations")
             cit_str = "Unknown" if citations is None else str(citations)
             st.markdown(
@@ -545,15 +432,17 @@ def search_and_display(query: str, model, filters: dict):
             cleaned_content = clean_latex_for_display(info['theorem_body'])
             st.markdown(f"**{info['theorem_name'] or 'Theorem Body.'}**")
             st.markdown(cleaned_content)
-            st.markdown("---")
-            # FOR TESTING ONLY
-            st.caption(f"Paper ID: {info['paper_id']}")
-            if info['citations'] is None or info['citations'] == 0:
-                log = 0
-            else:
-                log = np.log(info['citations'])
-            st.caption(
-                f"base_cosine={info['similarity']:.4f} | log(cit)={log:.4f} | weight={filters['citation_weight']:.2f}")
+            sac.buttons(
+                items=
+                [
+                    sac.ButtonsItem(icon="hand-thumbs-up"),
+                    sac.ButtonsItem(icon="hand-thumbs-down")
+                ],
+                variant="outline",
+                color="violet",
+                index=-1,
+                key=f"feedback_{i}")
+
 
 # --- Main App Interface ---
 st.set_page_config(page_title="Theorem Search Demo", layout="wide")
@@ -568,6 +457,7 @@ tags_per_source = load_tags_per_source()
 if model:
     st.success(f"Successfully loaded {theorem_count} theorems from arXiv and the Stacks Project. Ready to search!")
     # --- Sidebar filters ---
+    st.logo(image="images/math-ai-logo.jpg", size="large", link="https://sites.math.washington.edu/ai/")
     with st.sidebar:
         st.header("Search Filters")
 
@@ -593,7 +483,6 @@ if model:
             selected_authors = st.multiselect("Filter by Author(s):", authors)
 
             # Tags per selected source(s)
-            tags_per_source = defaultdict(set)
             union_tags = sorted({
                 t
                 for s in selected_sources
@@ -615,7 +504,8 @@ if model:
                 citation_range = st.slider("Filter by Citations:", 0, 1000, (0,1000), step=10)
                 citation_weight = st.slider("Citation Weight:", 0.0, 1.0, 0.0, step=0.01,
                                             help="If nonzero, results are ranked by base_score $+$ weight $\\times$ "
-                                                 "$\\log($citations$)$.")
+                                                 "$\\log($citations$)$. This will increase search time."
+                                            )
                 include_unknown_citations = st.checkbox(
                     "Include entries with unknown citation counts",
                     value=True,
