@@ -1,8 +1,5 @@
 import regex
-from typing import Pattern, Dict
-
-def _c(rx: str, flags=0) -> Pattern[str]:
-    return regex.compile(rx, flags | regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+from typing import Pattern
 
 # captures theorem commands
 NEWTHEOREM: Pattern[str] = r"""
