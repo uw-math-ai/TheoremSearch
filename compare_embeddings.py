@@ -34,81 +34,8 @@ def compare_embeddings(model, latex_texts, concept_texts, top_k=3):
             print(f"    {rank}. {concept_texts[idx]!r} (score {sims[idx]:.4f})")
         print()
 
-
-#%%
-queries = ["Trivial stabilizers in the fiber product imply representability of the projection.",
-                "Isomorphisms over codimension ≥2 open subsets extend uniquely for stacks with affine diagonal.",
-                "Points with trivial stabilizers under a good moduli space form an open subset.",
-                "Isomorphism in codimension ≥2 and S_2 implies equality of structure sheaves.",
-                "Stacks with DM open and good moduli space admit proper DM compactifications.",
-                "Extension over a point yields a unique S_2 DM stack with representable morphism.",
-                "The stack of stable quasimaps is open in the ambient moduli space.",
-                "Stable quasimaps extend over DVRs after base change.",
-                "The quasimap stack is of finite type.",
-                "Geometry and automorphisms of stable quasimaps are bounded.",
-                "Semistable locus via GIT realizes the DM substack.",
-                "Stable quasimaps to KSBA-type stacks admit proper DM compactifications."
-                ]
-theorems = [
-    r"Let $f:\cX\to \cY$ and $g:\cZ\to \cY$ be morphisms of algebraic stacks, with $\cF:=\cX\times_\cY\cZ$. Let $x\in \cF$ such that $\Aut_{\cF}(x)=\{1\}$. Then $f$ is representable at $\pi_1(x)$, where $\pi_1:\cF\to \cX$ is the first projection.",
-    r"Let $\cX$ be an algebraic stack with affine diagonal, let $S$ be an $S_2$ algebraic stack, and let $U\subset S$ an open subset with complement of codimension at least two. Assume we are given two morphisms $f,g: S\to \cX$ which are isomorphic when restricted on $U$. Then the isomorphism extends uniquely to $S$.",
-    r"Let $\cX\to X$ a good moduli space, with $X$ separated. Then the set $\cS:=\{x\in X:\pi^{-1}(x)\to x$ is an isomorphism\} is open in $X$.",
-    r"Let $\phi:\cX\to \cY$ be a morphism of separated Deligne--Mumford stacks with coarse moduli spaces $X$ and $Y$ respectively, and such that the morphism $X\to Y$ is an isomorphism. Assume that $\cX$ and $\cY$ are $S_2$, and that $\phi$ is an isomorphism over an open dense $V\subseteq \cY$ with complement of codimension at least two. Then the natural map $\cO_\cY\to \phi_*\cO_\cX$ is an isomorphism. In particular, $\phi$ is a relative coarse moduli space.",
-    r"""Let $\cX$ be an algebraic stack with a good moduli space $p:\cX\to X$, and with a dense open $U\subseteq X$ such that $\cX\times_XU$ is Deligne--Mumford. Then there is an algebraic stack $\widetilde{\cX}$ with an open embedding $i:\cX\hookrightarrow \widetilde{\cX}$ such that: \begin{enumerate} \item $\widetilde{\cX}$ has a good moduli space which is isomorphic to $X$ via the inclusion $i$, \item there is a line bundle $\cL_{DM}$ on $\widetilde{\cX}$ such that $\widetilde{\cX}(\cL_{DM})^{ss}_X$ is  Deligne--Mumford and proper over $X$, \item if $\cX$ is a global quotient, then $\widetilde{\cX}$ can be chosen to be a global quotient, \item there is a morphism $\pi:\widetilde{\cX}\to \cX$ which is an isomorphism over $(p\circ \pi)^{-1}(U)$, \item the morphism $\pi\circ i$ is isomorphic to the identity.\end{enumerate} In particular, from \Cref{teo_intro_cX_contains_open_proper_dm}, if $\cX$ is a global quotient and one fixes an integer $g$ and a class $\beta$, there is a moduli space $\cQ_g(\widetilde{\cX},\widetilde{\cX}(\cL_{DM})^{ss}_X,\beta)$ of stable quasimaps to $\widetilde{\cX}$ which is a proper Deligne--Mumford stack.""",
-    r"""Assume that $S$ is a separated Deligne--Mumford stack of dimension 2, with finite quotient singularities. Let $\cX$ be an algebraic stack with a good moduli space $\cX\to X$, and let $s\in S$ be a closed point of $S$. Assume that there is a diagram as follows: \[ \xymatrix{S\smallsetminus\{s\}\ar[d]\ar[r] & \cX\ar[d]\\S\ar[r]^f & X.} \] {Then there is an unique $S_2$ Deligne--Mumford stack $\cS$ with $\cS\to S$ a relative coarse moduli space that is an isomorphism on $S\smallsetminus \{s\}$, and such that there is an extension $\phi:\cS\to \cX$ which is representable. Such an extension is unique, the stack $\cS$ has finite quotient singularities, and if $S$ is smooth then $\cS\to S$ is an isomorphism.} """,
-    r"The inclusion $\cQ_{g,n}(\cX,\cX_\dm)\to \mathfrak{Q}_{g,n}(\cX,\cX_\dm)$ is an open embedding. In particular, $\cQ_{g,n}(\cX,\cX_\dm)$ is algebraic and locally of finite type over $\mathfrak{M}_{g,n}^{\rm tw}$.",
-    r"""We will adopt \Cref{notation_cX_and_cX_dm}, moreover let $R$ be a DVR, let $\eta$ be the generic point of $\spec(R)$ and $p$ the closed one. Let $(\phi_\eta:\sC_\eta\to \cX; \Sigma_{1},\ldots,\Sigma_{n})$ be an $n$-marked stable quasimap to $(\cX_{\dm},\cX)$, over $\eta$. Then, up to replacing $\spec(R)$ with a possibly ramified cover of it, there is a unique $n$-marked stable quasimap to $(\cX_{\dm},\cX)$ over $\spec(R)$ extending $(\phi_\eta:\sC_\eta\to \cX; p_{1},\ldots,p_{n})$. """,
-    r"""Given $\cX$ satisfying \Cref{assumptions:extension of line bundle}, the algebraic stack $\cQ_{g,n}(\cX,\cX_\dm,\beta)$ is of finite type.""",
-    r"Let $(\phi:\sC\to \cX,\Sigma_1,\ldots,\Sigma_n)$ be a stable quasimap of class $\beta$. Then the topological type of $C$, the number of stacky points of $\sC$ and the automorphism groups of the stacky points are bounded.",
-    r"Assuming \Cref{assumptions:extension of line bundle}, there is a group $G'$, a character $\chi:G'\to \Gm$ and an action on $\bA^n$, such that there is a locally closed embedding $\iota:\cX\to [\bA^n/G']$ satisfying $\iota^{-1}([\bA^n(\Bbbk_\chi)^{ss}/G'])=\cX_\dm$.",
-    r""" Set $\cX:=\cD\cP^{\CY}_m$ and $\cX_\dm=\cD\cP^{\operatorname{KSBA}}_m$. Then the assumptions of \Cref{teo_intro_cX_contains_open_proper_dm} apply for the inclusion $\cX_\dm\subseteq \cX$. In particular: \begin{enumerate} \item the stack $\cQ_g(\cX,\cX_\dm,\beta)$ compactifies the space of maps $\pi\colon(Y,cD)\to C$ with fibers in $\cX$ such that: \begin{itemize} \item[(Q)] the curve $C$ is smooth and the generic fiber of $\pi$ has klt singularities, \item[(S)] either $\omega_C$ is ample, or not all the fibers of $\pi$ are $S$-equivalent, \item[(N)] the family $\pi$ comes from a map $C\to \cX$ of class $\beta$ from a curve of genus $g$. \end{itemize} \item the boundary of $\cQ_g(\cX,\cX_\dm,\beta)$ parametrizes families $\pi:(\sY,c\sD)\to \sC$ of pairs in $\cX$ with fibers in $\cX$, fibered over a twisted curve $\sC$, such that: \begin{itemize} \item[(Q)] the set $\Delta:=\{p\in \sC:(\sY_p,(c+\epsilon)\sD_p)$ does \underline{not} have semi-log-canonical singularities for any $0<\epsilon \ll 1\}$ is a finite union of smooth points $\sC$, \item[(S)] if $\sR\subseteq \sC$ is an irreducible component such that $\deg(\omega_\sC |_\sR)< 0$, then not all the fibers of $\pi|_\sR\colon(\sY|_\sR,c\sD|_\sR)\to \sR$ are $S$-equivalent; whereas if $\deg(\omega_\sC |_\sR)=0$, then not all fibers of $\pi|_\sR$ are isomorphic, and \item[(N)] the family $\pi$ comes from a map $\sC\to \cX$ of class $\beta$ from a twisted curve of genus $g$. \end{itemize} \end{enumerate}""",
-]
-
-# Prompt:
-# "I would like you to give me accurate summary of each statement. It has to be accurate. Keep LaTeX notation to a minimum. Aim between 2 and 6 sentences for each. Make sure to include the relevant info that might be used to query the statement."
-slogans = [
-    "Given morphisms f: X → Y and g: Z → Y of algebraic stacks, form the fiber product F = X ×_Y Z. If a point x ∈ F has trivial automorphism group, then f is representable at the image π₁(x) ∈ X under the first projection. This means near x, f behaves like a morphism between algebraic spaces rather than stacks.",
-
-    "Let X be an algebraic stack with affine diagonal, and S an S₂ stack with an open subset U whose complement has codimension ≥ 2. If two morphisms f, g: S → X are isomorphic on U, the isomorphism extends uniquely to all of S. This gives an extension criterion for morphisms from S₂ stacks across codimension-two subsets.",
-
-    "For a good moduli space π: 𝓧 → X with X separated, the subset of points x ∈ X where the fiber π⁻¹(x) → x is an isomorphism is open in X. That is, points where the stack structure of 𝓧 trivializes form an open subset of the moduli space.",
-
-    "Let φ: 𝓧 → 𝓨 be a morphism between separated Deligne–Mumford stacks with coarse spaces X and Y such that X → Y is an isomorphism. Assume both stacks are S₂ and φ is an isomorphism over a dense open subset of 𝓨 with complement of codimension ≥ 2. Then O_𝓨 → φ_*O_𝓧 is an isomorphism, so φ is the relative coarse moduli space morphism.",
-
-    "If an algebraic stack 𝓧 → X has a dense open U ⊂ X where 𝓧 ×_X U is Deligne–Mumford, there exists a larger stack 𝓧̃ containing 𝓧 as an open substack. This 𝓧̃ has the same good moduli space X and carries a line bundle L_DM such that its semistable locus is Deligne–Mumford and proper over X. If 𝓧 is a global quotient, so is 𝓧̃. Moreover, a morphism π: 𝓧̃ → 𝓧 exists, restricting to an isomorphism over U. This construction yields proper DM compactifications used in defining quasimap moduli spaces.",
-
-    "Let S be a separated Deligne–Mumford stack of dimension 2 with finite quotient singularities, and let 𝓧 → X be a stack with a good moduli space. Given a diagram extending a map S\\{s} → 𝓧 compatible with a map S → X, there exists a unique S₂ Deligne–Mumford stack 𝓢 → S extending it. The morphism 𝓢 → S is a relative coarse moduli space, is representable, and is an isomorphism outside s. If S is smooth, then 𝓢 → S is globally an isomorphism.",
-
-    "The inclusion of the quasimap stack 𝓠_{g,n}(𝓧, 𝓧_DM) into the larger moduli stack 𝔔_{g,n}(𝓧, 𝓧_DM) is an open embedding. Hence, 𝓠_{g,n}(𝓧, 𝓧_DM) is an algebraic stack locally of finite type over the twisted curve moduli space 𝔐_{g,n}^{tw}.",
-
-    "Given a DVR R with generic point η, any n-marked stable quasimap over η admits a unique extension to a stable quasimap over Spec(R), possibly after a finite base change. This ensures the valuative criterion for properness of the quasimap moduli stack.",
-
-    "If the stack 𝓧 satisfies certain extension-of-line-bundle assumptions, the quasimap moduli stack 𝓠_{g,n}(𝓧, 𝓧_DM, β) is of finite type. Thus, the space of quasimaps of class β has bounded geometry and finitely many components.",
-
-    "For any stable quasimap (φ: C → 𝓧, Σ₁,…,Σₙ) of class β, the topological type of C, the number of stacky points, and their automorphism groups are bounded. This provides finiteness and boundedness properties essential for the moduli stack’s finite type.",
-
-    "Assuming the extension-of-line-bundle condition, there exist a group G′, a character χ: G′ → G_m, and an action on affine space Aⁿ giving a locally closed embedding 𝓧 → [Aⁿ/G′]. The inverse image of the semistable locus under this embedding corresponds exactly to 𝓧_DM. Hence, 𝓧 can be realized as a quotient stack fitting into a GIT-type presentation.",
-
-    "For 𝓧 = 𝓓𝓟_m^{CY} and its open substack 𝓧_DM = 𝓓𝓟_m^{KSBA}, the general construction of Theorem 1 applies. The quasimap stack 𝓠_g(𝓧, 𝓧_DM, β) compactifies families of maps π: (Y, cD) → C whose fibers lie in 𝓧, with conditions ensuring klt fibers (Q), stability or non-isotriviality (S), and correct numerical class (N). Its boundary parametrizes twisted families satisfying analogous conditions, describing degenerations where semi-log-canonical or S-equivalence behavior changes along special fibers."
-]
-
-# not used at the moment
-concept_phrases = [
-    "one can check representability after fiber product",
-    "two morphisms from a S2 algebraic stack to an algebraic stack, which are isomorphic on a big open, are isomorphic.",
-    "The set of points where the good moduli space map is an isomorphism is open, when the good moduli space is separated.",
-    "A map of S2 DM stacks which is an isomorphism on a big open and with isomorphic coarse moduli space is a relative coarse moduli space.",
-    "every algebraic stack with dense properly stable locus admits an open embedding in another algebraic stack which contains a proper-Deligne Mumford stack.",
-    "A map from a smooth punctured surface to an algebraic stack with a good moduli space extends if the map at the level of good moduli space extend.",
-    "being stable is an open condition for quasimaps.",
-    "The stack of stable quasimaps is proper.",
-    "the stack of stable quasimaps is of finite type",
-    "Bounding cohomological type of orbifold curve using class ",
-    "an algebraic stack admits an embedding in quotient of affine space by G",
-    "compact moduli of fibered CY using quasimaps"
-]
-
 # %%
+# --- 2. Define the evaluation metrics ---
 import numpy as np
 from sentence_transformers import util
 
@@ -116,31 +43,6 @@ from sentence_transformers import util
 # qrels can be:
 #   {q_idx: [doc_idx, ...]}                 -> binary relevance (1)
 #   {q_idx: {doc_idx: grade, ...}}          -> graded relevance (0..3)
-# You can also build by strings via make_qrels_by_text().
-def make_qrels_by_text(latex_texts, concept_texts, mapping):
-    """
-    mapping: dict[str query_text] -> list[str or (str, grade)]
-    Returns qrels in index form with graded relevance if provided.
-    """
-    qrels = {}
-    q_lookup = {q:i for i,q in enumerate(latex_texts)}
-    d_lookup = {d:i for i,d in enumerate(concept_texts)}
-    for q_text, items in mapping.items():
-        q = q_lookup[q_text]
-        if isinstance(items, dict):
-            qrels[q] = {d_lookup[k]: v for k,v in items.items()}
-        else:
-            # list; allow either strings or (string, grade)
-            out = {}
-            for it in items:
-                if isinstance(it, tuple):
-                    d_text, rel = it
-                    out[d_lookup[d_text]] = rel
-                else:
-                    out[d_lookup[it]] = 1
-            qrels[q] = out
-    return qrels
-
 # ---------- ranking ----------
 def rank_concepts(sim_matrix):
     """
@@ -150,130 +52,338 @@ def rank_concepts(sim_matrix):
     return [np.argsort(-row) for row in sim_matrix]
 
 # ---------- metrics ----------
-def precision_at_k(ranked, qrels, k=3, binary=True):
-    ps = []
-    for q, order in enumerate(ranked):
-        rels = qrels.get(q, {})
-        hits = sum((1 if (d in rels and (rels[d] if not binary else rels[d] >= 1)) else 0)
-                   for d in order[:k])
-        ps.append(hits / k)
-    return float(np.mean(ps))
-
-def recall_at_k(ranked, qrels, k=3, binary=True):
-    rs = []
-    for q, order in enumerate(ranked):
-        rels = qrels.get(q, {})
-        if not rels:
-            continue
-        denom = sum(1 for v in rels.values() if (v if not binary else v >= 1))
-        denom = max(denom, 1)
-        hits = sum((1 if (d in rels and (rels[d] if not binary else rels[d] >= 1)) else 0)
-                   for d in order[:k])
-        rs.append(hits / denom)
-    return float(np.mean(rs)) if rs else 0.0
-
-def mrr(ranked, qrels):
-    rrs = []
-    for q, order in enumerate(ranked):
-        rels = qrels.get(q, {})
-        first = None
-        for i, d in enumerate(order, start=1):
-            if d in rels and rels[d] >= 1:
-                first = i
-                break
-        rrs.append(1.0 / first if first else 0.0)
-    return float(np.mean(rrs))
-
-def average_precision_at_k(ranked, qrels, k=3):
-    """
-    Binary AP@k
-    """
-    aps = []
-    for q, order in enumerate(ranked):
-        rels = qrels.get(q, {})
-        if not rels:
-            aps.append(0.0); continue
-        num_rel = sum(1 for v in rels.values() if v >= 1)
-        if num_rel == 0:
-            aps.append(0.0); continue
-        hits, s = 0, 0.0
-        for i, d in enumerate(order[:k], start=1):
-            if d in rels and rels[d] >= 1:
-                hits += 1
-                s += hits / i
-        denom = min(num_rel, k)
-        aps.append(s / denom if denom > 0 else 0.0)
-    return float(np.mean(aps))
-
-def ndcg_at_k(ranked, qrels, k=3):
-    """
-    Graded nDCG@k (falls back to binary if all grades are 0/1).
-    DCG uses gains = 2^rel - 1.
-    """
-    def dcg(gains):
-        return sum(g/np.log2(i+2) for i,g in enumerate(gains))
-
-    ndcgs = []
-    for q, order in enumerate(ranked):
-        rels = qrels.get(q, {})
-        # predicted top-k gains
-        gains = [ (2**rels.get(d, 0) - 1) for d in order[:k] ]
-        dcg_k = dcg(gains)
-        # ideal gains
-        ideal = sorted((2**v - 1 for v in rels.values()), reverse=True)[:k]
-        idcg_k = dcg(ideal) if ideal else 1.0
-        ndcgs.append(dcg_k / idcg_k if idcg_k > 0 else 0.0)
-    return float(np.mean(ndcgs))
-
-# ---------- main entry ----------
 def evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3):
     # encode
-    print("encoding")
-    l_emb = model.encode(theorems, convert_to_tensor=True)
-    c_emb = model.encode(queries, convert_to_tensor=True)
-    print("creating sim_matrix")
-    sim_matrix = util.cos_sim(l_emb, c_emb).cpu().numpy()
+    print("Encoding...")
+    s_emb = model.encode([item[0] for item in theorems], convert_to_tensor=True)
+    q_emb = model.encode([item[0] for item in queries], convert_to_tensor=True)
+    print("Creating sim_matrix...")
+    sim_matrix = util.cos_sim(q_emb, s_emb).cpu().numpy()
 
-    print("ranking concepts")
-    ranked = rank_concepts(sim_matrix)
+    print("Cos-sim matrix dim", sim_matrix.shape)
 
-    # metrics
-    metrics = {
-        "P@1": precision_at_k(ranked, qrels, k=1),
-        "P@3": precision_at_k(ranked, qrels, k=3),
-        "R@3": recall_at_k(ranked, qrels, k=3),
-        "MRR": mrr(ranked, qrels),
-        "MAP@3": average_precision_at_k(ranked, qrels, k=3),
-        "nDCG@3": ndcg_at_k(ranked, qrels, k=3),
+    print("Ranking concepts...")
+    # ranked = rank_concepts(sim_matrix)
+
+    print("="*50)
+    print("Binary metrics")
+    bin_metrics = {
+        f"P@1": precision_at_k,
+        f"H@{top_k_report}": hit_at_k,
+        f"MRR@{top_k_report}": mrr_at_k,
     }
 
-    # per-query quick report
-    reports = []
-    for qi, order in enumerate(ranked):
-        sims = sim_matrix[qi]
-        topk = order[:top_k_report]
-        row = {
-            "query_idx": qi,
-            "query": theorems[qi],
-            "topk": [(int(di), queries[di], float(sims[di])) for di in topk],
-            "relevant_docs": sorted([(int(di), int(rel)) for di,rel in qrels.get(qi, {}).items()],
-                                    key=lambda x: -x[1]),
-        }
-        reports.append(row)
-    return metrics, reports
+    for item in bin_metrics:
+        
+        res = bin_metrics[item](sim_matrix, qrels, k=(1 if item[0] == "P" else top_k_report))
+        print(f"{item} | {res}")
+
+    print("="*50)
+    print("Graded metrics")
+    grad_metrics = {
+        f"nDCG@{top_k_report}": ndcg_at_k,
+        f"ERR@{top_k_report}": err_at_k,
+        f"Q-measure@{top_k_report}": q_measure_at_k,
+    }
+
+    for item in grad_metrics:
+        
+        res = grad_metrics[item](sim_matrix, qrels, k=top_k_report)
+        print(f"{item} | {res}")
+
+
+def precision_at_k(sim_matrix, qrels, k=5):
+    """
+    Computes mean Precision@k when the i-th query corresponds
+    to the i-th correct document.
+
+    sim_matrix: numpy array (num_queries, num_docs)
+                similarity scores
+    k: cutoff
+    """
+    # rank docs for each query
+    ranked_docs = np.argsort(-sim_matrix, axis=1)
+
+    precisions = []
+    num_queries = sim_matrix.shape[0]
+
+    for q in range(num_queries):
+        correct_doc = next(k for k, v in qrels[q].items() if v == 1) # q
+        top_k = ranked_docs[q, :k]
+
+        hit = 1 if correct_doc in top_k else 0
+        precisions.append(hit / k)
+
+    return float(np.mean(precisions))
+
+
+def hit_at_k(sim_matrix, qrels, k=5):
+    """
+    Computes mean Hit@k when the i-th query corresponds
+    to the i-th correct document.
+
+    sim_matrix: numpy array (num_queries, num_docs)
+                similarity scores
+    k: cutoff
+    """
+    ranked_docs = np.argsort(-sim_matrix, axis=1)
+
+    hits = []
+    num_queries = sim_matrix.shape[0]
+
+    for q in range(num_queries):
+        correct_doc = next(k for k, v in qrels[q].items() if v == 1) # q
+        top_k = ranked_docs[q, :k]
+        hit = 1.0 if correct_doc in top_k else 0.0
+        hits.append(hit)
+
+    return float(np.mean(hits))
+
+
+def mrr_at_k(sim_matrix, qrels, k=None):
+    """
+    Computes Mean Reciprocal Rank (MRR@k) when the i-th query
+    corresponds to the i-th correct document.
+
+    sim_matrix: numpy array (num_queries, num_docs)
+                similarity scores
+    k: optional cutoff (if None, use all docs)
+    """
+    ranked_docs = np.argsort(-sim_matrix, axis=1)
+
+    rrs = []
+    num_queries = sim_matrix.shape[0]
+
+    for q in range(num_queries):
+        correct_doc = next(k for k, v in qrels[q].items() if v == 1) # q
+        row = ranked_docs[q]
+
+        if k is not None:
+            row = row[:k]
+
+        # find index of correct_doc in the ranked list, if present
+        matches = np.where(row == correct_doc)[0]
+
+        if matches.size > 0:
+            rank = int(matches[0]) + 1  # convert 0-based to 1-based
+            rrs.append(1.0 / rank)
+        else:
+            rrs.append(0.0)
+
+    return float(np.mean(rrs))
+
+def _generate_qrels(queries, slogans):
+    qrels = {}
+    for i in range(len(queries)):
+        idx = queries[i][1]
+        qrels[i] = {j: 0.5 if slogans[j][1] == idx else 0 for j in range(len(slogans))}
+        # qrels[i][i] = 1
+
+    return qrels
+
+
+def _get_rels_for_query(order, rels_dict, k=None, default=0.0):
+    """
+    order: np.ndarray of doc_ids in ranked order for one query
+    rels_dict: dict {doc_id: relevance_score}
+    k: optional cutoff
+    """
+    if k is not None:
+        order = order[:k]
+    return np.array([rels_dict.get(d, default) for d in order], dtype=float)
+
+
+def _dcg_from_rels(rels, gain="exp"):
+    """
+    rels: 1D np array of relevance scores in ranked order
+    gain: "exp" for 2^rel - 1, "linear" for rel
+    """
+    if rels.size == 0:
+        print("TOO SMALL")
+        return 0.0
+
+    if gain == "exp":
+        gains = np.power(2.0, rels) - 1.0
+    elif gain == "linear":
+        gains = rels
+    else:
+        raise ValueError(f"Unknown gain scheme: {gain}")
+
+    discounts = 1.0 / np.log2(np.arange(2, rels.size + 2))
+    return float(np.sum(gains * discounts))
+
+
+def ndcg_at_k(ranked, qrels, k=10, gain="exp"):
+    """
+    ranked: list of np.ndarrays; ranked[q] = doc_ids sorted by score
+    qrels: {q: {doc_id: relevance_score}}
+    """
+    ndcgs = []
+
+    ranked = np.argsort(-ranked, axis=1)
+
+    for q, order in enumerate(ranked):
+        rels_dict = qrels.get(q, {})
+        rels = _get_rels_for_query(order, rels_dict, k)
+
+        dcg = _dcg_from_rels(rels, gain=gain)
+
+        # ideal: sort relevance scores desc
+        ideal_rels = np.sort(np.array(list(rels_dict.values()), dtype=float))[::-1]
+        if k is not None:
+            ideal_rels = ideal_rels[:k]
+
+        idcg = _dcg_from_rels(ideal_rels, gain=gain)
+
+        if idcg == 0.0:
+            ndcgs.append(0.0)
+        else:
+            ndcgs.append(dcg / idcg)
+
+    return float(np.mean(ndcgs))
+
+
+def _get_rels_sparse(order, rels_dict, k=None, default=0.0):
+    """
+    order: 1D array of doc indices (ranked[q])
+    rels_dict: {doc_id: relevance_score} for this query
+    k: cutoff
+    """
+    if k is not None:
+        order = order[:k]
+    return np.array([rels_dict.get(int(d), default) for d in order], dtype=float)
+
+
+def err_at_k(ranked, qrels, k=10, max_rel=None):
+    """
+    ranked: 2D np.ndarray or list of 1D arrays
+        ranked[q] is doc indices sorted by descending score.
+    qrels: dict[int -> dict[int -> float]]
+        qrels[q][d] = relevance score of doc d for query q.
+    k: int
+        Cutoff rank.
+    max_rel: float or None
+        Maximum possible relevance grade R. If None, inferred from qrels.
+    """
+    ranked = np.argsort(-ranked, axis=1)
+
+    # ----- infer max_rel if needed -----
+    if max_rel is None:
+        max_rel = 0.0
+        for rels_dict in qrels.values():
+            if rels_dict:
+                max_rel = max(max_rel, max(rels_dict.values()))
+        if max_rel <= 0.0:
+            return 0.0  # no relevance at all
+
+    denom = 2.0 ** max_rel  # 2^R
+
+    errs = []
+
+    for q, order in enumerate(ranked):
+        rels_dict = qrels.get(q, None)
+        if not rels_dict:       # None or empty dict
+            errs.append(0.0)
+            continue
+
+        rels = _get_rels_sparse(order, rels_dict, k=k)
+        if rels.size == 0:
+            errs.append(0.0)
+            continue
+
+        # rel -> satisfaction probability p_i
+        ps = (np.power(2.0, rels) - 1.0) / denom
+
+        err_q = 0.0
+        prob_not_sat = 1.0
+
+        for i, p in enumerate(ps, start=1):
+            if p <= 0.0:
+                prob_not_sat *= (1.0 - p)
+                continue
+            err_q += prob_not_sat * p * (1.0 / i)
+            prob_not_sat *= (1.0 - p)
+            if prob_not_sat <= 1e-12:
+                break
+
+        errs.append(err_q)
+
+    return float(np.mean(errs)) if errs else 0.0
+
+
+
+def q_measure_at_k(ranked, qrels, k=10, max_rel=None):
+    """
+    ranked: 2D np.ndarray or list of 1D arrays
+        ranked[q] is doc indices sorted by descending score.
+    qrels: dict[int -> dict[int -> float]]
+        qrels[q][d] = relevance score of doc d for query q.
+    k: int
+        Cutoff rank.
+    max_rel: float or None
+        Maximum possible relevance grade R. If None, inferred from qrels.
+    """
+
+    ranked = np.argsort(-ranked, axis=1)
+
+    # infer max_rel if needed
+    if max_rel is None:
+        max_rel = 0.0
+        for rels_dict in qrels.values():
+            if rels_dict:
+                max_rel = max(max_rel, max(rels_dict.values()))
+        if max_rel <= 0.0:
+            return 0.0
+
+    denom = 2.0 ** max_rel  # 2^R
+    scores = []
+
+    for q, order in enumerate(ranked):
+        rels_dict = qrels.get(q, None)
+        if not rels_dict:
+            scores.append(0.0)
+            continue
+
+        # all relevance values (for ideal total gain CG*)
+        rel_values = np.array(list(rels_dict.values()), dtype=float)
+        gains_all = (np.power(2.0, rel_values) - 1.0) / denom
+        CG_star = gains_all.sum()
+        if CG_star <= 0.0:
+            scores.append(0.0)
+            continue
+
+        # gains for retrieved docs in top-k
+        rels_k = _get_rels_sparse(order, rels_dict, k=k)
+        gains_k = (np.power(2.0, rels_k) - 1.0) / denom
+
+        CG = 0.0
+        q_sum = 0.0
+
+        for i, g in enumerate(gains_k, start=1):
+            if g <= 0.0:
+                continue
+            CG += g
+            precision_i = CG / i
+            q_sum += g * precision_i
+
+        scores.append(q_sum / CG_star)
+
+    return float(np.mean(scores)) if scores else 0.0
+
+
 
 #%%
-# collect theorem slogans from rds
+# collect theorem slogans from rds and update validation set
 
 import dotenv
 import pandas as pd
+import re
 from ec2.rds.paginate import paginate_query
 from ec2.rds.connect import get_rds_connection
 
 # select context window to pull slogans from
 # context_window = "body-only-v1"
 context_window = 'body-and-summary-v1'
-
 
 validation_set = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
 validation_set[context_window] = None
@@ -282,10 +392,10 @@ conn = get_rds_connection()
 
 for idx, row in validation_set.iterrows():
 
-    paper_like = str(row['paper_id']) + '%'
+    paper_like = '%' + str(row['paper_id']) + '%'
     theorem_name = str(row['theorem'])
     query_1 = """
-    SELECT theorem_id
+    SELECT theorem_id, body
     FROM theorem
     WHERE paper_id LIKE %s
     AND name = %s
@@ -304,8 +414,9 @@ for idx, row in validation_set.iterrows():
         with conn.cursor() as cur:
             cur.execute(query_2, (context_window, rows_raw[0][0]))
             cols = [d[0] for d in cur.description]
-            rows_raw = cur.fetchall()
-        validation_set.loc[idx, context_window] = rows_raw[0][0]
+            rows_raw2 = cur.fetchall()
+        validation_set.loc[idx, context_window] = rows_raw2[0][0]
+        validation_set.loc[idx, "body"] = re.sub(r"\s+", " ", rows_raw[0][1])
     except:
         print(f"theorem info not found for: {row['paper_id'], row['theorem']}")
         continue
@@ -316,57 +427,111 @@ validation_set.to_csv('validation_set.csv')
 
 
 #%%
-# Build graded qrels by text → text
-
+# --- 3. Evaluate performance ---
 # select context window to test
 context_window = "body-and-summary-v1"
 
 vals = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
+slogans = pd.read_csv("full_slogan_set.csv", header=0, index_col=0, dtype={"paper_id": str})
 vals = vals[vals[context_window].notnull()]
-queries = vals['query'].tolist()
-theorem_slogans = vals[context_window].tolist()
-mapping = {}
-for i in range(len(vals)):
-    mapping[queries[i]] = [(theorem_slogans[i], 3)]
 
-qrels = make_qrels_by_text(
-    queries,
-    theorem_slogans,
-    mapping
-)
+qrels_array = []
+# identify correct documents from full validation set
+for idx, row in vals.iterrows():
+    indices = slogans[(slogans["theorem"] == row[1]) & (slogans["paper_id"] == row[3])].index
+    qrels_array.append((idx, int(indices[0])))
 
-print("number of theorems testing: ", len(vals))
-print("context window: ", context_window)
+queries = list(zip(vals['query'], vals["paper_id"]))
+theorem_slogans = list(zip(slogans[context_window], slogans["paper_id"]))
+
+qrels_table = _generate_qrels(queries, theorem_slogans)
+
+# add correct documents into qrels table
+for i in range(len(qrels_array)):
+    qrels_table[i][qrels_array[i][1]]
+
+grading_metric = {
+    "Exact Match": 1,
+    "Paper Match": 0.5,
+    "No Match": 0
+}
+
+print("Number of theorems testing: ", len(vals))
+print("Context window: ", context_window)
 
 # Choose the embedder
-# model_name = "google/embeddinggemma-300m"
+# model_name = "google/embeddinggemma-300m" 
 # model_name = "Qwen/Qwen3-Embedding-0.6B"
 # model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
-model_name = "nvidia/llama-embed-nemotron-8b" # Qwen3 0.6B is the best of three embedders
+model_name = "Qwen/Qwen3-Embedding-0.6B" # Qwen3 0.6B is the best of three embedders
 model = load_model(model_name)
+print("Model name: ", model_name)
 
-# Choose whether to use slogans or theorems
-# metrics, per_query = evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3)
-metrics, per_query = evaluate_retrieval(model, queries, theorem_slogans, qrels, top_k_report=3) # slogans perform much better than raw theorems
+evaluate_retrieval(model, theorem_slogans, queries, qrels_table, 5)
+# %%
+# --- Create full query set ---
+import dotenv
+import pandas as pd
+import re
+from ec2.rds.paginate import paginate_query
+from ec2.rds.connect import get_rds_connection
 
-# pretty-print metrics with 4 decimal places
-rounded_metrics = {k: float(f"{v:.4f}") for k, v in metrics.items()}
+df = pd.DataFrame({
+    "paper_id": pd.Series(dtype="string"),
+    "theorem": pd.Series(dtype="string"),
+    "body-only-v1": pd.Series(dtype="string"),
+    "body-and-summary-v1": pd.Series(dtype="string"),
+})
 
-explanations = {
-    "P@1": "Precision at 1 — fraction of queries whose top-ranked document is relevant.",
-    "P@3": "Precision at 3 — average fraction of relevant documents among the top 3 results.",
-    "R@3": "Recall at 3 — average fraction of relevant documents retrieved in the top 3 results.",
-    "MRR": "Mean Reciprocal Rank — average inverse rank of the first relevant result.",
-    "MAP@3": "Mean Average Precision at 3 — average precision considering relevant docs up to rank 3.",
-    "nDCG@3": "Normalized Discounted Cumulative Gain at 3 — graded ranking quality up to rank 3.",
-}
-print("Model: ", model_name)
-print("Evaluation metrics:")
-for key in ["P@1", "P@3", "R@3", "MRR", "MAP@3", "nDCG@3"]:
-    val = rounded_metrics.get(key, metrics.get(key, 0.0))
-    print(f"{key}: {val:.4f}  — {explanations.get(key)}")
+dotenv.load_dotenv()
+conn = get_rds_connection()
 
-for r in per_query[:3]:   # peek first 3 queries
-    print(r["query_idx"], r["topk"], "relevant:", r["relevant_docs"])
+query_1 = """
+WITH good_table AS (
+    SELECT
+        pap.authors,
+        LEFT(theo.paper_id, LENGTH(theo.paper_id) - 2) AS paper_id,
+        theo.name,
+        slo.theorem_id,
+        slo.model,
+        slo.prompt_id,
+        slo.slogan
+    FROM theorem_slogan AS slo
+    LEFT JOIN theorem AS theo
+      ON theo.theorem_id = slo.theorem_id
+    LEFT JOIN paper AS pap
+      ON theo.paper_id = pap.paper_id
+    WHERE pap.authors && ARRAY[
+        'Giovanni Inchiostro', 
+        'Jarod Alper', 
+        'Dori Bejleri',
+        'Roberto Svaldi',
+        'Valery Alexeev',
+        'Vistoli Angelo',
+        'Michele Pernice',
+        'János Kollár'
+    ]
+)
+SELECT
+        paper_id,
+        name,
+        MAX(slogan) FILTER (WHERE prompt_id = 'body-only-v1') AS body_only_v1,
+        MAX(slogan) FILTER (WHERE prompt_id = 'body-and-summary-v1') AS body_and_summary_v1
+    FROM good_table
+    GROUP BY paper_id, name;
+"""
+try:
+    with conn.cursor() as cur:
+        cur.execute(query_1, None)
+        cols = [d[0] for d in cur.description]
+        rows_raw = cur.fetchall()
+
+        for row in rows_raw:
+            df.loc[len(df)] = row
+
+        df.to_csv("full_slogan_set.csv")
+
+except Exception as e:
+    print(f"found exception {e}")
 
 # %%
