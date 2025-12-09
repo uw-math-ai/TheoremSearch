@@ -2,55 +2,77 @@ from ..rds.connect import get_rds_connection
 from ..rds.paginate import paginate_query
 from .embeddings import get_embedder, embed_texts
 import argparse
-
-# TODO: Allow user to filter which slogans get embedded
-
-conn = get_rds_connection()
-embedder = get_embedder()
+from ..rds.upsert import upsert_rows
+from .embedders import EMBEDDERS
 
 def generate_embeddings(
-    page_size: int = 128,
-    batch_size: int = 16,
-    overwrite: bool = False
+    embedder_alias: str,
+    min_citations: int,
+    in_journal: bool,
+    page_size: int,
+    batch_size: int,
+    overwrite: bool
 ):
+    conn = get_rds_connection()
+    embedder = get_embedder(embedder_alias)
+
     base_sql = """
         SELECT slogan_id, slogan
         FROM theorem_slogan
+        INNER JOIN theorem
+            ON theorem_slogan.theorem_id = theorem.theorem_id
+        INNER JOIN paper
+            ON theorem.paper_id = paper.paper_id
     """
     count_sql = """
         SELECT COUNT(*)
         FROM theorem_slogan
+        INNER JOIN theorem
+            ON theorem_slogan.theorem_id = theorem.theorem_id
+        INNER JOIN paper
+            ON theorem.paper_id = paper.paper_id
     """
 
+    where_conditions = []
+    base_params = []
+
     if not overwrite:
-        where_condition = """
-            WHERE NOT EXISTS (
+        where_conditions.append(f"""
+            NOT EXISTS (
                 SELECT 1
-                FROM theorem_embedding_qwen AS teq
+                FROM theorem_embedding_{embedder_alias} AS teq
                 WHERE teq.slogan_id = theorem_slogan.slogan_id
             )
-        """
+        """)
 
-        base_sql += " " + where_condition
-        count_sql += " " + where_condition
+    if min_citations >= 0:
+        where_conditions.append("paper.citations >= %s")
+        base_params.append(min_citations)
+
+    if in_journal:
+        where_conditions.append("paper.journal_ref IS NOT NULL")
+
+    if where_conditions:
+        base_sql += " WHERE " + " AND ".join(where_conditions)
+        count_sql += " WHERE " + " AND ".join(where_conditions)
 
     with conn.cursor() as cur:
         cur.execute(count_sql)
         n_results = cur.fetchone()[0]
 
-    print(f"Generating embeddings for {n_results} matching slogans:")
+    print(f"=== Generating embeddings for {n_results} slogans (Embedder: {EMBEDDERS[embedder_alias]}) ===")
     n_slogans = 0
 
     for page_index, slogans in enumerate(paginate_query(
         conn,
         base_sql=base_sql,
-        base_params=(),
+        base_params=(*base_params,),
         order_by="slogan_id",
         descending=False,
         page_size=page_size
     )):
         n_slogans += len(slogans)
-        print(f" > Page {page_index + 1}: {n_slogans}/{n_results}")
+        print(f"[Page {page_index + 1}] {n_slogans}/{n_results}")
 
         embeddings = embed_texts(
             embedder,
@@ -59,17 +81,49 @@ def generate_embeddings(
         )
 
         with conn.cursor() as cur:
-            cur.executemany("""
-                INSERT INTO theorem_embedding_qwen (slogan_id, embedding)
-                VALUES (%s, %s)
-                ON CONFLICT (slogan_id) DO UPDATE
-                SET embedding = EXCLUDED.embedding
-            """, [(s["slogan_id"], e) for s, e in zip(slogans, embeddings)]) 
+            upsert_rows(
+                cur,
+                table=f"theorem_embedding_{embedder_alias}",
+                rows=[
+                    {
+                        "slogan_id": slogan["slogan_id"],
+                        "embedding": embedding
+                    }
+                    for slogan, embedding in zip(slogans, embeddings)
+                ],
+                on_conflict={
+                    "with": ["slogan_id"],
+                    "replace": ["embedding"]
+                }
+            )
 
         conn.commit()
 
+    conn.close()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--embedder",
+        type=str,
+        required=True,
+        help="Alias (from EMBEDDERS.py) of HuggingFace embedder"
+    )
+
+    parser.add_argument(
+        "--min-citations",
+        type=int,
+        required=False,
+        default=-1,
+        help="Minimum amount of citations on a paper to embed its theorem slogans"
+    )
+
+    parser.add_argument(
+        "--in-journal",
+        action="store_true",
+        help="Whether to only embed theorem slogans from papers found in a journal"
+    )
 
     parser.add_argument(
         "--page-size",
@@ -93,6 +147,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_embeddings(
+        embedder_alias=args.embedder,
+        min_citations=args.min_citations,
+        in_journal=args.in_journal,
         page_size=args.page_size,
         batch_size=args.batch_size,
         overwrite=args.overwrite

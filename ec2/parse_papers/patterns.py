@@ -1,8 +1,5 @@
 import regex
-from typing import Pattern, Dict
-
-def _c(rx: str, flags=0) -> Pattern[str]:
-    return regex.compile(rx, flags | regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
+from typing import Pattern
 
 # captures theorem commands
 NEWTHEOREM: Pattern[str] = r"""
@@ -222,9 +219,17 @@ NEWLABEL = regex.compile(r"""
 \{(?P<label>[^{}]+)\}               # capture everything inside {...} as 'label'
 """, regex.VERBOSE | regex.DOTALL | regex.MULTILINE)
 
-def SPECIFICTHEOREM(name: str) -> Pattern[str]:
-    name = regex.escape(name) # distinguishes between "theorem" and "theorem*"
-    return rf"(?<=\\begin\{{{name}\}}).*?(?=\\end\{{{name}\}})"
+def SPECIFICTHEOREM(name: str) -> str:
+    """
+    Match the whole environment \\begin{name} ... \\end{name},
+    allowing spaces like '\\begin {name}' and '\\end {name}'.
+    """
+    name = regex.escape(name.strip())
+    return rf"""
+        \\begin\s*\{{\s*{name}\s*\}}   # \begin{ name } with optional spaces
+        .*?                            # body (non-greedy, DOTALL from _scanner)
+        \\end\s*\{{\s*{name}\s*\}}     # \end{ name } with optional spaces
+    """
 
 def SPECIFICTHEOREM_HEAD(name: str) -> Pattern[str]:
     return rf"(?<=\\begin\{{{name}\}}).*?(?=\\end\{{{name}\}})"

@@ -5,10 +5,11 @@ Helpers for embedding texts into vectors.
 from sentence_transformers import SentenceTransformer
 import torch
 import multiprocessing
+from .embedders import EMBEDDERS
 
-def get_embedder():
+def get_embedder(embedder_alias: str):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = SentenceTransformer("Qwen/Qwen3-Embedding-0.6B", device=device)
+    model = SentenceTransformer(EMBEDDERS[embedder_alias], device=device)
     model.eval()
     return model
 

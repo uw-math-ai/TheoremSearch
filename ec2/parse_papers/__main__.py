@@ -1,255 +1,373 @@
-from .arxiv_client import search_arxiv
 import argparse
-import shutil
-import os
+from ..rds.paginate import paginate_query
 from ..rds.connect import get_rds_connection
-import tarfile
-import gzip
+from tqdm import tqdm
+import boto3
+import tempfile
+import tarfile, regex, os, shutil, gzip
 from .tex import find_main_tex_file, collect_imports
-import regex
 from .patterns import *
 from .latex_parse import extract
-from .citations import fetch_citations
-from arxiv import Result
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from tqdm import tqdm
-from typing import Literal
+from typing import Set, List, Dict, Tuple
+from ..rds.upsert import upsert_rows
+from concurrent.futures import ProcessPoolExecutor, TimeoutError
+import time
 
-TMP_DIR = "papers_tmp"
+ARXIV_BUCKET = "arxiv"
 
-Status = Literal["upserted", "skipped", "error"]
+s3 = boto3.client("s3")
 
-def _parse_paper(
-    paper_res: Result,
-    overwrite: bool = False,
-    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
-) -> Status:
+def _download_arxiv_source(paper_arxiv_s3_loc: Tuple[str, int, int], dest_dir: str) -> str:
+    bundle_tar, bytes_start, bytes_end = paper_arxiv_s3_loc
+    byte_range = f"bytes={bytes_start}-{bytes_end}"
+
+    # Make filename unique per slice so you don't overwrite for same bundle
+    tar_path = os.path.join(
+        dest_dir,
+        f"{os.path.basename(bundle_tar)}.{bytes_start}-{bytes_end}.gz"
+    )
+
+    # Use get_object with Range + RequestPayer instead of download_fileobj
+    response = s3.get_object(
+        Bucket=ARXIV_BUCKET,
+        Key=bundle_tar,
+        Range=byte_range,
+        RequestPayer="requester",
+    )
+
+    body = response["Body"]
+
+    # Stream to disk in chunks
+    with open(tar_path, "wb") as f:
+        for chunk in iter(lambda: body.read(8192), b""):
+            f.write(chunk)
+
+    return tar_path
+
+def _parse_arxiv_paper(
+    paper_id: str,
+    paper_arxiv_s3_loc: Tuple[str],
+    allowed_theorem_types: Set[str],
+    verbose: bool
+) -> List[Dict]:
+    # print(f"[START] {paper_id}", flush=True)
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
+            tar_path = _download_arxiv_source(paper_arxiv_s3_loc, tmp_dir)
+            tar_out = tar_path.replace(".gz", "")
+
+            try:
+                with tarfile.open(tar_path, "r:*") as tar:
+                    tar.extractall(path=tar_out)
+            except Exception:
+                # Fallback: sometimes arXiv gives gzipped single .tex
+                os.makedirs(tar_out, exist_ok=True)
+                with gzip.open(tar_path, "rb") as f_in, \
+                     open(os.path.join(tar_out, "main.tex"), "wb") as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+
+            file = find_main_tex_file(tar_out)
+            if file is None:
+                raise ValueError("No main .tex file found")
+
+            # clean comments from main tex
+            with open(file, "r+", errors="ignore") as f:
+                content = f.read()
+                content = regex.sub(r"(?<!\\)%.*", "", content)
+                content = regex.sub(
+                    r'\\begin\{comment\}.*?\\end\{comment\}',
+                    '',
+                    content,
+                    flags=regex.DOTALL
+                )
+                f.seek(0)
+                f.write(content)
+                f.truncate()
+
+            # Collect imports (make sure collect_imports doesn't infinite-loop!)
+            collect_imports(tar_out, file, NEWINPUT)
+            collect_imports(tar_out, file, NEWUSEPACKAGE)
+
+            # Extract theorems
+            theorems = extract(file)
+            theorem_rows = [
+                {
+                    "paper_id": paper_id,
+                    "name": name,
+                    "body": body,
+                    "label": label
+                }
+                for name, body, label in theorems
+                if name.lower().split(" ")[0] in allowed_theorem_types
+            ]
+
+            # print(f"[DONE]  {paper_id}", flush=True)
+
+            return theorem_rows
+
+        except Exception as e:
+            if verbose:
+                print(f"[ERROR] {paper_id}: {e!r}", flush=True)
+            pass
+
+        return []
+
+
+def parse_arxiv_papers(
+    min_citations: int,
+    paper_ids: List[str],
+    in_journal: bool,
+    overwrite: bool,
+    batch_size: int,
+    batch_skip: int,
+    max_workers: int,
+    per_paper_timeout: int,
+    unparsable_paper_ids: Set[str],
+    verbose: bool,
+    allowed_theorem_types: Set[str] = set(["theorem", "proposition", "lemma", "corollary"]),
+):
     conn = get_rds_connection()
 
-    paper_id = paper_res.get_short_id()
+    base_sql = """
+        SELECT paper.paper_id, last_updated, bundle_tar, bytes_start, bytes_end
+        FROM paper
+        INNER JOIN paper_arxiv_s3_location paper_loc
+            ON paper_loc.paper_id = paper.paper_id
+    """
+    count_sql = """
+        SELECT COUNT(*)
+        FROM paper
+        INNER JOIN paper_arxiv_s3_location paper_loc
+            ON paper_loc.paper_id = paper.paper_id
+    """
+
+    where_conditions = ["link LIKE %s"]
+    base_params = ["%arxiv%"]
 
     if not overwrite:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM paper
-                    WHERE paper_id = %s
-                );
-            """, (paper_id,))
+        where_conditions.append("""
+            NOT EXISTS (
+                SELECT 1
+                FROM theorem
+                WHERE theorem.paper_id = paper.paper_id
+            )
+        """)
 
-            res = cur.fetchone()
+    if paper_ids:
+        where_conditions.append("paper.paper_id LIKE ANY(%s)")
+        base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
 
-            if res[0]:
-                # print(f"Prevented overwrite")
+    if min_citations >= 0:
+        where_conditions.append("citations >= %s")
+        base_params.append(min_citations)
 
-                conn.rollback()
-                return "skipped"
+    if in_journal:
+        where_conditions.append("journal_ref IS NOT NULL")
 
-    try:
-        tar_path = paper_res.download_source(
-            dirpath=TMP_DIR, 
-            filename=paper_id.replace("/", "_") + ".tar.gz"
-        )
-    except Exception as e:
-        # print(f"Error: {e}")
+    if where_conditions:
+        base_sql += " WHERE " + " AND ".join(where_conditions)
+        count_sql += " WHERE " + " AND ".join(where_conditions)
 
-        conn.rollback()
-        return "error"
+    with conn.cursor() as search_cur:
+        search_cur.execute(count_sql, (*base_params,))
+        n_results = search_cur.fetchone()[0]
 
-    tar_out = tar_path.replace(".tar.gz", "")
+    n_errors = 0
+    n_successes = 0
 
-    def clean_up():
-        conn.rollback()
+    with ProcessPoolExecutor(max_workers=max_workers) as ex, tqdm(total=n_results) as pbar:
+        for papers in paginate_query(
+            conn,
+            base_sql=base_sql,
+            base_params=(*base_params,),
+            order_by="last_updated",
+            descending=True,
+            page_size=batch_size
+        ):
+            futures = []
+            paper_ids = []
+            batch_theorem_rows = []
+            
+            if batch_skip > 0:
+                pbar.update(len(papers))
+                n_errors += len(papers)
+                batch_skip -= 1
 
-        if os.path.exists(tar_out):
-            shutil.rmtree(tar_out)
-        if os.path.exists(tar_path):
-            os.remove(tar_path)
+                continue
 
-    try:
-        with tarfile.open(tar_path, "r:*") as tar:
-            tar.extractall(path=tar_out)
-    except:
-        try:
-            os.makedirs(tar_out)
-            with gzip.open(tar_path, "rb") as f_in, open(os.path.join(tar_out, "main.tex"), "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        except Exception as e:
-            # print(f"Error: {e}")
+            for paper in papers:
+                paper_id = paper["paper_id"]
 
-            clean_up()
-            return "error"
+                if paper_id in unparsable_paper_ids:
+                    n_errors += 1
 
-    file = find_main_tex_file(tar_out)
+                    continue
 
-    if file is None:
-        # print(f"Error: No main .tex file found")
-
-        clean_up()
-        return "error"
-
-    with open(file, "r+", encoding="utf-8", errors="ignore") as f:
-        content = f.read()
-
-        # remove any commented out imports
-        content = regex.sub(r"(?<!\\)%.*", "", content)
-        content = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', content, flags=regex.DOTALL)
-    
-        f.seek(0)
-        f.write(content)
-        f.truncate()
-
-    # places all imports in main file
-    collect_imports(tar_out, file, NEWINPUT)
-    collect_imports(tar_out, file, NEWUSEPACKAGE)
-
-    try:
-        theorems = extract(file)
-        theorem_rows = [
-            (name, body, label)
-            for name, body, label in theorems
-            if name.lower().split(" ")[0] in allowed_theorem_types
-        ]
-
-        if not theorem_rows:
-            # print(f"Error: No theorems found")
-
-            clean_up()
-            return "error"
-
-        paper_row = (
-            paper_id,
-            paper_res.title,
-            [author.name for author in paper_res.authors],
-            paper_res.entry_id, # link
-            paper_res.updated.isoformat(),
-            paper_res.summary,
-            paper_res.journal_ref,
-            paper_res.primary_category,
-            paper_res.categories,
-            fetch_citations(paper_res.entry_id, paper_res.title)
-        )
-
-        with conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO paper (
-                    paper_id, title, authors, link, last_updated, summary, journal_ref,
-                    primary_category, categories, citations
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (paper_id) DO UPDATE
-                SET
-                    last_updated = EXCLUDED.last_updated,
-                    citations = EXCLUDED.citations
-            """, paper_row)
-
-            for theorem_row in theorem_rows:
-                cur.execute("""
-                    INSERT INTO theorem (
-                        paper_id, name, body, label
-                    )
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (paper_id, name) DO UPDATE
-                    SET 
-                        body = EXCLUDED.body,
-                        label = EXCLUDED.label;
-                """, (
-                    paper_id,
-                    *theorem_row
-                ))
-        
-        conn.commit()
-
-        clean_up()
-        return "upserted"
-
-    except Exception as e:
-        # print(f"Error: {e}")
-
-        clean_up()
-        return "error"
-
-def parse_papers(
-    query: str,
-    overwrite: bool = False,
-    limit: int = 10,
-    skip: int = 0,
-    allowed_theorem_types: set[str] = set(["theorem", "proposition", "lemma"]),
-    max_workers: int = 8
-):
-    try:
-        upserts = 0
-        skips = 0
-        errors = 0
-
-        os.makedirs(TMP_DIR, exist_ok=True)
-        with tqdm(total=limit, ncols=80) as pbar:
-            for papers_res in search_arxiv(query, skip=skip):
-                if upserts >= limit:
-                    break
+                paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
                 
-                with ThreadPoolExecutor(max_workers) as ex:
-                    futs = {
-                        ex.submit(_parse_paper, paper_res, overwrite, allowed_theorem_types)
-                        for paper_res in papers_res
-                    }
+                fut = ex.submit(_parse_arxiv_paper, paper_id, paper_arxiv_s3_loc, allowed_theorem_types, verbose)
+                futures.append(fut)
+                paper_ids.append(paper_id)
 
-                    for fut in as_completed(futs):
-                        status = fut.result()
-                        
-                        if status == "upserted":
-                            upserts += 1
-                            pbar.update(1)
-                        elif status == "error":
-                            errors += 1
-                        elif status == "skipped":
-                            skips += 1
+            for paper_id, fut in zip(paper_ids, futures):
+                try:
+                    theorem_rows = fut.result(timeout=per_paper_timeout)
+                except TimeoutError:
+                    if verbose:
+                        print(f"[TIMEOUT] {paper_id} (> {per_paper_timeout}s)", flush=True)
+                    theorem_rows = []
 
-                        pbar.set_postfix({"skip": skips, "err": errors})
-    except KeyboardInterrupt:
-        raise
-    finally:    
-        if os.path.exists(TMP_DIR):
-            shutil.rmtree(TMP_DIR, ignore_errors=True)
+                    unparsable_paper_ids.add(paper_id)
+                except Exception as e:
+                    if verbose:
+                        print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
+                    theorem_rows = []
+
+                    unparsable_paper_ids.add(paper_id)
+
+                if theorem_rows:
+                    n_successes += 1
+                    batch_theorem_rows.extend(theorem_rows)
+                else:
+                    unparsable_paper_ids.add(paper_id)
+
+                    if verbose:
+                        print(f"[ERROR] {paper_id}: No theorems found", flush=True)
+
+                    n_errors += 1
+
+                pbar.update(1)
+                pbar.set_postfix({
+                    "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
+                })
+
+            pbar.set_postfix({
+                "err": f"{(100.0 * n_errors / (n_errors + n_successes)):.2f}%"
+            })
+
+            with conn.cursor() as cur:
+                if batch_theorem_rows:
+                    upsert_rows(
+                        cur,
+                        table="theorem",
+                        rows=batch_theorem_rows,
+                        on_conflict={
+                            "with": ["paper_id", "name"],
+                            "replace": ["body", "label"]
+                        }
+                    )
+
+            conn.commit()
+
+    conn.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--query",
+        "--min-citations",
+        type=int,
+        required=False,
+        default=-1,
+        help="The minimum citations a paper must have to be parsed. If negative (default), all papers are parsed"
+    )
+
+    parser.add_argument(
+        "--paper-ids", 
+        nargs="+",
         type=str,
-        required=True,
-        help="A valid arXiv search query"
+        required=False,
+        default=[],
+        help="List of paper IDs which get parsed"
+    )
+
+    parser.add_argument(
+        "--in-journal",
+        action="store_true",
+        help="Whether to only parse papers with a journal reference"
     )
 
     parser.add_argument(
         "-o",
         "--overwrite",
-        help="Whether to overwrite prexisting paper and theorem data"
+        action="store_true",
+        help="Whether to only parse papers without any associated parsed theorems"
     )
 
     parser.add_argument(
-        "--limit",
+        "--batch-size",
         type=int,
         required=False,
-        default=-1,
-        help="Maximum number of papers to add (if no overwrite) or update/add (if overwrite)"
+        default=64,
+        help="Number of papers per batch"
     )
 
     parser.add_argument(
-        "--skip",
+        "--batch-skip",
         type=int,
         required=False,
         default=0,
-        help="Number of results to skip before attempting parsing"
+        help="Number of batches to skip in parsing"
+    )
+
+    parser.add_argument(
+        "--workers",
+        type=int,
+        required=False,
+        default=16,
+        help="Number of concurrent workers to parse each batch (processes)"
+    )
+
+    parser.add_argument(
+        "--per-paper-timeout",
+        type=int,
+        required=False,
+        default=30,
+        help="Maximum seconds allowed per paper parse before timing out"
+    )
+
+    parser.add_argument(
+        "--max-retries",
+        type=int,
+        required=False,
+        default=64,
+        help="Maximum retries"
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Whether to print errors or not"
     )
 
     args = parser.parse_args()
+    retries = 0
 
-    parse_papers(
-        args.query,
-        args.overwrite,
-        args.limit,
-        args.skip
-    )
+    unparsable_paper_ids = set()
+
+    while retries < args.max_retries:
+        try:
+            parse_arxiv_papers(
+                min_citations=args.min_citations,
+                paper_ids=args.paper_ids,
+                in_journal=args.in_journal,
+                overwrite=args.overwrite,
+                batch_size=args.batch_size,
+                batch_skip=args.batch_skip,
+                max_workers=args.workers,
+                per_paper_timeout=args.per_paper_timeout,
+                unparsable_paper_ids=unparsable_paper_ids,
+                verbose=args.verbose
+            )
+
+        except KeyboardInterrupt:
+            break
+
+        except Exception as e:
+            print(f"[RESTART] {e}")
+
+            retries += 1
+
+            time.sleep(retries * 30 + 1)
+

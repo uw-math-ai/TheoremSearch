@@ -11,6 +11,13 @@ CREATE TABLE paper (
     citations INT
 );
 
+CREATE TABLE paper_arxiv_s3_location (
+    paper_id TEXT PRIMARY KEY NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
+    bundle_tar TEXT NOT NULL,
+    bytes_start INT NOT NULL,
+    bytes_end INT NOT NULL
+)
+
 CREATE TABLE theorem (
     theorem_id BIGSERIAL PRIMARY KEY,
     paper_id TEXT NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
@@ -42,4 +49,9 @@ CREATE TABLE theorem_embedding_bert (
 CREATE TABLE theorem_embedding_qwen (
     slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
     embedding vector(1024) NOT NULL
+);
+
+CREATE TABLE theorem_embedding_gemma (
+    slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
+    embedding vector(768) NOT NULL
 );
