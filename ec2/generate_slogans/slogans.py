@@ -31,10 +31,14 @@ def _generate_theorem_slogan(
             }
         ]
 
+        # api key check your name
+        with open("deepseek.txt", 'r') as k:
+            api_key = k.read()
+
         res = completion(
             model=model,
             messages=messages,
-            api_key="sk-a02963a308764f3dab849c1d39239fa0"
+            api_key=api_key
         )
 
         slogan = res.choices[0].message["content"]
