@@ -12,4 +12,7 @@ downloaded_sources/
 parsed_papers/
 !requirements.txt
 *pyc
-data/sources
+*.csv
+*.sql
+*.prompt
+data/sources/

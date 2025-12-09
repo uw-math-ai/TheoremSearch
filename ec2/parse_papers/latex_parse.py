@@ -1,13 +1,19 @@
 import regex
 import bisect
-from . import theorem_forms
+import theorem_forms
 import json
 import argparse
 import os
 from typing import Pattern
-from .patterns import *
+from patterns import *
 
-DEFAULT_THEOREM_ENVS = ["theorem", "lemma", "proposition", "corollary", "claim", "definition", "remark", "example"]
+# TODO:
+#   more regex for different versions of macros:
+#       \NewDocumentCommand, will require its own method
+#   \renew commands
+#   \input from other files in TeX source
+#   remove newlines from theorem statements
+
 
 def _scanner(pat: Pattern, data: str) -> list:
     """
@@ -417,6 +423,45 @@ def extract(filename: str) -> dict:
         return bundle_theorems(thm_scan, data, num_thms, appx_thms)
 
 
+def extract_misc(filename: str) -> dict:
+    with open(filename, 'r', encoding='utf-8', errors='replace') as file:
+        data = file.read()
+
+        # remove any comments, single or multiline
+        data = regex.sub(r"(?<!\\)%.*", "", data)
+        data = regex.sub(r'\\begin\{comment\}.*?\\end\{comment\}', '', data, flags=regex.DOTALL)
+
+        # translation of various user-defined macros
+        data = def_handling(data)
+        data = alias_handling(data)
+        data = macro_handling(data)
+        data = environment_handling(data)
+
+        # locate and split theorems
+        data, num_thms, appx_thms, thm_scan = locate_theorems(data)
+
+        m = regex.search(r"\\begin\{document\}", data).start()
+        n = regex.search(r"\\end\{document\}", data).start()
+
+        if all([m, n]):
+            paper_body = data[m:n]
+        else:
+            paper_body = data
+
+        
+        sec_pat = regex.compile(r"\\section\{")
+        positions = [m.start() for m in sec_pat.finditer(data)]
+
+        if len(positions) >= 2:
+            first_sec = data[positions[0]:positions[1]]
+        elif len(positions) == 1:
+            first_sec = data[positions[0]:]
+        else:
+            first_sec = data
+
+        return {"first_section": first_sec, "full_body": paper_body}
+
+# if you want to run it standalone
 if __name__ == "__main__":
     THM_DIR = "./parsed_papers"
     if not os.path.exists(THM_DIR):
@@ -432,8 +477,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
     output = os.path.join(THM_DIR, args.filepath)
 
+    x = extract_misc(args.filepath)
+
+    with open(output.replace('.tex', '.json'), 'w') as f:
+        json.dump(x, f, indent=4)
+
+    """
     x = extract(args.filepath)
 
     data = [{"theorem": thm, "body": body, "label": label} for thm, body, label in x]
     with open(output.replace('.tex', '.json'), 'w') as f:
-        json.dump(data, f, indent=4)
+        json.dump(data, f, indent=4) # minor note: '\' gets printed as '\\' in json
+    """
