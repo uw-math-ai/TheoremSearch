@@ -1,9 +1,12 @@
 from litellm import completion, completion_cost
-import litellm
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from cost import format_USD
+import dotenv
+import pandas as pd
+import os
+
 
 def _generate_theorem_slogan(
     instructions: str,
@@ -14,6 +17,8 @@ def _generate_theorem_slogan(
     theorem_context = theorem_context.copy()
     if "theorem_id" in theorem_context:
         del theorem_context["theorem_id"]
+
+    api_key = os.getenv("deepseek_key", "")
 
     cost = 0
 
@@ -30,10 +35,6 @@ def _generate_theorem_slogan(
                 "content": theorem_context_str
             }
         ]
-
-        # api key check your name
-        with open("deepseek.txt", 'r') as k:
-            api_key = k.read()
 
         res = completion(
             model=model,
@@ -92,8 +93,7 @@ def generate_theorem_slogans(
 
     
 if __name__ == "__main__":
-    import json
-    import pandas as pd
+    dotenv.load_dotenv()
     prompt = [
     "You summarize math theorems based on theorem_body.",
     "You are summarizing the LAST theorem mentioned in theorem_body.",
