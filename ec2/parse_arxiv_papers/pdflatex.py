@@ -54,6 +54,8 @@ def run_pdflatex(
             if pkg != "thmenvcapture":
                 new_missing_pkgs.append(pkg)
 
+    print(new_missing_pkgs)
+
     if new_missing_pkgs:
         return run_pdflatex(
             main_tex_name,

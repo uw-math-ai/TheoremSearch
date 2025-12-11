@@ -3,7 +3,7 @@ from typing import List
 from ..rds.connect import get_rds_connection
 from ..rds.query import build_query
 from ..rds.paginate import paginate_query
-from concurrent.futures import ProcessPoolExecutor, TimeoutError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
 from .download_paper import download_paper
 from typing import Tuple, List
@@ -48,8 +48,6 @@ def _parse_arxiv_paper(
         main_tex_path = get_main_tex_path(src_dir)
         main_tex_name = os.path.basename(main_tex_path)
 
-        print(main_tex_path)
-
         insert_thmenvcapture_sty(envs_to_titles, src_dir)
         inject_thmenvcapture(main_tex_path)
 
@@ -92,7 +90,7 @@ def parse_arxiv_papers(
 
     # TODO: Find an efficient way to get the number of results returned from query
 
-    with ProcessPoolExecutor(max_workers=workers) as ex:
+    with ThreadPoolExecutor(max_workers=workers) as ex:
         for papers in paginate_query(
             conn,
             base_sql=query,
