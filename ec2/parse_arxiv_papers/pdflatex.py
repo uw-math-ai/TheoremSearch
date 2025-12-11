@@ -50,14 +50,13 @@ def run_pdflatex(
     for line in out.splitlines():
         if "File `" in line and ".sty' not found" in line:
             pkg = line.split("File `", 1)[1].split(".sty", 1)[0]
-            if pkg not in missing_pkgs and pkg not in new_missing_pkgs:
-                new_missing_pkgs.append(pkg)
+            new_missing_pkgs.append(pkg)
 
     if new_missing_pkgs:
         return run_pdflatex(
             main_tex_name,
             cwd,
-            missing_pkgs + new_missing_pkgs
+            new_missing_pkgs
         )
 
     return out

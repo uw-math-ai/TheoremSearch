@@ -105,10 +105,6 @@ def insert_thmenvcapture_sty(
     sty_text = header + wrappers + at_begin + footer
     sty_path = os.path.join(src_dir, "thmenvcapture.sty")
 
-    print("============")
-    print(sty_text)
-    print("============")
-
     with open(sty_path, "w", encoding="utf-8") as f:
         f.write(sty_text)
 
