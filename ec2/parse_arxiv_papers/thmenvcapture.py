@@ -105,6 +105,10 @@ def insert_thmenvcapture_sty(
     sty_text = header + wrappers + at_begin + footer
     sty_path = os.path.join(src_dir, "thmenvcapture.sty")
 
+    print("============")
+    print(sty_text)
+    print("============")
+
     with open(sty_path, "w", encoding="utf-8") as f:
         f.write(sty_text)
 
@@ -115,22 +119,11 @@ def inject_thmenvcapture(tex_path: str):
     if r"\usepackage{thmenvcapture}" in content:
         return  # already injected
 
-    # Try to insert right after \documentclass line
-    m = re.search(r"\\documentclass[^\n]*\n", content)
-    if m:
-        insert_pos = m.end()
-        new_content = (
-            content[:insert_pos]
-            + "\\usepackage{thmenvcapture}\n"
-            + content[insert_pos:]
-        )
-    else:
-        # Fallback: insert before \begin{document}
-        new_content = content.replace(
-            "\\begin{document}",
-            "\\usepackage{thmenvcapture}\n\\begin{document}",
-            1,
-        )
+    new_content = content.replace(
+        "\\begin{document}",
+        "\\usepackage{thmenvcapture}\n\\begin{document}",
+        1,
+    )
 
     with open(tex_path, "w", encoding="utf-8") as f:
         f.write(new_content)
