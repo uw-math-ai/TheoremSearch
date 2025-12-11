@@ -35,11 +35,16 @@ def _generate_dummy_package(pkg_name: str, workdir: str):
 
     return sty_path
 
+
+
 def _run_pdflatex(
     main_tex_name: str,
     cwd: str,
-    missing_pkgs: List[str] = []
-) -> Tuple[str, str]:
+    missing_pkgs: List[str] = None
+) -> str:
+    if missing_pkgs is None:
+        missing_pkgs = []
+
     for pkg in missing_pkgs:
         _generate_dummy_package(pkg, cwd)
 
@@ -47,21 +52,28 @@ def _run_pdflatex(
     proc = subprocess.run(
         cmd,
         cwd=cwd,
-        stout=subprocess.PIPE,
+        stdout=subprocess.PIPE,          # <-- was 'stout'
         stderr=subprocess.STDOUT,
         text=True
     )
     out = proc.stdout
 
-    new_missing_pkgs = []
+    new_missing_pkgs: List[str] = []
 
     for line in out.splitlines():
-        if "File '" in line and ".sty' not found" in line:
-            pkg = line.split("File '", 1)[1].split(".sty", 1)[0]
-            missing_pkgs.append(pkg)
+        if "File `" in line and ".sty' not found" in line:
+            pkg = line.split("File `", 1)[1].split(".sty", 1)[0]
+            if pkg not in missing_pkgs and pkg not in new_missing_pkgs:
+                new_missing_pkgs.append(pkg)
 
     if new_missing_pkgs:
-        _run_pdflatex(main_tex_name, cwd, new_missing_pkgs)
+        return _run_pdflatex(
+            main_tex_name,
+            cwd,
+            missing_pkgs + new_missing_pkgs
+        )
+
+    return out
 
 def _parse_arxiv_paper(
     paper_id: str, 
@@ -108,9 +120,7 @@ def _parse_arxiv_paper(
 
         print("src_dir:", os.listdir(src_dir))
 
-        cmd = ["pdflatex", "-interaction=nonstopmode", os.path.basename(main_tex_path)]
-        print("cmd:", cmd)
-        subprocess.run(cmd, cwd=src_dir, check=False)
+        _run_pdflatex(os.path.basename(main_tex_path), src_dir)
 
         if not os.path.exists(theorem_log_path):
             raise FileNotFoundError("thm-env-capture.log was not created")
