@@ -52,18 +52,21 @@ def _parse_arxiv_paper(
         insert_thmenvcapture_sty(envs_to_titles, src_dir)
         inject_thmenvcapture(main_tex_path)
 
-        theorem_log_path = os.path.join(paper_dir, "thm-env-capture.log")
+        theorem_log_path = os.path.join(src_dir, "thm-env-capture.log")
         if os.path.exists(theorem_log_path):
             os.remove(theorem_log_path)
 
+        print("src_dir:", os.listdir(src_dir))
+
         cmd = ["pdflatex", "-interaction=nonstopmode", os.path.basename(main_tex_path)]
-        subprocess.run(cmd, cwd=paper_dir, check=False)
+        print("cmd:", cmd)
+        subprocess.run(cmd, cwd=src_dir, check=False)
 
         if not os.path.exists(theorem_log_path):
             raise FileNotFoundError("thm-env-capture.log was not created")
         
         with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-            print(f.read())
+            print("thm-env-capture.log:", f.read())
 
 def parse_arxiv_papers(
     # SEARCH
