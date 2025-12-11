@@ -50,7 +50,9 @@ def run_pdflatex(
     for line in out.splitlines():
         if "File `" in line and ".sty' not found" in line:
             pkg = line.split("File `", 1)[1].split(".sty", 1)[0]
-            new_missing_pkgs.append(pkg)
+
+            if pkg != "thmenvcapture":
+                new_missing_pkgs.append(pkg)
 
     if new_missing_pkgs:
         return run_pdflatex(
