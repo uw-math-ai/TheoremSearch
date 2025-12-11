@@ -3,7 +3,7 @@ from typing import List
 from ..rds.connect import get_rds_connection
 from ..rds.query import build_query
 from ..rds.paginate import paginate_query
-from concurrent.futures import ProcessPoolExecutor, TimeoutError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
 from .download_paper import download_paper
 from typing import Tuple, List
@@ -11,69 +11,8 @@ import tarfile
 import os
 from .extract_from_content import extract_theorem_envs
 from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
-import subprocess
-import textwrap
-
-def _generate_dummy_package(pkg_name: str, workdir: str):
-    sty_path = os.path.join(workdir, f"{pkg_name}.sty")
-    if os.path.exists(sty_path):
-        return
-    
-    dummy = textwrap.dedent(rf"""
-    %% {pkg_name}.sty -- dummy stub generated for theorem capture
-    \NeedsTeXFormat{{LaTeX2e}}
-    \ProvidesPackage{{{pkg_name}}}[2025/12/11 Dummy stub]
-
-    %% Add no-op command definitions here if this package normally defines anything
-    %% For now, we just provide an empty package.
-
-    \endinput
-    """).lstrip("\n")
-
-    with open(sty_path, "w", encoding="utf-8") as f:
-        f.write(dummy)
-
-    return sty_path
-
-
-
-def _run_pdflatex(
-    main_tex_name: str,
-    cwd: str,
-    missing_pkgs: List[str] = None
-) -> str:
-    if missing_pkgs is None:
-        missing_pkgs = []
-
-    for pkg in missing_pkgs:
-        _generate_dummy_package(pkg, cwd)
-
-    cmd = ["pdflatex", "-interaction=nonstopmode", main_tex_name]
-    proc = subprocess.run(
-        cmd,
-        cwd=cwd,
-        stdout=subprocess.PIPE,          # <-- was 'stout'
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-    out = proc.stdout
-
-    new_missing_pkgs: List[str] = []
-
-    for line in out.splitlines():
-        if "File `" in line and ".sty' not found" in line:
-            pkg = line.split("File `", 1)[1].split(".sty", 1)[0]
-            if pkg not in missing_pkgs and pkg not in new_missing_pkgs:
-                new_missing_pkgs.append(pkg)
-
-    if new_missing_pkgs:
-        return _run_pdflatex(
-            main_tex_name,
-            cwd,
-            missing_pkgs + new_missing_pkgs
-        )
-
-    return out
+from .pdflatex import run_pdflatex
+from .main_tex import get_main_tex_path
 
 def _parse_arxiv_paper(
     paper_id: str, 
@@ -93,8 +32,6 @@ def _parse_arxiv_paper(
             "corollary": "Corollary"
         }
 
-        main_tex_path = None
-
         for src_file in os.listdir(src_dir):
             src_file_path = os.path.join(src_dir, src_file)
             if os.path.isfile(src_file_path) and src_file_path.endswith(".tex"):
@@ -108,8 +45,8 @@ def _parse_arxiv_paper(
 
                     envs_to_titles = envs_to_titles | extract_theorem_envs(tex)
 
-                    if "\\begin{document}" in tex:
-                        main_tex_path = src_file_path
+        main_tex_path = get_main_tex_path(src_dir)
+        main_tex_name = os.path.basename(main_tex_path)
 
         insert_thmenvcapture_sty(envs_to_titles, src_dir)
         inject_thmenvcapture(main_tex_path)
@@ -118,9 +55,7 @@ def _parse_arxiv_paper(
         if os.path.exists(theorem_log_path):
             os.remove(theorem_log_path)
 
-        print("src_dir:", os.listdir(src_dir))
-
-        _run_pdflatex(os.path.basename(main_tex_path), src_dir)
+        run_pdflatex(main_tex_name, src_dir)
 
         if not os.path.exists(theorem_log_path):
             raise FileNotFoundError("thm-env-capture.log was not created")
@@ -155,7 +90,7 @@ def parse_arxiv_papers(
 
     # TODO: Find an efficient way to get the number of results returned from query
 
-    with ProcessPoolExecutor(max_workers=workers) as ex:
+    with ThreadPoolExecutor(max_workers=workers) as ex:
         for papers in paginate_query(
             conn,
             base_sql=query,
