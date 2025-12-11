@@ -1,5 +1,4 @@
 import os
-import re
 
 def insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],

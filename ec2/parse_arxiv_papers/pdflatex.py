@@ -35,7 +35,7 @@ def run_pdflatex(
     for pkg in missing_pkgs:
         _generate_dummy_package(pkg, cwd)
 
-    cmd = ["pdflatex", "-interaction=nonstopmode", main_tex_name]
+    cmd = ["pdflatex", "-interaction=nonstopmode", "-recorder", main_tex_name]
     proc = subprocess.run(
         cmd,
         cwd=cwd,
@@ -45,6 +45,8 @@ def run_pdflatex(
     )
     out = proc.stdout
 
+    print(out)
+
     new_missing_pkgs: List[str] = []
 
     for line in out.splitlines():
@@ -53,8 +55,6 @@ def run_pdflatex(
 
             if pkg != "thmenvcapture":
                 new_missing_pkgs.append(pkg)
-
-    print(new_missing_pkgs)
 
     if new_missing_pkgs:
         return run_pdflatex(

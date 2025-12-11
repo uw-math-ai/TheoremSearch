@@ -45,6 +45,8 @@ def _parse_arxiv_paper(
 
                     envs_to_titles = envs_to_titles | extract_theorem_envs(tex)
 
+        print(envs_to_titles)
+
         main_tex_path = get_main_tex_path(src_dir)
         main_tex_name = os.path.basename(main_tex_path)
 
