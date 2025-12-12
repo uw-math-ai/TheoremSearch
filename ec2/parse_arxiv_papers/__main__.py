@@ -4,8 +4,8 @@ from ..rds.query import build_query
 from ..rds.paginate import paginate_query
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
-from .download_paper import fetch_tar_member_robust
-from typing import Tuple, List
+from .download_paper import download_paper, extract_arxiv_src
+from typing import Tuple, List, Optional
 import tarfile
 import os
 from .extract_from_content import extract_theorem_envs
@@ -14,55 +14,23 @@ from .pdflatex import run_pdflatex, generate_dummy_biblatex
 from .main_tex import get_main_tex_path
 from .re_patterns import LABEL_RE
 from tqdm import tqdm
-import io
-import gzip
 
 def _parse_arxiv_paper(
-    paper_arxiv_s3_loc: Tuple[str, int, int]
+    paper_arxiv_s3_loc: Tuple[str, int, int],
+    paper_dir: Optional[str] = "./local_downloads"
 ):
-    with TemporaryDirectory() as paper_dir:
-        bundle_tar, bytes_start, bytes_end = paper_arxiv_s3_loc
+    if not paper_dir:
+        with TemporaryDirectory() as temp_paper_dir:
+            _parse_arxiv_paper(paper_arxiv_s3_loc, paper_dir=temp_paper_dir)
+    else:
+        os.makedirs(paper_dir, exist_ok=True)
 
-        # Where we'll extract the paper sources
-        src_dir = os.path.join(paper_dir, "src")
-        os.makedirs(src_dir, exist_ok=True)
+        src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
+        src_dir = src_gz_path.replace(".gz", "")
 
-        # Fetch the raw member bytes (this is typically a .gz blob for the paper)
-        try:
-            member_bytes = fetch_tar_member_robust(bundle_tar, bytes_start, bytes_end)
-        except TypeError:
-            # In case your helper expects named args or the tuple directly
-            try:
-                member_bytes = fetch_tar_member_robust(
-                    bucket="arxiv",
-                    key=bundle_tar,
-                    bytes_start=bytes_start,
-                    bytes_end=bytes_end,
-                )
-            except TypeError:
-                member_bytes = fetch_tar_member_robust(paper_arxiv_s3_loc)
+        print(src_gz_path)
 
-        # Decompress if it's gzip (common for arXiv src members)
-        try:
-            payload = gzip.decompress(member_bytes)
-        except OSError:
-            # Not gzipped; treat raw bytes as payload
-            payload = member_bytes
-
-        # Try to interpret payload as a tar archive and extract it
-        extracted = False
-        try:
-            with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as tf:
-                tf.extractall(path=src_dir)
-                extracted = True
-        except tarfile.ReadError:
-            extracted = False
-
-        # If not a tar, it's usually a single .tex (or other) file; write a main.tex
-        if not extracted:
-            main_tex_fallback = os.path.join(src_dir, "main.tex")
-            with open(main_tex_fallback, "wb") as out_f:
-                out_f.write(payload)
+        extract_arxiv_src(src_gz_path, src_dir)
 
         envs_to_titles = {
             "theorem": "Theorem",
@@ -96,29 +64,29 @@ def _parse_arxiv_paper(
         if os.path.exists(theorem_log_path):
             os.remove(theorem_log_path)
 
-        run_pdflatex(main_tex_name, cwd=src_dir)
+        # run_pdflatex(main_tex_name, cwd=src_dir)
 
-        if not os.path.exists(theorem_log_path):
-            raise FileNotFoundError("thm-env-capture.log was not created")
+        # if not os.path.exists(theorem_log_path):
+        #     raise FileNotFoundError("thm-env-capture.log was not created")
         
         theorems = []
         
-        with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-            curr_theorem = {}
+        # with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
+        #     curr_theorem = {}
 
-            for line in f.readlines():
-                line = line.strip()
+        #     for line in f.readlines():
+        #         line = line.strip()
 
-                if line == "BEGIN_ENV":
-                    curr_theorem = {}
-                elif line.startswith("name:"):
-                    curr_theorem["name"] = line.split("name:", 1)[1].strip()
-                elif line.startswith("label:"):
-                    curr_theorem["label"] = line.split("label:", 1)[1].strip()
-                elif line.startswith("body:"):
-                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
-                elif line == "END_ENV" and curr_theorem:
-                    theorems.append(curr_theorem)
+        #         if line == "BEGIN_ENV":
+        #             curr_theorem = {}
+        #         elif line.startswith("name:"):
+        #             curr_theorem["name"] = line.split("name:", 1)[1].strip()
+        #         elif line.startswith("label:"):
+        #             curr_theorem["label"] = line.split("label:", 1)[1].strip()
+        #         elif line.startswith("body:"):
+        #             curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
+        #         elif line == "END_ENV" and curr_theorem:
+        #             theorems.append(curr_theorem)
 
         return theorems
 

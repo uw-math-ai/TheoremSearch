@@ -18,15 +18,11 @@ ARXIV_BUCKET = "arxiv"
 def _normalize_arxiv_id(paper_id: str) -> str:
     return re.sub(r"v\d+$", "", paper_id)
 
-
 def _to_arxiv_id(paper_id: str) -> str:
     if "/" in paper_id:
         paper_id = paper_id.split("/", 1)[1]
-
     paper_id = re.sub(r"^([a-zA-Z-]+)(\d+)$", r"\1/\2", paper_id)
-
     return paper_id
-
 
 def _get_tar_bundles_count(paginator) -> int:
     n = 0
@@ -89,38 +85,62 @@ def locate_arxiv_in_s3(bundle_start: int = 0):
 
                 paper_locations = []
 
-                with tempfile.NamedTemporaryFile() as tmp:
-                    s3.download_fileobj(
-                        ARXIV_BUCKET,
-                        bundle_key,
-                        tmp,
-                        ExtraArgs={"RequestPayer": "requester"},
-                    )
-                    tmp.flush()
-                    tmp.seek(0)
+                try:
+                    with tempfile.NamedTemporaryFile() as tmp:
+                        s3.download_fileobj(
+                            ARXIV_BUCKET,
+                            bundle_key,
+                            tmp,
+                            ExtraArgs={"RequestPayer": "requester"},
+                        )
+                        tmp.flush()
+                        tmp.seek(0)
 
-                    with tarfile.open(fileobj=tmp, mode="r:*") as bundle_tar:
-                        for member in bundle_tar:
-                            if not member.isfile() or not member.name.endswith(".gz"):
-                                continue
+                        with tarfile.open(fileobj=tmp, mode="r:") as bundle_tar:
+                            for member in bundle_tar:
+                                if not member.isfile() or not member.name.endswith(".gz"):
+                                    continue
+                                if not getattr(member, "size", 0):
+                                    continue
 
-                            member_id = member.name[:-3]
-                            paper_id_norm = _normalize_arxiv_id(
-                                _to_arxiv_id(member_id)
-                            )
+                                try:
+                                    member_id = member.name[:-3]
+                                    paper_id_norm = _normalize_arxiv_id(_to_arxiv_id(member_id))
 
-                            if paper_id_norm in paper_ids:
-                                bytes_start = member.offset_data
-                                bytes_end = bytes_start + member.size - 1
+                                    if paper_id_norm not in paper_ids:
+                                        continue
 
-                                paper_locations.append({
-                                    "paper_id": paper_ids[paper_id_norm],
-                                    "bundle_tar": bundle_key,
-                                    "bytes_start": bytes_start,
-                                    "bytes_end": bytes_end,
-                                })
+                                    bytes_start = getattr(member, "offset_data", None)
+                                    if bytes_start is None:
+                                        raise RuntimeError("member.offset_data is None")
 
-                                del paper_ids[paper_id_norm]
+                                    bytes_end = bytes_start + member.size - 1
+
+                                    tmp.seek(bytes_start)
+                                    if tmp.read(3) != b"\x1f\x8b\x08":
+                                        raise RuntimeError(
+                                            f"Bad gzip header at offset_data for {member.name} "
+                                            f"(bundle={bundle_key}, off={bytes_start})"
+                                        )
+
+                                    paper_locations.append({
+                                        "paper_id": paper_ids[paper_id_norm],
+                                        "bundle_tar": bundle_key,
+                                        "bytes_start": bytes_start,
+                                        "bytes_end": bytes_end,
+                                    })
+
+                                    del paper_ids[paper_id_norm]
+
+                                except Exception as e:
+                                    print(f"[LOCATE WARN] {bundle_key} member={getattr(member, 'name', '?')}: {repr(e)[:200]}")
+                                    continue
+
+                except Exception as e:
+                    print(f"[BUNDLE WARN] {bundle_key}: {repr(e)[:200]}")
+                    pbar.update(1)
+                    yield bundle_i, bundle_key
+                    continue
 
                 if paper_locations:
                     with conn.cursor() as cur:
