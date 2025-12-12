@@ -22,8 +22,13 @@ def _parse_arxiv_paper(
         src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
         src_dir = src_gz_path.replace(".gz", "")
 
-        with tarfile.open(src_gz_path, "r:*") as src_tar:
-            src_tar.extractall(path=src_dir)
+        with open(src_gz_path, "rb") as f:
+            try:
+                src_tar = tarfile.open(fileobj=f, mode="r|*")
+            except tarfile.ReadError:
+                raise RuntimeError(f"Could not read tar slice: {src_gz_path}")
+
+        src_tar.extractall(path=src_dir)
 
         envs_to_titles = {
             "theorem": "Theorem",
