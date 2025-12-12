@@ -85,7 +85,7 @@ def _parse_arxiv_paper(
                 elif line.startswith("label:"):
                     curr_theorem["label"] = line.split("label:", 1)[1].strip()
                 elif line.startswith("body:"):
-                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
+                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip()).replace("%", "%%")
                 elif line == "END_ENV" and curr_theorem:
                     theorems.append(curr_theorem)
 
