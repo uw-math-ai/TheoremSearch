@@ -67,7 +67,9 @@ def run_pdflatex(
         cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     out = proc.stdout
 

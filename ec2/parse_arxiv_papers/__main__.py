@@ -159,7 +159,7 @@ def parse_arxiv_papers(
                 except TimeoutError:
                     print(f"[TIMEOUT] {paper_id}")
                 except Exception as e:
-                    print(f"[FUTURE ERROR] {paper_id}: {e!r}", flush=True)
+                    print(f"[FUTURE ERROR] {paper_id}: {repr(e)[:100]}{'…' if len(repr(e)) > 100 else ''}")
 
                 if theorem_rows:
                     batch_theorem_rows.extend(theorem_rows)
