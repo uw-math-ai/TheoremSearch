@@ -4,7 +4,7 @@ from ..rds.query import build_query
 from ..rds.paginate import paginate_query
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
-from .download_paper import download_paper
+from .download_paper import fetch_tar_member_robust
 from typing import Tuple, List
 import tarfile
 import os
@@ -14,26 +14,55 @@ from .pdflatex import run_pdflatex, generate_dummy_biblatex
 from .main_tex import get_main_tex_path
 from .re_patterns import LABEL_RE
 from tqdm import tqdm
+import io
+import gzip
 
 def _parse_arxiv_paper(
     paper_arxiv_s3_loc: Tuple[str, int, int]
 ):
     with TemporaryDirectory() as paper_dir:
-        src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
-        src_dir = src_gz_path.replace(".gz", "")
+        bundle_tar, bytes_start, bytes_end = paper_arxiv_s3_loc
 
+        # Where we'll extract the paper sources
+        src_dir = os.path.join(paper_dir, "src")
         os.makedirs(src_dir, exist_ok=True)
 
+        # Fetch the raw member bytes (this is typically a .gz blob for the paper)
         try:
-            with open(src_gz_path, "rb") as f:
-                with tarfile.open(fileobj=f, mode="r|*") as src_tar:
-                    src_tar.extractall(path=src_dir)
-        except tarfile.ReadError:
+            member_bytes = fetch_tar_member_robust(bundle_tar, bytes_start, bytes_end)
+        except TypeError:
+            # In case your helper expects named args or the tuple directly
             try:
-                with tarfile.open(src_gz_path, "r:*") as src_tar:
-                    src_tar.extractall(path=src_dir)
-            except tarfile.ReadError as e:
-                raise RuntimeError(f"Could not read tar slice: {src_gz_path}") from e
+                member_bytes = fetch_tar_member_robust(
+                    bucket="arxiv",
+                    key=bundle_tar,
+                    bytes_start=bytes_start,
+                    bytes_end=bytes_end,
+                )
+            except TypeError:
+                member_bytes = fetch_tar_member_robust(paper_arxiv_s3_loc)
+
+        # Decompress if it's gzip (common for arXiv src members)
+        try:
+            payload = gzip.decompress(member_bytes)
+        except OSError:
+            # Not gzipped; treat raw bytes as payload
+            payload = member_bytes
+
+        # Try to interpret payload as a tar archive and extract it
+        extracted = False
+        try:
+            with tarfile.open(fileobj=io.BytesIO(payload), mode="r:*") as tf:
+                tf.extractall(path=src_dir)
+                extracted = True
+        except tarfile.ReadError:
+            extracted = False
+
+        # If not a tar, it's usually a single .tex (or other) file; write a main.tex
+        if not extracted:
+            main_tex_fallback = os.path.join(src_dir, "main.tex")
+            with open(main_tex_fallback, "wb") as out_f:
+                out_f.write(payload)
 
         envs_to_titles = {
             "theorem": "Theorem",
