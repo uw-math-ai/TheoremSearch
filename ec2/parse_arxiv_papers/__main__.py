@@ -18,7 +18,7 @@ from tqdm import tqdm
 def _parse_arxiv_paper(
     paper_id: str,
     paper_arxiv_s3_loc: Tuple[str, int, int],
-    paper_dir: Optional[str]
+    paper_dir: Optional[str] = None
 ):
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
@@ -116,7 +116,7 @@ def parse_arxiv_papers(
                 "param": ["%" + paper_id + "%" for paper_id in paper_ids]
             },
             {
-                "if": overwrite,
+                "if": not overwrite,
                 "condition": """
                     NOT EXISTS (
                         SELECT 1
