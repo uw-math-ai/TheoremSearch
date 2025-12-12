@@ -71,7 +71,7 @@ def run_pdflatex(
     )
     out = proc.stdout
 
-    print(out)
+    # print(out)
 
     new_missing_pkgs: List[str] = []
 

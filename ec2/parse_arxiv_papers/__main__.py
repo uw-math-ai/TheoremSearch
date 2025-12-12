@@ -13,9 +13,9 @@ from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
 from .pdflatex import run_pdflatex, generate_dummy_biblatex
 from .main_tex import get_main_tex_path
 from .re_patterns import LABEL_RE
+from tqdm import tqdm
 
 def _parse_arxiv_paper(
-    paper_id: str, 
     paper_arxiv_s3_loc: Tuple[str, int, int]
 ):
     with TemporaryDirectory() as paper_dir:
@@ -88,10 +88,10 @@ def _parse_arxiv_paper(
                     curr_theorem["label"] = line.split("label:", 1)[1].strip()
                 elif line.startswith("body:"):
                     curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
-                elif line == "END_ENV":
+                elif line == "END_ENV" and curr_theorem:
                     theorems.append(curr_theorem)
 
-        print(theorems)
+        return theorems
 
 def parse_arxiv_papers(
     # SEARCH
@@ -118,9 +118,19 @@ def parse_arxiv_papers(
         ]
     )
 
-    # TODO: Find an efficient way to get the number of results returned from query
+    count_query = f"""
+        SELECT COUNT(*)
+        FROM ({query}) AS q
+    """
 
-    with ThreadPoolExecutor(max_workers=workers) as ex:
+    with conn.cursor() as count_cur:
+        count_cur.execute(count_query, (*params,))
+        count = count_cur.fetchone()[0]
+
+    parse_attempts = 0
+    parse_successes = 0
+
+    with ThreadPoolExecutor(max_workers=workers) as ex, tqdm(total=count) as pbar:
         for papers in paginate_query(
             conn,
             base_sql=query,
@@ -133,10 +143,12 @@ def parse_arxiv_papers(
             batch_theorem_rows = []
             
             for paper in papers:
+                parse_attempts += 1
+
                 paper_id = paper["paper_id"]
                 paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
 
-                fut = ex.submit(_parse_arxiv_paper, paper_id, paper_arxiv_s3_loc)
+                fut = ex.submit(_parse_arxiv_paper, paper_arxiv_s3_loc)
                 paper_futures.append((paper_id, fut))
 
             for paper_id, fut in paper_futures:
@@ -151,6 +163,12 @@ def parse_arxiv_papers(
 
                 if theorem_rows:
                     batch_theorem_rows.extend(theorem_rows)
+                    parse_successes += 1
+
+                pbar.update(1)
+                pbar.set_postfix({
+                    "parse_rate": f"{(100.0 * parse_successes / parse_attempts):.2f}%"
+                })
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()

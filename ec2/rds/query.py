@@ -24,7 +24,7 @@ def build_query(
             if "param" in where_clause:
                 params.append(where_clause["param"])
 
-    if where_clauses:
+    if where_conditions:
         query += " WHERE " + " AND ".join(where_conditions)
 
     return query, params
