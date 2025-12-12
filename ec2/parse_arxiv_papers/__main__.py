@@ -11,7 +11,7 @@ import tarfile
 import os
 from .extract_from_content import extract_theorem_envs
 from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
-from .pdflatex import run_pdflatex
+from .pdflatex import run_pdflatex, generate_dummy_biblatex
 from .main_tex import get_main_tex_path
 
 def _parse_arxiv_paper(
@@ -62,6 +62,8 @@ def _parse_arxiv_paper(
 
         insert_thmenvcapture_sty(envs_to_titles, src_dir)
         inject_thmenvcapture(main_tex_path)
+
+        generate_dummy_biblatex(src_dir)
 
         theorem_log_path = os.path.join(src_dir, "thm-env-capture.log")
         if os.path.exists(theorem_log_path):

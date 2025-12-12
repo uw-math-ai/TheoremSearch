@@ -3,6 +3,32 @@ import textwrap
 from typing import List
 import subprocess
 
+import os
+import textwrap
+
+def generate_dummy_biblatex(workdir: str):
+    sty_path = os.path.join(workdir, "biblatex.sty")
+    if os.path.exists(sty_path):
+        return
+
+    dummy = textwrap.dedent(r"""
+    %% biblatex.sty -- dummy stub generated for theorem capture
+    \NeedsTeXFormat{LaTeX2e}
+    \ProvidesPackage{biblatex}[2025/12/11 Dummy stub]
+
+    % Make core biblatex commands no-ops:
+    \newcommand\addbibresource[2][]{}
+    \newcommand\printbibliography[1][]{}
+    \newcommand\DeclareFieldFormat[2]{}
+    \newcommand\AtEveryBibitem[1]{}
+
+    \endinput
+    """).lstrip("\n")
+
+    with open(sty_path, "w", encoding="utf-8") as f:
+        f.write(dummy)
+
+
 def _generate_dummy_package(pkg_name: str, workdir: str):
     sty_path = os.path.join(workdir, f"{pkg_name}.sty")
     if os.path.exists(sty_path):
