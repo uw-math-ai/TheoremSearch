@@ -1,5 +1,4 @@
 from argparse import ArgumentParser
-from typing import List
 from ..rds.connect import get_rds_connection
 from ..rds.query import build_query
 from ..rds.paginate import paginate_query
@@ -13,12 +12,13 @@ from .extract_from_content import extract_theorem_envs
 from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
 from .pdflatex import run_pdflatex, generate_dummy_biblatex
 from .main_tex import get_main_tex_path
+from .re_patterns import LABEL_RE
 
 def _parse_arxiv_paper(
     paper_id: str, 
     paper_arxiv_s3_loc: Tuple[str, int, int]
 ):
-   with TemporaryDirectory() as paper_dir:
+    with TemporaryDirectory() as paper_dir:
         src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
         src_dir = src_gz_path.replace(".gz", "")
 
@@ -55,8 +55,6 @@ def _parse_arxiv_paper(
 
                     envs_to_titles = envs_to_titles | extract_theorem_envs(tex)
 
-        print(envs_to_titles)
-
         main_tex_path = get_main_tex_path(src_dir)
         main_tex_name = os.path.basename(main_tex_path)
 
@@ -74,8 +72,24 @@ def _parse_arxiv_paper(
         if not os.path.exists(theorem_log_path):
             raise FileNotFoundError("thm-env-capture.log was not created")
         
+        theorems = []
+        
         with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-            print("thm-env-capture.log:", f.read())
+            curr_theorem = {}
+
+            for line in f.readlines():
+                if line == "BEGIN_ENV":
+                    curr_theorem = {}
+                elif line.startswith("name:"):
+                    curr_theorem["name"] = line.split("name:", 1)[1].strip()
+                elif line.startswith("label:"):
+                    curr_theorem["label"] = line.split("label:", 1)[1].strip()
+                elif line.startswith("body:"):
+                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
+                elif line == "END_ENV":
+                    theorems.append(curr_theorem)
+
+        print(theorems)
 
 def parse_arxiv_papers(
     # SEARCH
