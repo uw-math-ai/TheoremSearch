@@ -18,7 +18,7 @@ from tqdm import tqdm
 def _parse_arxiv_paper(
     paper_id: str,
     paper_arxiv_s3_loc: Tuple[str, int, int],
-    paper_dir: Optional[str] = "./local_downloads"
+    paper_dir: Optional[str]
 ):
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
@@ -95,6 +95,7 @@ def _parse_arxiv_paper(
 def parse_arxiv_papers(
     # SEARCH
     paper_ids: List[str],
+    overwrite: bool,
     # CONFIG
     batch_size: int,
     workers: int
@@ -113,6 +114,16 @@ def parse_arxiv_papers(
                 "if": len(paper_ids) > 0,
                 "condition": "paper.paper_id LIKE ANY(%s)",
                 "param": ["%" + paper_id + "%" for paper_id in paper_ids]
+            },
+            {
+                "if": overwrite,
+                "condition": """
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM theorem
+                        WHERE theorem.paper_id = paper.paper_id
+                    )
+                """
             }
         ]
     )
@@ -205,6 +216,12 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "-o", "--overwrite",
+        action="store_true",
+        help="Whether to overwrite parsed papers"
+    )
+
+    arg_parser.add_argument(
         "--batch-size",
         type=int,
         required=False,
@@ -225,6 +242,7 @@ if __name__ == "__main__":
     parse_arxiv_papers(
         # SEARCH
         paper_ids=args.paper_ids,
+        overwrite=args.overwrite,
 
         # CONFIG
         batch_size=args.batch_size,
