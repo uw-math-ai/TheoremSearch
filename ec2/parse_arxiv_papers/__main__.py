@@ -2,11 +2,11 @@ from argparse import ArgumentParser
 from ..rds.connect import get_rds_connection
 from ..rds.query import build_query
 from ..rds.paginate import paginate_query
+from ..rds.upsert import upsert_rows
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
 from .download_paper import download_paper, extract_arxiv_src
 from typing import Tuple, List, Optional
-import tarfile
 import os
 from .extract_from_content import extract_theorem_envs
 from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
@@ -16,19 +16,18 @@ from .re_patterns import LABEL_RE
 from tqdm import tqdm
 
 def _parse_arxiv_paper(
+    paper_id: str,
     paper_arxiv_s3_loc: Tuple[str, int, int],
     paper_dir: Optional[str] = "./local_downloads"
 ):
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
-            _parse_arxiv_paper(paper_arxiv_s3_loc, paper_dir=temp_paper_dir)
+            _parse_arxiv_paper(paper_id, paper_arxiv_s3_loc, paper_dir=temp_paper_dir)
     else:
         os.makedirs(paper_dir, exist_ok=True)
 
         src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
         src_dir = src_gz_path.replace(".gz", "")
-
-        print(src_gz_path)
 
         extract_arxiv_src(src_gz_path, src_dir)
 
@@ -64,29 +63,31 @@ def _parse_arxiv_paper(
         if os.path.exists(theorem_log_path):
             os.remove(theorem_log_path)
 
-        # run_pdflatex(main_tex_name, cwd=src_dir)
+        run_pdflatex(main_tex_name, cwd=src_dir)
 
-        # if not os.path.exists(theorem_log_path):
-        #     raise FileNotFoundError("thm-env-capture.log was not created")
+        if not os.path.exists(theorem_log_path):
+            raise FileNotFoundError("thm-env-capture.log was not created")
         
         theorems = []
         
-        # with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-        #     curr_theorem = {}
+        with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
+            curr_theorem = {}
 
-        #     for line in f.readlines():
-        #         line = line.strip()
+            for line in f.readlines():
+                line = line.strip()
 
-        #         if line == "BEGIN_ENV":
-        #             curr_theorem = {}
-        #         elif line.startswith("name:"):
-        #             curr_theorem["name"] = line.split("name:", 1)[1].strip()
-        #         elif line.startswith("label:"):
-        #             curr_theorem["label"] = line.split("label:", 1)[1].strip()
-        #         elif line.startswith("body:"):
-        #             curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
-        #         elif line == "END_ENV" and curr_theorem:
-        #             theorems.append(curr_theorem)
+                if line == "BEGIN_ENV":
+                    curr_theorem = {
+                        "paper_id": paper_id
+                    }
+                elif line.startswith("name:"):
+                    curr_theorem["name"] = line.split("name:", 1)[1].strip()
+                elif line.startswith("label:"):
+                    curr_theorem["label"] = line.split("label:", 1)[1].strip()
+                elif line.startswith("body:"):
+                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
+                elif line == "END_ENV" and curr_theorem:
+                    theorems.append(curr_theorem)
 
         return theorems
 
@@ -136,7 +137,8 @@ def parse_arxiv_papers(
             descending=True,
             page_size=batch_size
         ):
-            paper_futures = []
+            paper_ids = []
+            futs = []
             batch_theorem_rows = []
             
             for paper in papers:
@@ -145,10 +147,12 @@ def parse_arxiv_papers(
                 paper_id = paper["paper_id"]
                 paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
 
-                fut = ex.submit(_parse_arxiv_paper, paper_arxiv_s3_loc)
-                paper_futures.append((paper_id, fut))
+                fut = ex.submit(_parse_arxiv_paper, paper_id, paper_arxiv_s3_loc)
+                
+                paper_ids.append(paper_id)
+                futs.append(fut)
 
-            for paper_id, fut in paper_futures:
+            for paper_id, fut in zip(paper_ids, futs):
                 theorem_rows = []
 
                 try:
@@ -166,6 +170,27 @@ def parse_arxiv_papers(
                 pbar.set_postfix({
                     "parse_rate": f"{(100.0 * parse_successes / parse_attempts):.2f}%"
                 })
+
+            if batch_theorem_rows:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        DELETE FROM theorem
+                        WHERE paper_id = ANY(%s)
+                    """, ([row["paper_id"] for row in batch_theorem_rows],))
+
+                    upsert_rows(
+                        cur,
+                        table="theorem",
+                        rows=batch_theorem_rows,
+                        on_conflict={
+                            "with": ["paper_id", "name"],
+                            "replace": ["body", "label"]
+                        }
+                    )
+
+                conn.commit()
+                
+    conn.close()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
