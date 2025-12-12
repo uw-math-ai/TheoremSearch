@@ -75,14 +75,12 @@ def _parse_arxiv_paper(
         theorems = []
         
         with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-            print(f.read())
-
             curr_theorem = {}
 
             for line in f.readlines():
                 line = line.strip()
 
-                if line.startswith("BEGIN_ENV"):
+                if line == "BEGIN_ENV":
                     curr_theorem = {}
                 elif line.startswith("name:"):
                     curr_theorem["name"] = line.split("name:", 1)[1].strip()
@@ -90,7 +88,7 @@ def _parse_arxiv_paper(
                     curr_theorem["label"] = line.split("label:", 1)[1].strip()
                 elif line.startswith("body:"):
                     curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
-                elif line.startswith("END_ENV"):
+                elif line == "END_ENV":
                     theorems.append(curr_theorem)
 
         print(theorems)

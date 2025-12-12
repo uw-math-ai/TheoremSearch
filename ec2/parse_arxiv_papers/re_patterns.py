@@ -66,4 +66,4 @@ SECTION_LIKE_RE = re.compile(r"\\(section|subsection|subsubsection)\b")
 THEOREM_ENV_RE = re.compile(r"\\begin\{(theorem|lemma|proposition|corollary|remark)\}")
 CITE_RE = re.compile(r"\\cite[tp]?\{")
 
-LABEL_RE = re.compile(r"\\label\{[^}]*\}")
+LABEL_RE = re.compile(r"\\label\s*\{[^}]*\}")
