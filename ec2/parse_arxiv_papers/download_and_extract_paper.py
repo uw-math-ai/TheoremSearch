@@ -9,34 +9,33 @@ import zipfile
 ARXIV_BUCKET = "arxiv"
 s3 = boto3.client("s3")
 
-def download_paper(
-    s3_loc: Tuple[str, int, int], 
-    dest_dir: str
+def _download_paper(
+    paper_id: str,
+    s3_loc: Tuple[str, int, int],
+    cwd: str
 ) -> str:
-    bundle_tar, bytes_start, bytes_end = s3_loc
-    byte_range = f"bytes={bytes_start}-{bytes_end}"
+    os.makedirs(cwd, exist_ok=True)
 
-    src_path = os.path.join(
-        dest_dir,
-        f"{os.path.basename(bundle_tar)}.{bytes_start}-{bytes_end}.gz"
-    )
+    bundle_tar, bytes_start, bytes_end = s3_loc
+
+    src_gz_path = os.path.join(cwd, f"{paper_id}.gz")
 
     res = s3.get_object(
         Bucket=ARXIV_BUCKET,
         Key=bundle_tar,
-        Range=byte_range,
+        Range=f"bytes={bytes_start}-{bytes_end}",
         RequestPayer="requester"
     )
 
     body = res["Body"]
 
-    with open(src_path, "wb") as src_f:
+    with open(src_gz_path, "wb") as src_gz_b:
         for chunk in iter(lambda: body.read(8192), b""):
-            src_f.write(chunk)
+            src_gz_b.write(chunk)
 
-    return src_path
+    return src_gz_path
 
-def extract_arxiv_src(src_gz_path: str, src_dir: str) -> None:
+def _extract_paper_src(src_gz_path: str, src_dir: str) -> None:
     os.makedirs(src_dir, exist_ok=True)
 
     with open(src_gz_path, "rb") as f:
@@ -44,7 +43,6 @@ def extract_arxiv_src(src_gz_path: str, src_dir: str) -> None:
         f.seek(0)
         data = f.read()
 
-    # Helper: try extract tar bytes
     def _try_extract_tar(buf: bytes) -> bool:
         try:
             with tarfile.open(fileobj=io.BytesIO(buf), mode="r:*") as tf:
@@ -53,35 +51,53 @@ def extract_arxiv_src(src_gz_path: str, src_dir: str) -> None:
         except tarfile.ReadError:
             return False
 
-    # 1) If it's a ZIP, extract zip
+    # Handle zip
     if head.startswith(b"PK\x03\x04"):
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             zf.extractall(src_dir)
         return
 
-    # 2) Try as tar directly (covers plain tar, tar.gz if fileobj handles it)
+    # Handle tar
     if _try_extract_tar(data):
         return
 
-    # 3) If it looks gzipped, gunzip then try tar
+    # Handle gzip
     if head.startswith(b"\x1f\x8b"):
         try:
             unzipped = gzip.decompress(data)
         except OSError as e:
             raise RuntimeError(f"gzip decompress failed: {e!r}") from e
 
+        # Handle gzip -> tar
         if _try_extract_tar(unzipped):
             return
 
-        # 4) gzipped but not a tar: probably a single .tex (or .sty, etc.)
-        # Write it out so your pipeline can continue.
+        # Handle gzip -> not tar
         out_path = os.path.join(src_dir, "main.tex")
         with open(out_path, "wb") as out:
             out.write(unzipped)
         return
 
-    # 5) Not tar, not gz, not zip → write raw as main.tex so you can inspect
+    # Handle unknown
     out_path = os.path.join(src_dir, "main.tex")
     with open(out_path, "wb") as out:
         out.write(data)
     raise RuntimeError("Unknown archive format; wrote raw payload to src_dir/main.tex")
+
+def download_and_extract_paper(
+    paper_id: str,
+    s3_loc: Tuple[str, int, int],
+    cwd: str
+):
+    """
+    Given an arXiv paper's ID and location in the S3 bucket, downloads and extracts the paper
+    into the given cwd. The extracted paper TeX source, if possible, will be in the returned
+    directory path (named after the ID).
+    """
+
+    src_gz_path = _download_paper(paper_id, s3_loc, cwd)
+    src_dir = src_gz_path.removesuffix(".gz")
+
+    _extract_paper_src(src_gz_path, src_dir)
+
+    return src_dir

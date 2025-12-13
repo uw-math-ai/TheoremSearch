@@ -3,9 +3,6 @@ import textwrap
 from typing import List
 import subprocess
 
-import os
-import textwrap
-
 def generate_dummy_biblatex(workdir: str):
     sty_path = os.path.join(workdir, "biblatex.sty")
     if os.path.exists(sty_path):

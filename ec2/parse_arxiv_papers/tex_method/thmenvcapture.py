@@ -1,6 +1,6 @@
 import os
 
-def insert_thmenvcapture_sty(
+def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
@@ -107,7 +107,13 @@ def insert_thmenvcapture_sty(
     with open(sty_path, "w", encoding="utf-8") as f:
         f.write(sty_text)
 
-def inject_thmenvcapture(tex_path: str):
+def inject_thmenvcapture(
+    tex_path: str,
+    envs_to_titles: dict[str, str],
+    src_dir: str
+):
+    _insert_thmenvcapture_sty(envs_to_titles, src_dir)
+    
     with open(tex_path, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
 

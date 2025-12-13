@@ -5,92 +5,37 @@ from ..rds.paginate import paginate_query
 from ..rds.upsert import upsert_rows
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
-from .download_paper import download_paper, extract_arxiv_src
-from typing import Tuple, List, Optional
-import os
-from .extract_from_content import extract_theorem_envs
-from .thmenvcapture import insert_thmenvcapture_sty, inject_thmenvcapture
-from .pdflatex import run_pdflatex, generate_dummy_biblatex
-from .main_tex import get_main_tex_path
-from .re_patterns import LABEL_RE
+from .download_and_extract_paper import download_and_extract_paper
+from typing import Tuple, List, Optional, Set
+from .regex_method.parse import parse_by_regex
+from .tex_method.parse import parse_by_tex
 from tqdm import tqdm
 
 def _parse_arxiv_paper(
     paper_id: str,
     paper_arxiv_s3_loc: Tuple[str, int, int],
+    parsing_method: str,
+    theorem_types: List[str],
     paper_dir: Optional[str] = None
 ):
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
-            _parse_arxiv_paper(paper_id, paper_arxiv_s3_loc, paper_dir=temp_paper_dir)
-    else:
-        os.makedirs(paper_dir, exist_ok=True)
-
-        src_gz_path = download_paper(paper_arxiv_s3_loc, paper_dir)
-        src_dir = src_gz_path.replace(".gz", "")
-
-        extract_arxiv_src(src_gz_path, src_dir)
-
-        envs_to_titles = {
-            "theorem": "Theorem",
-            "lemma": "Lemma",
-            "proposition": "Proposition",
-            "corollary": "Corollary"
-        }
-
-        for src_file in os.listdir(src_dir):
-            src_file_path = os.path.join(src_dir, src_file)
-            if os.path.isfile(src_file_path) and src_file_path.endswith(".tex"):
-                with open(src_file_path, "rb") as src_f:
-                    raw = src_f.read()
-
-                    try:
-                        tex = raw.decode("utf-8")
-                    except UnicodeDecodeError:
-                        tex = raw.decode("latin-1", errors="replace")
-
-                    envs_to_titles = envs_to_titles | extract_theorem_envs(tex)
-
-        main_tex_path = get_main_tex_path(src_dir)
-        main_tex_name = os.path.basename(main_tex_path)
-
-        insert_thmenvcapture_sty(envs_to_titles, src_dir)
-        inject_thmenvcapture(main_tex_path)
-
-        generate_dummy_biblatex(src_dir)
-
-        theorem_log_path = os.path.join(src_dir, "thm-env-capture.log")
-        if os.path.exists(theorem_log_path):
-            os.remove(theorem_log_path)
-
-        run_pdflatex(main_tex_name, cwd=src_dir)
-
-        if not os.path.exists(theorem_log_path):
-            raise FileNotFoundError("thm-env-capture.log was not created")
+            return _parse_arxiv_paper(
+                paper_id, 
+                paper_arxiv_s3_loc, 
+                parsing_method,
+                theorem_types,
+                paper_dir=temp_paper_dir
+            )
         
-        theorems = []
-        
-        with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-            curr_theorem = {}
+    src_dir = download_and_extract_paper(paper_id, paper_arxiv_s3_loc, cwd=paper_dir)
 
-            for line in f.readlines():
-                line = line.strip()
+    if parsing_method == "tex":
+        theorems = parse_by_tex(paper_id, src_dir, theorem_types)
+    else: # parsing_method == "regex"
+        theorems = parse_by_regex(paper_id, src_dir, theorem_types)
 
-                if line == "BEGIN_ENV":
-                    curr_theorem = {
-                        "paper_id": paper_id,
-                        "label": None
-                    }
-                elif line.startswith("name:"):
-                    curr_theorem["name"] = line.split("name:", 1)[1].strip()
-                elif line.startswith("label:"):
-                    curr_theorem["label"] = line.split("label:", 1)[1].strip()
-                elif line.startswith("body:"):
-                    curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
-                elif line == "END_ENV" and curr_theorem:
-                    theorems.append(curr_theorem)
-
-        return theorems
+    return theorems
 
 def parse_arxiv_papers(
     # SEARCH
@@ -98,8 +43,13 @@ def parse_arxiv_papers(
     overwrite: bool,
     # CONFIG
     batch_size: int,
-    workers: int
+    workers: int,
+    parsing_method: str,
+    theorem_types: Set[str] = { "theorem", "lemma", "proposition", "corollary" }
 ):
+    if parsing_method not in { "tex", "regex" }:
+        raise ValueError(f"parsing_method must be 'tex' or 'regex', not '{parsing_method}'")
+
     conn = get_rds_connection()
 
     query, params = build_query(
@@ -140,6 +90,14 @@ def parse_arxiv_papers(
     parse_attempts = 0
     parse_successes = 0
 
+    script_announcement = f"=== Parsing {count} matching arXiv papers ==="
+    print(script_announcement)
+    print(f"  > overwrite: {overwrite}")
+    print(f"  > batch size: {batch_size}")
+    print(f"  > workers: {workers}")
+    print(f"  > parsing method: {parsing_method}")
+    print("=" * len(script_announcement))
+
     with ThreadPoolExecutor(max_workers=workers) as ex, tqdm(total=count) as pbar:
         for papers in paginate_query(
             conn,
@@ -159,7 +117,13 @@ def parse_arxiv_papers(
                 paper_id = paper["paper_id"]
                 paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
 
-                fut = ex.submit(_parse_arxiv_paper, paper_id, paper_arxiv_s3_loc)
+                fut = ex.submit(
+                    _parse_arxiv_paper, 
+                    paper_id, 
+                    paper_arxiv_s3_loc, 
+                    parsing_method, 
+                    theorem_types
+                )
                 
                 paper_ids.append(paper_id)
                 futs.append(fut)
@@ -237,6 +201,14 @@ if __name__ == "__main__":
         help="Maximum number of workers"
     )
 
+    arg_parser.add_argument(
+        "--parsing-method",
+        type=str,
+        required=False,
+        default="tex",
+        help="Method to parse papers: 'tex' or 'regex'"
+    )
+
     args = arg_parser.parse_args()
 
     parse_arxiv_papers(
@@ -246,5 +218,6 @@ if __name__ == "__main__":
 
         # CONFIG
         batch_size=args.batch_size,
-        workers=args.workers
+        workers=args.workers,
+        parsing_method=args.parsing_method
     )
