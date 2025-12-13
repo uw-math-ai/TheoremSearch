@@ -1,16 +1,15 @@
 from typing import Set
 import os
 from .extract_from_tex import extract_envs_to_titles
-from .main_tex import get_main_tex_path
+from ..main_tex import get_main_tex_path
 from .thmenvcapture import inject_thmenvcapture
 from .pdflatex import generate_dummy_biblatex, run_pdflatex
-from .re_patterns import LABEL_RE
+from ..re_patterns import LABEL_RE
 
 def parse_by_tex(
     paper_id: str, 
     src_dir: str, 
-    theorem_types: Set[str],
-    expand_macros: bool = True
+    theorem_types: Set[str]
 ):
     envs_to_titles = {
         title: title.capitalize()
@@ -30,7 +29,7 @@ def parse_by_tex(
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
 
-    inject_thmenvcapture(main_tex_path, envs_to_titles, src_dir, expand_macros)
+    inject_thmenvcapture(main_tex_path, envs_to_titles, src_dir)
 
     generate_dummy_biblatex(src_dir)
 
@@ -64,8 +63,5 @@ def parse_by_tex(
                 curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
             elif line == "END_ENV" and curr_theorem:
                 theorems.append(curr_theorem)
-
-    if not theorems and expand_macros:
-        return parse_by_tex(paper_id, src_dir, expand_macros=False)
 
     return theorems

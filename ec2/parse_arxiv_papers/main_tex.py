@@ -1,5 +1,4 @@
 import os
-import re
 from dataclasses import dataclass
 from typing import Optional, Dict, Set, List
 from .re_patterns import (

@@ -1,5 +1,5 @@
 from typing import Dict, List
-from .re_patterns import (
+from ..re_patterns import (
     NEWTHEOREM_RE,
     DECLARETHEOREM_RE,
     SPNEWTHEOREM_RE,
