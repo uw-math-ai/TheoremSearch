@@ -136,6 +136,9 @@ def parse_arxiv_papers(
 
                 try:
                     theorem_rows = fut.result(timeout=timeout)
+
+                    if len(theorem_rows) == 0 and verbose:
+                        print(f"[NO THEOREMS FOUND] {paper_id}")
                 except TimeoutError:
                     if verbose:
                         print(f"[TIMEOUT] {paper_id} (> {timeout}s)")
@@ -146,8 +149,6 @@ def parse_arxiv_papers(
                 if theorem_rows:
                     batch_theorem_rows.extend(theorem_rows)
                     parse_successes += 1
-                elif verbose:
-                    print(f"[NO THEOREMS FOUND] {paper_id}")
 
                 pbar.update(1)
                 pbar.set_postfix({
