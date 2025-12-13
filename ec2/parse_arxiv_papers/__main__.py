@@ -147,7 +147,10 @@ def parse_arxiv_papers(
                         print(f"[FUTURE ERROR] {paper_id}: {repr(e)[:128]}{'…' if len(repr(e)) > 128 else ''}")
 
                 if theorem_rows:
-                    batch_theorem_rows.extend(theorem_rows)
+                    batch_theorem_rows.extend([
+                        theorem_row | { "parsing_method": parsing_method }
+                        for theorem_row in theorem_rows
+                    ])
                     parse_successes += 1
 
                 pbar.update(1)

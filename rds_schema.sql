@@ -25,6 +25,7 @@ CREATE TABLE theorem (
     body TEXT NOT NULL,
     label TEXT,
     link TEXT,
+    parsing_method TEXT NOT NULL,
 
     UNIQUE (paper_id, name)
 );
