@@ -3,7 +3,7 @@ import subprocess
 def flatten_tex(
     main_tex_name: str, 
     src_dir: str,
-    timeout: int
+    timeout: int = 10
 ) -> str:
     proc = subprocess.run(
         [
