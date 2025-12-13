@@ -41,6 +41,7 @@ def parse_arxiv_papers(
     # SEARCH
     paper_ids: List[str],
     overwrite: bool,
+    skip: int,
     # CONFIG
     batch_size: int,
     timeout: int,
@@ -49,7 +50,9 @@ def parse_arxiv_papers(
     verbose: bool,
     theorem_types: Set[str] = { "theorem", "lemma", "proposition", "corollary" }
 ):
-    if parsing_method not in { "tex", "regex" }:
+    if skip < 0:
+        raise ValueError(f"skip must be >= 0, not {skip}")
+    elif parsing_method not in { "tex", "regex" }:
         raise ValueError(f"parsing_method must be 'tex' or 'regex', not '{parsing_method}'")
 
     conn = get_rds_connection()
@@ -89,12 +92,15 @@ def parse_arxiv_papers(
         count_cur.execute(count_query, (*params,))
         count = count_cur.fetchone()[0]
 
+        count = max(0, count - skip)
+
     parse_attempts = 0
     parse_successes = 0
 
     script_announcement = f"=== Parsing {count} matching arXiv papers ==="
     print(script_announcement)
     print(f"  > overwrite: {overwrite}")
+    print(f"  > skip: {skip}")
     print(f"  > timeout: {timeout}s")
     print(f"  > batch size: {batch_size}")
     print(f"  > workers: {workers}")
@@ -108,7 +114,8 @@ def parse_arxiv_papers(
             base_params=(*params,),
             order_by="last_updated",
             descending=True,
-            page_size=batch_size
+            page_size=batch_size,
+            skip=skip
         ):
             paper_ids = []
             futs = []
@@ -171,7 +178,7 @@ def parse_arxiv_papers(
                         rows=batch_theorem_rows,
                         on_conflict={
                             "with": ["paper_id", "name"],
-                            "replace": ["body", "label"]
+                            "replace": ["body", "label", "parsing_method"]
                         }
                     )
 
@@ -194,6 +201,13 @@ if __name__ == "__main__":
         "-o", "--overwrite",
         action="store_true",
         help="Whether to overwrite parsed papers"
+    )
+
+    arg_parser.add_argument(
+        "--skip",
+        type=int,
+        default=0,
+        help="Number of papers to skip parsing"
     )
 
     arg_parser.add_argument(
@@ -240,7 +254,7 @@ if __name__ == "__main__":
         # SEARCH
         paper_ids=args.paper_ids,
         overwrite=args.overwrite,
-
+        skip=args.skip,
         # CONFIG
         batch_size=args.batch_size,
         timeout=args.timeout,
