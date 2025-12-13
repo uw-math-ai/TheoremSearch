@@ -43,8 +43,10 @@ def parse_arxiv_papers(
     overwrite: bool,
     # CONFIG
     batch_size: int,
+    timeout: int,
     workers: int,
     parsing_method: str,
+    verbose: bool,
     theorem_types: Set[str] = { "theorem", "lemma", "proposition", "corollary" }
 ):
     if parsing_method not in { "tex", "regex" }:
@@ -93,6 +95,7 @@ def parse_arxiv_papers(
     script_announcement = f"=== Parsing {count} matching arXiv papers ==="
     print(script_announcement)
     print(f"  > overwrite: {overwrite}")
+    print(f"  > timeout: {timeout}s")
     print(f"  > batch size: {batch_size}")
     print(f"  > workers: {workers}")
     print(f"  > parsing method: {parsing_method}")
@@ -132,15 +135,19 @@ def parse_arxiv_papers(
                 theorem_rows = []
 
                 try:
-                    theorem_rows = fut.result()
+                    theorem_rows = fut.result(timeout=timeout)
                 except TimeoutError:
-                    print(f"[TIMEOUT] {paper_id}")
+                    if verbose:
+                        print(f"[TIMEOUT] {paper_id} (> {timeout}s)")
                 except Exception as e:
-                    print(f"[FUTURE ERROR] {paper_id}: {repr(e)[:100]}{'…' if len(repr(e)) > 100 else ''}")
+                    if verbose:
+                        print(f"[FUTURE ERROR] {paper_id}: {repr(e)[:128]}{'…' if len(repr(e)) > 128 else ''}")
 
                 if theorem_rows:
                     batch_theorem_rows.extend(theorem_rows)
                     parse_successes += 1
+                elif verbose:
+                    print(f"[NO THEOREMS FOUND] {paper_id}")
 
                 pbar.update(1)
                 pbar.set_postfix({
@@ -194,6 +201,14 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "--timeout",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of seconds to wait for a paper to parse"
+    )
+
+    arg_parser.add_argument(
         "--workers",
         type=int,
         required=False,
@@ -209,6 +224,12 @@ if __name__ == "__main__":
         help="Method to parse papers: 'tex' or 'regex'"
     )
 
+    arg_parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Whether to print out errors"
+    )
+
     args = arg_parser.parse_args()
 
     parse_arxiv_papers(
@@ -218,6 +239,8 @@ if __name__ == "__main__":
 
         # CONFIG
         batch_size=args.batch_size,
+        timeout=args.timeout,
         workers=args.workers,
-        parsing_method=args.parsing_method
+        parsing_method=args.parsing_method,
+        verbose=args.verbose
     )
