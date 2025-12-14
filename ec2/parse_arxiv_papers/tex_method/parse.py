@@ -11,20 +11,7 @@ def parse_by_tex(
     src_dir: str, 
     theorem_types: Set[str]
 ):
-    envs_to_titles = {
-        title: title.capitalize()
-        for title in theorem_types
-    }
-
-    for src_file_name in os.listdir(src_dir):
-        src_file_path = os.path.join(src_dir, src_file_name)
-
-        if not (os.path.isfile(src_file_path) and src_file_path.endswith(".tex")):
-            continue
-
-        envs_to_titles = envs_to_titles | extract_envs_to_titles(
-            src_file_path, envs_to_titles.values()
-        )
+    envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
 
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
