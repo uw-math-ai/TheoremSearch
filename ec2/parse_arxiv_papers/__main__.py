@@ -150,7 +150,7 @@ def parse_arxiv_papers(
                 theorem_rows = []
 
                 try:
-                    theorem_rows = fut.result(timeout=tiemout)
+                    theorem_rows = fut.result(timeout=timeout)
 
                     if len(theorem_rows) == 0 and verbose:
                         print(f"[NO THEOREMS FOUND] {paper_id}")
