@@ -128,7 +128,7 @@ def parse_arxiv_papers(
             page_size=batch_size,
             skip=skip
         ):
-            fut_to_paper_id = {}
+            futs_and_paper_ids = []
             batch_theorem_rows = []
             
             for paper in papers:
@@ -146,10 +146,9 @@ def parse_arxiv_papers(
                     timeout
                 )
                 
-                fut_to_paper_id[fut] = paper_id
+                futs_and_paper_ids.append((fut, paper_id))
 
-            for fut in fut_to_paper_id:
-                paper_id = fut_to_paper_id[fut]
+            for fut, paper_id in futs_and_paper_ids:
                 theorem_rows = []
 
                 try:
