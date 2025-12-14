@@ -42,6 +42,8 @@ def _insert_thmenvcapture_sty(
   \endgroup
 }
 
+\def\thmenvcapture@tmp{}%
+
 \newcommand\thmenvcapture@safeexpand[2]{%
   \begingroup
     \let\protect\noexpand
@@ -50,8 +52,9 @@ def _insert_thmenvcapture_sty(
     \let\write\@gobbletwo
     \let\message\@gobble
     \let\typeout\@gobble
-    \protected@edef#1{#2}%
+    \global\protected@edef\thmenvcapture@tmp{#2}%
   \endgroup
+  \let#1\thmenvcapture@tmp
 }
 
 % === Per-environment wrappers will be generated below ===

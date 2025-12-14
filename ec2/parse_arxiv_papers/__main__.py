@@ -37,6 +37,8 @@ def _parse_arxiv_paper(
     else: # parsing_method == "regex"
         theorems = parse_by_regex(paper_id, src_dir, theorem_types, timeout)
 
+    print(theorems[0])
+
     return theorems
 
 def parse_arxiv_papers(
