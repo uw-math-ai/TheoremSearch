@@ -42,6 +42,7 @@ def parse_arxiv_papers(
     paper_ids: List[str],
     overwrite: bool,
     skip: int,
+    condition: Optional[str],
     # CONFIG
     batch_size: int,
     timeout: int,
@@ -79,6 +80,10 @@ def parse_arxiv_papers(
                         WHERE theorem.paper_id = paper.paper_id
                     )
                 """
+            },
+            {
+                "if": condition,
+                "condition": condition
             }
         ]
     )
@@ -100,7 +105,10 @@ def parse_arxiv_papers(
     script_announcement = f"=== Parsing {count} matching arXiv papers ==="
     print(script_announcement)
     print(f"  > overwrite: {overwrite}")
-    print(f"  > skip: {skip}")
+    if skip:
+        print(f"  > skip: {skip}")
+    if condition:
+        print(f"  > condition: {condition}")
     print(f"  > timeout: {timeout}s")
     print(f"  > batch size: {batch_size}")
     print(f"  > workers: {workers}")
@@ -211,6 +219,13 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "--condition",
+        type=str,
+        default="",
+        help="An additonal query condition"
+    )
+
+    arg_parser.add_argument(
         "--batch-size",
         type=int,
         required=False,
@@ -255,6 +270,7 @@ if __name__ == "__main__":
         paper_ids=args.paper_ids,
         overwrite=args.overwrite,
         skip=args.skip,
+        condition=args.condition,
         # CONFIG
         batch_size=args.batch_size,
         timeout=args.timeout,
