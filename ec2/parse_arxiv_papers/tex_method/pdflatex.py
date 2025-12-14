@@ -50,13 +50,14 @@ def _generate_dummy_package(pkg_name: str, workdir: str):
 def run_pdflatex(
     main_tex_name: str,
     cwd: str,
+    timeout: int,
     missing_pkgs: List[str] = None
 ) -> str:
     if missing_pkgs is None:
         missing_pkgs = []
 
     for pkg in missing_pkgs:
-        _generate_dummy_package(pkg, cwd)
+        _generate_dummy_package(pkg, cwd, timeout)
 
     cmd = ["pdflatex", "-interaction=nonstopmode", "-recorder", main_tex_name]
     proc = subprocess.run(
@@ -67,6 +68,7 @@ def run_pdflatex(
         text=True,
         encoding="utf-8",
         errors="replace",
+        timeout=timeout
     )
     out = proc.stdout
 

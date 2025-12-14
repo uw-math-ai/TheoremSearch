@@ -9,7 +9,8 @@ from ..re_patterns import LABEL_RE
 def parse_by_tex(
     paper_id: str, 
     src_dir: str, 
-    theorem_types: Set[str]
+    theorem_types: Set[str],
+    timeout: int
 ):
     envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
 
@@ -24,7 +25,7 @@ def parse_by_tex(
     if os.path.exists(theorem_log_path):
         os.remove(theorem_log_path)
 
-    run_pdflatex(main_tex_name, cwd=src_dir)
+    run_pdflatex(main_tex_name, cwd=src_dir, timeout=timeout)
 
     if not os.path.exists(theorem_log_path):
         raise FileNotFoundError("thm-env-capture.log was not created")

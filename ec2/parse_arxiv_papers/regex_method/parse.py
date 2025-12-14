@@ -7,7 +7,7 @@ from .comments import strip_comments
 from .verbatim import is_verbatim_end, extract_verbatim_start
 from .envs import extract_env_and_title
 
-def parse_by_regex(paper_id: str, src_dir: str, theorem_types: Set[str]) -> List[Dict]:
+def parse_by_regex(paper_id: str, src_dir: str, theorem_types: Set[str], timeout: int) -> List[Dict]:
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
 

@@ -16,6 +16,7 @@ def _parse_arxiv_paper(
     paper_arxiv_s3_loc: Tuple[str, int, int],
     parsing_method: str,
     theorem_types: List[str],
+    timeout: int,
     paper_dir: Optional[str] = None
 ):
     if not paper_dir:
@@ -31,9 +32,9 @@ def _parse_arxiv_paper(
     src_dir = download_and_extract_paper(paper_id, paper_arxiv_s3_loc, cwd=paper_dir)
 
     if parsing_method == "tex":
-        theorems = parse_by_tex(paper_id, src_dir, theorem_types)
+        theorems = parse_by_tex(paper_id, src_dir, theorem_types, timeout)
     else: # parsing_method == "regex"
-        theorems = parse_by_regex(paper_id, src_dir, theorem_types)
+        theorems = parse_by_regex(paper_id, src_dir, theorem_types, timeout)
 
     return theorems
 
@@ -140,7 +141,8 @@ def parse_arxiv_papers(
                     paper_id, 
                     paper_arxiv_s3_loc, 
                     parsing_method, 
-                    theorem_types
+                    theorem_types,
+                    timeout
                 )
                 
                 fut_to_paper_id[fut] = paper_id
