@@ -3,7 +3,7 @@ from ..rds.connect import get_rds_connection
 from ..rds.query import build_query
 from ..rds.paginate import paginate_query
 from ..rds.upsert import upsert_rows
-from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from concurrent.futures import ProcessPoolExecutor, TimeoutError
 from tempfile import TemporaryDirectory
 from .download_and_extract_paper import download_and_extract_paper
 from typing import Tuple, List, Optional, Set
@@ -117,7 +117,7 @@ def parse_arxiv_papers(
     print(f"  > parsing method: {parsing_method}")
     print("=" * len(script_announcement))
 
-    with ThreadPoolExecutor(max_workers=workers) as ex, \
+    with ProcessPoolExecutor(max_workers=workers) as ex, \
         tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
         for papers in paginate_query(
             conn,
