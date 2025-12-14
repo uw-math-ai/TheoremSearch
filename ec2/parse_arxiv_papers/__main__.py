@@ -42,7 +42,7 @@ def parse_arxiv_papers(
     paper_ids: List[str],
     overwrite: bool,
     skip: int,
-    condition: Optional[str],
+    condition: str,
     # CONFIG
     batch_size: int,
     timeout: int,
@@ -115,7 +115,8 @@ def parse_arxiv_papers(
     print(f"  > parsing method: {parsing_method}")
     print("=" * len(script_announcement))
 
-    with ThreadPoolExecutor(max_workers=workers) as ex, tqdm(total=count) as pbar:
+    with ThreadPoolExecutor(max_workers=workers) as ex, \
+        tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
         for papers in paginate_query(
             conn,
             base_sql=query,
@@ -125,8 +126,7 @@ def parse_arxiv_papers(
             page_size=batch_size,
             skip=skip
         ):
-            paper_ids = []
-            futs = []
+            fut_to_paper_id = {}
             batch_theorem_rows = []
             
             for paper in papers:
@@ -143,14 +143,14 @@ def parse_arxiv_papers(
                     theorem_types
                 )
                 
-                paper_ids.append(paper_id)
-                futs.append(fut)
+                fut_to_paper_id[fut] = paper_id
 
-            for paper_id, fut in zip(paper_ids, futs):
+            for fut in fut_to_paper_id:
+                paper_id = fut_to_paper_id[fut]
                 theorem_rows = []
 
                 try:
-                    theorem_rows = fut.result(timeout=timeout)
+                    theorem_rows = fut.result(timeout=tiemout)
 
                     if len(theorem_rows) == 0 and verbose:
                         print(f"[NO THEOREMS FOUND] {paper_id}")
@@ -178,7 +178,7 @@ def parse_arxiv_papers(
                     cur.execute("""
                         DELETE FROM theorem
                         WHERE paper_id = ANY(%s)
-                    """, ([row["paper_id"] for row in batch_theorem_rows],))
+                    """, (list({ row["paper_id"] for row in batch_theorem_rows }),))
 
                     upsert_rows(
                         cur,
