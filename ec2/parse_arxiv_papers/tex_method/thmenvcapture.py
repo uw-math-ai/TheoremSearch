@@ -18,19 +18,33 @@ def _insert_thmenvcapture_sty(
 
 \def\thmenvcapture@lastlabel{}%
 
+% Write a line where the payload is detokenized (so we don't expand macros).
+% #1 = prefix (e.g. "name: ")
+% #2 = token list to serialize
+\newcommand\thmenvcapture@writedetok[2]{%
+  \immediate\write\envlog{#1\expandafter\detokenize\expandafter{#2}}%
+}
+
+% Generic log helper (NO expansions):
+%   #1 = type token list
+%   #2 = name token list
+%   #3 = label token list (may be empty)
+%   #4 = body token list
 \newcommand\thmenvcapture@log[4]{%
   \begingroup
     \immediate\write\envlog{BEGIN_ENV}%
-    \immediate\write\envlog{type: #1}%
-    \immediate\write\envlog{name: #2}%
+    \thmenvcapture@writedetok{type: }{#1}%
+    \thmenvcapture@writedetok{name: }{#2}%
     \ifdefempty{#3}{}{%
-      \immediate\write\envlog{label: #3}%
+      \thmenvcapture@writedetok{label: }{#3}%
     }%
-    \immediate\write\envlog{body: \expandafter\detokenize\expandafter{#4}}%
+    \thmenvcapture@writedetok{body: }{#4}%
     \immediate\write\envlog{END_ENV}%
   \endgroup
 }
 
+% Run BODY with a label hook:
+% capture \label{foo} into \thmenvcapture@lastlabel, while still doing normal \label.
 \newcommand\thmenvcapture@withlabelhook[1]{%
   \begingroup
     \let\thmenvcapture@origlabel\label
@@ -39,19 +53,6 @@ def _insert_thmenvcapture_sty(
       \thmenvcapture@origlabel{##1}%
     }%
     #1%
-  \endgroup
-}
-
-\newcommand\thmenvcapture@safeexpand[2]{%
-  \begingroup
-    \let\protect\noexpand
-    \let\label\@gobble
-    \let\index\@gobble
-    \let\write\@gobbletwo
-    \let\message\@gobble
-    \let\typeout\@gobble
-    % IMPORTANT: define the destination macro globally so it survives this group
-    \global\protected@edef#1{#2}%
   \endgroup
 }
 
@@ -68,16 +69,20 @@ def _insert_thmenvcapture_sty(
             "  \\let\\thmenvcapture@endorig@" + env + "\\end" + env + "\n"
             "  \\RenewEnviron{" + env + "}[1][]{%\n"
             "    \\global\\let\\thmenvcapture@lastlabel\\@empty\n"
-            "    \\thmenvcapture@orig@" + env + "[##1]%\n"
+            "    % typeset original environment; only pass optional arg if nonempty\n"
+            "    \\ifdefempty{##1}{%\n"
+            "      \\thmenvcapture@orig@" + env + "%\n"
+            "    }{%\n"
+            "      \\thmenvcapture@orig@" + env + "[##1]%\n"
+            "    }%\n"
             "      \\thmenvcapture@withlabelhook{\\BODY}%\n"
             "    \\thmenvcapture@endorig@" + env + "\n"
+            "    % log (NO expansions): name is just title + counter macro tokens + optional name tokens\n"
             "    \\begingroup\n"
-            "      \\protected@edef\\LoggedName{##1}%\n"
-            "      \\protected@edef\\LoggedHeader{" + title + " \\the" + env + "%\n"
-            "        \\ifdefempty{\\LoggedName}{}{ (\\LoggedName)}}%\n"
-            "      \\edef\\LoggedLabel{\\thmenvcapture@lastlabel}%\n"
-            "      \\thmenvcapture@safeexpand\\LoggedBody{\\BODY}%\n"
-            "      \\thmenvcapture@log{" + env + "}{\\LoggedHeader}{\\LoggedLabel}{\\LoggedBody}%\n"
+            "      \\def\\LoggedType{" + env + "}%\n"
+            "      \\def\\LoggedLabel{\\thmenvcapture@lastlabel}%\n"
+            "      \\def\\LoggedName{" + title + " \\the" + env + " \\ifdefempty{##1}{}{(##1)}}%\n"
+            "      \\thmenvcapture@log{\\LoggedType}{\\LoggedName}{\\LoggedLabel}{\\BODY}%\n"
             "    \\endgroup\n"
             "  }%\n"
             "}\n\n"
@@ -103,6 +108,8 @@ def _insert_thmenvcapture_sty(
 
     with open(sty_path, "w", encoding="utf-8") as f:
         f.write(sty_text)
+
+    return sty_path
 
 def inject_thmenvcapture(
     tex_path: str,
