@@ -26,6 +26,7 @@ def _parse_arxiv_paper(
                 paper_arxiv_s3_loc, 
                 parsing_method,
                 theorem_types,
+                timeout,
                 paper_dir=temp_paper_dir
             )
         
