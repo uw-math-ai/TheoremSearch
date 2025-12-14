@@ -1,6 +1,6 @@
 import os
 
-def insert_thmenvcapture_sty(
+def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
