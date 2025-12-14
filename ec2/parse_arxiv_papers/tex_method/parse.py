@@ -50,6 +50,7 @@ def parse_by_tex(
             elif line.startswith("body:"):
                 curr_theorem["body"] = LABEL_RE.sub("", line.split("body:", 1)[1].strip())
             elif line == "END_ENV" and curr_theorem:
-                theorems.append(curr_theorem)
+                if len(curr_theorem["body"]) > 0 and len(curr_theorem["name"]) > 0:
+                    theorems.append(curr_theorem)
 
     return theorems
