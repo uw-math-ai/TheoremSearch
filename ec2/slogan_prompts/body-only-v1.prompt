@@ -7,5 +7,6 @@
         "Describe but never reference the theorems with 'This theorem...' or similar.",
         "Avoid LaTeX and math symbols. Include identifiers that aid retrieval"
     ],
-    "context": ["theorem.body"]
+    "context": ["theorem.body"],
+    "temperature": 0.2
 }

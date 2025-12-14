@@ -21,8 +21,12 @@ def build_query(
         if where_clause["if"]:
             where_conditions.append(where_clause["condition"])
 
-            if "param" in where_clause:
+            if "param" in where_clause and "params" in where_clause:
+                raise ValueError("A where clause cannot have both 'param' and 'params'")
+            elif "param" in where_clause:
                 params.append(where_clause["param"])
+            elif "params" in where_clause:
+                params.extend(where_clause["params"])
 
     if where_conditions:
         query += " WHERE " + " AND ".join(where_conditions)

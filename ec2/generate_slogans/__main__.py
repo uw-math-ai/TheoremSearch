@@ -5,11 +5,14 @@ and uploads them to the 'theorem_slogan' table in the RDS.
 
 from ..rds.connect import get_rds_connection
 from ..rds.upsert import upsert_rows
+from ..rds.query import build_query
 import argparse
 from ..rds.paginate import paginate_query
 import os
 import json
 from .slogans import generate_theorem_slogans
+import boto3
+from tqdm import tqdm
 
 def generate_slogans(
     model: str,
@@ -39,99 +42,121 @@ def generate_slogans(
 
     select_cols = ", ".join(set(["theorem.theorem_id", *prompt["context"]]))
 
-    base_sql = f"""
-        SELECT {select_cols}
-        FROM theorem
-        INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
-    """
-    count_sql = f"""
+    query, params = build_query(
+        base_query=f"""
+            SELECT {select_cols}
+            FROM theorem
+            INNER JOIN paper
+                ON theorem.paper_id = paper.paper_id
+        """,
+        where_clauses=[
+            {
+                "if": not overwrite,
+                "condition": """
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM theorem_slogan AS ts
+                        WHERE ts.theorem_id = theorem.theorem_id
+                            AND ts.model = %s
+                            AND ts.prompt_id = %s
+                    )
+                """,
+                "params": [model, prompt_id]
+            },
+            {
+                "if": paper_ids,
+                "condition": "paper.paper_id LIKE ANY(%s)",
+                "param": ['%' + paper_id + '%' for paper_id in paper_ids]
+            },
+            {
+                "if": authors,
+                "condition": "paper.authors && %s",
+                "param": authors
+            },
+            {
+                "if": min_citations >= 0,
+                "condition": "paper.citations >= %s",
+                "param": min_citations
+            },
+            {
+                "if": in_journal,
+                "condition": "paper.journal_ref IS NOT NULL"
+            }
+        ]
+    )
+
+    count_query = f"""
         SELECT COUNT(*)
-        FROM theorem
-        INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
+        FROM ({query}) AS q
     """
-
-    where_conditions = []
-    base_params = []
-
-    if not overwrite:
-        where_conditions.append("""
-            NOT EXISTS (
-                SELECT 1
-                FROM theorem_slogan AS ts
-                WHERE ts.theorem_id = theorem.theorem_id
-                    AND ts.model = %s
-                    AND ts.prompt_id = %s
-            )
-        """)
-        base_params.append(model)
-        base_params.append(prompt_id)
-
-    if paper_ids:
-        where_conditions.append("paper.paper_id LIKE ANY(%s)")
-        base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
-
-    if authors:
-        where_conditions.append("paper.authors && %s")
-        base_params.append(authors)
-
-    if min_citations >= 0:
-        where_conditions.append("paper.citations >= %s")
-        base_params.append(min_citations)
-
-    if in_journal:
-        where_conditions.append("paper.journal_ref IS NOT NULL")
-
-    if where_conditions:
-        base_sql += " WHERE " + " AND ".join(where_conditions)
-        count_sql += " WHERE " + " AND ".join(where_conditions)
 
     with conn.cursor() as cur:
-        cur.execute(count_sql, (*base_params,))
-        n_results = cur.fetchone()[0]
+        cur.execute(count_query, (*params,))
+        count = cur.fetchone()[0]
 
-    print(f"=== Generating slogans for {n_results} theorems (Model: {model}, Prompt: {prompt_id}) ===")
+    script_announcement = f"=== Generating slogans for {count} theorems ==="
+    print(script_announcement)
+    print(f"  > model: {model}")
+    print(f"  > prompt id: {prompt_id}")
+    if paper_ids:
+        print(f"  > paper ids: {paper_ids}")
+    if authors:
+        print(f"  > authors: {authors}")
+    if min_citations is not None:
+        print(f"  > citations: >= {min_citations}")
+    if in_journal:
+        print(f"  > in journal: True")
+    print(f"  > overwrite: {overwrite}")
+    print(f"  > page size: {page_size}")
+    print(f"  > workers: {workers}")
+    print("=" * len(script_announcement))
+
     n_theorems = 0
 
-    for page, theorem_contexts in enumerate(paginate_query(
-        conn,
-        base_sql=base_sql,
-        base_params=(*base_params,),
-        order_by="theorem_id",
-        descending=False,
-        page_size=page_size
-    )):
-        n_theorems += len(theorem_contexts)
-        print(f"[Page {1 + page}] {n_theorems}/{n_results}")
+    brc = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
 
-        slogans = generate_theorem_slogans(
-            theorem_contexts,
-            instructions=prompt["instructions"],
-            model=model,
-            max_workers=workers
-        )
-        
-        with conn.cursor() as cur:
-            upsert_rows(
-                cur,
-                table="theorem_slogan",
-                rows=[
-                    {
-                        "theorem_id": theorem_context["theorem_id"],
-                        "model": model,
-                        "prompt_id": prompt_id,
-                        "slogan": slogan
-                    }
-                    for slogan, theorem_context in zip(slogans, theorem_contexts)
-                ],
-                on_conflict={
-                    "with": ["theorem_id", "model", "prompt_id"],
-                    "replace": ["slogan"]
-                }
+    with tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
+        for theorem_contexts in paginate_query(
+            conn,
+            base_sql=query,
+            base_params=(*params,),
+            order_by="theorem_id",
+            descending=False,
+            page_size=page_size
+        ):
+            n_theorems += len(theorem_contexts)
+
+            slogans = generate_theorem_slogans(
+                brc,
+                theorem_contexts,
+                instructions=prompt["instructions"],
+                temperature=prompt["temperature"],
+                model=model,
+                pbar=pbar,
+                max_workers=workers
             )
+            
+            with conn.cursor() as cur:
+                upsert_rows(
+                    cur,
+                    table="theorem_slogan",
+                    rows=[
+                        {
+                            "theorem_id": theorem_context["theorem_id"],
+                            "model": model,
+                            "prompt_id": prompt_id,
+                            "slogan": slogan
+                        }
+                        for slogan, theorem_context in zip(slogans, theorem_contexts)
+                        if slogan is not None
+                    ],
+                    on_conflict={
+                        "with": ["theorem_id", "model", "prompt_id"],
+                        "replace": ["slogan"]
+                    }
+                )
 
-        conn.commit()
+            conn.commit()
 
     conn.close()
 
