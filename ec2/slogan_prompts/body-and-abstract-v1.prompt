@@ -1,0 +1,17 @@
+{
+    "prompt_id": "body-and-abstract-v1",
+    "instructions": [
+        "You generate summaries of math theorems based on theorem_body.",
+        "You also consider paper_summary in your summaries.",
+        "Summaries are accurate and at most four sentences.",
+        "Summaries are plain ASCII sentences with no Unicode.",
+        "Describe the result without referencing it as 'this theorem' or similar.",
+        "Avoid LaTeX and mathematical symbols; use words instead.",
+        "Include identifying terms or names that aid retrieval.",
+        "Output only the final summary sentences, with no reasoning, explanations, or commentary.",
+        "Do not restate the prompt, input fields, or instructions.",
+        "Do not include proof steps, motivation, or background discussion."
+    ],
+    "context": ["theorem.body", "paper.summary"],
+    "temperature": 0.2
+}
