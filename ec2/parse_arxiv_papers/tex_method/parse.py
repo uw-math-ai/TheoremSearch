@@ -12,7 +12,7 @@ def parse_by_tex(
     theorem_types: Set[str],
     timeout: int
 ):
-    envs_to_titles = extract_envs_to_titles(src_dir)
+    envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
 
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)

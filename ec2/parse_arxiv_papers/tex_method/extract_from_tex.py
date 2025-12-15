@@ -38,7 +38,12 @@ def _extract_envs_to_titles_from_tex(tex_path: str) -> Dict[str, str]:
 
     return envs_to_titles
 
-def extract_envs_to_titles(src_dir: str):
+def extract_envs_to_titles(src_dir: str, theorem_types: Set[str]):
+    envs_to_titles = {
+        title: title.capitalize()
+        for title in theorem_types
+    }
+
     for src_file_name in os.listdir(src_dir):
         src_file_path = os.path.join(src_dir, src_file_name)
 
@@ -46,7 +51,7 @@ def extract_envs_to_titles(src_dir: str):
             continue
 
         envs_to_titles = envs_to_titles | _extract_envs_to_titles_from_tex(
-            src_file_path, envs_to_titles.values()
+            src_file_path
         )
 
     return envs_to_titles
