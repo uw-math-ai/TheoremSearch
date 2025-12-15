@@ -121,7 +121,7 @@ def _insert_thmenvcapture_sty(
             "      \\edef\\LoggedName{\\detokenize\\expandafter{\\unexpanded\\expandafter{##1}}}%\n"
             "      \\protected@edef\\LoggedNumber{" + the_macro + "}%\n"
             "      \\edef\\LoggedHeader{" + title + " \\LoggedNumber}%\n"
-            "      \\ifdefempty{\\LoggedName}{}{\\edef\\LoggedHeader{\\LoggedHeader (\\LoggedName)}}%\n"
+            "      \\ifdefempty{\\LoggedName}{}{\\edef\\LoggedHeader{\\LoggedHeader\\space(\\LoggedName)}}%\n"
             "      \\edef\\LoggedLabel{\\thmenvcapture@lastlabel}%\n"
             "      \\thmenvcapture@maybeexpandbody\\LoggedBody{\\BODY}%\n"
             "      \\thmenvcapture@log{" + env + "}{\\LoggedHeader}{\\LoggedLabel}{\\LoggedBody}%\n"
