@@ -91,7 +91,7 @@ def generate_theorem_slogans(
                 break
 
             futs = {
-                ex.submit(_generate_theorem_slogan, brc, instructions, temperature, theorem_context, model, i)
+                ex.submit(_generate_theorem_slogan, brc, instructions, temperature, theorem_context, model, i, verbose)
                 for i, theorem_context in enumerate(theorem_contexts)
                 if slogans[i] is None
             }
