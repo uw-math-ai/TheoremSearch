@@ -1,113 +1,133 @@
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import dotenv
 import pandas as pd
+from tqdm import tqdm
+
+from cost import format_USD
 from typing import Dict
-from .cost import format_USD
+
+from langfuse.langchain import CallbackHandler
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+def _deepseek_cost_usd(usage: dict) -> float:
+    """
+    Approx DeepSeek pricing (cache miss) in USD:
+    input:  $0.27 / 1M tokens
+    output: $1.10 / 1M tokens
+    """
+    prompt_tokens = usage.get("prompt_tokens", 0) or usage.get("input_tokens", 0) or 0
+    completion_tokens = usage.get("completion_tokens", 0) or usage.get("output_tokens", 0) or 0
+
+    cost_input = prompt_tokens * 0.27 / 1_000_000
+    cost_output = completion_tokens * 1.10 / 1_000_000
+    return cost_input + cost_output
+
 
 def _generate_theorem_slogan(
-    brc,
     instructions: str,
-    temperature: float,
     theorem_context: dict,
-    model: Dict,
+    model: str,  # kept for API compatibility, not used
     i: int,
-    verbose: bool
-) -> tuple[int, str, float]:
-    cost = 0
-
+) -> tuple[int, str | None, float]:
     theorem_context = theorem_context.copy()
     if "theorem_id" in theorem_context:
         del theorem_context["theorem_id"]
 
+    cost = 0.0
+
+    langfuse_handler = CallbackHandler()
+
+    llm = ChatOpenAI(
+        model="deepseek-chat",
+        api_key=os.getenv("deepseek_key"),
+        base_url="https://api.deepseek.com",
+    )
+
+    prompt_tmpl = ChatPromptTemplate.from_messages(
+        [
+            ("system", "{instructions}"),
+            ("user", "{theorem_context_json}"),
+        ]
+    )
+
+    chain = prompt_tmpl | llm
+
     try:
         theorem_context_str = json.dumps(theorem_context)
 
-        messages = [
+        res = chain.invoke(
             {
-                "role": "user",
-                "content": instructions
+                "instructions": instructions,
+                "theorem_context_json": theorem_context_str,
             },
-            {
-                "role": "user",
-                "content": theorem_context_str
-            }
-        ]
-        payload = {
-            "messages": messages,
-            "max_tokens": 1024,
-            "temperature": temperature
-        }
-
-        res = brc.invoke_model(
-            modelId=model["model_id"],
-            body=json.dumps(payload),
-            accept="application/json",
-            contentType="application/json"
+            config={
+                "callbacks": [langfuse_handler],
+                "metadata": {
+                    "generation_name": "theorem_slogan",
+                    "theorem_index": i,
+                },
+            },
         )
 
-        body = json.loads(res["body"].read())
-        headers = res["ResponseMetadata"]["HTTPHeaders"]
+        slogan = res.content
+        usage = res.response_metadata.get("token_usage", {}) if hasattr(res, "response_metadata") else {}
+        cost = _deepseek_cost_usd(usage)
 
-        slogan = body["choices"][0]["message"]["content"]
-        if slogan is not None:
-            slogan = slogan.strip()
-
-        input_tokens = int(headers["x-amzn-bedrock-input-token-count"])
-        output_tokens = int(headers["x-amzn-bedrock-output-token-count"])
-        cost = input_tokens * model["input_token_cost"] \
-            + output_tokens * model["output_token_cost"]
-
-        return i, slogan, cost 
-    except Exception as e:
-        if verbose:
-            print(f"[LLM ERROR] {e}")
-
-        return i, None, 0
+        return i, slogan, cost
+    except Exception:
+        return i, None, cost
 
 def generate_theorem_slogans(
-    brc, 
     theorem_contexts: list[dict],
     instructions: str,
-    temperature: float,
-    model: Dict,
-    pbar,
-    max_workers=16,
-    max_retries=4,
-    verbose=False
+    model: str,
+    max_workers: int = 16,
+    max_retries: int = 4,
 ) -> list[str | None]:
-    slogans = [None for _ in theorem_contexts]
+    slogans: list[str | None] = [None for _ in theorem_contexts]
     retries = 0
 
-    total_cost = 0
+    total_cost = 0.0
     slogans_generated = 0
 
-    with ThreadPoolExecutor(max_workers) as ex:
+    with ThreadPoolExecutor(max_workers) as ex, tqdm(total=len(theorem_contexts)) as pbar:
         while None in slogans:
             if retries > max_retries:
-                if verbose:
-                    print(f"[MAX RETRIES REACHED] Used all {max_retries}")
-
                 break
 
             futs = {
-                ex.submit(_generate_theorem_slogan, brc, instructions, temperature, theorem_context, model, i, verbose)
+                ex.submit(
+                    _generate_theorem_slogan,
+                    instructions,
+                    theorem_context,
+                    model,
+                    i,
+                )
                 for i, theorem_context in enumerate(theorem_contexts)
                 if slogans[i] is None
             }
-            for fut in as_completed(futs):
-                res = fut.result()
-                slogans[res[0]] = res[1]
-                total_cost += res[2]
 
-                if res[1] is not None:
+            for fut in as_completed(futs):
+                idx, slogan, cost = fut.result()
+                slogans[idx] = slogan
+                total_cost += cost
+
+                if slogan is not None:
                     pbar.update(1)
                     slogans_generated += 1
-                
-                pbar.set_postfix({
-                    "cost": format_USD(total_cost), 
-                    "avg": format_USD(0 if slogans_generated == 0 else total_cost / slogans_generated)
-                })
+
+                pbar.set_postfix(
+                    {
+                        "cost": format_USD(total_cost),
+                        "avg": format_USD(
+                            0 if slogans_generated == 0 else total_cost / slogans_generated
+                        ),
+                    }
+                )
 
             retries += 1
 
