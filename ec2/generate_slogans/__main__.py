@@ -24,7 +24,8 @@ def generate_slogans(
     in_journal: bool,
     overwrite: bool,
     page_size: int,
-    workers: int
+    workers: int,
+    verbose: bool
 ):
     conn = get_rds_connection()
 
@@ -136,7 +137,8 @@ def generate_slogans(
                 temperature=prompt["temperature"],
                 model=model,
                 pbar=pbar,
-                max_workers=workers
+                max_workers=workers,
+                verbose=verbose
             )
             
             with conn.cursor() as cur:
@@ -235,6 +237,13 @@ if __name__ == "__main__":
         help="Maximum number of workers to slogan-ify a page of theorems"
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Whether to print out error statements"
+    )
+
     args = parser.parse_args()
 
     generate_slogans(
@@ -246,5 +255,6 @@ if __name__ == "__main__":
         in_journal=args.in_journal,
         overwrite=args.overwrite,
         page_size=args.page_size,
-        workers=args.workers
+        workers=args.workers,
+        verbose=args.verbose
     )

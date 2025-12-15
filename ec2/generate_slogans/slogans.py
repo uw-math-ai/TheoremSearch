@@ -11,7 +11,8 @@ def _generate_theorem_slogan(
     temperature: float,
     theorem_context: dict,
     model: Dict,
-    i: int
+    i: int,
+    verbose: bool
 ) -> tuple[int, str, float]:
     cost = 0
 
@@ -59,6 +60,9 @@ def _generate_theorem_slogan(
 
         return i, slogan, cost 
     except Exception as e:
+        if verbose:
+            print(f"[LLM ERROR] {e}")
+
         return i, None, 0
 
 def generate_theorem_slogans(
@@ -69,7 +73,8 @@ def generate_theorem_slogans(
     model: Dict,
     pbar,
     max_workers=16,
-    max_retries=4
+    max_retries=4,
+    verbose=False
 ) -> list[str | None]:
     slogans = [None for _ in theorem_contexts]
     retries = 0
@@ -80,6 +85,9 @@ def generate_theorem_slogans(
     with ThreadPoolExecutor(max_workers) as ex:
         while None in slogans:
             if retries > max_retries:
+                if verbose:
+                    print(f"[MAX RETRIES REACHED] Used all {max_retries}")
+
                 break
 
             futs = {
