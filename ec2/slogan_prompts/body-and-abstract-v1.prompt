@@ -7,7 +7,6 @@
         "Summaries are plain ASCII sentences with no Unicode.",
         "Describe the result without referencing it as 'this theorem' or similar.",
         "Avoid LaTeX and mathematical symbols; use words instead.",
-        "Include identifying terms or names that aid retrieval.",
         "Output only the final summary sentences, with no reasoning, explanations, or commentary.",
         "Do not restate the prompt, input fields, or instructions.",
         "Do not include proof steps, motivation, or background discussion."

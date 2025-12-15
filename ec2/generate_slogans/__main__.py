@@ -13,9 +13,10 @@ import json
 from .slogans import generate_theorem_slogans
 import boto3
 from tqdm import tqdm
+from .models import MODELS
 
 def generate_slogans(
-    model: str,
+    model_name: str,
     prompt_id: str,
     paper_ids: list[str],
     authors: list[str],
@@ -26,6 +27,8 @@ def generate_slogans(
     workers: int
 ):
     conn = get_rds_connection()
+
+    model = MODELS[model_name]
 
     current_dir = os.path.dirname(__file__)
     path_to_prompt = os.path.join(
@@ -61,7 +64,7 @@ def generate_slogans(
                             AND ts.prompt_id = %s
                     )
                 """,
-                "params": [model, prompt_id]
+                "params": [model_name, prompt_id]
             },
             {
                 "if": paper_ids,
@@ -96,7 +99,7 @@ def generate_slogans(
 
     script_announcement = f"=== Generating slogans for {count} theorems ==="
     print(script_announcement)
-    print(f"  > model: {model}")
+    print(f"  > model: {model_name}")
     print(f"  > prompt id: {prompt_id}")
     if paper_ids:
         print(f"  > paper ids: {paper_ids}")
@@ -143,7 +146,7 @@ def generate_slogans(
                     rows=[
                         {
                             "theorem_id": theorem_context["theorem_id"],
-                            "model": model,
+                            "model": model_name,
                             "prompt_id": prompt_id,
                             "slogan": slogan
                         }
@@ -235,7 +238,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     generate_slogans(
-        model=args.model,
+        model_name=args.model,
         prompt_id=args.prompt_id,
         paper_ids=args.paper_ids,
         authors=args.authors,

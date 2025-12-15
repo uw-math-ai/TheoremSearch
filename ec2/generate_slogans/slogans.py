@@ -2,15 +2,19 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import dotenv
 import pandas as pd
+from typing import Dict
+from .cost import format_USD
 
 def _generate_theorem_slogan(
     brc,
     instructions: str,
     temperature: float,
     theorem_context: dict,
-    model: str,
+    model: Dict,
     i: int
 ) -> tuple[int, str, float]:
+    cost = 0
+
     theorem_context = theorem_context.copy()
     if "theorem_id" in theorem_context:
         del theorem_context["theorem_id"]
@@ -35,28 +39,34 @@ def _generate_theorem_slogan(
         }
 
         res = brc.invoke_model(
-            modelId=model,
+            modelId=model["model_id"],
             body=json.dumps(payload),
             accept="application/json",
             contentType="application/json"
         )
 
-        slogan = json.loads(res["body"].read())["choices"][0]["message"]["content"]
+        body = json.loads(res["body"].read())
+        headers = res["ResponseMetadata"]["HTTPHeaders"]
+
+        slogan = body["choices"][0]["message"]["content"]
         if slogan is not None:
             slogan = slogan.strip()
 
-        # cost += completion_cost(res)
+        input_tokens = int(headers["x-amzn-bedrock-input-token-count"])
+        output_tokens = int(headers["x-amzn-bedrock-output-token-count"])
+        cost = input_tokens * model["input_token_cost"] \
+            + output_tokens * model["output_token_cost"]
 
-        return i, slogan 
+        return i, slogan, cost 
     except Exception as e:
-        return i, None
+        return i, None, 0
 
 def generate_theorem_slogans(
     brc, 
     theorem_contexts: list[dict],
     instructions: str,
     temperature: float,
-    model: str,
+    model: Dict,
     pbar,
     max_workers=16,
     max_retries=4
@@ -64,7 +74,7 @@ def generate_theorem_slogans(
     slogans = [None for _ in theorem_contexts]
     retries = 0
 
-    # total_cost = 0
+    total_cost = 0
     slogans_generated = 0
 
     with ThreadPoolExecutor(max_workers) as ex:
@@ -80,16 +90,16 @@ def generate_theorem_slogans(
             for fut in as_completed(futs):
                 res = fut.result()
                 slogans[res[0]] = res[1]
-                # total_cost += res[2]
+                total_cost += res[2]
 
                 if res[1] is not None:
                     pbar.update(1)
                     slogans_generated += 1
                 
-                # pbar.set_postfix({
-                #     "cost": format_USD(total_cost), 
-                #     "avg": format_USD(0 if slogans_generated == 0 else total_cost / slogans_generated)
-                # })
+                pbar.set_postfix({
+                    "cost": format_USD(total_cost), 
+                    "avg": format_USD(0 if slogans_generated == 0 else total_cost / slogans_generated)
+                })
 
             retries += 1
 
