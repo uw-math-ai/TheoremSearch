@@ -22,15 +22,15 @@ def _insert_thmenvcapture_sty(
 \def\thmenvcapture@lastlabel{}%
 
 % Generic log helper:
-%   #1 = type (theorem/lemma/...)
-%   #2 = name ("Theorem 1.2 (Name)")
+%   #1 = type (env name)
+%   #2 = name/header (we detokenize at write-time; do not expand during \write)
 %   #3 = label (may be empty)
 %   #4 = body tokens (we detokenize at write-time; no expansion during \write)
 \newcommand\thmenvcapture@log[4]{%
   \begingroup
     \immediate\write\envlog{BEGIN_ENV}%
     \immediate\write\envlog{type: #1}%
-    \immediate\write\envlog{name: #2}%
+    \immediate\write\envlog{name: \expandafter\detokenize\expandafter{#2}}%
     \ifdefempty{#3}{}{%
       \immediate\write\envlog{label: #3}%
     }%
@@ -53,18 +53,6 @@ def _insert_thmenvcapture_sty(
 }
 
 % === Expand-or-fallback for body ==========================================
-% Goal:
-%   - NEVER produce empty body
-%   - Attempt best-effort expansion only when body looks "safe"
-%   - Otherwise fall back to raw BODY (as before)
-%
-% Usage: \thmenvcapture@maybeexpandbody\Dest{<BODY tokens>}
-%
-% Mechanism:
-%   - First, set \Dest to raw BODY (fallback guaranteed).
-%   - Then detokenize BODY into a string and scan for "unsafe" markers.
-%   - Only if no unsafe markers, attempt \protected@xdef expansion with frozen structure tokens.
-%
 \newif\ifthmenvcapture@expandok
 \def\thmenvcapture@bodystr{}%
 
@@ -72,7 +60,6 @@ def _insert_thmenvcapture_sty(
   \thmenvcapture@expandoktrue
   \begingroup
     \edef\thmenvcapture@bodystr{\detokenize{#1}}%
-    % Heuristic "unsafe" markers (conservative by design)
     \in@{\\begin}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@expandokfalse\fi
     \in@{\\end}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@expandokfalse\fi
     \in@{\\item}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@expandokfalse\fi
@@ -93,25 +80,20 @@ def _insert_thmenvcapture_sty(
 }
 
 \newcommand\thmenvcapture@maybeexpandbody[2]{%
-  % Fallback first: guarantees body is never empty
   \def#1{#2}%
-  % Decide whether to attempt expansion
   \thmenvcapture@checkunsafe{#2}%
   \ifthmenvcapture@expandok
     \begingroup
-      % Freeze common structure tokens so xdef doesn't try to "run" them
       \def\begin{\noexpand\begin}%
       \def\end{\noexpand\end}%
       \def\item{\noexpand\item}%
       \def\par{\noexpand\par}%
-      % Neutralize common side-effect macros during forced expansion
       \let\label\@gobble
       \let\write\@gobbletwo
       \let\message\@gobble
       \let\typeout\@gobble
       \let\footnote\@gobble
       \let\marginpar\@gobble
-      % Respect robust/protected macros
       \protected@xdef#1{#2}%
     \endgroup
   \fi
@@ -123,6 +105,9 @@ def _insert_thmenvcapture_sty(
     wrapper_blocks: list[str] = []
 
     for env, title in envs_to_titles.items():
+        # Header number macro is \the<env> (e.g. \thethm).
+        the_macro = "\\the" + env
+
         block = (
             "% Wrapper for environment: " + env + " (" + title + ")\n"
             "\\newcommand\\thmenvcapture@wrap" + env + "{%\n"
@@ -134,15 +119,17 @@ def _insert_thmenvcapture_sty(
             "      \\thmenvcapture@withlabelhook{\\BODY}%\n"
             "    \\thmenvcapture@endorig@" + env + "\n"
             "    \\begingroup\n"
-            "      \\protected@edef\\LoggedName{##1}%\n"
-            "      \\protected@edef\\LoggedHeader{" + title + " \\the" + env + "%\n"
-            "        \\ifdefempty{\\LoggedName}{}{ (\\LoggedName)}}%\n"
+            "      \\let\\protect\\relax\n"
+            "      \\edef\\LoggedName{\\detokenize\\expandafter{\\unexpanded\\expandafter{##1}}}%\n"
+            "      \\protected@edef\\LoggedNumber{" + the_macro + "}%\n"
+            "      \\edef\\LoggedHeader{" + title + " \\LoggedNumber}%\n"
+            "      \\ifdefempty{\\LoggedName}{}{\\edef\\LoggedHeader{\\LoggedHeader (\\LoggedName)}}%\n"
             "      \\edef\\LoggedLabel{\\thmenvcapture@lastlabel}%\n"
             "      \\thmenvcapture@maybeexpandbody\\LoggedBody{\\BODY}%\n"
             "      \\thmenvcapture@log{" + env + "}{\\LoggedHeader}{\\LoggedLabel}{\\LoggedBody}%\n"
             "    \\endgroup\n"
             "  }%\n"
-            "}\n\n"
+            "}%\n\n"
         )
         wrapper_blocks.append(block)
 
@@ -167,6 +154,7 @@ def _insert_thmenvcapture_sty(
         f.write(sty_text)
 
     return sty_path
+
 
 def inject_thmenvcapture(
     tex_path: str,

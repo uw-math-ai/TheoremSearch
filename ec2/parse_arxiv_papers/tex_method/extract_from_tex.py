@@ -16,7 +16,7 @@ def _read_tex(tex_path: str) -> str:
         except UnicodeDecodeError:
             return tf_raw.decode("latin-1", errors="replace")
 
-def _extract_envs_to_titles_from_tex(tex_path: str, theorem_titles: List[str]) -> Dict[str, str]:
+def _extract_envs_to_titles_from_tex(tex_path: str) -> Dict[str, str]:
     tex = _read_tex(tex_path)
 
     envs_to_titles = {}
@@ -24,8 +24,7 @@ def _extract_envs_to_titles_from_tex(tex_path: str, theorem_titles: List[str]) -
     def add_match(m):
         env = m.group("env").strip().replace("*", "")
         title = m.group("title").strip()
-        if title in theorem_titles:
-            envs_to_titles[env] = title
+        envs_to_titles[env] = title
 
     for m in NEWTHEOREM_RE.finditer(tex):
         add_match(m)
@@ -39,12 +38,7 @@ def _extract_envs_to_titles_from_tex(tex_path: str, theorem_titles: List[str]) -
 
     return envs_to_titles
 
-def extract_envs_to_titles(src_dir: str, theorem_types: Set[str]):
-    envs_to_titles = {
-        title: title.capitalize()
-        for title in theorem_types
-    }
-
+def extract_envs_to_titles(src_dir: str):
     for src_file_name in os.listdir(src_dir):
         src_file_path = os.path.join(src_dir, src_file_name)
 
