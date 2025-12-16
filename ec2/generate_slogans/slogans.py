@@ -178,11 +178,9 @@ if __name__ == "__main__":
     "- Do NOT include any introductory phrases, explanations, or meta-commentary.",
     "- Do NOT say what you are doing (e.g. 'I will...', 'Here is...', 'Based on the text...').",
     "- Do NOT refer to 'the theorem', 'the proposition', 'the lemma', 'this result', or 'this statement'.",
-    "- Do NOT use phrases like 'Based on the provided text', 'here is an accurate summary', etc.",
-    "If you are unsure, still produce your best guess of the summary, but FOLLOW ALL THE OUTPUT CONSTRAINTS.",
-    "Your response will be automatically post-processed. Any text that is not part of the summary content will be treated as an error.",
-    "Therefore, do not include any extra words, labels, headings, or explanations."
+    "- Do NOT use phrases like 'Based on the provided text', 'here is an accurate summary', etc."
     ]
+    prompt = " ".join(prompt)
     df = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
     df = df[df["body"].notnull()]
     queries = list(zip(df['paper_id'], df["body"], df["theorem"]))
@@ -199,7 +197,6 @@ if __name__ == "__main__":
                 x = json.load(f)
                 thm["first_section"] = x["first_section"]
 
-            prompt = " ".join(prompt)
             a, b, c = _generate_theorem_slogan(
                 prompt,
                 thm,
