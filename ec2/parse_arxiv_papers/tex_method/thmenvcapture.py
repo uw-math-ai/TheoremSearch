@@ -1,5 +1,7 @@
 import os
 
+import os
+
 def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
@@ -10,6 +12,7 @@ def _insert_thmenvcapture_sty(
 
 \RequirePackage{environ}
 \RequirePackage{etoolbox}
+\RequirePackage{xparse}
 
 \newwrite\envlog
 \immediate\openout\envlog=thm-env-capture.log
@@ -42,6 +45,53 @@ def _insert_thmenvcapture_sty(
   \endgroup
 }
 
+% --------------------------------------------------------------------
+% Map theorem-like env -> underlying counter name by hooking \newtheorem
+% --------------------------------------------------------------------
+\def\thmenvcapture@setcounter#1#2{%
+  \expandafter\gdef\csname thmenvcapture@ctr@#1\endcsname{#2}%
+}
+\def\thmenvcapture@setunnumbered#1{%
+  \expandafter\gdef\csname thmenvcapture@ctr@#1\endcsname{*}%
+}
+\def\thmenvcapture@getcounter#1{%
+  \@ifundefined{thmenvcapture@ctr@#1}{#1}{\csname thmenvcapture@ctr@#1\endcsname}%
+}
+
+\let\thmenvcapture@orig@newtheorem\newtheorem
+\expandafter\let\csname thmenvcapture@orig@newtheorem*\endcsname\csname newtheorem*\endcsname
+
+% Wrap \newtheorem: {env}[shared]{Title}[within]
+\RenewDocumentCommand{\newtheorem}{m o m o}{%
+  \IfNoValueTF{#2}{%
+    \thmenvcapture@setcounter{#1}{#1}%
+  }{%
+    \thmenvcapture@setcounter{#1}{#2}%
+  }%
+  \IfNoValueTF{#2}{%
+    \IfNoValueTF{#4}{%
+      \thmenvcapture@orig@newtheorem{#1}{#3}%
+    }{%
+      \thmenvcapture@orig@newtheorem{#1}{#3}[#4]%
+    }%
+  }{%
+    \IfNoValueTF{#4}{%
+      \thmenvcapture@orig@newtheorem{#1}[#2]{#3}%
+    }{%
+      \thmenvcapture@orig@newtheorem{#1}[#2]{#3}[#4]%
+    }%
+  }%
+}
+
+% Wrap \newtheorem*: {env}{Title} (unnumbered)
+\RenewDocumentCommand{\newtheorem*}{m m}{%
+  \thmenvcapture@setunnumbered{#1}%
+  \csname thmenvcapture@orig@newtheorem*\endcsname{#1}{#2}%
+}
+
+% --------------------------------------------------------------------
+% Body expansion safety machinery (unchanged)
+% --------------------------------------------------------------------
 \newif\ifthmenvcapture@expandok
 \def\thmenvcapture@bodystr{}%
 
@@ -164,8 +214,13 @@ def _insert_thmenvcapture_sty(
             "      }{%\n"
             "        \\thmenvcapture@orig@" + env + "[##1]%\n"
             "      }%\n"
-            "      % Capture the number LaTeX actually assigned (label value)\n"
-            "      \\edef\\LoggedNumber{\\@currentlabel}%\n"
+            "      \\edef\\thmenvcapture@ctrname{\\thmenvcapture@getcounter{" + env + "}}%\n"
+            "      \\edef\\LoggedNumber{%\n"
+            "        \\ifx\\thmenvcapture@ctrname\\@empty\\@empty\\else\n"
+            "        \\ifx\\thmenvcapture@ctrname*\\@empty\\else\n"
+            "          \\csname the\\thmenvcapture@ctrname\\endcsname\n"
+            "        \\fi\\fi\n"
+            "      }%\n"
             "      \\thmenvcapture@withlabelhook{\\BODY}%\n"
             "      \\thmenvcapture@endorig@" + env + "\n"
             "      \\begingroup\n"
