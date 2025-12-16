@@ -14,6 +14,7 @@ from .slogans import generate_theorem_slogans
 import boto3
 from tqdm import tqdm
 from .models import MODELS
+from langfuse import get_client
 
 def generate_slogans(
     model_name: str,
@@ -28,6 +29,7 @@ def generate_slogans(
     verbose: bool
 ):
     conn = get_rds_connection()
+    langfuse = get_client()
 
     model = MODELS[model_name]
 
@@ -132,12 +134,14 @@ def generate_slogans(
 
             slogans = generate_theorem_slogans(
                 brc,
+                langfuse,
                 theorem_contexts,
                 instructions=prompt["instructions"],
                 temperature=prompt["temperature"],
                 model=model,
                 pbar=pbar,
                 max_workers=workers,
+                max_retries=4,
                 verbose=verbose
             )
             
@@ -172,7 +176,7 @@ if __name__ == "__main__":
         "--model",
         type=str,
         required=True,
-        help="Model (from LiteLLM) used to generate slogans"
+        help="Model (from AWS Bedrock) used to generate slogans. Must be in MODELS"
     )
 
     parser.add_argument(
