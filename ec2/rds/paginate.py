@@ -9,11 +9,14 @@ def paginate_query(
     order_by: str,
     page_size: int = 100,
     descending: bool = False,
+    skip: int = 0
 ) -> Iterator[List[Dict[str, Any]]]:
     after_value = None
     order_ident = sql.Identifier(order_by)
     direction = sql.SQL(" DESC") if descending else sql.SQL(" ASC")
     cmp_op = sql.SQL("<") if descending else sql.SQL(">")
+
+    first_page = True
 
     while True:
         parts = [
@@ -38,9 +41,14 @@ def paginate_query(
         parts += [
             sql.SQL(" ORDER BY "),
             order_ident,
-            direction,
-            sql.SQL(" LIMIT %s")
+            direction
         ]
+
+        if first_page and skip > 0:
+            parts += [sql.SQL(" OFFSET %s")]
+            params.append(skip)
+
+        parts += [sql.SQL(" LIMIT %s")]
         params.append(page_size)
 
         query = sql.Composed(parts)
@@ -57,3 +65,4 @@ def paginate_query(
         yield rows
 
         after_value = rows[-1][order_by]
+        first_page = False

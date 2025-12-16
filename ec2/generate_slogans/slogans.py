@@ -1,60 +1,118 @@
-from litellm import completion, completion_cost
-import litellm
-import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from tqdm import tqdm
-from cost import format_USD
+import dotenv
+import pandas as pd
+from typing import Dict, List
+from .cost import format_USD
+import json
+import time
+from langfuse import Langfuse
+from botocore.client import BaseClient
+from .models import MODELS
 
 def _generate_theorem_slogan(
-    instructions: str,
-    theorem_context: dict,
-    model: str,
-    i: int
+    brc: BaseClient,
+    langfuse: Langfuse,
+    prompt: Dict,
+    theorem_context: Dict,
+    model_name: str,
+    i: int,
+    verbose: bool
 ) -> tuple[int, str, float]:
-    theorem_context = theorem_context.copy()
-    if "theorem_id" in theorem_context:
-        del theorem_context["theorem_id"]
+    model = MODELS[model_name]
 
     cost = 0
+    start_time = time.time()
 
-    try:
-        theorem_context_str = json.dumps(theorem_context)
+    prompt_id = prompt["prompt_id"]
+    instructions = prompt["instructions"]
+    temperature = prompt["temperature"]
 
-        messages = [
-            {
-                "role": "user",
-                "content": instructions
-            },
-            {
-                "role": "user",
-                "content": theorem_context_str
-            }
-        ]
+    theorem_context = theorem_context.copy()
+    theorem_id = theorem_context.pop("theorem_id", None)
 
-        # api key check your name
-        with open("deepseek.txt", 'r') as k:
-            api_key = k.read()
+    with langfuse.start_as_current_observation(
+        as_type="span",
+        name="generate_theorem_slogan",
+        input={
+            "instructions": instructions,
+            "theorem_context": theorem_context,
+        },
+        metadata={
+            "theorem_id": theorem_id,
+            "prompt_id": prompt_id,
+            "model": model_name
+        },
+    ) as root_span:
+        try:
+            theorem_context_str = json.dumps(theorem_context)
 
-        res = completion(
-            model=model,
-            messages=messages,
-            api_key=api_key
-        )
+            messages = [
+                {"role": "user", "content": instructions},
+                {"role": "user", "content": theorem_context_str},
+            ]
+            payload = {"messages": messages, "max_tokens": 1024, "temperature": temperature}
 
-        slogan = res.choices[0].message["content"]
+            with langfuse.start_as_current_observation(
+                as_type="generation",
+                name="aws_bedrock_completion",
+                model=model_name,
+                input=messages,
+                model_parameters={"temperature": temperature, "max_tokens": 1024},
+            ) as gen:
+                res = brc.invoke_model(
+                    modelId=model["model_id"],
+                    body=json.dumps(payload),
+                    accept="application/json",
+                    contentType="application/json",
+                )
 
-        cost += completion_cost(res)
+                body = json.loads(res["body"].read())
+                headers = res["ResponseMetadata"]["HTTPHeaders"]
 
-        return i, slogan, cost 
-    except Exception as e:
-        return i, None, cost
+                slogan = body["choices"][0]["message"]["content"]
+                if slogan is not None:
+                    slogan = slogan.strip()
+
+                input_tokens = int(headers["x-amzn-bedrock-input-token-count"])
+                output_tokens = int(headers["x-amzn-bedrock-output-token-count"])
+                cost = (
+                    input_tokens * model["input_token_cost"]
+                    + output_tokens * model["output_token_cost"]
+                )
+
+                gen.update(
+                    output=slogan,
+                    usage_details={
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "total_tokens": input_tokens + output_tokens,
+                    },
+                    metadata={
+                        "cost_usd": cost,
+                        "latency_s": time.time() - start_time,
+                    },
+                )
+
+            root_span.update(output={"slogan": slogan})
+            return i, slogan, cost
+
+        except Exception as e:
+            if verbose:
+                print(f"[LLM ERROR] {e}")
+
+            root_span.update(metadata={"error": str(e)})
+            return i, None, 0
 
 def generate_theorem_slogans(
-    theorem_contexts: list[dict],
-    instructions: str,
-    model: str,
-    max_workers=16,
-    max_retries=4
+    brc: BaseClient, 
+    langfuse: Langfuse,
+    theorem_contexts: List[dict],
+    prompt: Dict,
+    model_name: str,
+    pbar,
+    max_workers: int,
+    max_retries: int,
+    verbose: bool
 ) -> list[str | None]:
     slogans = [None for _ in theorem_contexts]
     retries = 0
@@ -62,13 +120,25 @@ def generate_theorem_slogans(
     total_cost = 0
     slogans_generated = 0
 
-    with ThreadPoolExecutor(max_workers) as ex, tqdm(total=len(theorem_contexts)) as pbar:
+    with ThreadPoolExecutor(max_workers) as ex:
         while None in slogans:
             if retries > max_retries:
+                if verbose:
+                    print(f"[MAX RETRIES REACHED] Used all {max_retries}")
+
                 break
 
             futs = {
-                ex.submit(_generate_theorem_slogan, instructions, theorem_context, model, i)
+                ex.submit(
+                    _generate_theorem_slogan, 
+                    brc, 
+                    langfuse, 
+                    prompt, 
+                    theorem_context, 
+                    model_name, 
+                    i, 
+                    verbose
+                )
                 for i, theorem_context in enumerate(theorem_contexts)
                 if slogans[i] is None
             }
@@ -88,12 +158,12 @@ def generate_theorem_slogans(
 
             retries += 1
 
+    langfuse.flush()
+
     return slogans
 
-    
 if __name__ == "__main__":
-    import json
-    import pandas as pd
+    dotenv.load_dotenv()
     prompt = [
     "You summarize math theorems based on theorem_body.",
     "You are summarizing the LAST theorem mentioned in theorem_body.",

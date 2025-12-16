@@ -5,14 +5,19 @@ and uploads them to the 'theorem_slogan' table in the RDS.
 
 from ..rds.connect import get_rds_connection
 from ..rds.upsert import upsert_rows
+from ..rds.query import build_query
 import argparse
 from ..rds.paginate import paginate_query
 import os
 import json
 from .slogans import generate_theorem_slogans
+import boto3
+from tqdm import tqdm
+from .models import MODELS
+from langfuse import get_client
 
 def generate_slogans(
-    model: str,
+    model_name: str,
     prompt_id: str,
     paper_ids: list[str],
     authors: list[str],
@@ -20,9 +25,14 @@ def generate_slogans(
     in_journal: bool,
     overwrite: bool,
     page_size: int,
-    workers: int
+    workers: int,
+    verbose: bool
 ):
+    if model_name not in MODELS:
+        raise ValueError("model_name must exist in MODELS")
+
     conn = get_rds_connection()
+    langfuse = get_client()
 
     current_dir = os.path.dirname(__file__)
     path_to_prompt = os.path.join(
@@ -39,99 +49,123 @@ def generate_slogans(
 
     select_cols = ", ".join(set(["theorem.theorem_id", *prompt["context"]]))
 
-    base_sql = f"""
-        SELECT {select_cols}
-        FROM theorem
-        INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
-    """
-    count_sql = f"""
+    query, params = build_query(
+        base_query=f"""
+            SELECT {select_cols}
+            FROM theorem
+            INNER JOIN paper
+                ON theorem.paper_id = paper.paper_id
+        """,
+        where_clauses=[
+            {
+                "if": not overwrite,
+                "condition": """
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM theorem_slogan AS ts
+                        WHERE ts.theorem_id = theorem.theorem_id
+                            AND ts.model = %s
+                            AND ts.prompt_id = %s
+                    )
+                """,
+                "params": [model_name, prompt_id]
+            },
+            {
+                "if": paper_ids,
+                "condition": "paper.paper_id LIKE ANY(%s)",
+                "param": ['%' + paper_id + '%' for paper_id in paper_ids]
+            },
+            {
+                "if": authors,
+                "condition": "paper.authors && %s",
+                "param": authors
+            },
+            {
+                "if": min_citations >= 0,
+                "condition": "paper.citations >= %s",
+                "param": min_citations
+            },
+            {
+                "if": in_journal,
+                "condition": "paper.journal_ref IS NOT NULL"
+            }
+        ]
+    )
+
+    count_query = f"""
         SELECT COUNT(*)
-        FROM theorem
-        INNER JOIN paper
-        ON theorem.paper_id = paper.paper_id
+        FROM ({query}) AS q
     """
-
-    where_conditions = []
-    base_params = []
-
-    if not overwrite:
-        where_conditions.append("""
-            NOT EXISTS (
-                SELECT 1
-                FROM theorem_slogan AS ts
-                WHERE ts.theorem_id = theorem.theorem_id
-                    AND ts.model = %s
-                    AND ts.prompt_id = %s
-            )
-        """)
-        base_params.append(model)
-        base_params.append(prompt_id)
-
-    if paper_ids:
-        where_conditions.append("paper.paper_id LIKE ANY(%s)")
-        base_params.append(['%' + paper_id + '%' for paper_id in paper_ids])
-
-    if authors:
-        where_conditions.append("paper.authors && %s")
-        base_params.append(authors)
-
-    if min_citations >= 0:
-        where_conditions.append("paper.citations >= %s")
-        base_params.append(min_citations)
-
-    if in_journal:
-        where_conditions.append("paper.journal_ref IS NOT NULL")
-
-    if where_conditions:
-        base_sql += " WHERE " + " AND ".join(where_conditions)
-        count_sql += " WHERE " + " AND ".join(where_conditions)
 
     with conn.cursor() as cur:
-        cur.execute(count_sql, (*base_params,))
-        n_results = cur.fetchone()[0]
+        cur.execute(count_query, (*params,))
+        count = cur.fetchone()[0]
 
-    print(f"=== Generating slogans for {n_results} theorems (Model: {model}, Prompt: {prompt_id}) ===")
+    script_announcement = f"=== Generating slogans for {count} theorems ==="
+    print(script_announcement)
+    print(f"  > model: {model_name}")
+    print(f"  > prompt id: {prompt_id}")
+    if paper_ids:
+        print(f"  > paper ids: {paper_ids}")
+    if authors:
+        print(f"  > authors: {authors}")
+    if min_citations is not None:
+        print(f"  > citations: >= {min_citations}")
+    if in_journal:
+        print(f"  > in journal: True")
+    print(f"  > overwrite: {overwrite}")
+    print(f"  > page size: {page_size}")
+    print(f"  > workers: {workers}")
+    print("=" * len(script_announcement))
+
     n_theorems = 0
 
-    for page, theorem_contexts in enumerate(paginate_query(
-        conn,
-        base_sql=base_sql,
-        base_params=(*base_params,),
-        order_by="theorem_id",
-        descending=False,
-        page_size=page_size
-    )):
-        n_theorems += len(theorem_contexts)
-        print(f"[Page {1 + page}] {n_theorems}/{n_results}")
+    brc = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
 
-        slogans = generate_theorem_slogans(
-            theorem_contexts,
-            instructions=prompt["instructions"],
-            model=model,
-            max_workers=workers
-        )
-        
-        with conn.cursor() as cur:
-            upsert_rows(
-                cur,
-                table="theorem_slogan",
-                rows=[
-                    {
-                        "theorem_id": theorem_context["theorem_id"],
-                        "model": model,
-                        "prompt_id": prompt_id,
-                        "slogan": slogan
-                    }
-                    for slogan, theorem_context in zip(slogans, theorem_contexts)
-                ],
-                on_conflict={
-                    "with": ["theorem_id", "model", "prompt_id"],
-                    "replace": ["slogan"]
-                }
+    with tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
+        for theorem_contexts in paginate_query(
+            conn,
+            base_sql=query,
+            base_params=(*params,),
+            order_by="theorem_id",
+            descending=False,
+            page_size=page_size
+        ):
+            n_theorems += len(theorem_contexts)
+
+            slogans = generate_theorem_slogans(
+                brc,
+                langfuse,
+                theorem_contexts,
+                prompt=prompt,
+                model_name=model_name,
+                pbar=pbar,
+                max_workers=workers,
+                max_retries=4,
+                verbose=verbose
             )
+            
+            with conn.cursor() as cur:
+                upsert_rows(
+                    cur,
+                    table="theorem_slogan",
+                    rows=[
+                        {
+                            "theorem_id": theorem_context["theorem_id"],
+                            "model": model_name,
+                            "prompt_id": prompt_id,
+                            "slogan": slogan
+                        }
+                        for slogan, theorem_context in zip(slogans, theorem_contexts)
+                        if slogan is not None
+                    ],
+                    on_conflict={
+                        "with": ["theorem_id", "model", "prompt_id"],
+                        "replace": ["slogan"]
+                    }
+                )
 
-        conn.commit()
+            conn.commit()
 
     conn.close()
 
@@ -142,7 +176,7 @@ if __name__ == "__main__":
         "--model",
         type=str,
         required=True,
-        help="Model (from LiteLLM) used to generate slogans"
+        help="Model (from AWS Bedrock) used to generate slogans. Must be in MODELS"
     )
 
     parser.add_argument(
@@ -207,10 +241,17 @@ if __name__ == "__main__":
         help="Maximum number of workers to slogan-ify a page of theorems"
     )
 
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Whether to print out error statements"
+    )
+
     args = parser.parse_args()
 
     generate_slogans(
-        model=args.model,
+        model_name=args.model,
         prompt_id=args.prompt_id,
         paper_ids=args.paper_ids,
         authors=args.authors,
@@ -218,5 +259,6 @@ if __name__ == "__main__":
         in_journal=args.in_journal,
         overwrite=args.overwrite,
         page_size=args.page_size,
-        workers=args.workers
+        workers=args.workers,
+        verbose=args.verbose
     )
