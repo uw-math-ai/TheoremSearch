@@ -7,19 +7,25 @@ import json
 import time
 from langfuse import Langfuse
 from botocore.client import BaseClient
+from .models import MODELS
 
 def _generate_theorem_slogan(
     brc: BaseClient,
     langfuse: Langfuse,
-    instructions: str,
-    temperature: float,
-    theorem_context: dict,
-    model: Dict,
+    prompt: Dict,
+    theorem_context: Dict,
+    model_name: str,
     i: int,
     verbose: bool
 ) -> tuple[int, str, float]:
+    model = MODELS[model_name]
+
     cost = 0
     start_time = time.time()
+
+    prompt_id = prompt["prompt_id"]
+    instructions = prompt["instructions"]
+    temperature = prompt["temperature"]
 
     theorem_context = theorem_context.copy()
     theorem_id = theorem_context.pop("theorem_id", None)
@@ -33,8 +39,8 @@ def _generate_theorem_slogan(
         },
         metadata={
             "theorem_id": theorem_id,
-            "model_id": model["model_id"],
-            "temperature": temperature,
+            "prompt_id": prompt_id,
+            "model": model_name
         },
     ) as root_span:
         try:
@@ -49,7 +55,7 @@ def _generate_theorem_slogan(
             with langfuse.start_as_current_observation(
                 as_type="generation",
                 name="aws_bedrock_completion",
-                model=model["model_id"],
+                model=model_name,
                 input=messages,
                 model_parameters={"temperature": temperature, "max_tokens": 1024},
             ) as gen:
@@ -101,9 +107,8 @@ def generate_theorem_slogans(
     brc: BaseClient, 
     langfuse: Langfuse,
     theorem_contexts: List[dict],
-    instructions: str,
-    temperature: float,
-    model: Dict,
+    prompt: Dict,
+    model_name: str,
     pbar,
     max_workers: int,
     max_retries: int,
@@ -128,10 +133,9 @@ def generate_theorem_slogans(
                     _generate_theorem_slogan, 
                     brc, 
                     langfuse, 
-                    instructions, 
-                    temperature, 
+                    prompt, 
                     theorem_context, 
-                    model, 
+                    model_name, 
                     i, 
                     verbose
                 )

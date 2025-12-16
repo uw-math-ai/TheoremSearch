@@ -28,10 +28,11 @@ def generate_slogans(
     workers: int,
     verbose: bool
 ):
+    if model_name not in MODELS:
+        raise ValueError("model_name must exist in MODELS")
+
     conn = get_rds_connection()
     langfuse = get_client()
-
-    model = MODELS[model_name]
 
     current_dir = os.path.dirname(__file__)
     path_to_prompt = os.path.join(
@@ -136,9 +137,8 @@ def generate_slogans(
                 brc,
                 langfuse,
                 theorem_contexts,
-                instructions=prompt["instructions"],
-                temperature=prompt["temperature"],
-                model=model,
+                prompt=prompt,
+                model_name=model_name,
                 pbar=pbar,
                 max_workers=workers,
                 max_retries=4,
