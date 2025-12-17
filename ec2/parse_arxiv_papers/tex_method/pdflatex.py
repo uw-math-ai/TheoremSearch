@@ -80,9 +80,8 @@ def run_pdflatex(
             "pdflatex",
             "-draftmode",
             "-interaction=nonstopmode",
-            "-halt-on-error",
-            "-file-line-error",
             "-recorder",
+            "-file-line-error",
             main_tex_name
         ]
         proc = subprocess.run(
