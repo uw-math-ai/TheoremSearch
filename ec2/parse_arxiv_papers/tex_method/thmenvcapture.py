@@ -4,6 +4,8 @@ def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
+    import os
+
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{thmenvcapture}[2025/12/16 Theorem Environment Capturer]
@@ -61,17 +63,12 @@ def _insert_thmenvcapture_sty(
 \let\thmenvcapture@orig@newtheorem\newtheorem
 
 % Wrap \newtheorem with leading optional star:
-%   \newtheorem{env}{Title}
-%   \newtheorem{env}[shared]{Title}
-%   \newtheorem{env}{Title}[within]
-%   \newtheorem{env}[shared]{Title}[within]
-%   \newtheorem*{env}{Title}
 \RenewDocumentCommand{\newtheorem}{s m o m o}{%
   \IfBooleanTF{#1}{%
     % Starred: unnumbered
     \thmenvcapture@setunnumbered{#2}%
     \thmenvcapture@orig@newtheorem*{#2}{#4}%
-    % NEW: wrap immediately after definition (works even if defined after \begin{document})
+    % wrap immediately after definition
     \@ifundefined{thmenvcapture@wrap#2}{}{%
       \csname thmenvcapture@wrap#2\endcsname
     }%
@@ -96,7 +93,7 @@ def _insert_thmenvcapture_sty(
         \thmenvcapture@orig@newtheorem{#2}[#3]{#4}[#5]%
       }%
     }%
-    % NEW: wrap immediately after definition
+    % wrap immediately after definition
     \@ifundefined{thmenvcapture@wrap#2}{}{%
       \csname thmenvcapture@wrap#2\endcsname
     }%
@@ -249,6 +246,17 @@ def _insert_thmenvcapture_sty(
 
     wrappers = "".join(wrapper_blocks)
 
+    disable_lines: list[str] = ["\\newcommand\\thmenvcapture@disablewrappers{%\n"]
+    for env in envs_to_titles:
+        disable_lines.append(
+            "  \\@ifundefined{thmenvcapture@orig@" + env + "}{}{%\n"
+            "    \\let\\" + env + "\\thmenvcapture@orig@" + env + "\n"
+            "    \\let\\end" + env + "\\thmenvcapture@endorig@" + env + "\n"
+            "  }%\n"
+        )
+    disable_lines.append("}%\n")
+    disable_block = "".join(disable_lines)
+
     at_begin_lines: list[str] = ["\\AtBeginDocument{%\n"]
     for env in envs_to_titles:
         at_begin_lines.append(
@@ -259,9 +267,38 @@ def _insert_thmenvcapture_sty(
     at_begin_lines.append("}%\n")
     at_begin = "".join(at_begin_lines)
 
+    # ---- Guards: environments inside which we temporarily disable wrappers ----
+    guard_envs = [
+        # thmtools/thm-restate style
+        "restatable",
+        "restatable*",
+        "restate",
+        "restate*",
+        # common “collect + replay” wrappers seen in the wild
+        "thmrestate",
+        "thmrestate*",
+        "repeatthm",
+        "repeatthm*",
+        "repeatedthm",
+        "repeatedthm*",
+        # some authors name these manually
+        "namedtheorem",
+        "namedtheorem*",
+    ]
+
+    guard_lines: list[str] = []
+    for g in guard_envs:
+        guard_lines.append(
+            "\\@ifundefined{" + g + "}{}{%\n"
+            "  \\AtBeginEnvironment{" + g + "}{\\begingroup\\thmenvcapture@disablewrappers}\n"
+            "  \\AtEndEnvironment{" + g + "}{\\endgroup}\n"
+            "}\n"
+        )
+    guards = "".join(guard_lines)
+
     footer = "\n\\makeatother\n\\endinput\n"
 
-    sty_text = header + wrappers + at_begin + footer
+    sty_text = header + wrappers + disable_block + at_begin + guards + footer
     sty_path = os.path.join(src_dir, "thmenvcapture.sty")
 
     with open(sty_path, "w", encoding="utf-8") as f:
