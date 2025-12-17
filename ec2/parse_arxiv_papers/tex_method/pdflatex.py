@@ -51,6 +51,7 @@ def run_pdflatex(
     main_tex_name: str,
     cwd: str,
     timeout: int,
+    debugging_mode: bool,
     missing_pkgs: List[str] = None
 ) -> str:
     if missing_pkgs is None:
@@ -84,6 +85,9 @@ def run_pdflatex(
                 new_missing_pkgs.append(pkg)
 
     if new_missing_pkgs:
+        if debugging_mode:
+            print("missing_pkgs:", new_missing_pkgs)
+
         return run_pdflatex(
             main_tex_name,
             cwd,

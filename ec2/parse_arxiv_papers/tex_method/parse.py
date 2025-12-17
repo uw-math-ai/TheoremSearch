@@ -37,7 +37,7 @@ def parse_by_tex(
     if os.path.exists(theorem_log_path):
         os.remove(theorem_log_path)
 
-    run_pdflatex(main_tex_name, cwd=src_dir, timeout=timeout)
+    run_pdflatex(main_tex_name, cwd=src_dir, timeout=timeout, debugging_mode=debugging_mode)
 
     if not os.path.exists(theorem_log_path):
         raise FileNotFoundError("thm-env-capture.log was not created")
