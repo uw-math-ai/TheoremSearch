@@ -1,19 +1,14 @@
 import re
 
-NEWTHEOREM_RE = re.compile(
-    r"""
-    \\newtheorem          # \newtheorem
-    \*?                   # optional star
-    \s*
-    (?:<[^>]*>)?          # optional beamer overlay: <...>
-    \s*
-    \{(?P<env>[^\}]+)\}   # {environment-name}
-    (?:\[[^\]]*\])?       # optional [like-this]
-    \s*
-    \{(?P<title>[^\}]+)\} # {Theorem}
-    """,
-    re.VERBOSE
-)
+NEWTHEOREM_RE = re.compile(r"""
+\\newtheorem
+\*?\s*
+(?:<[^>]*>)?\s*
+\{(?P<env>[^\}]+)\}
+(?:\[[^\]]*\])?\s*          # optional [shared-counter] after env
+\{(?P<title>[^\}]+)\}
+(?:\[[^\]]*\])?             # optional [within] after title   <-- NEW
+""", re.VERBOSE)
 
 DECLARETHEOREM_RE = re.compile(
     r"""
@@ -63,7 +58,7 @@ DOC_CLASS_RE = re.compile(r"^[^%]*\\documentclass(\[.*?\])?\{.*?\}", re.MULTILIN
 INPUT_RE = re.compile(r"^[^%]*\\(input|include|subfile)\{([^}]+)\}", re.MULTILINE)
 
 SECTION_LIKE_RE = re.compile(r"\\(section|subsection|subsubsection)\b")
-THEOREM_ENV_RE = re.compile(r"\\begin\{(theorem|lemma|proposition|corollary|remark)\}")
+THEOREM_ENV_RE = re.compile(r"\\begin\{(theorem|lemma|proposition|corollary)\}")
 CITE_RE = re.compile(r"\\cite[tp]?\{")
 
 LABEL_RE = re.compile(r"\\label\s*\{[^}]*\}")
