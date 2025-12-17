@@ -57,7 +57,7 @@ NEWMDTHM_RE = re.compile(
 )
 
 DOC_CLASS_RE = re.compile(
-    r"^[^%]*\\documentclass(\[.*?\])?\{.*?\}",
+    r"^[ \t]*[^%\n]*\\documentclass\s*(\[[\s\S]*?\])?\s*\{[^}]*\}",
     re.MULTILINE | re.DOTALL
 )
 INPUT_RE = re.compile(r"^[^%]*\\(input|include|subfile)\{([^}]+)\}", re.MULTILINE)
