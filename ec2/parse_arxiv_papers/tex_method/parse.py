@@ -5,19 +5,32 @@ from ..main_tex import get_main_tex_path
 from .thmenvcapture import inject_thmenvcapture
 from .pdflatex import generate_dummy_biblatex, run_pdflatex
 from ..re_patterns import LABEL_RE
+import pyperclip
 
 def parse_by_tex(
     paper_id: str,
     src_dir: str,
     theorem_types: Set[str],
-    timeout: int
+    timeout: int,
+    debugging_mode: bool
 ):
     envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
+
+    if debugging_mode:
+        print("envs_to_titles:", envs_to_titles)
 
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
 
-    inject_thmenvcapture(main_tex_path, envs_to_titles, src_dir)
+    if debugging_mode:
+        print("main_tex_path:", main_tex_path)
+
+    thmenvcapture_content = inject_thmenvcapture(main_tex_path, envs_to_titles, src_dir)
+
+    if debugging_mode:
+        pyperclip.copy(thmenvcapture_content)
+        print("thmenvcapture: copied to clipboard")
+
     generate_dummy_biblatex(src_dir)
 
     theorem_log_path = os.path.join(src_dir, "thm-env-capture.log")

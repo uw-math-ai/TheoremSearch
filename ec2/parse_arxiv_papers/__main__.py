@@ -17,6 +17,7 @@ def _parse_arxiv_paper(
     parsing_method: str,
     theorem_types: List[str],
     timeout: int,
+    debugging_mode: bool,
     paper_dir: Optional[str] = None
 ):
     if not paper_dir:
@@ -27,13 +28,14 @@ def _parse_arxiv_paper(
                 parsing_method,
                 theorem_types,
                 timeout,
+                debugging_mode,
                 paper_dir=temp_paper_dir
             )
         
     src_dir = download_and_extract_paper(paper_id, paper_arxiv_s3_loc, cwd=paper_dir)
 
     if parsing_method == "tex":
-        theorems = parse_by_tex(paper_id, src_dir, theorem_types, timeout)
+        theorems = parse_by_tex(paper_id, src_dir, theorem_types, timeout, debugging_mode)
     else: # parsing_method == "regex"
         theorems = parse_by_regex(paper_id, src_dir, theorem_types, timeout)
 
@@ -144,7 +146,8 @@ def parse_arxiv_papers(
                     paper_arxiv_s3_loc, 
                     parsing_method, 
                     theorem_types,
-                    timeout
+                    timeout,
+                    debugging_mode
                 )
                 
                 futs_and_paper_ids.append((fut, paper_id))

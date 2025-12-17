@@ -1,5 +1,7 @@
 import re
 
+SAFE_ENV_RE = re.compile(r"^[A-Za-z@][A-Za-z0-9@]*$")
+
 NEWTHEOREM_RE = re.compile(r"""
 \\newtheorem
 \*?\s*

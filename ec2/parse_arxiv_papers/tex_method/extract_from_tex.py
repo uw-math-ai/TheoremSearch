@@ -1,9 +1,10 @@
-from typing import Dict, List, Set
+from typing import Dict, Set
 from ..re_patterns import (
     NEWTHEOREM_RE,
     DECLARETHEOREM_RE,
     SPNEWTHEOREM_RE,
     NEWMDTHM_RE,
+    SAFE_ENV_RE
 )
 import os
 
@@ -24,6 +25,10 @@ def _extract_envs_to_titles_from_tex(tex_path: str) -> Dict[str, str]:
     def add_match(m):
         env = m.group("env").strip().replace("*", "")
         title = m.group("title").strip()
+
+        if not SAFE_ENV_RE.match(title):
+            return
+
         envs_to_titles[env] = title
 
     for m in NEWTHEOREM_RE.finditer(tex):

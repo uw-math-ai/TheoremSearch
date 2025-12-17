@@ -1,14 +1,12 @@
 import os
 
-import os
-
 def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{thmenvcapture}[2025/12/10 Theorem Environment Capturer]
+\ProvidesPackage{thmenvcapture}[2025/12/16 Theorem Environment Capturer]
 
 \RequirePackage{environ}
 \RequirePackage{etoolbox}
@@ -20,6 +18,7 @@ def _insert_thmenvcapture_sty(
 \makeatletter
 
 \def\thmenvcapture@lastlabel{}%
+\def\thmenvcapture@star{*}%
 
 \newcommand\thmenvcapture@log[4]{%
   \begingroup
@@ -52,41 +51,56 @@ def _insert_thmenvcapture_sty(
   \expandafter\gdef\csname thmenvcapture@ctr@#1\endcsname{#2}%
 }
 \def\thmenvcapture@setunnumbered#1{%
-  \expandafter\gdef\csname thmenvcapture@ctr@#1\endcsname{*}%
+  \expandafter\gdef\csname thmenvcapture@ctr@#1\endcsname{\thmenvcapture@star}%
 }
 \def\thmenvcapture@getcounter#1{%
   \@ifundefined{thmenvcapture@ctr@#1}{#1}{\csname thmenvcapture@ctr@#1\endcsname}%
 }
 
+% Save original \newtheorem (star form is handled by the same macro in LaTeX)
 \let\thmenvcapture@orig@newtheorem\newtheorem
-\expandafter\let\csname thmenvcapture@orig@newtheorem*\endcsname\csname newtheorem*\endcsname
 
-% Wrap \newtheorem: {env}[shared]{Title}[within]
-\RenewDocumentCommand{\newtheorem}{m o m o}{%
-  \IfNoValueTF{#2}{%
-    \thmenvcapture@setcounter{#1}{#1}%
-  }{%
-    \thmenvcapture@setcounter{#1}{#2}%
-  }%
-  \IfNoValueTF{#2}{%
-    \IfNoValueTF{#4}{%
-      \thmenvcapture@orig@newtheorem{#1}{#3}%
-    }{%
-      \thmenvcapture@orig@newtheorem{#1}{#3}[#4]%
+% Wrap \newtheorem with leading optional star:
+%   \newtheorem{env}{Title}
+%   \newtheorem{env}[shared]{Title}
+%   \newtheorem{env}{Title}[within]
+%   \newtheorem{env}[shared]{Title}[within]
+%   \newtheorem*{env}{Title}
+\RenewDocumentCommand{\newtheorem}{s m o m o}{%
+  \IfBooleanTF{#1}{%
+    % Starred: unnumbered
+    \thmenvcapture@setunnumbered{#2}%
+    \thmenvcapture@orig@newtheorem*{#2}{#4}%
+    % NEW: wrap immediately after definition (works even if defined after \begin{document})
+    \@ifundefined{thmenvcapture@wrap#2}{}{%
+      \csname thmenvcapture@wrap#2\endcsname
     }%
   }{%
-    \IfNoValueTF{#4}{%
-      \thmenvcapture@orig@newtheorem{#1}[#2]{#3}%
+    % Numbered: record which counter this env uses
+    \IfNoValueTF{#3}{%
+      \thmenvcapture@setcounter{#2}{#2}%
     }{%
-      \thmenvcapture@orig@newtheorem{#1}[#2]{#3}[#4]%
+      \thmenvcapture@setcounter{#2}{#3}%
+    }%
+    % Forward to original with same structure
+    \IfNoValueTF{#3}{%
+      \IfNoValueTF{#5}{%
+        \thmenvcapture@orig@newtheorem{#2}{#4}%
+      }{%
+        \thmenvcapture@orig@newtheorem{#2}{#4}[#5]%
+      }%
+    }{%
+      \IfNoValueTF{#5}{%
+        \thmenvcapture@orig@newtheorem{#2}[#3]{#4}%
+      }{%
+        \thmenvcapture@orig@newtheorem{#2}[#3]{#4}[#5]%
+      }%
+    }%
+    % NEW: wrap immediately after definition
+    \@ifundefined{thmenvcapture@wrap#2}{}{%
+      \csname thmenvcapture@wrap#2\endcsname
     }%
   }%
-}
-
-% Wrap \newtheorem*: {env}{Title} (unnumbered)
-\RenewDocumentCommand{\newtheorem*}{m m}{%
-  \thmenvcapture@setunnumbered{#1}%
-  \csname thmenvcapture@orig@newtheorem*\endcsname{#1}{#2}%
 }
 
 % --------------------------------------------------------------------
@@ -98,7 +112,6 @@ def _insert_thmenvcapture_sty(
 \newcommand\thmenvcapture@checkunsafe[1]{%
   \thmenvcapture@expandoktrue
   \begingroup
-    % Expand once before detokenizing so we scan the real body, not "\BODY"
     \edef\thmenvcapture@bodystr{\detokenize\expandafter{#1}}%
     \in@{\\begin}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@expandokfalse\fi
     \in@{\\end}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@expandokfalse\fi
@@ -159,9 +172,7 @@ def _insert_thmenvcapture_sty(
 }
 
 \newcommand\thmenvcapture@maybeexpandbody[2]{%
-  % Fallback first: expand #2 once so passing \BODY stores the actual body tokens
   \expandafter\def\expandafter#1\expandafter{#2}%
-  % Scan the fallback content (real body) for unsafe markers
   \thmenvcapture@checkunsafe{#1}%
   \ifthmenvcapture@expandok
     \begingroup
@@ -170,7 +181,6 @@ def _insert_thmenvcapture_sty(
       \def\item{\noexpand\item}%
       \def\par{\noexpand\par}%
 
-      % Freeze common reference/cite-like commands (prevents huge expansions)
       \def\ref{\noexpand\ref}%
       \def\eqref{\noexpand\eqref}%
       \def\pageref{\noexpand\pageref}%
@@ -181,7 +191,6 @@ def _insert_thmenvcapture_sty(
       \def\url{\noexpand\url}%
       \def\hyperref{\noexpand\hyperref}%
 
-      % Neutralize side-effects during expansion
       \let\label\@gobble
       \let\write\@gobbletwo
       \let\message\@gobble
@@ -208,7 +217,6 @@ def _insert_thmenvcapture_sty(
             "  \\RenewEnviron{" + env + "}[1][]{%\n"
             "    \\global\\let\\thmenvcapture@lastlabel\\@empty\n"
             "    \\begingroup\n"
-            "      % Begin theorem with/without optional arg exactly like user wrote it\n"
             "      \\ifdefempty{##1}{%\n"
             "        \\thmenvcapture@orig@" + env + "%\n"
             "      }{%\n"
@@ -217,9 +225,10 @@ def _insert_thmenvcapture_sty(
             "      \\edef\\thmenvcapture@ctrname{\\thmenvcapture@getcounter{" + env + "}}%\n"
             "      \\edef\\LoggedNumber{%\n"
             "        \\ifx\\thmenvcapture@ctrname\\@empty\\@empty\\else\n"
-            "        \\ifx\\thmenvcapture@ctrname*\\@empty\\else\n"
-            "          \\csname the\\thmenvcapture@ctrname\\endcsname\n"
-            "        \\fi\\fi\n"
+            "          \\ifx\\thmenvcapture@ctrname\\thmenvcapture@star\\@empty\\else\n"
+            "            \\csname the\\thmenvcapture@ctrname\\endcsname\n"
+            "          \\fi\n"
+            "        \\fi\n"
             "      }%\n"
             "      \\thmenvcapture@withlabelhook{\\BODY}%\n"
             "      \\thmenvcapture@endorig@" + env + "\n"
@@ -258,14 +267,14 @@ def _insert_thmenvcapture_sty(
     with open(sty_path, "w", encoding="utf-8") as f:
         f.write(sty_text)
 
-    return sty_path
+    return sty_text
 
 def inject_thmenvcapture(
     tex_path: str,
     envs_to_titles: dict[str, str],
     src_dir: str
 ):
-    _insert_thmenvcapture_sty(envs_to_titles, src_dir)
+    thmenvcapture_content = _insert_thmenvcapture_sty(envs_to_titles, src_dir)
     
     with open(tex_path, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
@@ -281,3 +290,5 @@ def inject_thmenvcapture(
 
     with open(tex_path, "w", encoding="utf-8") as f:
         f.write(new_content)
+
+    return thmenvcapture_content
