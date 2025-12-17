@@ -51,6 +51,7 @@ def parse_arxiv_papers(
     workers: int,
     parsing_method: str,
     verbose: bool,
+    debugging_mode: bool,
     theorem_types: Set[str] = { "theorem", "lemma", "proposition", "corollary" }
 ):
     if skip < 0:
@@ -160,6 +161,9 @@ def parse_arxiv_papers(
                     if verbose:
                         print(f"[TIMEOUT] {paper_id} (> {timeout}s)")
                 except Exception as e:
+                    if debugging_mode:
+                        raise e
+
                     if verbose:
                         print(f"[FUTURE ERROR] {paper_id}: {repr(e)[:128]}{'…' if len(repr(e)) > 128 else ''}")
 
@@ -265,6 +269,12 @@ if __name__ == "__main__":
         help="Whether to print out errors"
     )
 
+    arg_parser.add_argument(
+        "-d", "--debugging-mode",
+        action="store_true",
+        help="Whether to raies errors"
+    )
+
     args = arg_parser.parse_args()
 
     parse_arxiv_papers(
@@ -278,5 +288,6 @@ if __name__ == "__main__":
         timeout=args.timeout,
         workers=args.workers,
         parsing_method=args.parsing_method,
-        verbose=args.verbose
+        verbose=args.verbose,
+        debugging_mode=args.debugging_mode
     )

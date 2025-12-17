@@ -87,6 +87,7 @@ def run_pdflatex(
         return run_pdflatex(
             main_tex_name,
             cwd,
+            timeout,
             new_missing_pkgs
         )
 
