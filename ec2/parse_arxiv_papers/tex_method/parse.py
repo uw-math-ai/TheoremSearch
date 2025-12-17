@@ -28,8 +28,11 @@ def parse_by_tex(
     thmenvcapture_content = inject_thmenvcapture(main_tex_path, envs_to_titles, src_dir)
 
     if debugging_mode:
-        pyperclip.copy(thmenvcapture_content)
-        print("thmenvcapture: copied to clipboard")
+        try:
+            pyperclip.copy(thmenvcapture_content)
+            print("thmenvcapture.sty: copied to clipboard")
+        except Exception as e:
+            print("thmenvcapture.sty: not copied to clipboard (no xclip, xselect, etc.)")
 
     generate_dummy_biblatex(src_dir)
 
