@@ -92,6 +92,7 @@ def run_pdflatex(
             main_tex_name,
             cwd,
             timeout,
+            debugging_mode,
             new_missing_pkgs
         )
 
