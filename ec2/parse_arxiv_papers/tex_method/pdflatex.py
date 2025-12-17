@@ -57,7 +57,7 @@ def run_pdflatex(
         missing_pkgs = []
 
     for pkg in missing_pkgs:
-        _generate_dummy_package(pkg, cwd, timeout)
+        _generate_dummy_package(pkg, cwd)
 
     cmd = ["pdflatex", "-interaction=nonstopmode", "-recorder", main_tex_name]
     proc = subprocess.run(
