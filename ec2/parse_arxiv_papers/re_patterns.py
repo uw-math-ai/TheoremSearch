@@ -56,7 +56,10 @@ NEWMDTHM_RE = re.compile(
     re.VERBOSE
 )
 
-DOC_CLASS_RE = re.compile(r"^[^%]*\\documentclass(\[.*?\])?\{.*?\}", re.MULTILINE)
+DOC_CLASS_RE = re.compile(
+    r"^[^%]*\\documentclass(\[.*?\])?\{.*?\}",
+    re.MULTILINE | re.DOTALL
+)
 INPUT_RE = re.compile(r"^[^%]*\\(input|include|subfile)\{([^}]+)\}", re.MULTILINE)
 
 SECTION_LIKE_RE = re.compile(r"\\(section|subsection|subsubsection)\b")
