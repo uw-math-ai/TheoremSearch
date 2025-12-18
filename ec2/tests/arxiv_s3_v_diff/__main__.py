@@ -11,20 +11,24 @@ import requests
 import os
 import filecmp
 from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 def _download_and_extract_paper_from_api(paper_id: str, cwd: str):
     url = f"https://arxiv.org/src/{paper_id}"
-    src_gz_path = src_gz_path = os.path.join(cwd, f"{paper_id.replace('/', '-')}_api.gz")
+    src_gz_path = os.path.join(cwd, f"{paper_id.replace('/', '-')}_api.gz")
     src_dir = src_gz_path.removesuffix(".gz")
 
-    with requests.get(url, stream=True) as res:
-        res.raise_for_status()
+    try:
+        with requests.get(url, stream=True) as res:
+            res.raise_for_status()
 
-        with open(src_gz_path, "wb") as src_gz_b:
-            for chunk in res.iter_content(chunk_size=8192):
-                src_gz_b.write(chunk)
+            with open(src_gz_path, "wb") as src_gz_b:
+                for chunk in res.iter_content(chunk_size=8192):
+                    src_gz_b.write(chunk)
 
-    extract_paper_src(src_gz_path, src_dir)
+        extract_paper_src(src_gz_path, src_dir)
+    except Exception as e:
+        return None
 
     return src_dir
 
@@ -43,7 +47,19 @@ def _dirs_are_equal(dir1: str, dir2: str):
             
     return True
 
-def estimate_arxiv_s3_v_diff(N: int):
+def _compare_one_paper(args):
+    paper_id, paper_s3_loc = args
+    with TemporaryDirectory() as paper_dir:
+        src_dir_s3 = download_and_extract_paper(paper_id, paper_s3_loc, paper_dir)
+        src_dir_api = _download_and_extract_paper_from_api(paper_id, paper_dir)
+
+        if src_dir_s3 and src_dir_api:
+            diff = False if _dirs_are_equal(src_dir_s3, src_dir_api) else True
+            return (1, 1 if diff else 0)
+
+    return (0, 0)
+
+def estimate_arxiv_s3_v_diff(N: int, workers: int):
     diffs = 0.0
     trials = 0
 
@@ -59,16 +75,14 @@ def estimate_arxiv_s3_v_diff(N: int):
 
         rows = cur.fetchall()
 
-    for paper_id, *paper_s3_loc in tqdm(rows, dynamic_ncols=True):
-        with TemporaryDirectory() as paper_dir:
-            src_dir_s3 = download_and_extract_paper(paper_id, paper_s3_loc, paper_dir)
-            src_dir_api = _download_and_extract_paper_from_api(paper_id, paper_dir)
+    work_items = [(paper_id, tuple(paper_s3_loc)) for paper_id, *paper_s3_loc in rows]
 
-            if src_dir_s3 and src_dir_api:
-                trials += 1
-
-                if not _dirs_are_equal(src_dir_s3, src_dir_api):
-                    diffs += 1.0
+    with ProcessPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(_compare_one_paper, item) for item in work_items]
+        for fut in tqdm(as_completed(futures), total=len(futures), dynamic_ncols=True):
+            t, d = fut.result()
+            trials += t
+            diffs += d
 
     p_hat = diffs / trials
     std = (p_hat*(1-p_hat)/trials)**0.5
@@ -85,9 +99,19 @@ if __name__ == "__main__":
         default=1000
     )
 
+    arg_parser.add_argument(
+        "--workers",
+        type=int,
+        required=False,
+        default=4
+    )
+
     args = arg_parser.parse_args()
 
-    p_hat, std_hat, trials = estimate_arxiv_s3_v_diff(N=args.N)
+    p_hat, std_hat, trials = estimate_arxiv_s3_v_diff(
+        N=args.N,
+        workers=args.workers
+    )
 
     ci_low  = p_hat - 1.96 * std_hat
     ci_high = p_hat + 1.96 * std_hat
