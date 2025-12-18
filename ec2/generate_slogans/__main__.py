@@ -23,6 +23,7 @@ def generate_slogans(
     authors: list[str],
     min_citations: int,
     in_journal: bool,
+    sample: int,
     overwrite: bool,
     page_size: int,
     workers: int,
@@ -89,7 +90,8 @@ def generate_slogans(
                 "if": in_journal,
                 "condition": "paper.journal_ref IS NOT NULL"
             }
-        ]
+        ],
+        sample=sample
     )
 
     count_query = f"""
@@ -101,7 +103,10 @@ def generate_slogans(
         cur.execute(count_query, (*params,))
         count = cur.fetchone()[0]
 
-    script_announcement = f"=== Generating slogans for {count} theorems ==="
+    if sample == -1:
+        script_announcement = f"=== Generating slogans for {count} theorems ==="
+    elif sample > 0:
+        script_announcement = f"=== Generating a random sample of {count} theorems ==="
     print(script_announcement)
     print(f"  > model: {model_name}")
     print(f"  > prompt id: {prompt_id}")
@@ -219,6 +224,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--sample",
+        type=int,
+        required=False,
+        default=-1,
+        help="Number of theorems to randomly sample and slogan-ify"
+    )
+
+    parser.add_argument(
         "-o",
         "--overwrite",
         action="store_true",
@@ -257,6 +270,7 @@ if __name__ == "__main__":
         authors=args.authors,
         min_citations=args.min_citations,
         in_journal=args.in_journal,
+        sample=args.sample,
         overwrite=args.overwrite,
         page_size=args.page_size,
         workers=args.workers,

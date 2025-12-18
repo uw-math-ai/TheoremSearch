@@ -9,7 +9,8 @@ def _validate_where_clause(where_clause: Dict):
 def build_query(
     base_query: str,
     base_params: List = [],
-    where_clauses: List[Dict] = []
+    where_clauses: List[Dict] = [],
+    sample: int = -1
 ) -> Tuple[str, List]:
     query = base_query
     params = base_params.copy()
@@ -30,6 +31,10 @@ def build_query(
 
     if where_conditions:
         query += " WHERE " + " AND ".join(where_conditions)
+
+    if sample > 0:
+        query += " ORDER BY RANDOM() LIMIT %s"
+        params.append(sample)
 
     return query, params
 
