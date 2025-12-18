@@ -18,7 +18,7 @@ def _download_paper(
 
     bundle_tar, bytes_start, bytes_end = s3_loc
 
-    src_gz_path = os.path.join(cwd, f"{paper_id}.gz")
+    src_gz_path = os.path.join(cwd, f"{paper_id.replace('/', '-')}.gz")
 
     res = s3.get_object(
         Bucket=ARXIV_BUCKET,
@@ -35,7 +35,7 @@ def _download_paper(
 
     return src_gz_path
 
-def _extract_paper_src(src_gz_path: str, src_dir: str) -> None:
+def extract_paper_src(src_gz_path: str, src_dir: str) -> None:
     os.makedirs(src_dir, exist_ok=True)
 
     with open(src_gz_path, "rb") as f:
@@ -98,6 +98,6 @@ def download_and_extract_paper(
     src_gz_path = _download_paper(paper_id, s3_loc, cwd)
     src_dir = src_gz_path.removesuffix(".gz")
 
-    _extract_paper_src(src_gz_path, src_dir)
+    extract_paper_src(src_gz_path, src_dir)
 
     return src_dir
