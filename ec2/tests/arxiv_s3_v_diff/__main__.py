@@ -55,6 +55,10 @@ def _compare_one_paper(args):
 
         if src_dir_s3 and src_dir_api:
             diff = False if _dirs_are_equal(src_dir_s3, src_dir_api) else True
+
+            if diff:
+                print(f"[DIFF FOUND] {paper_id}")
+
             return (1, 1 if diff else 0)
 
     return (0, 0)
