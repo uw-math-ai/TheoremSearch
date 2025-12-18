@@ -10,6 +10,7 @@ from tempfile import TemporaryDirectory
 import requests
 import os
 import filecmp
+from tqdm import tqdm
 
 def _download_and_extract_paper_from_api(paper_id: str, cwd: str):
     url = f"https://arxiv.org/src/{paper_id}"
@@ -58,7 +59,7 @@ def estimate_arxiv_s3_v_diff(N: int):
 
         rows = cur.fetchall()
 
-    for paper_id, *paper_s3_loc in rows:
+    for paper_id, *paper_s3_loc in tqdm(rows, dynamic_ncols=True):
         with TemporaryDirectory() as paper_dir:
             src_dir_s3 = download_and_extract_paper(paper_id, paper_s3_loc, paper_dir)
             src_dir_api = _download_and_extract_paper_from_api(paper_id, paper_dir)
