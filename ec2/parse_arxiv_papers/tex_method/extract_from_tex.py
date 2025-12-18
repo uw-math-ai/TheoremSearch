@@ -4,8 +4,10 @@ from ..re_patterns import (
     DECLARETHEOREM_RE,
     SPNEWTHEOREM_RE,
     NEWMDTHM_RE,
-    SAFE_ENV_RE
+    SAFE_ENV_RE,
+    TITLE_CLEAN_RE
 )
+import re
 import os
 
 def _read_tex(tex_path: str) -> str:
@@ -24,7 +26,8 @@ def _extract_envs_to_titles_from_tex(tex_path: str) -> Dict[str, str]:
 
     def add_match(m):
         env = m.group("env").strip().replace("*", "")
-        title = m.group("title").strip()
+        title = TITLE_CLEAN_RE.sub("", m.group("title"))
+        title = re.sub(r"\}\s*$", "", title).strip()
 
         if not SAFE_ENV_RE.match(title):
             return
@@ -52,7 +55,7 @@ def extract_envs_to_titles(src_dir: str, theorem_types: Set[str]):
     for src_file_name in os.listdir(src_dir):
         src_file_path = os.path.join(src_dir, src_file_name)
 
-        if not (os.path.isfile(src_file_path) and src_file_path.endswith(".tex")):
+        if not os.path.isfile(src_file_path):
             continue
 
         envs_to_titles = envs_to_titles | _extract_envs_to_titles_from_tex(

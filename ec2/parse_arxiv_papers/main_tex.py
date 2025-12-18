@@ -32,7 +32,7 @@ def _find_tex_files(root: str) -> Dict[str, TexCandidate]:
 
     for dirpath, _, filenames in os.walk(root):
         for fn in filenames:
-            if not fn.endswith(".tex"):
+            if not any(fn.endswith(suffix) for suffix in { ".tex", ".ltx", ".latex" }):
                 continue
             full_path = os.path.join(dirpath, fn)
             rel_path = os.path.relpath(full_path, root)

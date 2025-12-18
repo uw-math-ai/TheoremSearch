@@ -2,6 +2,14 @@ import re
 
 SAFE_ENV_RE = re.compile(r"^[A-Za-z@][A-Za-z0-9@]*$")
 
+TITLE_CLEAN_RE = re.compile(r"""
+^\s*
+(?:\\(?:noindent|ignorespaces|relax|leavevmode)\b\s*)*   # common harmless macros
+(?:\{?\s*)*                                              # stray opening braces
+(?:\\(?:textbf|textit|emph|rmfamily|sffamily|ttfamily
+      |bfseries|itshape|scshape|upshape)\b\s*\{?\s*)*    # styling commands
+""", re.VERBOSE)
+
 NEWTHEOREM_RE = re.compile(r"""
 \\newtheorem
 \*?\s*
