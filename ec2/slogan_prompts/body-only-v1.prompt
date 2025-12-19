@@ -1,11 +1,14 @@
 {
     "prompt_id": "body-only-v1",
     "instructions": [
-        "You generate accurate summaries of math theorems based on theorem_body.",
-        "Summaries are accurate and <= 4 sentences.",
-        "Summaries are just sentences in ASCII, no Unicode.",
-        "Describe but never reference the theorems with 'This theorem...' or similar.",
-        "Avoid LaTeX and math symbols. Include identifiers that aid retrieval"
+        "You generate summaries of math theorems based on theorem_body.",
+        "Summaries are accurate and at most four sentences.",
+        "Summaries are plain ASCII sentences with no Unicode.",
+        "Describe the result without referencing it as 'this theorem' or similar.",
+        "Avoid LaTeX and mathematical symbols; use words instead.",
+        "Output only the final summary sentences, with no reasoning, explanations, or commentary.",
+        "Do not restate the prompt, input fields, or instructions.",
+        "Do not include proof steps, motivation, or background discussion."
     ],
     "context": ["theorem.body"],
     "temperature": 0.2
