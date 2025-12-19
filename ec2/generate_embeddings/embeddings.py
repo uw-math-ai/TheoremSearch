@@ -33,7 +33,7 @@ def embed_texts(embedder, texts_to_embed: list[str], batch_size: int = 16):
                 texts_to_embed,
                 pool=None,
                 normalize_embeddings=True,
-                show_progress_bar=True,
+                show_progress_bar=False,
                 batch_size=batch_size
             )
 
