@@ -15,6 +15,7 @@ import boto3
 from tqdm import tqdm
 from .models import MODELS
 from langfuse import get_client
+from .cost import format_USD
 
 def generate_slogans(
     model_name: str,
@@ -23,17 +24,19 @@ def generate_slogans(
     authors: list[str],
     min_citations: int,
     in_journal: bool,
+    condition: str,
     sample: int,
     overwrite: bool,
     page_size: int,
     workers: int,
-    verbose: bool
+    verbose: bool,
+    use_langfuse: bool
 ):
     if model_name not in MODELS:
         raise ValueError("model_name must exist in MODELS")
 
     conn = get_rds_connection()
-    langfuse = get_client()
+    langfuse = get_client() if use_langfuse else None
 
     current_dir = os.path.dirname(__file__)
     path_to_prompt = os.path.join(
@@ -89,6 +92,10 @@ def generate_slogans(
             {
                 "if": in_journal,
                 "condition": "paper.journal_ref IS NOT NULL"
+            },
+            {
+                "if": len(condition) > 0,
+                "condition": condition
             }
         ],
         sample=sample
@@ -114,16 +121,20 @@ def generate_slogans(
         print(f"  > paper ids: {paper_ids}")
     if authors:
         print(f"  > authors: {authors}")
-    if min_citations is not None:
+    if min_citations >= 0:
         print(f"  > citations: >= {min_citations}")
     if in_journal:
         print(f"  > in journal: True")
+    if condition:
+        print(f"  > condition:", condition)
     print(f"  > overwrite: {overwrite}")
     print(f"  > page size: {page_size}")
     print(f"  > workers: {workers}")
+    print(f"  > use langfuse: {use_langfuse}")
     print("=" * len(script_announcement))
 
-    n_theorems = 0
+    slogans_count = 0
+    total_cost = 0.0
 
     brc = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
 
@@ -136,9 +147,7 @@ def generate_slogans(
             descending=False,
             page_size=page_size
         ):
-            n_theorems += len(theorem_contexts)
-
-            slogans = generate_theorem_slogans(
+            slogans, cost_delta, slogans_count_delta = generate_theorem_slogans(
                 brc,
                 langfuse,
                 theorem_contexts,
@@ -149,6 +158,14 @@ def generate_slogans(
                 max_retries=4,
                 verbose=verbose
             )
+
+            total_cost += cost_delta
+            slogans_count += slogans_count_delta
+
+            pbar.set_postfix({
+                "cost": format_USD(total_cost), 
+                "avg": format_USD(0 if slogans_count == 0 else total_cost / slogans_count)
+            })
             
             with conn.cursor() as cur:
                 upsert_rows(
@@ -224,6 +241,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--condition",
+        type=str,
+        required=False,
+        default="",
+        help="Optional condition"
+    )
+
+    parser.add_argument(
         "--sample",
         type=int,
         required=False,
@@ -261,6 +286,13 @@ if __name__ == "__main__":
         help="Whether to print out error statements"
     )
 
+    parser.add_argument(
+        "-lf",
+        "--use-langfuse",
+        action="store_true",
+        help="Whether to use Langfuse or not"
+    )
+
     args = parser.parse_args()
 
     generate_slogans(
@@ -270,9 +302,11 @@ if __name__ == "__main__":
         authors=args.authors,
         min_citations=args.min_citations,
         in_journal=args.in_journal,
+        condition=args.condition,
         sample=args.sample,
         overwrite=args.overwrite,
         page_size=args.page_size,
         workers=args.workers,
-        verbose=args.verbose
+        verbose=args.verbose,
+        use_langfuse=args.use_langfuse
     )

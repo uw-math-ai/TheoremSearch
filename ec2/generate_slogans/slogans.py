@@ -8,10 +8,11 @@ import time
 from langfuse import Langfuse
 from botocore.client import BaseClient
 from .models import MODELS
+from contextlib import nullcontext
 
 def _generate_theorem_slogan(
     brc: BaseClient,
-    langfuse: Langfuse,
+    langfuse: Langfuse | None,
     prompt: Dict,
     theorem_context: Dict,
     model_name: str,
@@ -30,18 +31,20 @@ def _generate_theorem_slogan(
     theorem_context = theorem_context.copy()
     theorem_id = theorem_context.pop("theorem_id", None)
 
-    with langfuse.start_as_current_observation(
-        as_type="span",
-        name="generate_theorem_slogan",
-        input={
-            "instructions": instructions,
-            "theorem_context": theorem_context,
-        },
-        metadata={
-            "theorem_id": theorem_id,
-            "prompt_id": prompt_id,
-            "model": model_name
-        },
+    with (
+        langfuse.start_as_current_observation(
+            as_type="span",
+            name="generate_theorem_slogan",
+            input={
+                "instructions": instructions,
+                "theorem_context": theorem_context,
+            },
+            metadata={
+                "theorem_id": theorem_id,
+                "prompt_id": prompt_id,
+                "model": model_name
+            },
+        ) if langfuse is not None else nullcontext()
     ) as root_span:
         try:
             theorem_context_str = json.dumps(theorem_context)
@@ -52,12 +55,14 @@ def _generate_theorem_slogan(
             ]
             payload = {"messages": messages, "max_tokens": 1024, "temperature": temperature}
 
-            with langfuse.start_as_current_observation(
-                as_type="generation",
-                name="aws_bedrock_completion",
-                model=model_name,
-                input=messages,
-                model_parameters={"temperature": temperature, "max_tokens": 1024},
+            with (
+                langfuse.start_as_current_observation(
+                    as_type="generation",
+                    name="aws_bedrock_completion",
+                    model=model_name,
+                    input=messages,
+                    model_parameters={"temperature": temperature, "max_tokens": 1024},
+                ) if langfuse is not None else nullcontext()
             ) as gen:
                 res = brc.invoke_model(
                     modelId=model["model_id"],
@@ -80,32 +85,37 @@ def _generate_theorem_slogan(
                     + output_tokens * model["output_token_cost"]
                 )
 
-                gen.update(
-                    output=slogan,
-                    usage_details={
-                        "input_tokens": input_tokens,
-                        "output_tokens": output_tokens,
-                        "total_tokens": input_tokens + output_tokens,
-                    },
-                    metadata={
-                        "cost_usd": cost,
-                        "latency_s": time.time() - start_time,
-                    },
-                )
+                if gen is not None:
+                    gen.update(
+                        output=slogan,
+                        usage_details={
+                            "input_tokens": input_tokens,
+                            "output_tokens": output_tokens,
+                            "total_tokens": input_tokens + output_tokens,
+                        },
+                        metadata={
+                            "cost_usd": cost,
+                            "latency_s": time.time() - start_time,
+                        },
+                    )
 
-            root_span.update(output={"slogan": slogan})
+            if root_span is not None:
+                root_span.update(output={"slogan": slogan})
+
             return i, slogan, cost
 
         except Exception as e:
             if verbose:
                 print(f"[LLM ERROR] {e}")
 
-            root_span.update(metadata={"error": str(e)})
+            if root_span is not None:
+                root_span.update(metadata={"error": str(e)})
+
             return i, None, 0
 
 def generate_theorem_slogans(
     brc: BaseClient, 
-    langfuse: Langfuse,
+    langfuse: Langfuse | None,
     theorem_contexts: List[dict],
     prompt: Dict,
     model_name: str,
@@ -125,7 +135,6 @@ def generate_theorem_slogans(
             if retries > max_retries:
                 if verbose:
                     print(f"[MAX RETRIES REACHED] Used all {max_retries}")
-
                 break
 
             futs = {
@@ -150,17 +159,13 @@ def generate_theorem_slogans(
                 if res[1] is not None:
                     pbar.update(1)
                     slogans_generated += 1
-                
-                pbar.set_postfix({
-                    "cost": format_USD(total_cost), 
-                    "avg": format_USD(0 if slogans_generated == 0 else total_cost / slogans_generated)
-                })
 
             retries += 1
 
-    langfuse.flush()
+    if langfuse is not None:
+        langfuse.flush()
 
-    return slogans
+    return slogans, total_cost, slogans_generated
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
