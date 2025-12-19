@@ -55,7 +55,7 @@ def generate_embeddings(
         ]
     )
 
-    count_query = """
+    count_query = f"""
         SELECT COUNT(*)
         FROM ({query}) AS q
     """
