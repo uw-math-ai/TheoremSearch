@@ -43,6 +43,9 @@ except Exception as e:
 
 # --- 3. THE INGESTOR CLASS ---
 class SelectiveIngestor:
+    # Types we want to keep (exclude 'example')
+    ALLOWED_TYPES = {'theorem', 'lemma', 'proposition', 'corollary', 'definition', 'remark'}
+    
     def __init__(self):
         # Determine root relative to the parser to keep structure clean
         root_dir = os.path.dirname(os.path.dirname(parser_dir))
@@ -110,8 +113,44 @@ class SelectiveIngestor:
             content = re.sub(old, new, content)
         return content
 
+    def strip_document_structure(self, content):
+        """Remove existing document structure to avoid conflicts with our wrapper."""
+        # Remove \newtheorem declarations (both regular and starred)
+        content = re.sub(r'\\newtheorem\*?\{[^}]*\}(\[[^\]]*\])?\{[^}]*\}(\[[^\]]*\])?.*?\n?', '', content)
+        
+        # Remove \theoremstyle commands
+        content = re.sub(r'\\theoremstyle\{[^}]*\}.*?\n?', '', content)
+        
+        # Remove document class and package declarations
+        content = re.sub(r'\\documentclass(\[[^\]]*\])?\{[^}]*\}.*?\n?', '', content)
+        content = re.sub(r'\\usepackage(\[[^\]]*\])?\{[^}]*\}.*?\n?', '', content)
+        
+        # Remove document begin/end
+        content = re.sub(r'\\begin\{document\}', '', content)
+        content = re.sub(r'\\end\{document\}', '', content)
+        
+        # Remove preamble commands that might conflict
+        content = re.sub(r'\\makeatletter.*?\\makeatother', '', content, flags=re.DOTALL)
+        content = re.sub(r'\\newcommand\{\\newtheorem[^}]*\}.*?\n?', '', content)
+        
+        return content
+
+    def get_item_type(self, theorem_name):
+        """Extract the type from the theorem name (e.g., 'Theorem 1.2' -> 'theorem')"""
+        name_lower = theorem_name.lower().strip()
+        for t in self.ALLOWED_TYPES:
+            if name_lower.startswith(t):
+                return t
+        # Check if it's an example (to filter out)
+        if name_lower.startswith('example'):
+            return 'example'
+        return 'unknown'
+
     def process_content(self, content, original_path):
         clean_content = self.normalize_latex(content)
+        
+        # Strip existing document structure to avoid conflicts
+        clean_content = self.strip_document_structure(clean_content)
         
         # Inject Fake Document Wrapper so parser works
         dummy_wrapper = r"""
@@ -151,15 +190,32 @@ class SelectiveIngestor:
         if not raw_theorems:
             return
 
-        # 4. Save JSON Only
+        # 4. Filter and Save JSON Only
         theorems_json = []
+        skipped_examples = 0
+        
         for item in raw_theorems:
+            item_type = self.get_item_type(item[0])
+            
+            # Skip examples
+            if item_type == 'example':
+                skipped_examples += 1
+                continue
+            if item_type == 'unknown':
+                # Try to include unknown types but mark them
+                item_type = 'other'
+            
             theorems_json.append({
                 "theorem_name": item[0],
                 "body": item[1],
                 "label": item[2],
-                "type": "theorem" 
+                "type": item_type
             })
+
+        if not theorems_json:
+            if skipped_examples > 0:
+                print(f"   [~] Skipped {skipped_examples} examples, no theorems found in {os.path.basename(original_path)}")
+            return
 
         json_path = temp_tex_path.replace(".tex", ".json")
         output_data = {
@@ -170,7 +226,10 @@ class SelectiveIngestor:
 
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2)
-            print(f"   [+] Saved {len(theorems_json)} items -> {os.path.basename(json_path)}")
+            msg = f"   [+] Saved {len(theorems_json)} items -> {os.path.basename(json_path)}"
+            if skipped_examples > 0:
+                msg += f" (skipped {skipped_examples} examples)"
+            print(msg)
 
     def download_and_process(self, file_list):
         count = 0
