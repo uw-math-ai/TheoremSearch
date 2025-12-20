@@ -38,5 +38,18 @@ def build_query(
 
     return query, params
 
-        
-            
+def get_query_count(
+    conn,
+    query: str,
+    params: List = []
+) -> int:
+    count_query = f"""
+        SELECT COUNT(*)
+        FROM ({query}) AS q
+    """
+    
+    with conn.cursor() as cur:
+        cur.execute(count_query, (*params,))
+        count = cur.fetchone()[0]
+
+        return count
