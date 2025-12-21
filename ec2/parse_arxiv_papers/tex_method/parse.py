@@ -70,10 +70,7 @@ def parse_by_tex(
                 continue
 
             if line.startswith("name:"):
-                curr["name"] = line.split("name:", 1)[1].strip().lower()
-
-                if not any(theorem_type in curr["name"] for theorem_type in theorem_types):
-                    keep = False
+                curr["name"] = line.split("name:", 1)[1].strip()
 
             elif line.startswith("label:"):
                 curr["label"] = line.split("label:", 1)[1].strip()
