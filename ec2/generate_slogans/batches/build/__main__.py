@@ -13,11 +13,9 @@ import io
 import boto3
 import uuid
 from argparse import ArgumentParser
+from ..config import S3_BUCKET, S3_DIR
 
 s3 = boto3.client("s3")
-
-S3_BUCKET = "proj-theorems"
-S3_DIR = "batched_slogans"
 
 def _get_prompt(prompt_id: str) -> Dict:
     parent_dir = os.path.normpath(
@@ -46,7 +44,6 @@ def _get_prompt(prompt_id: str) -> Dict:
 
 def _upload_jsonl(
     records: List[Dict],
-    bucket: str,
     key: str
 ):
     buf = io.BytesIO()
@@ -60,7 +57,7 @@ def _upload_jsonl(
 
     s3.upload_fileobj(
         buf,
-        bucket,
+        S3_BUCKET,
         key,
         ExtraArgs={"ContentType": "application/json"}
     )
@@ -147,8 +144,7 @@ def build_batch_prompts(
                 })
 
             _upload_jsonl(
-                prompt_batch, 
-                bucket=S3_BUCKET,
+                prompt_batch,
                 key=_get_key(id, page_index, total_pages)
             )
 
