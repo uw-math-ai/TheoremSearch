@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 def _parse_arxiv_paper(
     paper_id: str,
-    paper_arxiv_s3_loc: Tuple[str, int, int],
+    paper_arxiv_s3_loc: Optional[Tuple[str, int, int]],
     parsing_method: str,
     theorem_types: List[str],
     timeout: int,
@@ -138,7 +138,11 @@ def parse_arxiv_papers(
                 parse_attempts += 1
 
                 paper_id = paper["paper_id"]
-                paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
+
+                if not paper_ids:
+                    paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
+                else:
+                    paper_arxiv_s3_loc = None
 
                 fut = ex.submit(
                     _parse_arxiv_paper, 
