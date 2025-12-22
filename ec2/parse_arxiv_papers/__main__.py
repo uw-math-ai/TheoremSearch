@@ -20,6 +20,9 @@ def _parse_arxiv_paper(
     debugging_mode: bool,
     paper_dir: Optional[str] = None
 ):
+    if debugging_mode:
+        paper_dir = "parsing_debugging_downloads"
+
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
             return _parse_arxiv_paper(
@@ -203,7 +206,8 @@ def parse_arxiv_papers(
                         }
                     )
 
-                conn.commit()
+                if not debugging_mode:
+                    conn.commit()
                 
     conn.close()
 
@@ -279,7 +283,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "-d", "--debugging-mode",
         action="store_true",
-        help="Whether to raies errors"
+        help="Whether to raise errors and save downloaded files in a local folder"
     )
 
     args = arg_parser.parse_args()

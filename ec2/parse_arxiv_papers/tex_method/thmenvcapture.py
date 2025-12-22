@@ -4,8 +4,6 @@ def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
-    import os
-
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{thmenvcapture}[2025/12/16 Theorem Environment Capturer]
