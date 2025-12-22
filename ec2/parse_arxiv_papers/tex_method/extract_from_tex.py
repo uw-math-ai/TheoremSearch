@@ -4,10 +4,8 @@ from ..re_patterns import (
     DECLARETHEOREM_RE,
     SPNEWTHEOREM_RE,
     NEWMDTHM_RE,
-    SAFE_ENV_RE,
-    TITLE_CLEAN_RE
+    SAFE_ENV_RE
 )
-import re
 import os
 
 def _read_tex(tex_path: str) -> str:
@@ -26,6 +24,10 @@ def _extract_envs_to_titles_from_tex(tex_path: str, theorem_types: Set[str]) -> 
 
     def add_match(m):
         env = m.group("env").strip().replace("*", "")
+
+        if not SAFE_ENV_RE.match(env):
+            return
+
         title = m.group("title").strip().lower()
 
         for tt in theorem_types:

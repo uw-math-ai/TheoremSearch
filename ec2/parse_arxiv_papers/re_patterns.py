@@ -1,6 +1,6 @@
 import re
 
-SAFE_ENV_RE = re.compile(r"^[A-Za-z@][A-Za-z0-9@]*$")
+SAFE_ENV_RE = re.compile(r"^[A-Za-z][A-Za-z0-9@:_]*$")
 
 TITLE_CLEAN_RE = re.compile(r"""
 ^\s*
