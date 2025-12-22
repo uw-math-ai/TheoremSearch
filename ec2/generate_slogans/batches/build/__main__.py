@@ -130,7 +130,8 @@ def build_batch_prompts(
 
             for theorem_context in theorem_contexts:
                 theorem_context = theorem_context.copy()
-                theorem_id = theorem_context.pop("theorem_id")
+
+                theorem_id = str(theorem_context.pop("theorem_id"))
 
                 messages = [
                     {"role": "user", "content": prompt["instructions"]},
