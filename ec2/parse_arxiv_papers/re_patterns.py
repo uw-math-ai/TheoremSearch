@@ -15,9 +15,9 @@ NEWTHEOREM_RE = re.compile(r"""
 \*?\s*
 (?:<[^>]*>)?\s*
 \{(?P<env>[^\}]+)\}
-(?:\[[^\]]*\])?\s*          # optional [shared-counter] after env
+(?:\[[^\]]*\])?\s*          # optional [shared-counter]
 \{(?P<title>[^\}]+)\}
-(?:\[[^\]]*\])?             # optional [within] after title   <-- NEW
+\s*(?:\[[^\]]*\])?          # optional [within], whitespace allowed
 """, re.VERBOSE)
 
 DECLARETHEOREM_RE = re.compile(

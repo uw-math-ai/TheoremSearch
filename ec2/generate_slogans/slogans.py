@@ -2,7 +2,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import dotenv
 import pandas as pd
 from typing import Dict, List
-# from .cost import format_USD
 import json
 import time
 from langfuse import Langfuse

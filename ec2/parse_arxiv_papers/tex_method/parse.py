@@ -71,9 +71,6 @@ def parse_by_tex(
 
             if line.startswith("name:"):
                 curr["name"] = line.split("name:", 1)[1].strip()
-                head = curr["name"].split(" ", 1)[0].lower()
-                if head not in theorem_types:
-                    keep = False
 
             elif line.startswith("label:"):
                 curr["label"] = line.split("label:", 1)[1].strip()

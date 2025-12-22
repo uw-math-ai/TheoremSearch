@@ -1,37 +1,45 @@
-from typing import Tuple
+from typing import Tuple, Optional
 import boto3
 import os
 import io
 import gzip
 import tarfile
 import zipfile
+import requests
 
 ARXIV_BUCKET = "arxiv"
 s3 = boto3.client("s3")
 
 def _download_paper(
     paper_id: str,
-    s3_loc: Tuple[str, int, int],
+    s3_loc: Optional[Tuple[str, int, int]],
     cwd: str
 ) -> str:
     os.makedirs(cwd, exist_ok=True)
 
-    bundle_tar, bytes_start, bytes_end = s3_loc
-
     src_gz_path = os.path.join(cwd, f"{paper_id.replace('/', '-')}.gz")
 
-    res = s3.get_object(
-        Bucket=ARXIV_BUCKET,
-        Key=bundle_tar,
-        Range=f"bytes={bytes_start}-{bytes_end}",
-        RequestPayer="requester"
-    )
+    if s3_loc:
+        bundle_tar, bytes_start, bytes_end = s3_loc
 
-    body = res["Body"]
+        res = s3.get_object(
+            Bucket=ARXIV_BUCKET,
+            Key=bundle_tar,
+            Range=f"bytes={bytes_start}-{bytes_end}",
+            RequestPayer="requester"
+        )
 
-    with open(src_gz_path, "wb") as src_gz_b:
-        for chunk in iter(lambda: body.read(8192), b""):
-            src_gz_b.write(chunk)
+        body = res["Body"]
+
+        with open(src_gz_path, "wb") as src_gz_b:
+            for chunk in iter(lambda: body.read(8192), b""):
+                src_gz_b.write(chunk)
+    else:
+        res = requests.get(f"https://arxiv.org/src/{paper_id}")
+
+        with open(src_gz_path, 'wb') as src_gz_b:
+            for chunk in res.iter_content(chunk_size=8192):
+                src_gz_b.write(chunk)
 
     return src_gz_path
 
@@ -86,7 +94,7 @@ def extract_paper_src(src_gz_path: str, src_dir: str) -> None:
 
 def download_and_extract_paper(
     paper_id: str,
-    s3_loc: Tuple[str, int, int],
+    s3_loc: Optional[Tuple[str, int, int]],
     cwd: str
 ):
     """

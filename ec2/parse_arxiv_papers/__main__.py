@@ -13,13 +13,16 @@ from tqdm import tqdm
 
 def _parse_arxiv_paper(
     paper_id: str,
-    paper_arxiv_s3_loc: Tuple[str, int, int],
+    paper_arxiv_s3_loc: Optional[Tuple[str, int, int]],
     parsing_method: str,
     theorem_types: List[str],
     timeout: int,
     debugging_mode: bool,
     paper_dir: Optional[str] = None
 ):
+    if debugging_mode:
+        paper_dir = "parsing_debugging_downloads"
+
     if not paper_dir:
         with TemporaryDirectory() as temp_paper_dir:
             return _parse_arxiv_paper(
@@ -138,7 +141,11 @@ def parse_arxiv_papers(
                 parse_attempts += 1
 
                 paper_id = paper["paper_id"]
-                paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
+
+                if not paper_ids:
+                    paper_arxiv_s3_loc = (paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"])
+                else:
+                    paper_arxiv_s3_loc = None
 
                 fut = ex.submit(
                     _parse_arxiv_paper, 
@@ -199,7 +206,8 @@ def parse_arxiv_papers(
                         }
                     )
 
-                conn.commit()
+                if not debugging_mode:
+                    conn.commit()
                 
     conn.close()
 
@@ -275,7 +283,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "-d", "--debugging-mode",
         action="store_true",
-        help="Whether to raies errors"
+        help="Whether to raise errors and save downloaded files in a local folder"
     )
 
     args = arg_parser.parse_args()

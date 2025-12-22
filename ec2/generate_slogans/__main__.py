@@ -5,7 +5,7 @@ and uploads them to the 'theorem_slogan' table in the RDS.
 
 from ..rds.connect import get_rds_connection
 from ..rds.upsert import upsert_rows
-from ..rds.query import build_query
+from ..rds.query import build_query, get_query_count
 import argparse
 from ..rds.paginate import paginate_query
 import os
@@ -101,14 +101,7 @@ def generate_slogans(
         sample=sample
     )
 
-    count_query = f"""
-        SELECT COUNT(*)
-        FROM ({query}) AS q
-    """
-
-    with conn.cursor() as cur:
-        cur.execute(count_query, (*params,))
-        count = cur.fetchone()[0]
+    count = get_query_count(conn, query, params)
 
     if sample == -1:
         script_announcement = f"=== Generating slogans for {count} theorems ==="

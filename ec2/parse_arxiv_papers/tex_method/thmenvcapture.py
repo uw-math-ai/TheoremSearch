@@ -4,8 +4,6 @@ def _insert_thmenvcapture_sty(
     envs_to_titles: dict[str, str],
     src_dir: str
 ) -> str:
-    import os
-
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{thmenvcapture}[2025/12/16 Theorem Environment Capturer]
@@ -27,7 +25,7 @@ def _insert_thmenvcapture_sty(
     \immediate\write\envlog{BEGIN_ENV}%
     \immediate\write\envlog{type: #1}%
     \immediate\write\envlog{name: \expandafter\detokenize\expandafter{#2}}%
-    \ifdefempty{#3}{}{%
+    \ifblank{#3}{}{%
       \immediate\write\envlog{label: #3}%
     }%
     \immediate\write\envlog{body: \expandafter\detokenize\expandafter{#4}}%
@@ -214,7 +212,7 @@ def _insert_thmenvcapture_sty(
             "  \\RenewEnviron{" + env + "}[1][]{%\n"
             "    \\global\\let\\thmenvcapture@lastlabel\\@empty\n"
             "    \\begingroup\n"
-            "      \\ifdefempty{##1}{%\n"
+            "      \\ifblank{##1}{%\n"
             "        \\thmenvcapture@orig@" + env + "%\n"
             "      }{%\n"
             "        \\thmenvcapture@orig@" + env + "[##1]%\n"
