@@ -73,7 +73,9 @@ def parse_by_tex(
                 curr["name"] = line.split("name:", 1)[1].strip()
 
             elif line.startswith("label:"):
-                curr["label"] = line.split("label:", 1)[1].strip()
+                label = line.split("label:", 1)[1].strip()
+                if label:
+                    curr["label"] = label
 
             elif line.startswith("body:"):
                 body = line.split("body:", 1)[1].strip()
