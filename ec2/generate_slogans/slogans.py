@@ -2,13 +2,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import dotenv
 import pandas as pd
 from typing import Dict, List
-from .cost import format_USD
+# from .cost import format_USD
 import json
 import time
 from langfuse import Langfuse
 from botocore.client import BaseClient
-from .models import MODELS
+from models import MODELS
 from contextlib import nullcontext
+import numpy as np
+import os
+import boto3
 
 def _generate_theorem_slogan(
     brc: BaseClient,
@@ -169,7 +172,7 @@ def generate_theorem_slogans(
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
-    prompt = [
+    prompt_instructions = [
     "You summarize math theorems based on theorem_body.",
     "You are summarizing the LAST theorem mentioned in theorem_body.",
     "You may use the first section of the paper as context, but do NOT mention the paper or the text explicitly.",
@@ -185,38 +188,70 @@ if __name__ == "__main__":
     "- Do NOT refer to 'the theorem', 'the proposition', 'the lemma', 'this result', or 'this statement'.",
     "- Do NOT use phrases like 'Based on the provided text', 'here is an accurate summary', etc."
     ]
-    prompt = " ".join(prompt)
-    df = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
+    prompt_instructions = " ".join(prompt_instructions)
+
+    df = pd.read_csv("slog_set.csv", header=0, index_col=0, dtype={"paper_id": str})
     df = df[df["body"].notnull()]
-    queries = list(zip(df['paper_id'], df["body"], df["theorem"]))
+
+    langfuse = Langfuse(
+        public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+        secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+        host=os.getenv("LANGFUSE_HOST")
+    )
+
+    brc = boto3.client(
+        "bedrock-runtime",
+        region_name="us-west-2"
+    )
+
+    col_name = "body-and-first-section-v1"
+    if col_name not in df.columns:
+        df[col_name] = np.nan
+
+    queries = list(zip(df['paper_id'], df["name"], df["body"]))
 
     for (i,item) in enumerate(queries):
+
+        if i % 25 == 0:
+            df.to_csv("validation_set_autosave.csv")
+
+        paper_id, theorem_name, body = item
 
         try:
 
             thm = {
                 "first_section": "",   
-                "theorem_body": item[1]
+                "theorem_body": body
             }
-            with open(rf"parsed_papers\{item[0]}.json", 'r') as f:
+            with open(rf"parsed_papers\{item[0][:-2]}.json", 'r') as f:
                 x = json.load(f)
                 thm["first_section"] = x["first_section"]
 
+            prompt = {
+                "prompt_id": i,
+                "instructions": prompt_instructions,
+                "temperature": 0.2
+            }
+
             a, b, c = _generate_theorem_slogan(
-                prompt,
-                thm,
-                "deepseek/deepseek-chat",
-                1
+                langfuse=langfuse,
+                prompt=prompt,
+                theorem_context=thm,
+                model_name="DeepSeek-V3.1",
+                i=i,
+                verbose=True,
+                brc=brc
             )
 
-            print(item[2])
-            print("="*50)
-            print(b)
-            print("="*50)
-            print(c)
+            print("SLOG", a, b, c)
 
-        except:
+            df.loc[df["paper_id"] == paper_id, col_name] = b
+
+        except Exception as e:
             print(f"Failure for {item[0]}, {item[2]}")
+            print(e)
             continue
+
+    df.to_csv("updated_full_slogan_set.csv")
 
 

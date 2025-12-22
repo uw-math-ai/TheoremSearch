@@ -478,9 +478,8 @@ from ec2.rds.connect import get_rds_connection
 
 df = pd.DataFrame({
     "paper_id": pd.Series(dtype="string"),
-    "theorem": pd.Series(dtype="string"),
-    "body-only-v1": pd.Series(dtype="string"),
-    "body-and-summary-v1": pd.Series(dtype="string"),
+    "name": pd.Series(dtype="string"),
+    "body": pd.Series(dtype="string")
 })
 
 dotenv.load_dotenv()
@@ -520,16 +519,38 @@ SELECT
     FROM good_table
     GROUP BY paper_id, name;
 """
+
+query_2 = """
+SELECT
+    t.paper_id,
+    t.name,
+    t.body
+FROM theorem t
+JOIN paper p
+  ON t.paper_id = p.paper_id
+WHERE p.authors && ARRAY[
+    'Giovanni Inchiostro',
+    'Jarod Alper',
+    'Dori Bejleri',
+    'Roberto Svaldi',
+    'Valery Alexeev',
+    'Vistoli Angelo',
+    'Michele Pernice',
+    'János Kollár'
+]
+"""
 try:
     with conn.cursor() as cur:
-        cur.execute(query_1, None)
+        cur.execute(query_2, None)
         cols = [d[0] for d in cur.description]
         rows_raw = cur.fetchall()
+
+        print(len(rows_raw))
 
         for row in rows_raw:
             df.loc[len(df)] = row
 
-        df.to_csv("full_slogan_set.csv")
+        df.to_csv("slog_set.csv")
 
 except Exception as e:
     print(f"found exception {e}")

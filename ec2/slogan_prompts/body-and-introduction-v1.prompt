@@ -1,0 +1,21 @@
+{
+    "prompt_id": "body-and-introduction-v1",
+    "instructions": [
+        "You summarize math theorems based on theorem_body.",
+        "You are summarizing the LAST theorem mentioned in theorem_body.",
+        "You may use the first section of the paper as context, but do NOT mention the paper or the text explicitly.",
+        "Summaries are accurate and <= 4 sentences.",
+        "Summaries must be plain ASCII text (no Unicode).",
+        "Avoid LaTeX and math symbols. Use words instead of symbols when possible.",
+        "Include key identifiers (names, objects, conditions) that aid retrieval.",
+        "Your output must be a single paragraph of continuous prose.",
+        "OUTPUT CONSTRAINTS:",
+        "- Output ONLY the summary paragraph.",
+        "- Do NOT include any introductory phrases, explanations, or meta-commentary.",
+        "- Do NOT say what you are doing (e.g. 'I will...', 'Here is...', 'Based on the text...').",
+        "- Do NOT refer to 'the theorem', 'the proposition', 'the lemma', 'this result', or 'this statement'.",
+        "- Do NOT use phrases like 'Based on the provided text', 'here is an accurate summary', etc."
+    ],
+    "context": ["theorem.body", "paper.summary"],
+    "temperature": 0.2
+}
