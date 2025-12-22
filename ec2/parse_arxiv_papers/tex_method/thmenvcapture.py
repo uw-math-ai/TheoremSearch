@@ -6,7 +6,7 @@ def _insert_thmenvcapture_sty(
 ) -> str:
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{thmenvcapture}[2025/12/16 Theorem Environment Capturer]
+\ProvidesPackage{thmenvcapture}[2025/12/22 Theorem Environment Capturer]
 
 \RequirePackage{environ}
 \RequirePackage{etoolbox}
@@ -57,27 +57,21 @@ def _insert_thmenvcapture_sty(
   \@ifundefined{thmenvcapture@ctr@#1}{#1}{\csname thmenvcapture@ctr@#1\endcsname}%
 }
 
-% Save original \newtheorem (star form is handled by the same macro in LaTeX)
 \let\thmenvcapture@orig@newtheorem\newtheorem
 
-% Wrap \newtheorem with leading optional star:
 \RenewDocumentCommand{\newtheorem}{s m o m o}{%
   \IfBooleanTF{#1}{%
-    % Starred: unnumbered
     \thmenvcapture@setunnumbered{#2}%
     \thmenvcapture@orig@newtheorem*{#2}{#4}%
-    % wrap immediately after definition
     \@ifundefined{thmenvcapture@wrap#2}{}{%
       \csname thmenvcapture@wrap#2\endcsname
     }%
   }{%
-    % Numbered: record which counter this env uses
     \IfNoValueTF{#3}{%
       \thmenvcapture@setcounter{#2}{#2}%
     }{%
       \thmenvcapture@setcounter{#2}{#3}%
     }%
-    % Forward to original with same structure
     \IfNoValueTF{#3}{%
       \IfNoValueTF{#5}{%
         \thmenvcapture@orig@newtheorem{#2}{#4}%
@@ -91,7 +85,6 @@ def _insert_thmenvcapture_sty(
         \thmenvcapture@orig@newtheorem{#2}[#3]{#4}[#5]%
       }%
     }%
-    % wrap immediately after definition
     \@ifundefined{thmenvcapture@wrap#2}{}{%
       \csname thmenvcapture@wrap#2\endcsname
     }%
@@ -99,10 +92,58 @@ def _insert_thmenvcapture_sty(
 }
 
 % --------------------------------------------------------------------
-% Body expansion safety machinery (unchanged)
+% "Troublesome" detection:
+% If the theorem body CONTAINS any of these substrings, we DO NOT EXECUTE
+% \BODY (prevents undefined control sequences). We STILL LOG the exact
+% original body text (unexpanded).
+%
+% This is the key behavior you want:
+%   (1) Try to execute body unless flagged troublesome.
+%   (2) If flagged troublesome -> NEVER execute; log exact text anyway.
+% --------------------------------------------------------------------
+\newif\ifthmenvcapture@skipbody
+\def\thmenvcapture@bodystr{}%
+
+% Expand once into a detokenized string and search it.
+\newcommand\thmenvcapture@checktroublesome[1]{%
+  \global\thmenvcapture@skipbodyfalse
+  \begingroup
+    \edef\thmenvcapture@bodystr{\detokenize\expandafter{#1}}%
+
+    % --- TikZ / PGF / commutative diagrams ---
+    \in@{\\begin{tikzpicture}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{tikzpicture}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\begin{tikzcd}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{tikzcd}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\tikzcdset}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\usetikzlibrary}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\tikzset}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\tikz}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\pgf}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\pgfplots}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\begin{axis}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{axis}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+
+    % --- Verbatim / code-like (often explodes under stubs) ---
+    \in@{\\begin{minted}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{minted}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\mintinline}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\begin{lstlisting}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{lstlisting}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\lstinline}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\begin{Verbatim}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\end{Verbatim}}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+    \in@{\\verb}{\thmenvcapture@bodystr}\ifin@\global\thmenvcapture@skipbodytrue\fi
+  \endgroup
+}
+
+% --------------------------------------------------------------------
+% Body expansion safety:
+% Always starts with the exact original body tokens.
+% If deemed safe, replaces with a protected expansion.
+% If unsafe, leaves exact text unchanged.
 % --------------------------------------------------------------------
 \newif\ifthmenvcapture@expandok
-\def\thmenvcapture@bodystr{}%
 
 \newcommand\thmenvcapture@checkunsafe[1]{%
   \thmenvcapture@expandoktrue
@@ -167,7 +208,9 @@ def _insert_thmenvcapture_sty(
 }
 
 \newcommand\thmenvcapture@maybeexpandbody[2]{%
+  % Always start with exact original tokens
   \expandafter\def\expandafter#1\expandafter{#2}%
+  % Attempt safe protected expansion; if unsafe, leave as exact original text.
   \thmenvcapture@checkunsafe{#1}%
   \ifthmenvcapture@expandok
     \begingroup
@@ -225,7 +268,16 @@ def _insert_thmenvcapture_sty(
             "          \\fi\n"
             "        \\fi\n"
             "      }%\n"
-            "      \\thmenvcapture@withlabelhook{\\BODY}%\n"
+            "\n"
+            "      % If the body looks troublesome, DO NOT execute it.\n"
+            "      % Otherwise, execute it (and hook \\label).\n"
+            "      \\thmenvcapture@checktroublesome{\\BODY}%\n"
+            "      \\ifthmenvcapture@skipbody\n"
+            "        % intentionally skip executing \\BODY\n"
+            "      \\else\n"
+            "        \\thmenvcapture@withlabelhook{\\BODY}%\n"
+            "      \\fi\n"
+            "\n"
             "      \\thmenvcapture@endorig@" + env + "\n"
             "      \\begingroup\n"
             "        \\let\\protect\\relax\n"
@@ -233,7 +285,10 @@ def _insert_thmenvcapture_sty(
             "        \\edef\\LoggedHeader{" + title + " \\LoggedNumber}%\n"
             "        \\ifdefempty{\\LoggedName}{}{\\edef\\LoggedHeader{\\LoggedHeader\\space(\\LoggedName)}}%\n"
             "        \\edef\\LoggedLabel{\\thmenvcapture@lastlabel}%\n"
+            "\n"
+            "        % Always log exact original text; try safe expansion; if unsafe, remains exact.\n"
             "        \\thmenvcapture@maybeexpandbody\\LoggedBody{\\BODY}%\n"
+            "\n"
             "        \\thmenvcapture@log{" + env + "}{\\LoggedHeader}{\\LoggedLabel}{\\LoggedBody}%\n"
             "      \\endgroup\n"
             "    \\endgroup\n"
@@ -267,21 +322,18 @@ def _insert_thmenvcapture_sty(
 
     # ---- Guards: environments inside which we temporarily disable wrappers ----
     guard_envs = [
-        # thmtools/thm-restate style
         "restatable",
         "restatable*",
         "restate",
         "restate*",
-        # common “collect + replay” wrappers seen in the wild
         "thmrestate",
         "thmrestate*",
         "repeatthm",
         "repeatthm*",
         "repeatedthm",
         "repeatedthm*",
-        # some authors name these manually
         "namedtheorem",
-        "namedtheorem*",
+        "namedtheorem*"
     ]
 
     guard_lines: list[str] = []
