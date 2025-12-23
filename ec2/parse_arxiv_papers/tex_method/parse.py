@@ -6,7 +6,7 @@ from .thmenvcapture import inject_thmenvcapture
 from .pdflatex import generate_dummy_biblatex, run_pdflatex
 from ..re_patterns import LABEL_RE
 import pyperclip
-from expand_latex_macros import expand_latex_macros
+from .expand_latex_macros import expand_latex_macros
 
 def parse_by_tex(
     paper_id: str,
