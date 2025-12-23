@@ -50,9 +50,14 @@ def parse_by_tex(
     for root, _, files in os.walk(src_dir):
         for fn in files:
             ext = os.path.splitext(fn)[1].lower()
-            # include typical LaTeX text sources
             if ext in (".tex", ".ltx", ".sty", ".cls", ".clo", ".def", ".cfg"):
-                macro_sources.append(os.path.join(root, fn))
+                path = os.path.join(root, fn)
+                try:
+                    with open(path, "r", encoding="utf-8", errors="ignore") as mf:
+                        macro_sources.append(mf.read())
+                except Exception:
+                    # Ignore unreadable files (binary, permission issues, etc.)
+                    pass
 
     with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
         log_str = f.read()
@@ -61,7 +66,6 @@ def parse_by_tex(
         log_str = expand_latex_macros(log_str, extra_macro_sources=macro_sources)
         if debugging_mode:
             print("expand_latex_macros succeeded!")
-            print("macro sources:", macro_sources)
     except Exception as e:
         # Minimal behavior: if expansion fails, fall back to raw log
         if debugging_mode:
