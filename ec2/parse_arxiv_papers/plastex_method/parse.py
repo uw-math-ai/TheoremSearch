@@ -11,6 +11,8 @@ from ..tex_method.extract_from_tex import extract_envs_to_titles
 from plasTeX.TeX import TeX
 from plasTeX.Logging import disableLogging
 
+import os
+
 
 def body_inner_latex(node) -> str:
     parts = []
@@ -34,29 +36,21 @@ def _get_node_label(doc, node) -> Optional[str]:
     return None
 
 
-def _flatten_main_tex(main_tex_path: str) -> None:
+def _flatten_main_tex(main_tex_path: str, cwd: str) -> None:
+    main_tex_path = os.path.abspath(main_tex_path)
+
     cmd = ["latex-flatten", main_tex_path, "--inplace"]
-    result = subprocess.run(
+    r = subprocess.run(
         cmd,
+        cwd=cwd,                         # <-- critical
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         text=True,
         check=False,
     )
-    if result.returncode != 0:
-        # re-run once capturing output so you actually get diagnostics
-        result2 = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=False,
-        )
-        raise RuntimeError(
-            "latex-flatten failed\n"
-            f"STDOUT:\n{result2.stdout}\n"
-            f"STDERR:\n{result2.stderr}"
-        )
+    if r.returncode != 0:
+        r2 = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        raise RuntimeError(f"latex-flatten failed\nSTDOUT:\n{r2.stdout}\nSTDERR:\n{r2.stderr}")
 
 
 @contextlib.contextmanager
@@ -102,9 +96,8 @@ def parse_by_plastex(
 ) -> List[Dict]:
     envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
 
-    main_tex_path = get_main_tex_path(src_dir)
-
-    _flatten_main_tex(main_tex_path)
+    main_tex_path = os.path.abspath(get_main_tex_path(src_dir))
+    _flatten_main_tex(main_tex_path, cwd=os.path.dirname(main_tex_path))
 
     tex = TeX()
 
@@ -151,7 +144,7 @@ def parse_by_plastex(
                             "label": label,
                             "body": body,
                         })
-                        
+
         return theorems
 
     except Exception:
