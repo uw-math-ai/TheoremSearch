@@ -10,6 +10,7 @@ from typing import Tuple, List, Optional, Set
 from .regex_method.parse import parse_by_regex
 from .tex_method.parse import parse_by_tex
 from tqdm import tqdm
+from .plastex_method.parse import parse_by_plastex
 
 def _parse_arxiv_paper(
     paper_id: str,
@@ -39,9 +40,10 @@ def _parse_arxiv_paper(
 
     if parsing_method == "tex":
         theorems = parse_by_tex(paper_id, src_dir, theorem_types, timeout, debugging_mode)
-    else: # parsing_method == "regex"
+    elif parsing_method == "regex":
         theorems = parse_by_regex(paper_id, src_dir, theorem_types, timeout)
-
+    else:
+        theorems = parse_by_plastex(paper_id, src_dir, theorem_types, debugging_mode)
     return theorems
 
 def parse_arxiv_papers(
@@ -61,7 +63,7 @@ def parse_arxiv_papers(
 ):
     if skip < 0:
         raise ValueError(f"skip must be >= 0, not {skip}")
-    elif parsing_method not in { "tex", "regex" }:
+    elif parsing_method not in { "tex", "regex", "plastex" }:
         raise ValueError(f"parsing_method must be 'tex' or 'regex', not '{parsing_method}'")
 
     conn = get_rds_connection()
@@ -270,7 +272,7 @@ if __name__ == "__main__":
         "--parsing-method",
         type=str,
         required=False,
-        default="tex",
+        default="plastex",
         help="Method to parse papers: 'tex' or 'regex'"
     )
 
