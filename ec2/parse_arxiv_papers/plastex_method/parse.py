@@ -1,11 +1,11 @@
 from typing import Set, Dict, List, Optional
 import os
+import contextlib
 from ..re_patterns import LABEL_RE
 from ..main_tex import get_main_tex_path
 from plasTeX.TeX import TeX
 from plasTeX.Logging import disableLogging
 from ..tex_method.extract_from_tex import extract_envs_to_titles
-from ..regex_method.flatten import flatten_tex
 
 def body_inner_latex(node) -> str:
     parts = []
@@ -27,6 +27,7 @@ def _get_node_label(doc, node) -> Optional[str]:
         pass
     return None
 
+
 def parse_by_plastex(
     paper_id: str,
     src_dir: str,
@@ -38,15 +39,22 @@ def parse_by_plastex(
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
 
+    old_cwd = os.getcwd()
+
     if not debugging_mode:
         disableLogging()
 
     tex = TeX()
 
     try:
-        tex_str = flatten_tex(main_tex_name, src_dir)
-        tex.input(tex_str)
-        doc = tex.parse()
+        os.chdir(src_dir)
+
+        cm = contextlib.nullcontext()
+
+        with cm:
+            with open(main_tex_name, "r", encoding="utf-8", errors="ignore") as f:
+                tex.input(f)
+                doc = tex.parse()
 
         theorems: List[Dict] = []
 
@@ -80,5 +88,6 @@ def parse_by_plastex(
                 })
 
         return theorems
-    except:
-        return []
+
+    finally:
+        os.chdir(old_cwd)
