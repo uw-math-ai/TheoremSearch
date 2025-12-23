@@ -1,8 +1,26 @@
 import regex as re
 
-# Finds the matching closing brace for a given opening brace index.
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+
+# Allow common punctuation right after a macro: \rr, \rr. \rr) \rr] \rr, etc.
+FOLLOW = r"(?=\b|_|\^|\{|\}|\(|\)|\[|\]|$|\s|~|\$|\d|,|\.|;|:|!|\?|/)"
+
+
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+
 def find_matching_brace(text, start_index):
-    brace_count = 1
+    """
+    Return the index of the matching '}' for the '{' at start_index.
+    start_index MUST point to the opening '{'.
+    """
+    if start_index >= len(text) or text[start_index] != '{':
+        return None
+
+    brace_count = 0
     for i in range(start_index, len(text)):
         if text[i] == '{':
             brace_count += 1
@@ -12,28 +30,32 @@ def find_matching_brace(text, start_index):
                 return i
     return None  # No matching brace found
 
-# Removes all formatting commands from a LaTeX string
+
 def clean_up_formatting(input_string):
+    """
+    Removes some formatting commands from a LaTeX string. This is *not*
+    semantics-preserving LaTeX; it is meant for downstream text/embedding cleanup.
+    """
     patterns = [
         r"\\ensuremath",
-        r"\\mathrm", 
-        r"\\textrm", 
-        r"\\mbox", 
-        r"\\text", 
-        r"\\textsc", 
-        r"\\mathit", 
+        r"\\mathrm",
+        r"\\textrm",
+        r"\\mbox",
+        r"\\text",
+        r"\\textsc",
+        r"\\mathit",
         r"\\textbf",
-        r"\\textit", 
+        r"\\textit",
         r"\\texttt",
         r"\\textsf",
         r"\\textnormal",
         r"\\textup",
         r"\\em",
         r"\\rm",
-        r"\\it"
+        r"\\it",
     ]
 
-    combined_pattern = "(" + "|".join(f'({p})' for p in patterns) + ")" + r"(?=\b||\^|\{|\}|\(|\)|\[|\]|$|\s|~|\$)"
+    combined_pattern = "(" + "|".join(f"({p})" for p in patterns) + ")" + r"(?=\b||\^|\{|\}|\(|\)|\[|\]|$|\s|~|\$)"
     input_string = re.sub(combined_pattern, " ", input_string)
 
     pattern = r"\s-?(?:\d+?\.\d+|\d+|\.\d+)\s(?:em|ex|pt|in|cm|mm|bp|dd|pc|sp|mu|mu|em|ex|\\textwidth|\\linewidth)\s*"
@@ -47,48 +69,76 @@ def clean_up_formatting(input_string):
     input_string = re.sub(r"\\[,;.:]", " ", input_string)
     input_string = re.sub(r"\{\s*\}", " ", input_string)
     input_string = re.sub(r"\\ast(?![a-zA-Z])", "*", input_string)
-    input_string = re.sub(r'(?<=[a-zA-Z0-9])\\', r" \\", input_string)
+
+    # If a backslash immediately follows an alnum, separate it:
+    input_string = re.sub(r"(?<=[a-zA-Z0-9])\\", r" \\", input_string)
 
     return input_string
 
-# Counts the number of arguments (#1, #2, ...) in a \def macro.
+
 def def_args_to_num_args(args):
+    # Counts the number of arguments (#1, #2, ...) in a \def macro.
     return len(re.findall(r"#\d", args))
 
-# Counts the number of arguments from a \newcommand declaration.
+
 def newcommand_args_to_num_args(args):
+    # Counts the number of arguments from a \newcommand declaration.
     match = re.search(r"\[(\d+)\]", args)
     return int(match.group(1)) if match else 0
 
-# Extracts macro definitions using a stack-based approach for nested {} handling.
+
 def extract_definitions(text, pattern, args_to_num_args):
+    """
+    Extract macro definitions using a brace-matching approach for nested {} handling.
+
+    IMPORTANT FIX:
+      - match.end() is right after the '{' in the regex, so we use match.end()-1
+        as the index of the '{', then take definition inside braces.
+    """
     matches = {}
     for match in re.finditer(pattern, text):
         name, args = match.group(1), match.group(2)
-        start = match.end()
-        end = find_matching_brace(text, start)
-        if end:
-            definition = text[start:end]
+
+        open_brace_idx = match.end() - 1  # points to '{'
+        end = find_matching_brace(text, open_brace_idx)
+        if end is not None:
+            definition = text[open_brace_idx + 1 : end]  # inside braces only
             matches[f"\\{name}"] = {
                 "num_args": args_to_num_args(args),
                 "definition": definition
             }
     return matches
 
-# Parses \def and \newcommand macros from LaTeX source.
+
+# -----------------------------------------------------------------------------
+# Macro parsing
+# -----------------------------------------------------------------------------
+
 def parse_macros(latex_source):
-    # Patterns for \def and \newcommand
+    """
+    Parses \def and \newcommand macros from LaTeX source.
+
+    NOTE: This is intentionally simple (only A-Za-z macro names).
+    """
     def_pattern = r"(?<!%)\\def\s*\\([A-Za-z]+)\s*((?:#\d\s*)*)\s*{"
     newcommand_pattern = r"(?<!%)\\newcommand\*?\s*{?\s*\\([A-Za-z]+)\s*}?\s*((?:\[\s*\d+\s*\])*)\s*{"
     command_mappings = extract_definitions(latex_source, def_pattern, def_args_to_num_args)
     command_mappings.update(extract_definitions(latex_source, newcommand_pattern, newcommand_args_to_num_args))
     return command_mappings
 
+
+# -----------------------------------------------------------------------------
+# Substitution / expansion
+# -----------------------------------------------------------------------------
+
 def sub_command_for_def(string, command, definition, num_args):
-    # Expanded follow-set: allow common punctuation right after a macro, e.g. \qq, \rr. \pp;
-    FOLLOW = r"(?=\b|_|\^|\{|\}|\(|\)|\[|\]|$|\s|~|\$|\d|,|\.|;|:|!|\?|/)"
-    
-    # If command definition uses args
+    """
+    Substitute a single command in `string` with its `definition`.
+
+    FIXES:
+      - Use function replacement so backslashes in `definition` are treated literally.
+      - Use expanded FOLLOW boundary so macros before punctuation expand.
+    """
     if num_args > 0:
         pattern = re.escape(command)
         for i in range(num_args):
@@ -99,91 +149,122 @@ def sub_command_for_def(string, command, definition, num_args):
         while match:
             sub_for_args = {}
             for i in range(num_args):
-                arg_i = match.group(i+1)
+                arg_i = match.group(i + 1)
                 sub_for_args[f"#{i+1}"] = arg_i[1:-1]
 
             subbed_definition = re.compile(
-                "|".join(re.escape(key) for key in sub_for_args.keys())
+                "|".join(re.escape(k) for k in sub_for_args.keys())
             ).sub(lambda m: sub_for_args[m.group(0)], definition)
 
-            subbed_definition = subbed_definition.replace('\\', '\\\\')
-            string = re.sub(re.escape(match.group(0)), subbed_definition, string)
+            whole = match.group(0)
+            string = re.sub(re.escape(whole), lambda _m: subbed_definition, string, count=1)
             match = re.search(pattern, string)
 
         return string
 
-    # If no args
     else:
         pattern = re.escape(command) + FOLLOW
-        definition = definition.replace('\\', '\\\\')
-        return re.sub(pattern, definition, string)
+        return re.sub(pattern, lambda _m: definition, string)
+
 
 def expand_nested_macros(command_mappings):
-    # since some user-defined commands may make reference to other user-defined
-    # commands, loop through the dictionary until all commands are expanded back into raw LaTeX
+    """
+    Expand nested user-defined macros inside macro definitions themselves.
+    Removes recursive/self-referential macros.
+    """
     changed = True
     while changed:
         recursive_commands = []
-        # assume no changes need to be made
         changed = False
-        for command in command_mappings:
-            definition = command_mappings[command]['definition']
-            if re.search(re.escape(command) + r"(?=\b|_|\^|\{|\}|\(|\)|\[|\]|$|\s|~|\$|\d)", definition):
+
+        for command in list(command_mappings.keys()):
+            definition = command_mappings[command]["definition"]
+
+            # FIX: use the same FOLLOW as elsewhere for recursion detection
+            if re.search(re.escape(command) + FOLLOW, definition):
                 recursive_commands.append(command)
                 continue
-            # Sort by inverse length to prevent accidental replacements of \\command_longname by \\command
+
             old_definition = definition
-            for nested_command in sorted(filter(lambda key : key in definition, command_mappings.keys()), key=len, reverse=True):
-                # This module cannot handle recursive commands
+
+            # Only try nested substitutions for commands that appear in the string;
+            # process longer commands first to avoid partial matches.
+            for nested_command in sorted(
+                (k for k in command_mappings.keys() if k in definition),
+                key=len,
+                reverse=True
+            ):
                 if nested_command == command:
                     continue
-                # replace all nested user-defined commands
-                else:
-                    nested_definition = command_mappings[nested_command]['definition']
-                    nested_args = command_mappings[nested_command]['num_args']
-                    new_definition = sub_command_for_def(definition, nested_command, nested_definition, nested_args)
-                    definition = new_definition
-            # Check that the substitution actually worked, because sometimes it does not
+
+                nested_definition = command_mappings[nested_command]["definition"]
+                nested_args = command_mappings[nested_command]["num_args"]
+                definition = sub_command_for_def(definition, nested_command, nested_definition, nested_args)
+
             if definition != old_definition:
                 changed = True
-                command_mappings[command]['definition'] = definition
-        [command_mappings.pop(command, None) for command in recursive_commands]  
-                
+                command_mappings[command]["definition"] = definition
+
+        for command in recursive_commands:
+            command_mappings.pop(command, None)
+
     return command_mappings
 
+
 def sub_macros_for_defs(latex_source, command_mappings):
-    # Remove all macro definitions from source
+    """
+    Remove macro definitions from the source, then expand macros in the remaining text.
+    """
+    # Remove \def definitions
     pattern = r"(?<!%)\\def\s*\\([A-Za-z]+)\s*(?:#\d\s*)*\s*({(?:[^{}]*+|(?2))*})"
     latex_source = re.sub(pattern, "", latex_source)
+
+    # Remove \newcommand definitions
     pattern = r"(?<!%)\\newcommand\*?\s*{?\s*\\([A-Za-z]+)\s*}?\s*(?:\[\s*\d+\s*\])*\s*({(?:[^{}]*+|(?2))*})"
     latex_source = re.sub(pattern, "", latex_source)
+
     # Remove excessive newlines
-    latex_source = re.sub(r'(?<!\\)(\n\s*){2,}', r'\1', latex_source)
-    for command in sorted(filter(lambda key : key in latex_source, command_mappings.keys()), key=len, reverse=True):
-        definition = command_mappings[command]['definition']
-        args = command_mappings[command]['num_args']
+    latex_source = re.sub(r"(?<!\\)(\n\s*){2,}", r"\1", latex_source)
+
+    # Substitute commands longest-first to avoid partial replacement
+    for command in sorted((k for k in command_mappings.keys() if k in latex_source), key=len, reverse=True):
+        definition = command_mappings[command]["definition"]
+        args = command_mappings[command]["num_args"]
         latex_source = sub_command_for_def(latex_source, command, definition, args)
+
     return latex_source
 
-def get_command_mappings(macros_source, commands_dont_expand=[]):
+
+def get_command_mappings(macros_source, commands_dont_expand=None):
+    if commands_dont_expand is None:
+        commands_dont_expand = []
+
     command_mappings = parse_macros(macros_source)
-    
+
     for command in commands_dont_expand:
         command_mappings.pop(command, None)
-    
-    for command in command_mappings:
+
+    # Clean up formatting inside macro definitions (for embedding/text normalization).
+    # NOTE: If you intend to compile the expanded output with pdflatex, you likely
+    # should disable this.
+    for command in list(command_mappings.keys()):
         definition = command_mappings[command]["definition"]
-        clean_definition = clean_up_formatting(definition)
-        command_mappings[command]["definition"] = clean_definition
+        command_mappings[command]["definition"] = clean_up_formatting(definition)
 
     command_mappings = expand_nested_macros(command_mappings)
     return command_mappings
 
-def expand_latex_macros(latex_source, extra_macro_sources=[], commands_dont_expand=[]):
-    macros_source = latex_source
-    for source in extra_macro_sources:
-        macros_source += source
 
+def expand_latex_macros(latex_source, extra_macro_sources=None, commands_dont_expand=None, debug=False):
+    if extra_macro_sources is None:
+        extra_macro_sources = []
+    if commands_dont_expand is None:
+        commands_dont_expand = []
+
+    macros_source = latex_source + "".join(extra_macro_sources)
     command_mappings = get_command_mappings(macros_source, commands_dont_expand)
+
+    if debug:
+        print(command_mappings)
 
     return sub_macros_for_defs(latex_source, command_mappings)
