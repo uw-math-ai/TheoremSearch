@@ -61,6 +61,7 @@ def parse_by_tex(
         log_str = expand_latex_macros(log_str, extra_macro_sources=macro_sources)
         if debugging_mode:
             print("expand_latex_macros succeeded!")
+            print("macro sources:", macro_sources)
     except Exception as e:
         # Minimal behavior: if expansion fails, fall back to raw log
         if debugging_mode:
