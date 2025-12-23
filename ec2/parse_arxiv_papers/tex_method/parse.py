@@ -6,6 +6,7 @@ from .thmenvcapture import inject_thmenvcapture
 from .pdflatex import generate_dummy_biblatex, run_pdflatex
 from ..re_patterns import LABEL_RE
 import pyperclip
+from expand_latex_macros import expand_latex_macros
 
 def parse_by_tex(
     paper_id: str,
@@ -31,7 +32,7 @@ def parse_by_tex(
         try:
             pyperclip.copy(thmenvcapture_content)
             print("thmenvcapture.sty: copied to clipboard")
-        except Exception as e:
+        except Exception:
             print("thmenvcapture.sty: not copied to clipboard (no xclip, xselect, etc.)")
 
     generate_dummy_biblatex(src_dir)
@@ -44,44 +45,61 @@ def parse_by_tex(
 
     if not os.path.exists(theorem_log_path):
         raise FileNotFoundError("thm-env-capture.log was not created")
+    
+    macro_sources = []
+    for root, _, files in os.walk(src_dir):
+        for fn in files:
+            ext = os.path.splitext(fn)[1].lower()
+            # include typical LaTeX text sources
+            if ext in (".tex", ".ltx", ".sty", ".cls", ".clo", ".def", ".cfg"):
+                macro_sources.append(os.path.join(root, fn))
+
+    with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
+        log_str = f.read()
+
+    try:
+        log_str = expand_latex_macros(log_str, extra_macro_sources=macro_sources)
+    except Exception as e:
+        # Minimal behavior: if expansion fails, fall back to raw log
+        if debugging_mode:
+            print("expand_latex_macros failed; using raw log. Error:", repr(e))
 
     theorems = []
 
-    with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
-        curr = None
-        keep = False
+    curr = None
+    keep = False
 
-        for raw in f:
-            line = raw.strip()
+    for raw in log_str.splitlines():
+        line = raw.strip()
 
-            if line == "BEGIN_ENV":
-                curr = {"paper_id": paper_id, "label": None, "name": "", "body": ""}
-                keep = True
-                continue
+        if line == "BEGIN_ENV":
+            curr = {"paper_id": paper_id, "label": None, "name": "", "body": ""}
+            keep = True
+            continue
 
-            if line == "END_ENV":
-                if keep and curr and curr["name"] and curr["body"]:
-                    theorems.append(curr)
-                curr = None
+        if line == "END_ENV":
+            if keep and curr and curr["name"] and curr["body"]:
+                theorems.append(curr)
+            curr = None
+            keep = False
+            continue
+
+        if not keep or curr is None:
+            continue
+
+        if line.startswith("name:"):
+            curr["name"] = line.split("name:", 1)[1].strip()
+
+        elif line.startswith("label:"):
+            label = line.split("label:", 1)[1].strip()
+            if label:
+                curr["label"] = label
+
+        elif line.startswith("body:"):
+            body = line.split("body:", 1)[1].strip()
+            body = LABEL_RE.sub("", body).replace("\\protect", "")
+            curr["body"] = body
+            if not body:
                 keep = False
-                continue
-
-            if not keep or curr is None:
-                continue
-
-            if line.startswith("name:"):
-                curr["name"] = line.split("name:", 1)[1].strip()
-
-            elif line.startswith("label:"):
-                label = line.split("label:", 1)[1].strip()
-                if label:
-                    curr["label"] = label
-
-            elif line.startswith("body:"):
-                body = line.split("body:", 1)[1].strip()
-                body = LABEL_RE.sub("", body).replace("\\protect", "")
-                curr["body"] = body
-                if not body:
-                    keep = False
 
     return theorems
