@@ -1,5 +1,4 @@
 from typing import Set, Dict, List, Optional
-import os
 import io
 import contextlib
 import logging
@@ -145,13 +144,14 @@ def parse_by_plastex(
                         if item
                     )
 
-                    theorems.append({
-                        "paper_id": paper_id,
-                        "name": name,
-                        "label": label,
-                        "body": body,
-                    })
-
+                    if body and name:
+                        theorems.append({
+                            "paper_id": paper_id,
+                            "name": name,
+                            "label": label,
+                            "body": body,
+                        })
+                        
         return theorems
 
     except Exception:
