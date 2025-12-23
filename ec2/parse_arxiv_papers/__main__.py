@@ -193,11 +193,6 @@ def parse_arxiv_papers(
 
             if batch_theorem_rows:
                 with conn.cursor() as cur:
-                    cur.execute("""
-                        DELETE FROM theorem
-                        WHERE paper_id = ANY(%s)
-                    """, (list({ row["paper_id"] for row in batch_theorem_rows }),))
-
                     upsert_rows(
                         cur,
                         table="theorem",
