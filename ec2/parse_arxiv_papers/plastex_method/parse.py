@@ -38,8 +38,6 @@ def parse_by_plastex(
     main_tex_path = get_main_tex_path(src_dir)
     main_tex_name = os.path.basename(main_tex_path)
 
-    old_cwd = os.getcwd()
-
     if not debugging_mode:
         disableLogging()
 
@@ -82,6 +80,5 @@ def parse_by_plastex(
                 })
 
         return theorems
-
-    finally:
-        os.chdir(old_cwd)
+    except:
+        return []
