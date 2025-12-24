@@ -14,12 +14,9 @@ from plasTeX.Logging import disableLogging
 import pprint
 
 def _flag_for_truncation(body) -> bool:
-    short = len(body) < 32
-    no_period = "." not in body
-    no_dollar_sign = "$" not in body
-    no_backslash = "\\" not in body
-
-    return short and no_period and no_dollar_sign and no_backslash
+    if len(body) >= 32:
+        return False
+    return ("." not in body) and ("$" not in body) and ("\\" not in body)
 
 def _get_node_body(node) -> str:
     parts = []
@@ -37,16 +34,13 @@ def _get_node_body(node) -> str:
     else:
         return body
 
-def _get_node_label(doc, node) -> Optional[str]:
-    try:
-        labels = getattr(doc.context, "labels", {}) or {}
-        for lab, target in labels.items():
-            if target is node and isinstance(lab, str) and "plasTeX" not in lab:
-                return lab
-    except Exception:
-        pass
-    return None
-
+def _build_target_to_label(doc) -> dict[int, str]:
+    out = {}
+    labels = getattr(doc.context, "labels", {}) or {}
+    for lab, target in labels.items():
+        if isinstance(lab, str) and "plasTeX" not in lab and target is not None:
+            out[id(target)] = lab
+    return out
 
 def _get_node_name(node, title) -> str:
     number = node.ref.source if getattr(node, "ref", None) else None
@@ -133,14 +127,17 @@ def parse_by_plastex(
                     tex.input(f)
                     doc = tex.parse()
 
+                target_to_label = _build_target_to_label(doc)
+
                 for env in sorted(envs_to_titles.keys()):
                     for node in doc.getElementsByTagName(env):
                         body = _get_node_body(node)
 
                         if not body:
-                            raise ValueError("A theorem body was truncated or is empty")
+                            # raise ValueError("A theorem body was truncated or is empty")
+                            return []
 
-                        label = _get_node_label(doc, node)
+                        label = target_to_label.get(id(node))
                         name = _get_node_name(node, envs_to_titles[env])
 
                         if body and name:
@@ -151,7 +148,7 @@ def parse_by_plastex(
                                 "body": body,
                             })
 
-            # pprint.pprint(theorems)
+            pprint.pprint(theorems)
             return theorems
 
     except Exception:
