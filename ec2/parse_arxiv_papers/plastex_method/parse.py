@@ -20,12 +20,11 @@ def _body_inner_latex(node) -> str:
         source = node.source
         source = LABEL_RE.sub("", source)
 
-        if BEGIN_RE.match(source) and END_RE.match(source):
-            source = BEGIN_RE.sub("", source, count=1)
-            source = END_RE.sub("", source, count=1)
+        source = BEGIN_RE.sub("", source, count=1)
+        source = END_RE.sub("", source, count=1)
 
-            return source.strip()
-    
+        return source.strip()
+            
     return ""
 
 def _get_node_label(doc, node) -> Optional[str]:
