@@ -4,7 +4,7 @@ import contextlib
 import logging
 import subprocess
 
-from ..re_patterns import LABEL_RE
+from ..re_patterns import LABEL_RE, BEGIN_RE, END_RE
 from ..main_tex import get_main_tex_path
 from ..tex_method.extract_from_tex import extract_envs_to_titles
 
@@ -12,18 +12,19 @@ from plasTeX.TeX import TeX
 from plasTeX.Logging import disableLogging
 
 import os
+import pprint
 
 
-def body_inner_latex(node) -> str:
-    parts = []
-    for child in getattr(node, "childNodes", []) or []:
-        src = getattr(child, "source", None)
-        if isinstance(src, str) and src.strip():
-            parts.append(src.strip())
-        else:
-            parts.append(getattr(child, "textContent", "") or "")
-    return "".join(parts).strip()
+def _body_inner_latex(node) -> str:
+    if hasattr(node, "source"):
+        source = node.source
+        source = LABEL_RE.sub("", source)
+        source = BEGIN_RE.sub("", source, count=1)
+        source = END_RE.sub("", source, count=1)
 
+        return source.strip()
+    else:
+        return node.textContent.strip()
 
 def _get_node_label(doc, node) -> Optional[str]:
     try:
@@ -118,8 +119,7 @@ def parse_by_plastex(
                     label = _get_node_label(doc, node)
                     number = node.ref.source if getattr(node, "ref", None) else None
 
-                    body = body_inner_latex(node)
-                    body = LABEL_RE.sub("", body).strip()
+                    body = _body_inner_latex(node)
 
                     title = None
                     if hasattr(node, "title") and node.title:
@@ -145,7 +145,9 @@ def parse_by_plastex(
                             "body": body,
                         })
 
+        pprint.pprint(theorems)
         return theorems
 
-    except Exception:
+    except Exception as e:
+        raise e
         return []

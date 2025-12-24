@@ -75,3 +75,13 @@ THEOREM_ENV_RE = re.compile(r"\\begin\{(theorem|lemma|proposition|corollary)\}")
 CITE_RE = re.compile(r"\\cite[tp]?\{")
 
 LABEL_RE = re.compile(r"\\label\s*\{[^}]*\}")
+
+BEGIN_RE = re.compile(
+    r"^\s*\\begin\{[^}]+\}(?:\[[^\]]*\])?\s*",
+    flags=re.DOTALL,
+)
+
+END_RE = re.compile(
+    r"\s*\\end\{[^}]+\}\s*$",
+    flags=re.DOTALL,
+)
