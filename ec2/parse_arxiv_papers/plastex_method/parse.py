@@ -16,23 +16,28 @@ import pprint
 
 
 def _body_inner_latex(node) -> str:
-    if hasattr(node, "source"):
-        source = node.source
-        source = LABEL_RE.sub("", source)
+    src_obj = getattr(node, "source", None)
+    if src_obj is None:
+        return ""
 
+    source = str(src_obj)
+    source = LABEL_RE.sub("", source)
+
+    has_begin = BEGIN_RE.search(source) is not None
+    has_end = END_RE.search(source) is not None
+
+    if has_begin and has_end:
         source = BEGIN_RE.sub("", source, count=1)
         source = END_RE.sub("", source, count=1)
 
-        return source.strip()
-            
-    return ""
+    return source.strip()
 
 def _get_node_label(doc, node) -> Optional[str]:
     try:
         labels = getattr(doc.context, "labels", {}) or {}
         for lab, target in labels.items():
             if target is node:
-                return lab
+                return lab.source
     except Exception:
         pass
     return None
