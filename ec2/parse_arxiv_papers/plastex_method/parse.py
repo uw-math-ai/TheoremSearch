@@ -26,9 +26,9 @@ def _body_inner_latex(node) -> str:
     has_begin = BEGIN_RE.search(source) is not None
     has_end = END_RE.search(source) is not None
 
-    if has_begin and has_end:
-        source = BEGIN_RE.sub("", source, count=1)
-        source = END_RE.sub("", source, count=1)
+    # if has_begin and has_end:
+    #     source = BEGIN_RE.sub("", source, count=1)
+    #     source = END_RE.sub("", source, count=1)
 
     return source.strip()
 
@@ -36,8 +36,8 @@ def _get_node_label(doc, node) -> Optional[str]:
     try:
         labels = getattr(doc.context, "labels", {}) or {}
         for lab, target in labels.items():
-            if target is node:
-                return lab.source
+            if target is node and isinstance(lab, str):
+                return lab
     except Exception:
         pass
     return None
