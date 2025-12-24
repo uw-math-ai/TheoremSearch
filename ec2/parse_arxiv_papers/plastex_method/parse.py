@@ -108,7 +108,8 @@ def parse_by_plastex(
         theorems: List[Dict] = []
 
         with _silent_plastex(silent):
-            tex.input(open(main_tex_path, "r", encoding="utf-8", errors="ignore").read())
+            with open(main_tex_path, "r", encoding="utf-8", errors="ignore") as f:
+                tex.input(f.read())
             doc = tex.parse()
 
             for env in sorted(envs_to_titles.keys()):
@@ -145,7 +146,7 @@ def parse_by_plastex(
                             "body": body,
                         })
 
-        # pprint.pprint(theorems)
+        #pprint.pprint(theorems)
         return theorems
 
     except Exception as e:
