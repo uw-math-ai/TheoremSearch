@@ -43,7 +43,7 @@ def _parse_arxiv_paper(
     elif parsing_method == "regex":
         theorems = parse_by_regex(paper_id, src_dir, theorem_types, timeout)
     else:
-        theorems = parse_by_plastex(paper_id, src_dir, theorem_types, debugging_mode)
+        theorems = parse_by_plastex(paper_id, src_dir, theorem_types, timeout, debugging_mode)
     return theorems
 
 def parse_arxiv_papers(

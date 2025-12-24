@@ -12,6 +12,7 @@ from plasTeX.TeX import TeX
 from plasTeX.Logging import disableLogging
 
 import pprint
+import signal
 
 def _flag_for_truncation(body) -> bool:
     if len(body) >= 32:
@@ -56,6 +57,28 @@ def _get_node_name(node, title) -> str:
         item for item in [title, number, f"({note})" if note else None]
         if item
     )
+
+class _ParseTimeout(Exception):
+    pass
+
+def _alarm_handler(signum, frame):
+    raise _ParseTimeout("plasTeX parse timed out")
+
+@contextlib.contextmanager
+def _with_timeout(seconds: int):
+    # No-op if seconds is falsy or non-positive
+    if not seconds or seconds <= 0:
+        yield
+        return
+
+    old_handler = signal.getsignal(signal.SIGALRM)
+    signal.signal(signal.SIGALRM, _alarm_handler)
+    signal.alarm(int(seconds))
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
 
 @contextlib.contextmanager
 def _silent_plastex(enabled: bool):
@@ -106,6 +129,7 @@ def parse_by_plastex(
     paper_id: str,
     src_dir: str,
     theorem_types: Set[str],
+    timeout: int,
     debugging_mode: bool
 ) -> List[Dict]:
     envs_to_titles = extract_envs_to_titles(src_dir, theorem_types)
@@ -123,33 +147,38 @@ def parse_by_plastex(
             theorems: List[Dict] = []
 
             with _silent_plastex(silent):
-                with open(main_tex_path, "r", encoding="utf-8", errors="ignore") as f:
-                    tex.input(f)
-                    doc = tex.parse()
+                # Enforce a hard timeout INSIDE the worker process.
+                with _with_timeout(timeout):
+                    with open(main_tex_path, "r", encoding="utf-8", errors="ignore") as f:
+                        tex.input(f)
+                        doc = tex.parse()
 
-                target_to_label = _build_target_to_label(doc)
+                    target_to_label = _build_target_to_label(doc)
 
-                for env in sorted(envs_to_titles.keys()):
-                    for node in doc.getElementsByTagName(env):
-                        body = _get_node_body(node)
+                    for env in sorted(envs_to_titles.keys()):
+                        for node in doc.getElementsByTagName(env):
+                            body = _get_node_body(node)
+                            if not body:
+                                return []
 
-                        if not body:
-                            # raise ValueError("A theorem body was truncated or is empty")
-                            return []
+                            label = target_to_label.get(id(node))
+                            name = _get_node_name(node, envs_to_titles[env])
 
-                        label = target_to_label.get(id(node))
-                        name = _get_node_name(node, envs_to_titles[env])
+                            if body and name:
+                                theorems.append({
+                                    "paper_id": paper_id,
+                                    "name": name,
+                                    "label": label,
+                                    "body": body,
+                                })
 
-                        if body and name:
-                            theorems.append({
-                                "paper_id": paper_id,
-                                "name": name,
-                                "label": label,
-                                "body": body,
-                            })
-
-            # pprint.pprint(theorems)
             return theorems
+
+    except _ParseTimeout:
+        # Hard timeout triggered inside worker
+        if debugging_mode:
+            raise
+        return []
 
     except Exception:
         if debugging_mode:
