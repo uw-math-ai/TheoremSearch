@@ -148,7 +148,7 @@ def parse_by_plastex(
                                 "body": body,
                             })
 
-            pprint.pprint(theorems)
+            # pprint.pprint(theorems)
             return theorems
 
     except Exception:
