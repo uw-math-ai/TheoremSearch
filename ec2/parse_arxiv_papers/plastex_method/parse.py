@@ -14,11 +14,12 @@ from plasTeX.Logging import disableLogging
 import pprint
 
 def _flag_for_truncation(body) -> bool:
-    short = len(body) < 64
+    short = len(body) < 32
     no_period = "." not in body
     no_dollar_sign = "$" not in body
+    no_backslash = "\\" not in body
 
-    return short and no_period and no_dollar_sign
+    return short and no_period and no_dollar_sign and no_backslash
 
 def _get_node_body(node) -> str:
     parts = []
@@ -29,7 +30,7 @@ def _get_node_body(node) -> str:
         else:
             parts.append(child.textContent)
     
-    body = LABEL_RE.sub("", "".join(parts).strip(), count=1).strip()
+    body = LABEL_RE.sub("", "".join(parts).strip()).strip()
 
     if _flag_for_truncation(body):
         return ""
