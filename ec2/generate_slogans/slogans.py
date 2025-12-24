@@ -6,7 +6,7 @@ import json
 import time
 from langfuse import Langfuse
 from botocore.client import BaseClient
-from models import MODELS
+from .models import MODELS
 from contextlib import nullcontext
 import numpy as np
 import os
