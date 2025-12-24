@@ -125,6 +125,13 @@ def _with_texinputs(src_dir: str, main_dir: str):
         else:
             os.environ["TEXINPUTS"] = old
 
+def _strip_nuls(x):
+    if isinstance(x, str):
+        return x.replace("\x00", "")
+    if isinstance(x, (bytes, bytearray, memoryview)):
+        return bytes(x).replace(b"\x00", b"").decode("utf-8", errors="replace")
+    return x
+
 def parse_by_plastex(
     paper_id: str,
     src_dir: str,
@@ -147,7 +154,6 @@ def parse_by_plastex(
             theorems: List[Dict] = []
 
             with _silent_plastex(silent):
-                # Enforce a hard timeout INSIDE the worker process.
                 with _with_timeout(timeout):
                     with open(main_tex_path, "r", encoding="utf-8", errors="ignore") as f:
                         tex.input(f)
@@ -167,9 +173,9 @@ def parse_by_plastex(
                             if body and name:
                                 theorems.append({
                                     "paper_id": paper_id,
-                                    "name": name,
-                                    "label": label,
-                                    "body": body,
+                                    "name": _strip_nuls(name),
+                                    "label": _strip_nuls(label),
+                                    "body": _strip_nuls(body),
                                 })
 
             return theorems
