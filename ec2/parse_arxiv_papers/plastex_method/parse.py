@@ -13,6 +13,13 @@ from plasTeX.Logging import disableLogging
 
 import pprint
 
+def _flag_for_truncation(body) -> bool:
+    short = len(body) < 64
+    no_period = "." not in body
+    no_dollar_sign = "$" not in body
+
+    return short and no_period and no_dollar_sign
+
 def _get_node_body(node) -> str:
     parts = []
     for child in getattr(node, "childNodes", []) or []:
@@ -21,8 +28,13 @@ def _get_node_body(node) -> str:
             parts.append(src.strip())
         else:
             parts.append(child.textContent)
-    return LABEL_RE.sub("", "".join(parts).strip(), count=1).strip()
+    
+    body = LABEL_RE.sub("", "".join(parts).strip(), count=1).strip()
 
+    if _flag_for_truncation(body):
+        return ""
+    else:
+        return body
 
 def _get_node_label(doc, node) -> Optional[str]:
     try:
@@ -50,7 +62,6 @@ def _get_node_name(node, title) -> str:
         if item
     )
 
-
 @contextlib.contextmanager
 def _silent_plastex(enabled: bool):
     if not enabled:
@@ -76,16 +87,9 @@ def _silent_plastex(enabled: bool):
 
 @contextlib.contextmanager
 def _with_texinputs(src_dir: str, main_dir: str):
-    """
-    Make TeX file lookup prefer local project files (no TeXLive required).
-    We include both main_dir and src_dir, plus recursive search ("//") which
-    helps when packages/macros live in subfolders.
-    """
     old = os.environ.get("TEXINPUTS")
     sep = os.pathsep
 
-    # TeX supports "dir//" meaning "search dir recursively"
-    # Keep both non-recursive and recursive; some resolvers treat them differently.
     entries = [
         main_dir, main_dir + "//",
         src_dir,  src_dir + "//",
@@ -103,7 +107,6 @@ def _with_texinputs(src_dir: str, main_dir: str):
         else:
             os.environ["TEXINPUTS"] = old
 
-
 def parse_by_plastex(
     paper_id: str,
     src_dir: str,
@@ -119,7 +122,6 @@ def parse_by_plastex(
 
     old_cwd = os.getcwd()
     try:
-        # Critical: resolve \input/\include relative to the main file directory
         os.chdir(main_dir)
 
         with _with_texinputs(src_dir=os.path.abspath(src_dir), main_dir=main_dir):
@@ -127,13 +129,17 @@ def parse_by_plastex(
 
             with _silent_plastex(silent):
                 with open(main_tex_path, "r", encoding="utf-8", errors="ignore") as f:
-                    tex.input(f)          # file object -> sets filename context
+                    tex.input(f)
                     doc = tex.parse()
 
                 for env in sorted(envs_to_titles.keys()):
                     for node in doc.getElementsByTagName(env):
-                        label = _get_node_label(doc, node)
                         body = _get_node_body(node)
+
+                        if not body:
+                            raise ValueError("A theorem body was truncated or is empty")
+
+                        label = _get_node_label(doc, node)
                         name = _get_node_name(node, envs_to_titles[env])
 
                         if body and name:
@@ -148,7 +154,6 @@ def parse_by_plastex(
             return theorems
 
     except Exception:
-        # If you want to debug rare misses, re-raise when debugging_mode is True
         if debugging_mode:
             raise
         return []
