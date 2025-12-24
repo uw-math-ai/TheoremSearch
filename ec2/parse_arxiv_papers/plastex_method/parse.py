@@ -18,9 +18,9 @@ import pprint
 def _body_inner_latex(node) -> str:
     if hasattr(node, "source"):
         source = node.source
-        source = LABEL_RE.sub("", source)
-        source = BEGIN_RE.sub("", source, count=1)
-        source = END_RE.sub("", source, count=1)
+        # source = LABEL_RE.sub("", source)
+        # source = BEGIN_RE.sub("", source, count=1)
+        # source = END_RE.sub("", source, count=1)
 
         return source.strip()
     else:
