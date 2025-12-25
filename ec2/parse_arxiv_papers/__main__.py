@@ -87,10 +87,8 @@ def _parse_with_hard_timeout(
         p.terminate()
         p.join(2)
         if p.is_alive():
-            try:
-                p.kill()
-            except Exception:
-                pass
+            p.kill()
+            p.join(2)
         raise TimeoutError(f"{paper_id} exceeded {timeout}s")
 
     try:
