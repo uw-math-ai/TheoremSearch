@@ -34,6 +34,8 @@ def _download_paper(
         with open(src_gz_path, "wb") as src_gz_b:
             for chunk in iter(lambda: body.read(8192), b""):
                 src_gz_b.write(chunk)
+
+        body.close()
     else:
         res = requests.get(f"https://arxiv.org/src/{paper_id}")
 

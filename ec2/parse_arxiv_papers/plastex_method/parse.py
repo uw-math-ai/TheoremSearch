@@ -95,13 +95,13 @@ def _silent_plastex(enabled: bool):
         prev_levels[name] = lg.level
         lg.setLevel(logging.CRITICAL)
 
-    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-        try:
-            yield
-        finally:
-            for name in loggers:
-                logging.getLogger(name).setLevel(prev_levels[name])
-
+    with open(os.devnull, "w") as dn:
+        with contextlib.redirect_stdout(dn), contextlib.redirect_stderr(dn):
+            try:
+                yield
+            finally:
+                for name in loggers:
+                    logging.getLogger(name).setLevel(prev_levels[name])
 
 @contextlib.contextmanager
 def _with_texinputs(src_dir: str, main_dir: str):
