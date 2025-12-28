@@ -56,7 +56,6 @@ def parse_by_tex(
                     with open(path, "r", encoding="utf-8", errors="ignore") as mf:
                         macro_sources.append(mf.read())
                 except Exception:
-                    # Ignore unreadable files (binary, permission issues, etc.)
                     pass
 
     with open(theorem_log_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -67,7 +66,6 @@ def parse_by_tex(
         if debugging_mode:
             print("expand_latex_macros succeeded!")
     except Exception as e:
-        # Minimal behavior: if expansion fails, fall back to raw log
         if debugging_mode:
             print("expand_latex_macros failed; using raw log. Error:", repr(e))
 
@@ -97,13 +95,12 @@ def parse_by_tex(
         if line.startswith("name:"):
             curr["name"] = line.split("name:", 1)[1].strip()
 
-        elif line.startswith("label:"):
-            label = line.split("label:", 1)[1].strip()
-            if label:
-                curr["label"] = label
-
         elif line.startswith("body:"):
             body = line.split("body:", 1)[1].strip()
+
+            m = LABEL_RE.search(body)
+            curr["label"] = m.group(1).strip() if m else None
+
             body = LABEL_RE.sub("", body).replace("\\protect", "")
             curr["body"] = body
             if not body:
