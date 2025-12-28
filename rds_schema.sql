@@ -56,3 +56,39 @@ CREATE TABLE theorem_embedding_gemma (
     slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
     embedding vector(768) NOT NULL
 );
+
+CREATE TABLE theorem_search_qwen (
+    -- ids
+    slogan_id        BIGINT PRIMARY KEY,
+    theorem_id       BIGINT NOT NULL,
+    paper_id         TEXT   NOT NULL,
+    -- embedding
+    embedding        vector(1024) NOT NULL,
+    slogan_model     TEXT NOT NULL,
+    prompt_id        TEXT NOT NULL,
+    -- theorem content
+    theorem_name     TEXT NOT NULL,
+    theorem_body     TEXT NOT NULL,
+    theorem_slogan   TEXT NOT NULL,
+    -- paper metadata
+    title            TEXT NOT NULL,
+    authors          TEXT[] NOT NULL,
+    link             TEXT NOT NULL,
+    year             INT,
+    journal_published BOOLEAN,
+    primary_category TEXT,
+    categories       TEXT[],
+    citations        INT,
+    source           TEXT NOT NULL,
+    -- added later
+    theorem_type     TEXT NOT NULL,
+    has_metadata    BOOLEAN NOT NULL
+);
+
+CREATE INDEX theorem_search_qwen_ivfflat
+ON theorem_search_qwen
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS theorem_search_qwen_type_idx
+ON theorem_search_qwen (theorem_type);
