@@ -10,6 +10,7 @@ from pgvector.psycopg2 import register_vector
 from sklearn.decomposition import IncrementalPCA
 import matplotlib.pyplot as plt
 from adjustText import adjust_text
+from matplotlib.lines import Line2D
 
 
 # ============================================================
@@ -43,6 +44,43 @@ BATCH_SIZE = 5000
 PCA_COMPONENTS = 2
 MAX_PER_CATEGORY = 25000
 RANDOM_SEED = 42
+
+ARXIV_FULL_NAMES = {
+    "math.AC": "Commutative Algebra",
+    "math.AG": "Algebraic Geometry",
+    "math.AP": "Analysis of PDEs",
+    "math.AT": "Algebraic Topology",
+    "math.CA": "Classical Analysis and ODEs",
+    "math.CO": "Combinatorics",
+    "math.CT": "Category Theory",
+    "math.CV": "Complex Variables",
+    "math.DG": "Differential Geometry",
+    "math.DS": "Dynamical Systems",
+    "math.FA": "Functional Analysis",
+    "math.GM": "General Mathematics",
+    "math.GN": "General Topology",
+    "math.GR": "Group Theory",
+    "math.GT": "Geometric Topology",
+    "math.HO": "History and Overview",
+    "math.IT": "Information Theory",
+    "math.KT": "K-Theory and Homology",
+    "math.LO": "Logic",
+    "math.MG": "Metric Geometry",
+    "math.MP": "Mathematical Physics",
+    "math.NA": "Numerical Analysis",
+    "math.NT": "Number Theory",
+    "math.OA": "Operator Algebras",
+    "math.OC": "Optimization and Control",
+    "math.PR": "Probability",
+    "math.QA": "Quantum Algebra",
+    "math.RA": "Rings and Algebras",
+    "math.RT": "Representation Theory",
+    "math.SG": "Symplectic Geometry",
+    "math.SP": "Spectral Theory",
+    "math.ST": "Statistics Theory",
+}
+
+
 
 # Plot options
 POINT_ALPHA = 0.08          # low alpha for individual points
@@ -251,7 +289,7 @@ def main():
     unique, counts = np.unique(cats_plot, return_counts=True)
     order = np.argsort(-counts)
 
-    plt.figure(figsize=(10, 7), dpi=400)
+    plt.figure(figsize=(12, 8), dpi=400)
 
     # individual points
     for cat in unique[order]:
@@ -298,16 +336,37 @@ def main():
         expand_text=(1.2, 1.4),
     )
 
-    """
-    if ANNOTATE_MEANS:
-        for cat, (x, y), cnt in zip(mean_cats, mean_pts, mean_counts):
-            plt.text(x, y, f" {cat}", fontsize=7)
-    """
+    legend_elements = []
+    for cat in mean_cats:
+        full = ARXIV_FULL_NAMES.get(cat, "Unknown")
+        label = f"{cat} — {full}"
+
+        legend_elements.append(
+            Line2D(
+                [0], [0],
+                marker="X",
+                color="black",
+                markerfacecolor="black",
+                markersize=8,
+                linestyle="None",
+                label=label,
+            )
+        )
+
+    # Add the legend
+    plt.legend(
+        handles=legend_elements,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        fontsize=8,
+        title="arXiv categories",
+        title_fontsize=9,
+    )
 
     plt.xlabel("PC1")
     plt.ylabel("PC2")
     plt.title("PCA of theorem embeddings (math categories) + cluster means")
-    plt.legend(loc="best")
+    # plt.legend(loc="best")
     plt.tight_layout()
     plt.show()
 
