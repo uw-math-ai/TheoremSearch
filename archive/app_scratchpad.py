@@ -161,7 +161,7 @@ st.write("This demo uses a specialized mathematical language model to find theor
 
 model = load_model()
 
-PARSED_DIR = "./parsed_papers"
+PARSED_DIR = "../parsed_papers"
 if os.path.exists(PARSED_DIR):
     paper_files = [
         os.path.join(PARSED_DIR, f)

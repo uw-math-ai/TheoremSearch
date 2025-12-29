@@ -108,7 +108,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     PARSED_DIR = "./app_papers"
-    SOURCE_DIR_BASE = "./downloaded_sources"
+    SOURCE_DIR_BASE = "../downloaded_sources"
     
     os.makedirs(PARSED_DIR, exist_ok=True)
     os.makedirs(SOURCE_DIR_BASE, exist_ok=True)

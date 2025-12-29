@@ -112,7 +112,7 @@ def clean_latex_for_display(text: str) -> str:
 
 model = load_model()
 
-PARSED_DIR = "./parsed_papers"
+PARSED_DIR = "../parsed_papers"
 paper_files = [
     os.path.join(PARSED_DIR, f)
     for f in os.listdir(PARSED_DIR)
