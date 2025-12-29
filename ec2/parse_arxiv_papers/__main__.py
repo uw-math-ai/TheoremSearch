@@ -208,8 +208,8 @@ def parse_arxiv_papers(
     ) as pbar:
         for papers in paginate_query(
             conn,
-            base_sql=query,
-            base_params=(*params,),
+            base_query=query,
+            base_params=params,
             order_by="last_updated",
             descending=True,
             page_size=batch_size,

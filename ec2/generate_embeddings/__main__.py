@@ -69,8 +69,8 @@ def generate_embeddings(
     with tqdm(total=count, dynamic_ncols=True) as pbar:
         for slogans in paginate_query(
             conn,
-            base_sql=query,
-            base_params=(*params,),
+            base_query=query,
+            base_params=params,
             order_by="slogan_id",
             descending=False,
             page_size=page_size

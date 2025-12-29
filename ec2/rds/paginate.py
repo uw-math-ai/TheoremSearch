@@ -4,13 +4,46 @@ from psycopg2 import sql
 
 def paginate_query(
     conn: connection,
-    base_sql: str,
-    base_params: Tuple[Any, ...],
+    base_query: str,
     order_by: str,
-    page_size: int = 100,
+    base_params: List[Any] = [],
     descending: bool = False,
+    page_size: int = 100,
     skip: int = 0
 ) -> Iterator[List[Dict[str, Any]]]:
+    """
+    Paginates a SQL query. Helpful for reading large query results into manageable pages.
+
+    Works by ordering results of a query by a stable key. Ensure the table or join you are
+    querying includes a column that provides such a stable key.
+
+    Parameters
+    ----------
+    conn : connection
+        Connection to a RDS database
+    base_query : str
+        A valid SQL query. Use `%s` for dynamic parameters. Do not include ORDER BY or OFFSET
+        clauses
+    order_by : str
+        The stable ordering key
+    base_params : List[Any], optional
+        The dynamic parameters of `base_query`. Must match up with each `%s` in `base_query`. By
+        default, []
+    descending : bool, optional
+        Whether to sort `order_by` in descending order. Otherwise, sorts `order_by` in ascending
+        order. By default, False
+    page_size : int, optional
+        The number of rows returned per page. The last page may have fewer rows. By default, 100
+    skip: int, optional
+        The number of rows to skip. By default, 0
+
+    Returns
+    -------
+    paginator : Iterator[List[Dict[str, Any]]]
+        An iterator of pages of rows. Each page is a List and each row is a Dict mapping a column
+        name to the column value
+    """
+
     after_value = None
     order_ident = sql.Identifier(order_by)
     direction = sql.SQL(" DESC") if descending else sql.SQL(" ASC")
@@ -21,11 +54,11 @@ def paginate_query(
     while True:
         parts = [
             sql.SQL("SELECT * FROM ("),
-            sql.SQL(base_sql),
+            sql.SQL(base_query),
             sql.SQL(") AS t")
         ]
 
-        params: List[Any] = list(base_params)
+        params = base_params.copy()
 
         if after_value is not None:
             parts += [

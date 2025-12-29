@@ -1,5 +1,13 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from psycopg2.extensions import cursor
+
+# TODO: Switch cursor paramter to connection for simpler interface
+
+def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
+    if not ("with" in on_conflict and "replace" in on_conflict):
+        raise ValueError("both 'with' and 'replace' must be included in on_conflict")
+    if len(on_conflict) > 2:
+        raise ValueError("on_conflict must be a dictionary of exactly 'with' and 'replace'")
 
 def upsert_row(
     cur: cursor, 
@@ -7,11 +15,30 @@ def upsert_row(
     row: Dict[str, any],
     on_conflict: Optional[Dict[str, List[str]]] = None
 ):
+    """
+    Upserts a row into a table.
+
+    Parameters
+    ----------
+    cur: cursor
+        An active SQL cursor
+    table: str
+        The table you want to add rows into
+    row: Dict[str, Any]
+        The row to add into the table, a Dict mapping column names to values
+    on_conflict: Optional[Dict[str, List[str]]], optional
+        A config object for dealing with row conflict with the following form:
+        ```
+        {
+            "with": List[str] # handle a conflict where the following columns all collide
+            "replace": List[str] # replace these existing columns with new values
+        }
+        ```
+        By default None
+    """
+
     if on_conflict is not None:
-        if not ("with" in on_conflict and "replace" in on_conflict):
-            raise ValueError("both 'with' and 'replace' must be included in on_conflict")
-        if len(on_conflict) > 2:
-            raise ValueError("on_conflict must be a dictionary of exactly 'with' and 'replace'")
+        _validate_on_conflict(on_conflict)
 
         conflict_clause = "ON CONFLICT "
         conflict_clause += f"({', '.join(on_conflict['with'])}) "
@@ -29,14 +56,33 @@ def upsert_row(
 def upsert_rows(
     cur: cursor, 
     table: str, 
-    rows: List[Dict[str, any]],
+    rows: List[Dict[str, Any]],
     on_conflict: Optional[Dict[str, List[str]]] = None
 ):
+    """
+    Upserts a batch of a rows into a table efficiently.
+
+    Parameters
+    ----------
+    cur: cursor
+        An active SQL cursor
+    table: str
+        The table you want to add rows into
+    rows: List[Dict[str, Any]]
+        The batch of rows to add into the table. Each row is a Dict mapping column names to values
+    on_conflict: Optional[Dict[str, List[str]]], optional
+        A config object for dealing with row conflict with the following form:
+        ```
+        {
+            "with": List[str] # handle a conflict where the following columns all collide
+            "replace": List[str] # replace these existing columns with new values
+        }
+        ```
+        By default None
+    """
+
     if on_conflict is not None:
-        if not ("with" in on_conflict and "replace" in on_conflict):
-            raise ValueError("both 'with' and 'replace' must be included in on_conflict")
-        if len(on_conflict) > 2:
-            raise ValueError("on_conflict must be a dictionary of exactly 'with' and 'replace'")
+        _validate_on_conflict(on_conflict)
 
         conflict_clause = "ON CONFLICT "
         conflict_clause += f"({', '.join(on_conflict['with'])}) "

@@ -14,7 +14,7 @@ def get_rds_connection() -> connection:
     Returns
     -------
     conn: connection
-        Connection to the RDS database
+        Connection to a RDS database
     """
 
     region = os.getenv("AWS_REGION", "us-west-2")
@@ -34,4 +34,5 @@ def get_rds_connection() -> connection:
         password=secret_dict["password"],
         sslmode="require",
     )
+
     return conn

@@ -134,8 +134,8 @@ def generate_slogans(
     with tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
         for theorem_contexts in paginate_query(
             conn,
-            base_sql=query,
-            base_params=(*params,),
+            base_query=query,
+            base_params=params,
             order_by="theorem_id",
             descending=False,
             page_size=page_size
