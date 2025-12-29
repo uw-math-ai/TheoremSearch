@@ -95,7 +95,8 @@ def backfill(conn: connection):
             categories,
             citations,
             source,
-            theorem_type
+            theorem_type,
+            has_metadata
         )
         SELECT
             ts.slogan_id,
@@ -126,7 +127,11 @@ def backfill(conn: connection):
                 WHEN t.name ILIKE 'corollary %'    THEN 'corollary'
                 WHEN t.name ILIKE 'theorem %'      THEN 'theorem'
                 ELSE 'theorem'
-            END AS theorem_type
+            END AS theorem_type,
+            CASE
+                WHEN p.link ILIKE '%arxiv.org%' THEN TRUE
+                ELSE FALSE
+            END AS has_metadata
         FROM theorem_embedding_qwen e
         JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
         JOIN theorem t ON t.theorem_id = ts.theorem_id
