@@ -8,4 +8,4 @@ psycopg2-binary
 litellm
 instructor
 langfuse
-plasTeX
+plasTeX @ git+https://github.com/plastex/plastex.git
