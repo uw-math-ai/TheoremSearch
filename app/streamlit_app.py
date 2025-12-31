@@ -104,13 +104,14 @@ def search_and_display(query: str, model, filters: dict):
         # Unweighted search
         sql = f"""
                 SELECT *,
-                       (1.0 - (embedding <#> %s::vector)) AS similarity
+                       (1.0 - (embedding <=> %s::vector)) AS similarity
                 FROM theorem_search_qwen
                 {where_sql}
-                ORDER BY embedding <#> %s::vector
+                ORDER BY embedding <=> %s::vector
                 LIMIT %s;
             """
         exec_params = [query_vec, *params, query_vec, top_k]
+        cur.execute("SET LOCAL ivfflat.probes = %s;", (20,))
         cur.execute(sql, exec_params)
         rows = cur.fetchall()
         results = [
@@ -125,10 +126,10 @@ def search_and_display(query: str, model, filters: dict):
         sql = f"""
                 WITH candidates AS (
                     SELECT *,
-                           (1.0 - (embedding <#> %s::vector)) AS similarity
+                           (1.0 - (embedding <=> %s::vector)) AS similarity
                     FROM theorem_search_qwen
                     {where_sql}
-                    ORDER BY embedding <#> %s::vector
+                    ORDER BY embedding <=> %s::vector
                     LIMIT {pool_size}
                 )
                 SELECT *,
@@ -150,6 +151,7 @@ def search_and_display(query: str, model, filters: dict):
             citation_weight,
             top_k
         ]
+        cur.execute("SET LOCAL ivfflat.probes = %s;", (20,))
         cur.execute(sql, exec_params)
         rows = cur.fetchall()
         results = [
@@ -169,7 +171,7 @@ def search_and_display(query: str, model, filters: dict):
 
     for i, r in enumerate(results):
         with st.expander(
-                f"**Result {i + 1} | Similarity: {r['score']/2:.4f} | {r['theorem_type'].title()}**",
+                f"**Result {i + 1} | Similarity: {r['score']:.4f} | {r['theorem_type'].title()}**",
                 expanded=True
         ):
             st.markdown(f"**Paper:** *{r['title']}*")
