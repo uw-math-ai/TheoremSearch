@@ -71,6 +71,6 @@ def extract_theorem_envs(
         theorem_envs.update(_extract_theorem_envs_from_file(file, theorem_types))
 
     if mode == Mode.DEBUGGING:
-        print(f"[DEBUG] theorem envs: {theorem_envs}")
+        print(f"[DEBUG] Theorem envs: {theorem_envs}")
 
     return theorem_envs

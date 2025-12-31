@@ -35,6 +35,13 @@ def _to_theorem_row(theorem: Theorem, paper_id: str, method: Method) -> Dict[str
         "parsing_method": method.value
     }
 
+def _update_pbar(pbar, parse_successes, parse_attempts):
+    parse_attempts += 1
+    pbar.update(1)
+    pbar.set_postfix({"parse_rate": f"{(100.0 * parse_successes / parse_attempts):.2f}%"})
+
+    return parse_attempts
+
 def _parse_papers(
     paper_ids: List[str],
     condition: str,
@@ -46,15 +53,21 @@ def _parse_papers(
     method: Method,
     mode: Mode
 ):
+    if mode != Mode.PRODUCTION:
+        workers = 0
+
+        if mode != Mode.DEVELOPMENT:
+            timeout = 0
+
     print_script_header(
         action="Parsing papers from the `paper` table",
         params={
             "paper_ids?": paper_ids,
             "condition?": condition,
             "overwrite": overwrite,
-            "batch_size?": batch_size if mode == Mode.PRODUCTION else 0,
-            "workers?": workers if mode == Mode.PRODUCTION else 0,
-            "timeout?": timeout if (mode == Mode.DEBUGGING or mode == Mode.PRODUCTION) else 0,
+            "batch_size?": batch_size,
+            "workers?": workers,
+            "timeout?": timeout,
             "arxiv_paper_src": arxiv_paper_src.name,
             "method": method.name,
             "mode": mode.name
@@ -142,15 +155,20 @@ def _parse_papers(
                     )
                 except Exception as e:
                     if mode == Mode.DEVELOPMENT:
-                        print(f"[DEV] {paper_id}: {e}")
+                        print(f"[DEV] {paper_id} (Download): {e}")
                     elif mode == Mode.DEBUGGING:
                         raise e
+                    else:
+                        parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
+
+                    continue
 
                 if mode == Mode.PRODUCTION:
                     fut = ex.submit(
                         parse_paper,
                         str(paper_dir),
                         THEOREM_TYPES,
+                        timeout,
                         mode,
                         method
                     )
@@ -160,12 +178,13 @@ def _parse_papers(
                         theorems = parse_paper(
                             paper_dir,
                             THEOREM_TYPES,
+                            timeout,
                             mode,
                             method
                         )
                     except Exception as e:
                         if mode == Mode.DEVELOPMENT:
-                            print(f"[DEV] {paper_id}: {e}")
+                            print(f"[DEV] {paper_id} (Parse): {e}")
                             continue
                         elif mode == Mode.DEBUGGING:
                             raise e
@@ -174,9 +193,9 @@ def _parse_papers(
                         batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
 
                         if mode == Mode.DEVELOPMENT:
-                            print(f"[DEV] {paper_id}: successfully parsed {len(theorems)} theorems")
+                            print(f"[DEV] {paper_id}: Successfully parsed {len(theorems)} theorems")
                     elif mode == Mode.DEVELOPMENT:
-                        print(f"[DEV] {paper_id}: no theorems found")
+                        print(f"[DEV] {paper_id}: No theorems found")
 
             if mode == Mode.PRODUCTION:
                 for fut in as_completed(fut_to_pid):
@@ -191,9 +210,7 @@ def _parse_papers(
                         parse_successes += 1
                         batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
                 
-                    parse_attempts += 1
-                    pbar.update(1)
-                    pbar.set_postfix({"parse_rate": f"{(100.0 * parse_successes / parse_attempts):.2f}%"})
+                    parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
 
             if batch_theorem_rows:
                 with conn.cursor() as cur:
@@ -201,11 +218,17 @@ def _parse_papers(
                         "DELETE FROM theorem WHERE paper_id = ANY(%s)",
                         (list({row["paper_id"] for row in batch_theorem_rows}),),
                     )
-                    upsert_rows(
-                        cur,
-                        table="theorem",
-                        rows=batch_theorem_rows
-                    )
+
+                    with conn.cursor() as cur:
+                        upsert_rows(
+                            cur,
+                            table="theorem",
+                            rows=batch_theorem_rows,
+                            on_conflict={
+                                "with": ["paper_id", "name"],
+                                "replace": ["body", "label", "parsing_method"]
+                            }
+                        )
 
                 if mode != Mode.DEBUGGING:
                     conn.commit()

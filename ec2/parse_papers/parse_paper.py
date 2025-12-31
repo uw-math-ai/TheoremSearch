@@ -3,11 +3,13 @@ from typing import List, List
 from .enums import Mode, Method
 from .types import Theorem
 from .methods.plastex.parse import parse_by_plastex
-from .lib.validate_theorem import validate_theorem
+from .lib.validate_theorems import validate_theorems
+from .lib.run_with_timeout import run_with_timeout
 
 def parse_paper(
     paper_dir: str | Path,
     theorem_types: List[str],
+    timeout: int,
     mode: Mode = Mode.PRODUCTION,
     method: Method = Method.PLASTEX
 ) -> List[Theorem]:
@@ -20,6 +22,8 @@ def parse_paper(
         Path to all of a paper's source files
     theorem_types : List[str]
         Possible theorem types
+    timeout : int
+        Time allowed to parse a paper. If <= 0, is infinity
     mode : Mode
         Mode to run `parse_paper` in
     method : Method
@@ -30,6 +34,13 @@ def parse_paper(
     theorems: List[Theorem]
         A list of parsed theorems
     """
+
+    if timeout > 0:
+        @run_with_timeout(seconds=timeout)
+        def parse_paper_with_timeout():
+            return parse_paper(paper_dir, theorem_types, 0, mode, method)
+
+        return parse_paper_with_timeout()
 
     # Enforces Path use for convenience
     if isinstance(paper_dir, str):
@@ -47,8 +58,7 @@ def parse_paper(
             # TODO: Implement parse_by_regex
             pass
 
-    for theorem in parse(paper_dir, theorem_types, mode=mode):
-        validate_theorem(theorem, theorem_types)
-        theorems.append(theorem)
+    theorems = parse(paper_dir, theorem_types, mode=mode)
+    validate_theorems(theorems, theorem_types)
 
     return theorems

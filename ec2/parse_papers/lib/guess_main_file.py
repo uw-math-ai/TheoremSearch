@@ -6,7 +6,7 @@ from ..enums import Mode
 """
 Extensions a main file can have
 """
-MAIN_FILE_EXTENSIONS = { "*.tex", "*.latex", "*.ltx" }
+MAIN_FILE_EXTENSIONS = { "*.tex", "*.latex", "*.ltx", "*.txt" }
 
 """
 Config object for main file points heuristic
@@ -90,7 +90,7 @@ def guess_main_file(paper_dir: Path, mode: Mode) -> Path:
         main_file = candidate_files[0]
 
         if mode == Mode.DEBUGGING:
-            print(f"[DEBUG] main file: {main_file.name} (only candidate)")
+            print(f"[DEBUG] Main file: {main_file.name} (only candidate)")
 
         return main_file
 

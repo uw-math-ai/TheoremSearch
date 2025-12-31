@@ -10,6 +10,8 @@ import requests
 s3 = None
 
 def _get_s3():
+    global s3
+
     if s3 is None:
         s3 = boto3.client("s3")
     
