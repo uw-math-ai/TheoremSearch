@@ -11,27 +11,21 @@ def _validate_body(theorem: Theorem):
     if not body:
         raise ValueError("Empty theorem body")
 
-    if body[-1] in {",", ":", ";"}:
-        raise ValueError(f"Theorem likely has truncated body `{body}`")
-
     dollar_count = body.count("$")
     if dollar_count % 2 == 1:
         raise ValueError(f"Unbalanced math delimiters in `{body}`")
 
-    if len(body) < 32 and "." not in body and dollar_count == 0:
+    if len(body) < 8:
+        raise ValueError(f"Theorem body is too short `{body}`")
+
+    if len(body) < 32 and not body.endswith(".") and dollar_count == 0:
         raise ValueError(f"Theorem likely has truncated body `{body}`")
 
-    if body.count("(") != body.count(")"):
-        raise ValueError(f"Unbalanced parentheses in `{body}`")
-
-    if body.count("[") != body.count("]"):
-        raise ValueError(f"Unbalanced brackets in `{body}`")
-
-    if body.count("{") != body.count("}"):
-        raise ValueError(f"Unbalanced braces in `{body}`")
-
-    if body.endswith(("and", "or", "such that", "where", "let", "then", "for all")):
-        raise ValueError(f"Theorem likely cut off mid-sentence `{body}`")
+    if body.endswith((
+        " and", " or", "such that", " where", " let", " then", "for all", 
+        "(", "[", "{", ",", ":", ";", "=", "<")
+    ):
+        raise ValueError(f"Theorem likely truncated `{body}`")
     
 def _validate_uniqueness(theorems: List[Theorem]):
     names = set()
