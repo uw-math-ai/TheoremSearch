@@ -6,12 +6,32 @@ def _validate_type(theorem: Theorem, theorem_types: List[str]):
         raise ValueError(f"Theorem has invalid type `{theorem['type']}`")
     
 def _validate_body(theorem: Theorem):
-    body = theorem["body"]
+    body = theorem["body"].strip().lower()
 
-    dollar_sign_count = body.count("$")
+    if not body:
+        raise ValueError("Empty theorem body")
 
-    if len(body) < 32 and ("." not in body) and (dollar_sign_count == 0 or dollar_sign_count % 2 == 1):
+    if body[-1] in {",", ":", ";"}:
         raise ValueError(f"Theorem likely has truncated body `{body}`")
+
+    dollar_count = body.count("$")
+    if dollar_count % 2 == 1:
+        raise ValueError(f"Unbalanced math delimiters in `{body}`")
+
+    if len(body) < 32 and "." not in body and dollar_count == 0:
+        raise ValueError(f"Theorem likely has truncated body `{body}`")
+
+    if body.count("(") != body.count(")"):
+        raise ValueError(f"Unbalanced parentheses in `{body}`")
+
+    if body.count("[") != body.count("]"):
+        raise ValueError(f"Unbalanced brackets in `{body}`")
+
+    if body.count("{") != body.count("}"):
+        raise ValueError(f"Unbalanced braces in `{body}`")
+
+    if body.endswith(("and", "or", "such that", "where", "let", "then", "for all")):
+        raise ValueError(f"Theorem likely cut off mid-sentence `{body}`")
     
 def _validate_uniqueness(theorems: List[Theorem]):
     names = set()
