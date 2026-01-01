@@ -10,7 +10,7 @@ from .parse_node import parse_node
 from .use_captured_plastex_logs import use_captured_plastex_logs
 
 def parse_by_plastex(
-    paper_dir: str | Path,
+    paper_dir: Path,
     theorem_types: List[str],
     mode: Mode = Mode.PRODUCTION
 ) -> List[Theorem]:
@@ -19,12 +19,12 @@ def parse_by_plastex(
 
     Parameters
     ----------
-    paper_dir : str | Path
+    paper_dir : Path
         The path to all of a paper's source files
     theorems_types : List[str]
         Possible theorem types
     mode : Mode
-        The mode to run `parse_paper` in
+        The mode to run `parse_by_plastex` in
 
     Returns
     -------
