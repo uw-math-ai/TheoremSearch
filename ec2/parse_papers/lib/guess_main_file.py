@@ -6,7 +6,7 @@ from ..enums import Mode
 """
 Extensions a main file can have
 """
-MAIN_FILE_EXTENSIONS = { "*.tex", "*.latex", "*.ltx", "*.txt" }
+MAIN_FILE_EXTENSIONS = { "*.tex", "*.latex", "*.ltx", "*.txt", "*.TEX", "*.TeX" }
 
 """
 Config object for main file points heuristic
