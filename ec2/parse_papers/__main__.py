@@ -204,7 +204,7 @@ def _parse_papers(
                     try:
                         theorems = fut.result()
                     except Exception:
-                        pass
+                        theorems = None
 
                     if theorems:
                         parse_successes += 1
