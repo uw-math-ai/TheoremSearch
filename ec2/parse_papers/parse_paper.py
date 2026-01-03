@@ -3,6 +3,7 @@ from typing import List, List
 from .enums import Mode, Method
 from .types import Theorem
 from .methods.plastex.parse import parse_by_plastex
+from .methods.tex.parse import parse_by_tex
 from .lib.validate_theorems import validate_theorems
 from .lib.run_with_timeout import run_with_timeout
 
@@ -46,19 +47,23 @@ def parse_paper(
     if isinstance(paper_dir, str):
         paper_dir = Path(paper_dir)
 
-    theorems: List[Theorem] = []
-
     match method:
         case Method.PLASTEX:
             parse = parse_by_plastex
         case Method.TEX:
-            # TODO: Implement parse_by_tex
-            pass
+            parse = parse_by_tex
         case Method.REGEX:
             # TODO: Implement parse_by_regex
             pass
 
     theorems = parse(paper_dir, theorem_types, mode=mode)
+
+    if mode == Mode.DEBUGGING:
+        import json
+
+        with open(paper_dir / "DEBUG_theorems.json", "w") as dtj:
+            json.dump(theorems, dtj, indent=4)
+
     validate_theorems(theorems, theorem_types)
 
     return theorems

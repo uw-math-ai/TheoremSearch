@@ -59,10 +59,4 @@ def parse_by_plastex(
                 "body": body
             })
 
-    if mode == Mode.DEBUGGING:
-        import json
-
-        with open(paper_dir / "DEBUG_theorems.json", "w") as debug_theorems_json:
-            json.dump(theorems, debug_theorems_json, indent=4)
-
     return theorems

@@ -202,7 +202,7 @@ def _expand_nested_macros(command_mappings):
 
                 nested_definition = command_mappings[nested_command]["definition"]
                 nested_args = command_mappings[nested_command]["num_args"]
-                definition = sub_command_for_def(definition, nested_command, nested_definition, nested_args)
+                definition = _sub_command_for_def(definition, nested_command, nested_definition, nested_args)
 
             if definition != old_definition:
                 changed = True
@@ -233,7 +233,7 @@ def _sub_macros_for_defs(latex_source, command_mappings):
     for command in sorted((k for k in command_mappings.keys() if k in latex_source), key=len, reverse=True):
         definition = command_mappings[command]["definition"]
         args = command_mappings[command]["num_args"]
-        latex_source = sub_command_for_def(latex_source, command, definition, args)
+        latex_source = _sub_command_for_def(latex_source, command, definition, args)
 
     return latex_source
 
@@ -242,7 +242,7 @@ def _get_command_mappings(macros_source, commands_dont_expand=None):
     if commands_dont_expand is None:
         commands_dont_expand = []
 
-    command_mappings = parse_macros(macros_source)
+    command_mappings = _parse_macros(macros_source)
 
     for command in commands_dont_expand:
         command_mappings.pop(command, None)
@@ -252,22 +252,19 @@ def _get_command_mappings(macros_source, commands_dont_expand=None):
     # should disable this.
     for command in list(command_mappings.keys()):
         definition = command_mappings[command]["definition"]
-        command_mappings[command]["definition"] = clean_up_formatting(definition)
+        command_mappings[command]["definition"] = _clean_up_formatting(definition)
 
-    command_mappings = expand_nested_macros(command_mappings)
+    command_mappings = _expand_nested_macros(command_mappings)
     return command_mappings
 
 
-def _expand_latex_macros(latex_source, extra_macro_sources=None, commands_dont_expand=None, debug=False):
+def expand_latex_macros(latex_source, extra_macro_sources=None, commands_dont_expand=None):
     if extra_macro_sources is None:
         extra_macro_sources = []
     if commands_dont_expand is None:
         commands_dont_expand = []
 
     macros_source = latex_source + "".join(extra_macro_sources)
-    command_mappings = get_command_mappings(macros_source, commands_dont_expand)
+    command_mappings = _get_command_mappings(macros_source, commands_dont_expand)
 
-    if debug:
-        print(command_mappings)
-
-    return sub_macros_for_defs(latex_source, command_mappings)
+    return _sub_macros_for_defs(latex_source, command_mappings)

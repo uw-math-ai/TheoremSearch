@@ -1,8 +1,6 @@
 from plasTeX.DOM import Node
-import re
 from typing import Tuple
-
-LABEL_RE = re.compile(r"""\\label\s*\{\s*([^{}]+?)\s*\}""")
+from ...lib.separate_body_and_label import separate_body_and_label
 
 def _strip_nuls(x):
     if isinstance(x, str):
@@ -22,17 +20,9 @@ def _get_node_body_and_label(node: Node) -> Tuple[str, str | None]:
 
         body_and_label += tex_src.strip()
 
-    label_match = LABEL_RE.search(body_and_label)
-    label = label_match.group(1).strip() if label_match else None
+    body, label = separate_body_and_label(body_and_label)
 
-    if not label:
-        label = None
-    else:
-        label = _strip_nuls(label)
-
-    body = _strip_nuls(LABEL_RE.sub("", body_and_label)).strip()
-
-    return body, label
+    return _strip_nuls(body), _strip_nuls(label)
 
 def _get_node_ref(node: Node) -> str | None:
     return _strip_nuls(getattr(node.ref, "source", None) if hasattr(node, "ref") else None)

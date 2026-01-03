@@ -57,6 +57,11 @@ def extract_theorem_envs(
         Possible theorem types
     mode: Mode
         The mode to run `extract_theorem_envs` in
+
+    Returns
+    -------
+    theorem_envs : Dict[str, str]
+        Dict mapping theorem envs to theorem types
     """
 
     theorem_envs: Dict[str, str] = {

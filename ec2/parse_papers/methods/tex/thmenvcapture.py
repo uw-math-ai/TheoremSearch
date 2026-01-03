@@ -1,10 +1,11 @@
 from typing import Dict
 from pathlib import Path
+from ...enums import Mode
 
 def _insert_thmenvcapture_sty(
     paper_dir: Path,
     theorem_envs: Dict[str, str]
-) -> str:
+):
     header = r"""
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{thmenvcapture}[2026/01/02 Theorem Environment Capturer]
@@ -17,28 +18,35 @@ def _insert_thmenvcapture_sty(
 
 \makeatletter
 
-\def\thmenvcapture@lastlabel{}%
 \def\thmenvcapture@star{*}%
 
 % ------------------------------------------------------------
-% Logging helpers (NO expansion of note/body)
+% Logging helpers
+%  - raw: NO expansion (good for note/body/env)
+%  - exp: expands ONCE (good for computed number)
 % ------------------------------------------------------------
 
-\def\thmenvcapture@writefield#1#2{%
+\def\thmenvcapture@writefieldraw#1#2{%
   \begingroup
     \immediate\write\envlog{#1: \detokenize\expandafter{\unexpanded{#2}}}%
   \endgroup
 }
 
-\def\thmenvcapture@logblock#1#2#3#4#5{%
-  % #1 type, #2 num, #3 ref, #4 note, #5 body
+\def\thmenvcapture@writefieldexp#1#2{%
+  \begingroup
+    \edef\thmenvcapture@tmp{#2}%
+    \immediate\write\envlog{#1: \thmenvcapture@tmp}%
+  \endgroup
+}
+
+\def\thmenvcapture@logblock#1#2#3#4{%
+  % #1 env, #2 ref(number), #3 note, #4 body
   \begingroup
     \immediate\write\envlog{BEGIN_ENV}%
-    \thmenvcapture@writefield{type}{#1}%
-    \thmenvcapture@writefield{num}{#2}%
-    \thmenvcapture@writefield{ref}{#3}%
-    \thmenvcapture@writefield{note}{#4}%
-    \thmenvcapture@writefield{body}{#5}%
+    \thmenvcapture@writefieldraw{env}{#1}%
+    \thmenvcapture@writefieldexp{ref}{#2}%
+    \thmenvcapture@writefieldraw{note}{#3}%
+    \thmenvcapture@writefieldraw{body}{#4}%
     \immediate\write\envlog{END_ENV}%
   \endgroup
 }
@@ -100,9 +108,8 @@ def _insert_thmenvcapture_sty(
             "  \\let\\thmenvcapture@orig@" + env + "\\" + env + "\n"
             "  \\let\\thmenvcapture@endorig@" + env + "\\end" + env + "\n"
             "  \\RenewDocumentEnvironment{" + env + "}{ O{} +b }{%\n"
-            "    \\global\\let\\thmenvcapture@lastlabel\\@empty\n"
             "    \\begingroup\n"
-            "      \\ifblank{#1}{\\thmenvcapture@orig@" + env + "}{\\thmenvcapture@orig@" + env + "[#1]}%\n"
+            "      \\ifblank{##1}{\\thmenvcapture@orig@" + env + "}{\\thmenvcapture@orig@" + env + "[##1]}%\n"
             "\n"
             "      \\edef\\thmenvcapture@ctrname{\\thmenvcapture@getcounter{" + env + "}}%\n"
             "      \\def\\thmenvcapture@num{}%\n"
@@ -119,10 +126,7 @@ def _insert_thmenvcapture_sty(
             "\n"
             "      \\thmenvcapture@endorig@" + env + "\n"
             "\n"
-            "      \\begingroup\n"
-            "        \\edef\\thmenvcapture@ref{\\thmenvcapture@lastlabel}%\n"
-            "        \\thmenvcapture@logblock{" + env + "}{\\thmenvcapture@num}{\\thmenvcapture@ref}{#1}{#2}%\n"
-            "      \\endgroup\n"
+            "      \\thmenvcapture@logblock{" + env + "}{\\thmenvcapture@num}{##1}{##2}%\n"
             "    \\endgroup\n"
             "  }{}%\n"
             "}%\n\n"
@@ -146,28 +150,50 @@ def _insert_thmenvcapture_sty(
     sty_text = header + wrappers + at_begin + footer
     sty_path = paper_dir / "thmenvcapture.sty"
     sty_path.write_text(sty_text, encoding="utf-8")
-    return sty_text
 
 def inject_thmenvcapture(
-    tex_path: str,
-    envs_to_titles: dict[str, str],
-    src_dir: str
+    main_file: Path,
+    paper_dir: Path,
+    theorem_envs: Dict[str, str],
+    mode: Mode
 ):
-    thmenvcapture_content = _insert_thmenvcapture_sty(envs_to_titles, src_dir)
+    r"""
+    Injects a working `\usepackage{thmenvcapture}` into the main file. The LaTeX package creates
+    `thmenvcapture.log`, a JSONL-like file that captures the env, ref, note, and body of theorems.
+
+    Parameters
+    ----------
+    main_file : Path
+        Path to main file
+    paper_dir : Path
+        Paper's source files
+    theorem_envs : Dict[str, str]
+        Dict mapping theorem environments to their types
+    mode : Mode
+        Mode to run `inject_thmenvcapture` in
+    """
+
+    _insert_thmenvcapture_sty(paper_dir, theorem_envs)
     
-    with open(tex_path, "r", encoding="utf-8", errors="ignore") as f:
+    with open(main_file, "r", encoding="utf-8", errors="ignore") as f:
         content = f.read()
 
-    if r"\usepackage{thmenvcapture}" in content:
-        return  # already injected
+    if r"\documentstyle" in content: # handle older LaTeX versions
+        new_content = content.replace(
+            "\\begin{document}",
+            "\n\\input{thmenvcapture.sty}\n\\begin{document}",
+            1,
+        )
+    else:
+        new_content = content.replace(
+            "\\begin{document}",
+            "\n\\usepackage{thmenvcapture}\n\\begin{document}",
+            1,
+        )
 
-    new_content = content.replace(
-        "\\begin{document}",
-        "\n\\usepackage{thmenvcapture}\n\\begin{document}",
-        1,
-    )
+        if r"\documentclass" not in content and mode == Mode.DEBUGGING:
+            print(f"[DEBUG] Neither `\documentstyle` nor `\documentclass` exist in main file")
+        
 
-    with open(tex_path, "w", encoding="utf-8") as f:
+    with open(main_file, "w", encoding="utf-8") as f:
         f.write(new_content)
-
-    return thmenvcapture_content
