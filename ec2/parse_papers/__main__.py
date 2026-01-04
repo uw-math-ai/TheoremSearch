@@ -65,7 +65,7 @@ def _parse_papers(
             "paper_ids?": paper_ids,
             "condition?": condition,
             "overwrite": overwrite,
-            "batch_size?": batch_size,
+            "batch_size": batch_size,
             "workers?": workers,
             "timeout?": timeout,
             "arxiv_paper_src": arxiv_paper_src.name,
@@ -261,7 +261,7 @@ if __name__ == "__main__":
         "--batch-size",
         type=int,
         default=128,
-        help="Number of papers to attempt to parse concurrently. Only useful in PRODUCTION mode"
+        help="Number of papers parsed in one batch. Also the number of papers to attempt to parse concurrently for PRODUCTION mode"
     )
 
     arg_parser.add_argument(
@@ -295,8 +295,8 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--mode",
         type=Mode,
-        default=Mode.DEVELOPMENT,
-        help="Mode to parse papers in. By default, DEVELOPMENT"
+        default=Mode.PRODUCTION,
+        help="Mode to parse papers in. By default, PRODUCTION"
     )
 
     args = arg_parser.parse_args()
