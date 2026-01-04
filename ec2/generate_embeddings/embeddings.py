@@ -6,18 +6,43 @@ from sentence_transformers import SentenceTransformer
 import torch
 import multiprocessing
 from .embedders import EMBEDDERS
+from typing import List
 
-def get_embedder(embedder_alias: str):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = SentenceTransformer(EMBEDDERS[embedder_alias], device=device)
-    model.eval()
+model = None
+def _get_embedder(embedder_alias: str):
+    global model
+
+    if model is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = SentenceTransformer(EMBEDDERS[embedder_alias], device=device)
+        model.eval()
+
     return model
 
-def embed_texts(embedder, texts_to_embed: list[str], batch_size: int = 16):
+def embed_texts(
+    embedder_alias: str, 
+    texts_to_embed: List[str], 
+    batch_size: int
+):
     """
-    Embeds a list of texts into vectors using multiprocessing if available.
-    Returns a NumPy array for maximum efficiency.
+    Embeds a list of texts into vectors.
+
+    Parameters
+    ----------
+    embedder_alias : str
+        Alias of embedder
+    texts_to_embed : List[str]
+        List of texts to embed
+    batch_size : int
+        Number of texts to embed at one time
+
+    Returns
+    -------
+    embeddings : List[List[float]]
+        List of embeddings
     """
+    embedder = EMBEDDERS[embedder_alias]
+
     torch.set_num_threads(multiprocessing.cpu_count())
 
     with torch.inference_mode():
