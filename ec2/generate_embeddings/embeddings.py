@@ -41,7 +41,7 @@ def embed_texts(
     embeddings : List[List[float]]
         List of embeddings
     """
-    embedder = EMBEDDERS[embedder_alias]
+    embedder = _get_embedder(embedder_alias)
 
     torch.set_num_threads(multiprocessing.cpu_count())
 
