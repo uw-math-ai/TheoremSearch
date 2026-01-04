@@ -1,5 +1,5 @@
 {
-    "prompt_id": "body-and-abstract-v1",
+    "id": "body-and-abstract-v1",
     "instructions": [
         "You generate summaries of math theorems based on theorem_body.",
         "You also consider paper_summary in your summaries.",
@@ -12,5 +12,6 @@
         "Do not include proof steps, motivation, or background discussion."
     ],
     "context": ["theorem.body", "paper.summary"],
-    "temperature": 0.2
+    "temperature": 0.2,
+    "max_context": 1024
 }

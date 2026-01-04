@@ -1,3 +1,6 @@
+# This is a legacy file. A script to generate theorem slogans for custom contexts will live in
+# generate_slogans/local
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import dotenv
 import pandas as pd

@@ -1,5 +1,5 @@
 {
-    "prompt_id": "body-only-v1",
+    "id": "body-only-v1",
     "instructions": [
         "You generate summaries of math theorems based on theorem_body.",
         "Summaries are accurate and at most four sentences.",
@@ -11,5 +11,6 @@
         "Do not include proof steps, motivation, or background discussion."
     ],
     "context": ["theorem.body"],
-    "temperature": 0.2
+    "temperature": 0.2,
+    "max_tokens": 1024
 }

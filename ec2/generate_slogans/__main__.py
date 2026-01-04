@@ -1,64 +1,79 @@
-"""
-Given theorem filters, generates slogans for all theorems in 'theorem' satisfying the filters
-and uploads them to the 'theorem_slogan' table in the RDS.
-"""
-
-from ..rds.connect import get_rds_connection
-from ..rds.upsert import upsert_rows
-from ..rds.query import build_query, get_query_count
-import argparse
-from ..rds.paginate import paginate_query
-import os
-import json
-from .slogans import generate_theorem_slogans
-import boto3
 from tqdm import tqdm
-from .models import MODELS
-from langfuse import get_client
+from typing import List
+from contextlib import nullcontext
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from argparse import ArgumentParser
 from .cost import format_USD
+from .get_prompt import get_prompt
+from .enums import Mode
+from .generate_slogan import generate_slogan
+from ..printing.scripts import print_script_header
+from ..rds.query import build_query, get_query_count
+from ..rds.connect import get_rds_connection
+from ..rds.paginate import paginate_query
+from ..rds.upsert import upsert_rows
 
-def generate_slogans(
+def _update_pbar(pbar, sloganify_successes, sloganify_attempts, total_cost):
+    sloganify_attempts += 1
+    pbar.update(1)
+    pbar.set_postfix({
+        "gen_rate": f"{(100.0 * sloganify_successes / sloganify_attempts):.2f}%",
+        "cost": format_USD(total_cost),
+        "avg_cost": format_USD(total_cost / sloganify_successes) if sloganify_successes else "N/A"
+    })
+
+    return sloganify_attempts
+
+def _generate_slogans(
     model_name: str,
     prompt_id: str,
-    paper_ids: list[str],
-    authors: list[str],
-    min_citations: int,
-    in_journal: bool,
+    paper_ids: List[str],
     condition: str,
-    sample: int,
     overwrite: bool,
-    page_size: int,
+    batch_size: int,
     workers: int,
-    verbose: bool,
-    use_langfuse: bool
+    retries: int,
+    use_langfuse: bool,
+    mode: Mode
 ):
-    if model_name not in MODELS:
-        raise ValueError("model_name must exist in MODELS")
+    if mode == Mode.DEBUGGING:
+        use_langfuse = True
+    if mode != Mode.PRODUCTION:
+        workers = 0
 
-    conn = get_rds_connection()
-    langfuse = get_client() if use_langfuse else None
-
-    current_dir = os.path.dirname(__file__)
-    path_to_prompt = os.path.join(
-        os.path.dirname(current_dir),
-        "slogan_prompts",
-        prompt_id + ".prompt"
+    print_script_header(
+        action="Generating slogans from the `theorem` table",
+        params={
+            "model_name": model_name,
+            "prompt_id": prompt_id,
+            "paper_ids?": paper_ids,
+            "condition?": condition,
+            "overwrite": overwrite,
+            "batch_size": batch_size,
+            "workers?": workers,
+            "retries?": retries,
+            "use_langfuse": use_langfuse,
+            "mode": mode.name
+        }
     )
 
-    with open(path_to_prompt, "r") as f:
-        prompt = json.loads(f.read())
+    prompt = get_prompt(prompt_id)
 
-    prompt["instructions"] = " ".join(prompt["instructions"])
-    prompt["context"] = [c + " AS " + c.replace(".", "_") for c in prompt["context"]]
+    if paper_ids or any(c.startswith("paper.") for c in prompt["context"]):
+        join_clause = "INNER JOIN paper ON theorem.paper_id = paper.paper_id"
+    else:
+        join_clause = ""
 
-    select_cols = ", ".join(set(["theorem.theorem_id", *prompt["context"]]))
+    select_cols = set([
+        "theorem.theorem_id",
+        *[f"{c} AS {c.replace('.', '__')}" for c in prompt["context"]]
+    ])
 
     query, params = build_query(
         base_query=f"""
-            SELECT {select_cols}
+            SELECT {", ".join(select_cols)}
             FROM theorem
-            INNER JOIN paper
-                ON theorem.paper_id = paper.paper_id
+            {join_clause}
         """,
         where_clauses=[
             {
@@ -80,226 +95,209 @@ def generate_slogans(
                 "param": ['%' + paper_id + '%' for paper_id in paper_ids]
             },
             {
-                "if": authors,
-                "condition": "paper.authors && %s",
-                "param": authors
-            },
-            {
-                "if": min_citations >= 0,
-                "condition": "paper.citations >= %s",
-                "param": min_citations
-            },
-            {
-                "if": in_journal,
-                "condition": "paper.journal_ref IS NOT NULL"
-            },
-            {
-                "if": len(condition) > 0,
+                "if": condition,
                 "condition": condition
             }
-        ],
-        sample=sample
+        ]
     )
 
-    count = get_query_count(conn, query, params)
+    conn = get_rds_connection()
 
-    if sample == -1:
-        script_announcement = f"=== Generating slogans for {count} theorems ==="
-    elif sample > 0:
-        script_announcement = f"=== Generating a random sample of {count} theorems ==="
-    print(script_announcement)
-    print(f"  > model: {model_name}")
-    print(f"  > prompt id: {prompt_id}")
-    if paper_ids:
-        print(f"  > paper ids: {paper_ids}")
-    if authors:
-        print(f"  > authors: {authors}")
-    if min_citations >= 0:
-        print(f"  > citations: >= {min_citations}")
-    if in_journal:
-        print(f"  > in journal: True")
-    if condition:
-        print(f"  > condition:", condition)
-    print(f"  > overwrite: {overwrite}")
-    print(f"  > page size: {page_size}")
-    print(f"  > workers: {workers}")
-    print(f"  > use langfuse: {use_langfuse}")
-    print("=" * len(script_announcement))
+    if mode == Mode.PRODUCTION:
+        count = get_query_count(conn, query, params)
 
-    slogans_count = 0
+        sloganify_attempts = 0
+        sloganify_successes = 0
+
+        pbar = tqdm(total=count, dynamic_ncols=True)
+        ex = ThreadPoolExecutor(max_workers=workers)
+    else:
+        pbar = nullcontext()
+        ex = nullcontext()
+
     total_cost = 0.0
 
-    brc = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
-
-    with tqdm(total=count, mininterval=0.1, smoothing=0.1, dynamic_ncols=True) as pbar:
-        for theorem_contexts in paginate_query(
+    with pbar, ex:
+        for theorems in paginate_query(
             conn,
             base_query=query,
             base_params=params,
             order_by="theorem_id",
             descending=False,
-            page_size=page_size
+            page_size=batch_size
         ):
-            slogans, cost_delta, slogans_count_delta = generate_theorem_slogans(
-                brc,
-                langfuse,
-                theorem_contexts,
-                prompt=prompt,
-                model_name=model_name,
-                pbar=pbar,
-                max_workers=workers,
-                max_retries=4,
-                verbose=verbose
-            )
+            batch_slogan_rows = []
 
-            total_cost += cost_delta
-            slogans_count += slogans_count_delta
+            if mode == Mode.PRODUCTION:
+                fut_to_tid = {}
 
-            pbar.set_postfix({
-                "cost": format_USD(total_cost), 
-                "avg": format_USD(0 if slogans_count == 0 else total_cost / slogans_count)
-            })
-            
-            with conn.cursor() as cur:
-                upsert_rows(
-                    cur,
-                    table="theorem_slogan",
-                    rows=[
-                        {
-                            "theorem_id": theorem_context["theorem_id"],
+            for theorem in theorems:
+                theorem_id = theorem["theorem_id"]
+                context = {
+                    c.replace("__" ,"."): theorem[c]
+                    for c in theorem
+                    if c != "theorem_id"
+                }
+
+                if mode == Mode.PRODUCTION:
+                    fut = ex.submit(
+                        generate_slogan,
+                        model_name,
+                        prompt,
+                        theorem_id,
+                        context,
+                        retries,
+                        use_langfuse,
+                        mode
+                    )
+                    fut_to_tid[fut] = theorem_id
+                else:
+                    try:
+                        slogan, cost = generate_slogan(
+                            model_name,
+                            prompt,
+                            theorem_id,
+                            context,
+                            retries,
+                            use_langfuse=use_langfuse,
+                            mode=mode
+                        )
+                    except Exception as e:
+                        print(f"[DEBUG] {theorem_id}: {e}")
+                        continue
+
+                    total_cost += cost
+
+                    if slogan:
+                        batch_slogan_rows.append({
+                            "theorem_id": theorem_id,
                             "model": model_name,
                             "prompt_id": prompt_id,
-                            "slogan": slogan
-                        }
-                        for slogan, theorem_context in zip(slogans, theorem_contexts)
-                        if slogan is not None
-                    ],
-                    on_conflict={
-                        "with": ["theorem_id", "model", "prompt_id"],
-                        "replace": ["slogan"]
-                    }
-                )
+                            "slogan": slogan,
+                        })
+            
+            if mode == Mode.PRODUCTION:
+                for fut in as_completed(fut_to_tid):
+                    theorem_id = fut_to_tid[fut]
 
-            conn.commit()
+                    try:
+                        slogan, cost = fut.result()
+                    except Exception:
+                        slogan = None
+                        cost = 0
+
+                    if slogan:
+                        sloganify_successes += 1
+                        batch_slogan_rows.append({
+                            "theorem_id": theorem_id,
+                            "model": model_name,
+                            "prompt_id": prompt_id,
+                            "slogan": slogan,
+                        })
+
+                    total_cost += cost
+                    sloganify_attempts = _update_pbar(pbar, sloganify_successes, sloganify_attempts, total_cost)
+
+            if batch_slogan_rows:
+                with conn.cursor() as cur:
+                    upsert_rows(
+                        cur,
+                        table="theorem_slogan",
+                        rows=batch_slogan_rows,
+                        on_conflict={
+                            "with": ["theorem_id", "model", "prompt_id"],
+                            "replace": ["slogan"]
+                        }
+                    )
+
+                if mode == Mode.PRODUCTION:
+                    conn.commit()
 
     conn.close()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    arg_parser = ArgumentParser()
 
-    parser.add_argument(
+    arg_parser.add_argument(
         "--model",
         type=str,
         required=True,
-        help="Model (from AWS Bedrock) used to generate slogans. Must be in MODELS"
+        help="Name of LLM used to generate slogans"
     )
 
-    parser.add_argument(
+    arg_parser.add_argument(
         "--prompt-id",
         type=str,
         required=True,
-        help="Prompt ID of the prompt given to the model to generate slogans"
+        help="ID of prompt given to LLM to generate slogans"
     )
 
-    parser.add_argument(
-        "--paper-ids", 
-        nargs="+",
+    arg_parser.add_argument(
+        "--paper-ids",
         type=str,
-        required=False,
-        default=[],
-        help="List of paper IDs whose theorems get slogan-ified"
-    )
-
-    parser.add_argument(
-        "--authors", 
         nargs="+",
-        type=str,
-        required=False,
         default=[],
-        help="List of authors whose papers' theorems get slogan-ified"
+        help="List of paper IDs to generate slogans for. By default, every paper"
     )
 
-    parser.add_argument(
-        "--min-citations",
-        type=int,
-        required=False,
-        default=-1,
-        help="Minimum amount of citations on a paper to slogan-ify its theorems"
-    )
-
-    parser.add_argument(
-        "--in-journal",
-        action="store_true",
-        help="Whether to only slogan-ify theorems from papers found in a journal"
-    )
-
-    parser.add_argument(
+    arg_parser.add_argument(
         "--condition",
         type=str,
-        required=False,
         default="",
-        help="Optional condition"
+        help="SQL condition to filter theorems"
     )
 
-    parser.add_argument(
-        "--sample",
-        type=int,
-        required=False,
-        default=-1,
-        help="Number of theorems to randomly sample and slogan-ify"
-    )
-
-    parser.add_argument(
-        "-o",
-        "--overwrite",
+    arg_parser.add_argument(
+        "-o", "--overwrite",
         action="store_true",
-        help="Whether to overwrite existing slogans"
+        help="Whether to overwrite previously generated slogans. By default, False"
     )
 
-    parser.add_argument(
-        "--page-size",
+    arg_parser.add_argument(
+        "--batch-size",
         type=int,
-        required=False,
         default=128,
-        help="Size of each page of theorems to slogan-ify"
+        help="The number of theorems in one batch. Also the number of theorems to attempt to sloganify concurrently in PRODUCTION mode"
     )
 
-    parser.add_argument(
+    arg_parser.add_argument(
         "--workers",
         type=int,
-        required=False,
         default=16,
-        help="Maximum number of workers to slogan-ify a page of theorems"
+        help="Number of works used to sloganify each batch of theorems"
     )
 
-    parser.add_argument(
-        "-v",
-        "--verbose",
+    arg_parser.add_argument(
+        "--retries",
+        type=int,
+        default=3,
+        help="Number of retries allowed if a slogan generation fails"
+    )
+
+    arg_parser.add_argument(
+        "-lf", "--use-langfuse",
         action="store_true",
-        help="Whether to print out error statements"
+        help="Whether to use Langfuse. DEBUGGING mode always uses Langfuse, so this flag only affects PRODUCTION mode"
     )
 
-    parser.add_argument(
-        "-lf",
-        "--use-langfuse",
-        action="store_true",
-        help="Whether to use Langfuse or not"
+    arg_parser.add_argument(
+        "--mode",
+        type=Mode,
+        default=Mode.PRODUCTION,
+        help="Mode to generate slogans in. By default, PRODUCTION"
     )
 
-    args = parser.parse_args()
+    args = arg_parser.parse_args()
 
-    generate_slogans(
+    _generate_slogans(
         model_name=args.model,
         prompt_id=args.prompt_id,
         paper_ids=args.paper_ids,
-        authors=args.authors,
-        min_citations=args.min_citations,
-        in_journal=args.in_journal,
         condition=args.condition,
-        sample=args.sample,
         overwrite=args.overwrite,
-        page_size=args.page_size,
+        batch_size=args.batch_size,
         workers=args.workers,
-        verbose=args.verbose,
-        use_langfuse=args.use_langfuse
+        retries=args.retries,
+        use_langfuse=args.use_langfuse,
+        mode=args.mode
     )

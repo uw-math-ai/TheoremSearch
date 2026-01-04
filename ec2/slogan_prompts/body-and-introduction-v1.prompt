@@ -1,5 +1,5 @@
 {
-    "prompt_id": "body-and-introduction-v1",
+    "id": "body-and-introduction-v1",
     "instructions": [
         "You summarize math theorems based on theorem_body.",
         "You are summarizing the LAST theorem mentioned in theorem_body.",
@@ -17,5 +17,6 @@
         "- Do NOT use phrases like 'Based on the provided text', 'here is an accurate summary', etc."
     ],
     "context": ["theorem.body", "paper.summary"],
-    "temperature": 0.2
+    "temperature": 0.2,
+    "max_tokens": 1024
 }
