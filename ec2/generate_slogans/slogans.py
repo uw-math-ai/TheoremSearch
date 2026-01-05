@@ -1,5 +1,4 @@
-# This is a legacy file. A script to generate theorem slogans for custom contexts will live in
-# generate_slogans/local
+# This file is not used in the main script, but should still work.
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import dotenv
