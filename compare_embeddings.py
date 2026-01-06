@@ -5,6 +5,7 @@ from sentence_transformers import SentenceTransformer, util
 import os
 import re
 import pandas as pd
+import torch
 
 #%%
 # --- 1. Load the Embedding Model ---
@@ -386,9 +387,53 @@ def q_measure_at_k(ranked, qrels, k=10, max_rel=None):
     return float(np.mean(scores)) if scores else 0.0
 
 
+#%%
+# --- 3. Evaluate performance ---
+# select context window to test
+context_window = "body-and-abstract-v1"
+
+vals = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
+slogans = pd.read_csv("updated_full_slogan_set_final_v7.csv", header=0, index_col=0, dtype={"paper_id": str})
+
+qrels_array = []
+# identify correct documents from full validation set
+for idx, row in vals.iterrows():
+    indices = slogans[(slogans["name"] == row[1]) & (slogans["paper_id"] == row[3])].index
+    qrels_array.append((idx, int(indices[0])))
+
+queries = list(zip(vals['query'], vals["paper_id"]))
+theorem_slogans = list(zip(slogans[context_window], slogans["paper_id"]))
+
+qrels_table = _generate_qrels(queries, theorem_slogans)
+
+# add correct documents into qrels table
+for i in range(len(qrels_array)):
+
+    qrels_table[i][qrels_array[i][1]] = 1
+
+grading_metric = {
+    "Exact Match": 1,
+    "Paper Match": 0.5,
+    "No Match": 0
+}
+
+print("Number of theorems testing: ", len(vals))
+print("Context window: ", context_window)
+
+# Choose the embedder
+# model_name = "google/embeddinggemma-300m" 
+# model_name = "Qwen/Qwen3-Embedding-0.6B"
+# model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
+# model_name = "Qwen/Qwen3-Embedding-8B"
+model_name = "Qwen/Qwen3-Embedding-8B" # Qwen3 0.6B is the best of three embedders
+model = load_model(model_name)
+print("Model name: ", model_name)
+
+evaluate_retrieval(model, theorem_slogans, queries, qrels_table, 5)
+
 
 #%%
-# collect theorem slogans from rds and update validation set
+# --- A. collect theorem slogans from rds and update validation set ---
 
 import dotenv
 import pandas as pd
@@ -441,51 +486,8 @@ print(validation_set[validation_set[context_window].notnull()])
 validation_set.to_csv('validation_set.csv')
 
 
-#%%
-# --- 3. Evaluate performance ---
-# select context window to test
-context_window = "body-and-abstract-v1"
-
-vals = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
-slogans = pd.read_csv("updated_full_slogan_set_final_v7.csv", header=0, index_col=0, dtype={"paper_id": str})
-
-qrels_array = []
-# identify correct documents from full validation set
-for idx, row in vals.iterrows():
-    indices = slogans[(slogans["name"] == row[1]) & (slogans["paper_id"] == row[3])].index
-    qrels_array.append((idx, int(indices[0])))
-
-queries = list(zip(vals['query'], vals["paper_id"]))
-theorem_slogans = list(zip(slogans[context_window], slogans["paper_id"]))
-
-qrels_table = _generate_qrels(queries, theorem_slogans)
-
-# add correct documents into qrels table
-for i in range(len(qrels_array)):
-
-    qrels_table[i][qrels_array[i][1]] = 1
-
-grading_metric = {
-    "Exact Match": 1,
-    "Paper Match": 0.5,
-    "No Match": 0
-}
-
-print("Number of theorems testing: ", len(vals))
-print("Context window: ", context_window)
-
-# Choose the embedder
-# model_name = "google/embeddinggemma-300m" 
-# model_name = "Qwen/Qwen3-Embedding-0.6B"
-# model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
-# model_name = "Qwen/Qwen3-Embedding-8B"
-model_name = "Qwen/Qwen3-Embedding-8B" # Qwen3 0.6B is the best of three embedders
-model = load_model(model_name)
-print("Model name: ", model_name)
-
-evaluate_retrieval(model, theorem_slogans, queries, qrels_table, 5)
 # %%
-# --- A. Create query sets ---
+# --- B. Create query sets ---
 import dotenv
 import pandas as pd
 import re
@@ -604,37 +606,3 @@ try:
 
 except Exception as e:
     print(f"found exception {e}")
-
-# %%
-import pandas as pd
-
-val_set = pd.read_csv('updated_full_slogan_set_final_v2.csv', dtype={'paper_id': str})
-
-body_slogs = pd.read_csv('body-only-slogs.csv', dtype={'paper_id': str})
-
-result = val_set.merge(
-    body_slogs,
-    on=["paper_id", "name"],
-    how="left"
-)
-
-print(result['summary'].isna().sum())
-result = result[["a","paper_id","name","summary","body","body-and-first-section-v1","body-and-abstract-v1","slogan"]]
-print(result.head())
-
-result.to_csv('updated_full_slogan_set_final_v3.csv')
-
-# %%
-# count empty rows
-import pandas as pd
-val_set = pd.read_csv('updated_full_slogan_set_final_v7.csv', dtype={'paper_id': str})
-print(val_set['body-and-abstract-v1-gemini_pro_3'].isna().sum())
-# %%
-import torch
-
-print("CUDA available:", torch.cuda.is_available())
-
-if torch.cuda.is_available():
-    print("Device name:", torch.cuda.get_device_name(0))
-
-# %%
