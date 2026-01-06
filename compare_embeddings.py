@@ -9,8 +9,11 @@ import pandas as pd
 #%%
 # --- 1. Load the Embedding Model ---
 def load_model(model_name='math-similarity/Bert-MLM_arXiv-MP-class_zbMath'):
-    return SentenceTransformer(model_name, trust_remote_code=True)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Loading model on device: {device}")
+    return SentenceTransformer(model_name, trust_remote_code=True, device=device)
 
+# (Not in Use)
 def compare_embeddings(model, latex_texts, concept_texts, top_k=3):
     """
     Encode latex tokens and concept phrases, print pairwise similarities
@@ -55,8 +58,20 @@ def rank_concepts(sim_matrix):
 def evaluate_retrieval(model, theorems, queries, qrels, top_k_report=3):
     # encode
     print("Encoding...")
-    s_emb = model.encode([item[0] for item in theorems], convert_to_tensor=True)
-    q_emb = model.encode([item[0] for item in queries], convert_to_tensor=True)
+    s_texts = [item[0] for item in theorems]
+    q_texts = [item[0] for item in queries]
+    s_emb = model.encode(
+        s_texts,
+        convert_to_tensor=True,
+        batch_size=32,
+        show_progress_bar=True
+    )
+    q_emb = model.encode(
+        q_texts,
+        convert_to_tensor=True,
+        batch_size=32,
+        show_progress_bar=True
+    )
     print("Creating sim_matrix...")
     sim_matrix = util.cos_sim(q_emb, s_emb).cpu().numpy()
 
@@ -429,16 +444,15 @@ validation_set.to_csv('validation_set.csv')
 #%%
 # --- 3. Evaluate performance ---
 # select context window to test
-context_window = "body-and-summary-v1"
+context_window = "body-and-abstract-v1"
 
 vals = pd.read_csv("validation_set.csv", header=0, index_col=0, dtype={"paper_id": str})
-slogans = pd.read_csv("full_slogan_set.csv", header=0, index_col=0, dtype={"paper_id": str})
-vals = vals[vals[context_window].notnull()]
+slogans = pd.read_csv("updated_full_slogan_set_final_v7.csv", header=0, index_col=0, dtype={"paper_id": str})
 
 qrels_array = []
 # identify correct documents from full validation set
 for idx, row in vals.iterrows():
-    indices = slogans[(slogans["theorem"] == row[1]) & (slogans["paper_id"] == row[3])].index
+    indices = slogans[(slogans["name"] == row[1]) & (slogans["paper_id"] == row[3])].index
     qrels_array.append((idx, int(indices[0])))
 
 queries = list(zip(vals['query'], vals["paper_id"]))
@@ -448,7 +462,8 @@ qrels_table = _generate_qrels(queries, theorem_slogans)
 
 # add correct documents into qrels table
 for i in range(len(qrels_array)):
-    qrels_table[i][qrels_array[i][1]]
+
+    qrels_table[i][qrels_array[i][1]] = 1
 
 grading_metric = {
     "Exact Match": 1,
@@ -463,13 +478,14 @@ print("Context window: ", context_window)
 # model_name = "google/embeddinggemma-300m" 
 # model_name = "Qwen/Qwen3-Embedding-0.6B"
 # model_name = "math-similarity/Bert-MLM_arXiv-MP-class_zbMath"
-model_name = "Qwen/Qwen3-Embedding-0.6B" # Qwen3 0.6B is the best of three embedders
+# model_name = "Qwen/Qwen3-Embedding-8B"
+model_name = "Qwen/Qwen3-Embedding-8B" # Qwen3 0.6B is the best of three embedders
 model = load_model(model_name)
 print("Model name: ", model_name)
 
 evaluate_retrieval(model, theorem_slogans, queries, qrels_table, 5)
 # %%
-# --- Create full query set ---
+# --- A. Create query sets ---
 import dotenv
 import pandas as pd
 import re
@@ -479,7 +495,7 @@ from ec2.rds.connect import get_rds_connection
 df = pd.DataFrame({
     "paper_id": pd.Series(dtype="string"),
     "name": pd.Series(dtype="string"),
-    "body": pd.Series(dtype="string")
+    "slogan": pd.Series(dtype="string")
 })
 
 dotenv.load_dotenv()
@@ -535,13 +551,47 @@ WHERE p.authors && ARRAY[
     'Roberto Svaldi',
     'Valery Alexeev',
     'Vistoli Angelo',
+    'Angelo Vistoli',
+    'A. Vistoli',
     'Michele Pernice',
     'János Kollár'
-]
+];
+"""
+
+query_3 = """
+SELECT
+  r.paper_id,
+  r.name,
+  s.slogan
+FROM (
+  SELECT
+    t.theorem_id,
+    t.paper_id,
+    t.name
+  FROM theorem t
+  JOIN paper p
+    ON t.paper_id = p.paper_id
+  WHERE p.authors && ARRAY[
+    'Giovanni Inchiostro',
+    'Jarod Alper',
+    'Dori Bejleri',
+    'Roberto Svaldi',
+    'Valery Alexeev',
+    'Vistoli Angelo',
+    'Angelo Vistoli',
+    'A. Vistoli',
+    'Michele Pernice',
+    'János Kollár'
+  ]
+) AS r
+JOIN theorem_slogan s
+  ON r.theorem_id = s.theorem_id
+WHERE s.prompt_id = 'body-only-v1'
+  AND s.model = 'DeepSeek-V3.1';
 """
 try:
     with conn.cursor() as cur:
-        cur.execute(query_2, None)
+        cur.execute(query_3, None)
         cols = [d[0] for d in cur.description]
         rows_raw = cur.fetchall()
 
@@ -550,9 +600,41 @@ try:
         for row in rows_raw:
             df.loc[len(df)] = row
 
-        df.to_csv("slog_set.csv")
+        df.to_csv("body-only-slogs.csv")
 
 except Exception as e:
     print(f"found exception {e}")
+
+# %%
+import pandas as pd
+
+val_set = pd.read_csv('updated_full_slogan_set_final_v2.csv', dtype={'paper_id': str})
+
+body_slogs = pd.read_csv('body-only-slogs.csv', dtype={'paper_id': str})
+
+result = val_set.merge(
+    body_slogs,
+    on=["paper_id", "name"],
+    how="left"
+)
+
+print(result['summary'].isna().sum())
+result = result[["a","paper_id","name","summary","body","body-and-first-section-v1","body-and-abstract-v1","slogan"]]
+print(result.head())
+
+result.to_csv('updated_full_slogan_set_final_v3.csv')
+
+# %%
+# count empty rows
+import pandas as pd
+val_set = pd.read_csv('updated_full_slogan_set_final_v7.csv', dtype={'paper_id': str})
+print(val_set['body-and-abstract-v1-gemini_pro_3'].isna().sum())
+# %%
+import torch
+
+print("CUDA available:", torch.cuda.is_available())
+
+if torch.cuda.is_available():
+    print("Device name:", torch.cuda.get_device_name(0))
 
 # %%
