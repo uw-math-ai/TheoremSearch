@@ -39,3 +39,11 @@ class ArXivPaperSource(Enum):
 
     S3 = "s3"
     API = "api"
+
+class TheoremValidationLevel(Enum):
+    """
+    Level to check if parsed theorems are valid.
+    """
+
+    THEOREM = "theorem"
+    PAPER = "paper"

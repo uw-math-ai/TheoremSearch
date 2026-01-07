@@ -20,3 +20,26 @@ def remove_line_comments(line: str) -> str:
         i += 1
 
     return line.strip()
+
+def remove_comments(tex: str) -> str:
+    """
+    Removes LaTeX comments from an entire TeX source.
+
+    Parameters
+    ----------
+    tex : str
+        A TeX source
+
+    Returns
+    -------
+    clean_tex : str
+        A TeX source without comments
+    """
+
+    clean_tex = ""
+
+    for line in tex.splitlines():
+        clean_line = remove_line_comments(line) + "\n"
+        clean_tex += clean_line
+
+    return clean_tex

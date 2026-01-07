@@ -2,7 +2,7 @@ from pathlib import Path
 from .expand_latex_macros import expand_latex_macros
 from ...enums import Mode
 
-MACRO_FILE_EXTENSIONS = { "*.tex", "*.ltx", "*.sty", "*.cls", "*.clo", "*.def", "*.cfg" }
+MACRO_FILE_EXTENSIONS = { "*.tex", "*.sty" }
 
 def expand_macros(tex: str, paper_dir: Path, mode: Mode) -> str:
     """

@@ -42,6 +42,23 @@ def _validate_uniqueness(theorems: List[Theorem]):
         else:
             names.add(name)
 
+def validate_theorem(theorem: Theorem, theorem_types: List[str]):
+    """
+    Raises an error if the theorem is likely incorrectly parsed:
+    - If type is not a valid theorem type
+    - If body is likely truncated
+
+    Parameters
+    ----------
+    theorems : List[Theorem]
+        Theorems to validate
+    theorem_types : List[str]
+        Possible theorem types
+    """
+
+    _validate_type(theorem, theorem_types)
+    _validate_body(theorem)
+
 def validate_theorems(theorems: List[Theorem], theorem_types: List[str]):
     """
     Raises an error if the theorems are likely incorrectly parsed:
@@ -58,8 +75,7 @@ def validate_theorems(theorems: List[Theorem], theorem_types: List[str]):
     """
 
     for theorem in theorems:
-        _validate_type(theorem, theorem_types)
-        _validate_body(theorem)
+        validate_theorem(theorem, theorem_types)
 
     _validate_uniqueness(theorems)
     

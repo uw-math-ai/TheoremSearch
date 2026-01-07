@@ -3,7 +3,7 @@ Script that parses papers found in the `paper` table to add to the `theorem` tab
 """
 
 from argparse import ArgumentParser
-from .enums import Mode, Method, ArXivPaperSource
+from .enums import Mode, Method, ArXivPaperSource, TheoremValidationLevel
 from typing import List, Any, Dict
 from ..printing.scripts import print_script_header
 from ..rds.query import build_query, get_query_count
@@ -50,6 +50,7 @@ def _parse_papers(
     workers: int,
     timeout: int,
     arxiv_paper_src: ArXivPaperSource,
+    theorem_validation_level: TheoremValidationLevel,
     method: Method,
     mode: Mode
 ):
@@ -69,6 +70,7 @@ def _parse_papers(
             "workers?": workers,
             "timeout?": timeout,
             "arxiv_paper_src": arxiv_paper_src.name,
+            "theorem_validation_level": theorem_validation_level.name,
             "method": method.name,
             "mode": mode.name
         }
@@ -169,6 +171,7 @@ def _parse_papers(
                         str(paper_dir),
                         THEOREM_TYPES,
                         timeout,
+                        theorem_validation_level,
                         mode,
                         method
                     )
@@ -179,6 +182,7 @@ def _parse_papers(
                             paper_dir,
                             THEOREM_TYPES,
                             timeout,
+                            theorem_validation_level,
                             mode,
                             method
                         )
@@ -230,8 +234,8 @@ def _parse_papers(
                             }
                         )
 
-                if mode != Mode.DEBUGGING:
-                    conn.commit()
+                # if mode != Mode.DEBUGGING:
+                #     conn.commit()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -279,10 +283,17 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
-        "--arxiv-paper-src",
+        "--src",
         type=ArXivPaperSource,
         default=ArXivPaperSource.S3,
         help="Source to download arXiv papers from. By default, S3"
+    )
+
+    arg_parser.add_argument(
+        "--valid",
+        type=TheoremValidationLevel,
+        default=TheoremValidationLevel.PAPER,
+        help="Level at which to check if parsed theorems are valid. By default, PAPER"
     )
 
     arg_parser.add_argument(
@@ -308,7 +319,8 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         workers=args.workers,
         timeout=args.timeout,
-        arxiv_paper_src=args.arxiv_paper_src,
+        arxiv_paper_src=args.src,
+        theorem_validation_level=args.valid,
         method=args.method,
         mode=args.mode
     )

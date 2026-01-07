@@ -1,16 +1,18 @@
 from pathlib import Path
-from typing import List, List
-from .enums import Mode, Method
+from typing import List
+from .enums import Mode, Method, TheoremValidationLevel
 from .types import Theorem
 from .methods.plastex.parse import parse_by_plastex
 from .methods.tex.parse import parse_by_tex
-from .lib.validate_theorems import validate_theorems
+from .methods.regex.parse import parse_by_regex
+from .lib.validate_theorems import validate_theorems, validate_theorem
 from .lib.run_with_timeout import run_with_timeout
 
 def parse_paper(
     paper_dir: str | Path,
     theorem_types: List[str],
     timeout: int,
+    theorem_validation_level: TheoremValidationLevel,
     mode: Mode = Mode.PRODUCTION,
     method: Method = Method.PLASTEX
 ) -> List[Theorem]:
@@ -25,6 +27,8 @@ def parse_paper(
         Possible theorem types
     timeout : int
         Time allowed to parse a paper. If <= 0, is infinity
+    theorem_validation_level : TheoremValidationLevel
+        Level at which to check if parsed theorems are valid
     mode : Mode
         Mode to run `parse_paper` in
     method : Method
@@ -39,7 +43,7 @@ def parse_paper(
     if timeout > 0:
         @run_with_timeout(seconds=timeout)
         def parse_paper_with_timeout():
-            return parse_paper(paper_dir, theorem_types, 0, mode, method)
+            return parse_paper(paper_dir, theorem_types, 0, theorem_validation_level, mode, method)
 
         return parse_paper_with_timeout()
 
@@ -53,8 +57,7 @@ def parse_paper(
         case Method.TEX:
             parse = parse_by_tex
         case Method.REGEX:
-            # TODO: Implement parse_by_regex
-            pass
+            parse = parse_by_regex
 
     theorems = parse(paper_dir, theorem_types, mode=mode)
 
@@ -64,6 +67,19 @@ def parse_paper(
         with open(paper_dir / "DEBUG_theorems.json", "w") as dtj:
             json.dump(theorems, dtj, indent=4)
 
-    validate_theorems(theorems, theorem_types)
+    if theorem_validation_level == TheoremValidationLevel.PAPER:
+        validate_theorems(theorems, theorem_types)
 
-    return theorems
+        return theorems
+    else: # theorem_validation_level == TheoremValidationLevel.THEOREM:
+        valid_theorems = []
+
+        for theorem in theorems:
+            try:
+                validate_theorem(theorem, theorem_types)
+
+                valid_theorems.append(theorem)
+            except Exception:
+                pass
+
+        return valid_theorems

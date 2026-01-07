@@ -31,7 +31,7 @@ def parse_by_plastex(
     theorems: List[Theorem]
         A list of plasTeX-parsed theorems
     """
-
+    
     main_file = guess_main_file(paper_dir, mode=mode)
     theorem_envs = extract_theorem_envs(paper_dir, theorem_types, mode=mode)
 
