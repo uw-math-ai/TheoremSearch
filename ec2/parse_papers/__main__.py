@@ -234,8 +234,8 @@ def _parse_papers(
                             }
                         )
 
-                # if mode != Mode.DEBUGGING:
-                #     conn.commit()
+                if mode != Mode.DEBUGGING:
+                    conn.commit()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
