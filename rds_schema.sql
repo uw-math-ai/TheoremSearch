@@ -1,5 +1,6 @@
 CREATE TABLE paper (
     paper_id TEXT PRIMARY KEY,
+    source TEXT,
     title TEXT NOT NULL,
     authors TEXT[] NOT NULL,
     link TEXT NOT NULL,
