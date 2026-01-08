@@ -43,7 +43,7 @@ POINTS_CONFIG = [
 def _score_file(file: Path) -> float:
     score = 0.0
     
-    for line in file.open():
+    for line in file.open(errors="ignore"):
         line = remove_line_comments(line)
         match_found = False
 

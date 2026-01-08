@@ -17,7 +17,7 @@ def _generate_dummy_package(package: str, paper_dir: Path):
     \endinput
     """).lstrip("\n")
 
-    with open(sty_path, "w", encoding="utf-8") as f:
+    with open(sty_path, "w", encoding="utf-8", errors="ignore") as f:
         f.write(dummy)
 
 def run_pdflatex(
@@ -73,7 +73,7 @@ def run_pdflatex(
     if mode == Mode.DEBUGGING:
         debug_stderr_file = paper_dir / "DEBUG_stderr.log"
 
-        with open(debug_stderr_file, "w") as dsf:
+        with open(debug_stderr_file, "w", errors="ignore") as dsf:
             dsf.write(stderr)    
 
     for line in stderr.splitlines():

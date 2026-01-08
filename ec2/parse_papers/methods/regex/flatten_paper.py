@@ -39,6 +39,6 @@ def flatten_paper(main_file: Path, paper_dir: Path, mode: Mode) -> str:
     )
 
     if mode == Mode.DEBUGGING:
-        return (paper_dir / "DEBUG_flat" / main_file.name).read_text()
+        return (paper_dir / "DEBUG_flat" / main_file.name).read_text(errors="ignore")
     else:
-        return main_file.read_text()
+        return main_file.read_text(errors="ignore")

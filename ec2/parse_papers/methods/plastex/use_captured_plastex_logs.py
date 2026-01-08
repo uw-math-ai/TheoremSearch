@@ -38,7 +38,7 @@ def use_captured_plastex_logs(paper_dir: Path, mode: Mode):
     old_disable = logging.root.manager.disable
 
     try:
-        f = open(target_path, "w", encoding="utf-8")
+        f = open(target_path, "w", encoding="utf-8", errors="ignore")
 
         os.dup2(f.fileno(), 1)
         os.dup2(f.fileno(), 2)
