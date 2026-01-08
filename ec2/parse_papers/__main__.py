@@ -223,16 +223,15 @@ def _parse_papers(
                         (list({row["paper_id"] for row in batch_theorem_rows}),),
                     )
 
-                    with conn.cursor() as cur:
-                        upsert_rows(
-                            cur,
-                            table="theorem",
-                            rows=batch_theorem_rows,
-                            on_conflict={
-                                "with": ["paper_id", "name"],
-                                "replace": ["body", "label", "parsing_method"]
-                            }
-                        )
+                    upsert_rows(
+                        cur,
+                        table="theorem",
+                        rows=batch_theorem_rows,
+                        on_conflict={
+                            "with": ["paper_id", "name"],
+                            "replace": ["body", "label", "parsing_method"]
+                        }
+                    )
 
                 if mode != Mode.DEBUGGING:
                     conn.commit()
