@@ -20,7 +20,7 @@ def _get_s3():
 def download_paper(
     paper_id: str,
     arxiv_s3_loc: Optional[Tuple[str, int, int]],
-    cwd: Path,
+    cwd: Path | str,
     mode: Mode,
 ) -> Path | None:
     """
@@ -32,7 +32,7 @@ def download_paper(
         The paper's ID
     arxiv_s3_loc : Optional[Tuple[str, int, int]]
         Name of the bundle, the start bytes, and end bytes. If None, downloads from API
-    cwd : Path
+    cwd : Path | str
         Directory's to add the paper's source files to
     mode : Mode
         Mode to run `download_paper_from_s3` in
@@ -42,6 +42,9 @@ def download_paper(
     paper_dir : Path | None
         The paper's downloaded source files. None if download failed
     """
+
+    if isinstance(cwd, str):
+        cwd = Path(cwd)
 
     safe_paper_id = paper_id.replace("/", "-")
     paper_dir = cwd / safe_paper_id

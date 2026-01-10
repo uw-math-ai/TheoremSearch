@@ -10,7 +10,7 @@ from ..rds.query import build_query, get_query_count
 from ..rds.connect import get_rds_connection
 from ..rds.upsert import upsert_rows
 from tqdm import tqdm
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from contextlib import nullcontext
 from ..rds.paginate import paginate_query
 from .parse_paper import parse_paper
@@ -120,13 +120,15 @@ def _parse_papers(
 
         pbar = tqdm(total=count, dynamic_ncols=True)
         ex = ProcessPoolExecutor(max_workers=workers)
+        download_ex = ThreadPoolExecutor(max_workers=workers)
     else:
         pbar = nullcontext()
         ex = nullcontext()
+        download_ex = nullcontext()
 
     tmpdir = TemporaryDirectory() if mode != Mode.DEBUGGING else nullcontext()
 
-    with pbar, ex, tmpdir:
+    with pbar, ex, tmpdir, download_ex:
         cwd: Path = Path(tmpdir.name) if mode != Mode.DEBUGGING else Path("DEBUG")
         cwd.mkdir(exist_ok=True)
 
@@ -140,6 +142,7 @@ def _parse_papers(
             batch_theorem_rows = []
 
             if mode == Mode.PRODUCTION:
+                dl_fut_to_pid = {}
                 fut_to_pid = {}
 
             for paper in papers:
@@ -148,35 +151,34 @@ def _parse_papers(
                     paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"]
                 ) if arxiv_paper_src == ArXivPaperSource.S3 else None
 
-                try:
-                    paper_dir = download_paper(
+                if mode == Mode.PRODUCTION:
+                    dl_fut = download_ex.submit(
+                        download_paper,
                         paper_id,
                         arxiv_s3_loc,
-                        cwd,
+                        str(cwd),
                         mode
                     )
-                except Exception as e:
-                    if mode == Mode.DEVELOPMENT:
-                        print(f"[DEV] {paper_id} (Download): {e}")
-                    elif mode == Mode.DEBUGGING:
-                        raise e
-                    else:
-                        parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
-
+                    dl_fut_to_pid[dl_fut] = paper_id
                     continue
-
-                if mode == Mode.PRODUCTION:
-                    fut = ex.submit(
-                        parse_paper,
-                        str(paper_dir),
-                        THEOREM_TYPES,
-                        timeout,
-                        theorem_validation_level,
-                        mode,
-                        method
-                    )
-                    fut_to_pid[fut] = paper_id
                 else:
+                    try:
+                        paper_dir = download_paper(
+                            paper_id,
+                            arxiv_s3_loc,
+                            cwd,
+                            mode
+                        )
+                    except Exception as e:
+                        if mode == Mode.DEVELOPMENT:
+                            print(f"[DEV] {paper_id} (Download): {e}")
+                        elif mode == Mode.DEBUGGING:
+                            raise e
+                        else:
+                            parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
+
+                        continue
+
                     try:
                         theorems = parse_paper(
                             paper_dir,
@@ -202,6 +204,26 @@ def _parse_papers(
                         print(f"[DEV] {paper_id}: No theorems found")
 
             if mode == Mode.PRODUCTION:
+                for dl_fut in as_completed(dl_fut_to_pid):
+                    paper_id = dl_fut_to_pid[dl_fut]
+
+                    try:
+                        paper_dir = dl_fut.result()
+                    except Exception:
+                        parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
+                        continue
+
+                    fut = ex.submit(
+                        parse_paper,
+                        str(paper_dir),
+                        THEOREM_TYPES,
+                        timeout,
+                        theorem_validation_level,
+                        mode,
+                        method
+                    )
+                    fut_to_pid[fut] = paper_id
+
                 for fut in as_completed(fut_to_pid):
                     paper_id = fut_to_pid[fut]
 
