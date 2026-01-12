@@ -6,7 +6,7 @@ from .find_bf_it_blocks import find_bf_it_blocks
 
 def find_theorems(tex: str, theorem_envs: Dict[str, str]) -> List[Theorem]:
     theorems: List[Theorem] = []
-    main_theorem_types = list(theorem_envs.values())
+    main_theorem_types = list(set(theorem_envs.values()))
 
     theorems.extend(find_proclaims(tex, main_theorem_types))
     theorems.extend(find_bf_it_blocks(tex, main_theorem_types))

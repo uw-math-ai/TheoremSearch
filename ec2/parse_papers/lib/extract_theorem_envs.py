@@ -19,9 +19,6 @@ NEWTHEOREM_RE = re.compile(r"""
 
 SAFE_ENV_RE = re.compile(r"^[A-Za-z]*$") # alpha only
 
-def _contains_or_is_contained_by(a: str, b: str) -> bool:
-    return (a in b) or (b in a)
-
 def _extract_theorem_envs_from_file(file: Path, theorem_types: List[Tuple[str]]) -> Dict[str, str]:
     theorem_envs: Dict[str, str] = {}
     
@@ -39,8 +36,8 @@ def _extract_theorem_envs_from_file(file: Path, theorem_types: List[Tuple[str]])
         for tt in theorem_types:
             main_tt, *short_tts = tt
 
-            if _contains_or_is_contained_by(main_tt, title) or \
-                any(_contains_or_is_contained_by(short_tt, title) for short_tt in short_tts):
+            if (main_tt in title) or (title in main_tt) or \
+                any(title.startswith(short_tt) for short_tt in short_tts):
                 theorem_envs[env] = main_tt
                 break
 
@@ -69,11 +66,13 @@ def extract_theorem_envs(
     theorem_envs : Dict[str, str]
         Dict mapping theorem envs to theorem types
     """
-    main_theorem_types = [t[0] for t in theorem_types]
+    theorem_envs: Dict[str, str] = {}
 
-    theorem_envs: Dict[str, str] = {
-        type_: type_ for type_ in main_theorem_types
-    }
+    for main_tt, *short_tts in theorem_types:
+        theorem_envs[main_tt] = main_tt
+
+        for short_tt in short_tts:
+            theorem_envs[short_tt] = main_tt
 
     search_files = itertools.chain.from_iterable(
         paper_dir.rglob(ext) for ext in THEOREM_ENV_DEF_EXTENSIONS
