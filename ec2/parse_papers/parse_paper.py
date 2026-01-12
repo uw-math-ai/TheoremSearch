@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 from .enums import Mode, Method, TheoremValidationLevel
 from .types import Theorem
 from .methods.plastex.parse import parse_by_plastex
@@ -10,7 +10,7 @@ from .lib.run_with_timeout import run_with_timeout
 
 def parse_paper(
     paper_dir: str | Path,
-    theorem_types: List[str],
+    theorem_types: List[Tuple[str]],
     timeout: int,
     theorem_validation_level: TheoremValidationLevel,
     mode: Mode = Mode.PRODUCTION,
@@ -23,8 +23,8 @@ def parse_paper(
     ----------
     paper_dir : str | Path
         Path to all of a paper's source files
-    theorem_types : List[str]
-        Possible theorem types
+    theorem_types : List[Tuple[str]]
+        Possible theorem types with shorthands
     timeout : int
         Time allowed to parse a paper. If <= 0, is infinity
     theorem_validation_level : TheoremValidationLevel
@@ -67,8 +67,10 @@ def parse_paper(
         with open(paper_dir / "DEBUG_theorems.json", "w") as dtj:
             json.dump(theorems, dtj, indent=4)
 
+    main_theorem_types = [t[0] for t in theorem_types]
+
     if theorem_validation_level == TheoremValidationLevel.PAPER:
-        validate_theorems(theorems, theorem_types)
+        validate_theorems(theorems, main_theorem_types)
 
         return theorems
     else: # theorem_validation_level == TheoremValidationLevel.THEOREM:
@@ -76,7 +78,7 @@ def parse_paper(
 
         for theorem in theorems:
             try:
-                validate_theorem(theorem, theorem_types)
+                validate_theorem(theorem, main_theorem_types)
 
                 valid_theorems.append(theorem)
             except Exception:

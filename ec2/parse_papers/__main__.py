@@ -19,7 +19,7 @@ from pathlib import Path
 from .lib.download_paper import download_paper
 from .types import Theorem
 
-THEOREM_TYPES = ["theorem", "lemma", "corollary", "proposition"]
+THEOREM_TYPES = [("theorem", "theo", "thm"), ("lemma", "lem"), ("corollary", "cor"), ("proposition", "prop")]
 
 
 def _to_theorem_row(theorem: Theorem, paper_id: str, method: Method) -> Dict[str, Any]:
@@ -248,11 +248,7 @@ def _parse_papers(
                     upsert_rows(
                         cur,
                         table="theorem",
-                        rows=batch_theorem_rows,
-                        on_conflict={
-                            "with": ["paper_id", "name"],
-                            "replace": ["body", "label", "parsing_method"]
-                        }
+                        rows=batch_theorem_rows
                     )
 
                 if mode != Mode.DEBUGGING:

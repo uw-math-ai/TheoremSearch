@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import itertools
 import re
 from ..enums import Mode
@@ -19,7 +19,10 @@ NEWTHEOREM_RE = re.compile(r"""
 
 SAFE_ENV_RE = re.compile(r"^[A-Za-z]*$") # alpha only
 
-def _extract_theorem_envs_from_file(file: Path, theorem_types: List[str]) -> Dict[str, str]:
+def _contains_or_is_contained_by(a: str, b: str) -> bool:
+    return (a in b) or (b in a)
+
+def _extract_theorem_envs_from_file(file: Path, theorem_types: List[Tuple[str]]) -> Dict[str, str]:
     theorem_envs: Dict[str, str] = {}
     
     with file.open("r", errors="replace") as f:
@@ -34,15 +37,18 @@ def _extract_theorem_envs_from_file(file: Path, theorem_types: List[str]) -> Dic
         title = m.group("title").strip().lower()
 
         for tt in theorem_types:
-            if tt in title or title in tt:
-                theorem_envs[env] = tt
+            main_tt, *short_tts = tt
+
+            if _contains_or_is_contained_by(main_tt, title) or \
+                any(_contains_or_is_contained_by(short_tt, title) for short_tt in short_tts):
+                theorem_envs[env] = main_tt
                 break
 
     return theorem_envs
 
 def extract_theorem_envs(
     paper_dir: Path, 
-    theorem_types: List[str],
+    theorem_types: List[Tuple[str]],
     mode: Mode
 ) -> Dict[str, str]:
     """
@@ -53,8 +59,8 @@ def extract_theorem_envs(
     ----------
     paper_dir : Path
         Path to a paper's source files
-    theorem_types : List[str]
-        Possible theorem types
+    theorem_types : List[Tuple[str]]
+        Possible theorem types with shorthands
     mode: Mode
         The mode to run `extract_theorem_envs` in
 
@@ -63,9 +69,10 @@ def extract_theorem_envs(
     theorem_envs : Dict[str, str]
         Dict mapping theorem envs to theorem types
     """
+    main_theorem_types = [t[0] for t in theorem_types]
 
     theorem_envs: Dict[str, str] = {
-        type_: type_ for type_ in theorem_types
+        type_: type_ for type_ in main_theorem_types
     }
 
     search_files = itertools.chain.from_iterable(

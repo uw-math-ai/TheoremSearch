@@ -1,8 +1,8 @@
 from ..types import Theorem
 from typing import List
 
-def _validate_type(theorem: Theorem, theorem_types: List[str]):
-    if not theorem["type"] in theorem_types:
+def _validate_type(theorem: Theorem, main_theorem_types: List[str]):
+    if not theorem["type"] in main_theorem_types:
         raise ValueError(f"Theorem has invalid type `{theorem['type']}`")
     
 def _validate_body(theorem: Theorem):
@@ -42,7 +42,7 @@ def _validate_uniqueness(theorems: List[Theorem]):
         else:
             names.add(name)
 
-def validate_theorem(theorem: Theorem, theorem_types: List[str]):
+def validate_theorem(theorem: Theorem, main_theorem_types: List[str]):
     """
     Raises an error if the theorem is likely incorrectly parsed:
     - If type is not a valid theorem type
@@ -52,14 +52,14 @@ def validate_theorem(theorem: Theorem, theorem_types: List[str]):
     ----------
     theorems : List[Theorem]
         Theorems to validate
-    theorem_types : List[str]
+    main_theorem_types : List[str]
         Possible theorem types
     """
 
-    _validate_type(theorem, theorem_types)
+    _validate_type(theorem, main_theorem_types)
     _validate_body(theorem)
 
-def validate_theorems(theorems: List[Theorem], theorem_types: List[str]):
+def validate_theorems(theorems: List[Theorem], main_theorem_types: List[str]):
     """
     Raises an error if the theorems are likely incorrectly parsed:
     - If type is not a valid theorem type
@@ -70,12 +70,12 @@ def validate_theorems(theorems: List[Theorem], theorem_types: List[str]):
     ----------
     theorems : List[Theorem]
         Theorems to validate
-    theorem_types : List[str]
+    main_theorem_types : List[str]
         Possible theorem types
     """
 
     for theorem in theorems:
-        validate_theorem(theorem, theorem_types)
+        validate_theorem(theorem, main_theorem_types)
 
     _validate_uniqueness(theorems)
     
