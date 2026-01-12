@@ -18,6 +18,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 from .lib.download_paper import download_paper
 from .types import Theorem
+import shutil
 
 THEOREM_TYPES = [("theorem", "theo", "thm"), ("lemma", "lem"), ("corollary", "cor"), ("proposition", "prop")]
 
@@ -236,6 +237,11 @@ def _parse_papers(
                         parse_successes += 1
                         batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
                 
+                    try:
+                        shutil.rmtree(paper_dir, ignore_errors=True)
+                    except Exception:
+                        pass
+
                     parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
 
             if batch_theorem_rows:
