@@ -6,7 +6,7 @@ from ...lib.guess_main_file import guess_main_file
 from ...lib.extract_theorem_envs import extract_theorem_envs
 from .flatten_paper import flatten_paper
 from ...lib.remove_comments import remove_comments
-from .find_theorems import find_theorems
+from .theorems.find import find_theorems
 from ...lib.macros.expand import expand_macros
 
 def parse_by_regex(
