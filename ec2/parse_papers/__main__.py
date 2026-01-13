@@ -20,7 +20,12 @@ from .lib.download_paper import download_paper
 from .types import Theorem
 import shutil
 
-THEOREM_TYPES = [("theorem", "theo", "thm"), ("lemma", "lem"), ("corollary", "cor"), ("proposition", "prop")]
+THEOREM_TYPES = [
+    ("theorem", "theo", "thm", "teo"), 
+    ("lemma", "lem"), 
+    ("corollary", "cor"), 
+    ("proposition", "prop")
+]
 
 
 def _to_theorem_row(theorem: Theorem, paper_id: str, method: Method) -> Dict[str, Any]:
@@ -238,7 +243,7 @@ def _parse_papers(
                         batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
                 
                     try:
-                        shutil.rmtree(paper_dir, ignore_errors=True)
+                        shutil.rmtree(cwd / paper_id, ignore_errors=True)
                     except Exception:
                         pass
 
