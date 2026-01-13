@@ -163,6 +163,7 @@ def _parse_papers(
                         paper_id,
                         arxiv_s3_loc,
                         str(cwd),
+                        timeout,
                         mode
                     )
                     dl_fut_to_pid[dl_fut] = paper_id
@@ -173,6 +174,7 @@ def _parse_papers(
                             paper_id,
                             arxiv_s3_loc,
                             cwd,
+                            timeout,
                             mode
                         )
                     except Exception as e:
@@ -214,7 +216,7 @@ def _parse_papers(
                     paper_id = dl_fut_to_pid[dl_fut]
 
                     try:
-                        paper_dir = dl_fut.result()
+                        paper_dir = dl_fut.result(timeout=timeout)
                     except Exception:
                         parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
                         continue
@@ -234,7 +236,7 @@ def _parse_papers(
                     paper_id = fut_to_pid[fut]
 
                     try:
-                        theorems = fut.result()
+                        theorems = fut.result(timeout=timeout)
                     except Exception:
                         theorems = None
 

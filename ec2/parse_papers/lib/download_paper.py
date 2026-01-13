@@ -6,6 +6,7 @@ import tarfile
 import io
 from ..enums import Mode
 import requests
+from ..lib.run_with_timeout import run_with_timeout
 
 s3 = None
 
@@ -21,6 +22,7 @@ def download_paper(
     paper_id: str,
     arxiv_s3_loc: Optional[Tuple[str, int, int]],
     cwd: Path | str,
+    timeout: int,
     mode: Mode,
 ) -> Path | None:
     """
@@ -34,6 +36,8 @@ def download_paper(
         Name of the bundle, the start bytes, and end bytes. If None, downloads from API
     cwd : Path | str
         Directory's to add the paper's source files to
+    timeout : int
+        Maximum number of seconds to download a paper
     mode : Mode
         Mode to run `download_paper_from_s3` in
 
@@ -42,6 +46,13 @@ def download_paper(
     paper_dir : Path | None
         The paper's downloaded source files. None if download failed
     """
+
+    if timeout > 0:
+        @run_with_timeout(seconds=timeout)
+        def download_paper_with_timeout():
+            return download_paper(paper_id, arxiv_s3_loc, cwd, 0, mode)
+
+        return download_paper_with_timeout()
 
     if isinstance(cwd, str):
         cwd = Path(cwd)
