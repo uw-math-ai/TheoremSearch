@@ -51,6 +51,7 @@ def _update_pbar(pbar, parse_successes, parse_attempts):
 def _parse_papers(
     paper_ids: List[str],
     condition: str,
+    condition_params: List[str],
     overwrite: bool,
     batch_size: int,
     workers: int,
@@ -71,6 +72,7 @@ def _parse_papers(
         params={
             "paper_ids?": paper_ids,
             "condition?": condition,
+            "condition_params?": condition_params,
             "overwrite": overwrite,
             "batch_size": batch_size,
             "workers?": workers,
@@ -113,7 +115,9 @@ def _parse_papers(
             },
             {
                 "if": condition,
-                "condition": condition
+                "condition": condition,
+                "params": condition_params
+
             }
         ]
     )
@@ -143,6 +147,7 @@ def _parse_papers(
             order_by="paper_id",
             page_size=batch_size
         ):
+
             batch_theorem_rows = []
 
             if mode == Mode.PRODUCTION:
@@ -258,8 +263,9 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--condition",
         type=str,
+        nargs="+",
         default="",
-        help="SQL condition to filter papers"
+        help="SQL condition to filter papers followed by args"
     )
 
     arg_parser.add_argument(
@@ -319,9 +325,16 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
+    if args.condition and len(args.condition) > 2:
+        condition, *condition_params = args.condition
+    else:
+        condition = args.condition[0] if args.condition else None
+        condition_params = []
+
     _parse_papers(
         paper_ids=args.paper_ids,
-        condition=args.condition,
+        condition=condition,
+        condition_params=condition_params,
         overwrite=args.overwrite,
         batch_size=args.batch_size,
         workers=args.workers,
