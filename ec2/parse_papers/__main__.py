@@ -325,7 +325,7 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
-    if args.condition and len(args.condition) > 2:
+    if args.condition and len(args.condition) >= 2:
         condition, *condition_params = args.condition
     else:
         condition = args.condition[0] if args.condition else None
