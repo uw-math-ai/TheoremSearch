@@ -10,7 +10,7 @@ from ..rds.query import build_query, get_query_count
 from ..rds.connect import get_rds_connection
 from ..rds.upsert import upsert_rows
 from tqdm import tqdm
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import nullcontext
 from ..rds.paginate import paginate_query
 from .parse_paper import parse_paper
@@ -18,8 +18,14 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 from .lib.download_paper import download_paper
 from .types import Theorem
+import shutil
 
-THEOREM_TYPES = [("theorem", "theo", "thm"), ("lemma", "lem"), ("corollary", "cor"), ("proposition", "prop")]
+THEOREM_TYPES = [
+    ("theorem", "theo", "thm", "teo"), 
+    ("lemma", "lem"), 
+    ("corollary", "cor"), 
+    ("proposition", "prop")
+]
 
 
 def _to_theorem_row(theorem: Theorem, paper_id: str, method: Method) -> Dict[str, Any]:
@@ -45,6 +51,7 @@ def _update_pbar(pbar, parse_successes, parse_attempts):
 def _parse_papers(
     paper_ids: List[str],
     condition: str,
+    condition_params: List[str],
     overwrite: bool,
     batch_size: int,
     workers: int,
@@ -65,6 +72,7 @@ def _parse_papers(
         params={
             "paper_ids?": paper_ids,
             "condition?": condition,
+            "condition_params?": condition_params,
             "overwrite": overwrite,
             "batch_size": batch_size,
             "workers?": workers,
@@ -107,7 +115,9 @@ def _parse_papers(
             },
             {
                 "if": condition,
-                "condition": condition
+                "condition": condition,
+                "params": condition_params
+
             }
         ]
     )
@@ -120,15 +130,13 @@ def _parse_papers(
 
         pbar = tqdm(total=count, dynamic_ncols=True)
         ex = ProcessPoolExecutor(max_workers=workers)
-        download_ex = ThreadPoolExecutor(max_workers=workers)
     else:
         pbar = nullcontext()
         ex = nullcontext()
-        download_ex = nullcontext()
 
     tmpdir = TemporaryDirectory() if mode != Mode.DEBUGGING else nullcontext()
 
-    with pbar, ex, tmpdir, download_ex:
+    with pbar, ex, tmpdir:
         cwd: Path = Path(tmpdir.name) if mode != Mode.DEBUGGING else Path("DEBUG")
         cwd.mkdir(exist_ok=True)
 
@@ -139,10 +147,10 @@ def _parse_papers(
             order_by="paper_id",
             page_size=batch_size
         ):
+
             batch_theorem_rows = []
 
             if mode == Mode.PRODUCTION:
-                dl_fut_to_pid = {}
                 fut_to_pid = {}
 
             for paper in papers:
@@ -151,68 +159,25 @@ def _parse_papers(
                     paper["bundle_tar"], paper["bytes_start"], paper["bytes_end"]
                 ) if arxiv_paper_src == ArXivPaperSource.S3 else None
 
-                if mode == Mode.PRODUCTION:
-                    dl_fut = download_ex.submit(
-                        download_paper,
+                try:
+                    paper_dir = download_paper(
                         paper_id,
                         arxiv_s3_loc,
-                        str(cwd),
+                        cwd,
+                        timeout,
                         mode
                     )
-                    dl_fut_to_pid[dl_fut] = paper_id
-                    continue
-                else:
-                    try:
-                        paper_dir = download_paper(
-                            paper_id,
-                            arxiv_s3_loc,
-                            cwd,
-                            mode
-                        )
-                    except Exception as e:
-                        if mode == Mode.DEVELOPMENT:
-                            print(f"[DEV] {paper_id} (Download): {e}")
-                        elif mode == Mode.DEBUGGING:
-                            raise e
-                        else:
-                            parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
-
-                        continue
-
-                    try:
-                        theorems = parse_paper(
-                            paper_dir,
-                            THEOREM_TYPES,
-                            timeout,
-                            theorem_validation_level,
-                            mode,
-                            method
-                        )
-                    except Exception as e:
-                        if mode == Mode.DEVELOPMENT:
-                            print(f"[DEV] {paper_id} (Parse): {e}")
-                            continue
-                        elif mode == Mode.DEBUGGING:
-                            raise e
-
-                    if theorems:
-                        batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
-
-                        if mode == Mode.DEVELOPMENT:
-                            print(f"[DEV] {paper_id}: Successfully parsed {len(theorems)} theorems")
-                    elif mode == Mode.DEVELOPMENT:
-                        print(f"[DEV] {paper_id}: No theorems found")
-
-            if mode == Mode.PRODUCTION:
-                for dl_fut in as_completed(dl_fut_to_pid):
-                    paper_id = dl_fut_to_pid[dl_fut]
-
-                    try:
-                        paper_dir = dl_fut.result()
-                    except Exception:
+                except Exception as e:
+                    if mode == Mode.DEVELOPMENT:
+                        print(f"[DEV] {paper_id} (Download): {e}")
+                    elif mode == Mode.DEBUGGING:
+                        raise e
+                    else:
                         parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
-                        continue
 
+                    continue
+                
+                if mode == Mode.PRODUCTION:
                     fut = ex.submit(
                         parse_paper,
                         str(paper_dir),
@@ -223,12 +188,37 @@ def _parse_papers(
                         method
                     )
                     fut_to_pid[fut] = paper_id
+                else:
+                    try:
+                        theorems = parse_paper(
+                            paper_dir,
+                            THEOREM_TYPES,
+                            timeout,
+                            theorem_validation_level,
+                            mode,
+                            method
+                        )
 
+                        if theorems:
+                            batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
+
+                            if mode == Mode.DEVELOPMENT:
+                                print(f"[DEV] {paper_id}: Successfully parsed {len(theorems)} theorems")
+                        elif mode == Mode.DEVELOPMENT:
+                            print(f"[DEV] {paper_id}: No theorems found")
+                    except Exception as e:
+                        if mode == Mode.DEVELOPMENT:
+                            print(f"[DEV] {paper_id} (Parse): {e}")
+                            continue
+                        elif mode == Mode.DEBUGGING:
+                            raise e
+                        
+            if mode == Mode.PRODUCTION:
                 for fut in as_completed(fut_to_pid):
                     paper_id = fut_to_pid[fut]
 
                     try:
-                        theorems = fut.result()
+                        theorems = fut.result(timeout=timeout)
                     except Exception:
                         theorems = None
 
@@ -236,6 +226,11 @@ def _parse_papers(
                         parse_successes += 1
                         batch_theorem_rows.extend([_to_theorem_row(t, paper_id, method) for t in theorems])
                 
+                    try:
+                        shutil.rmtree(cwd / paper_id, ignore_errors=True)
+                    except Exception:
+                        pass
+
                     parse_attempts = _update_pbar(pbar, parse_successes, parse_attempts)
 
             if batch_theorem_rows:
@@ -268,8 +263,9 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--condition",
         type=str,
+        nargs="+",
         default="",
-        help="SQL condition to filter papers"
+        help="SQL condition to filter papers followed by args"
     )
 
     arg_parser.add_argument(
@@ -329,9 +325,16 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
+    if args.condition and len(args.condition) >= 2:
+        condition, *condition_params = args.condition
+    else:
+        condition = args.condition[0] if args.condition else None
+        condition_params = []
+
     _parse_papers(
         paper_ids=args.paper_ids,
-        condition=args.condition,
+        condition=condition,
+        condition_params=condition_params,
         overwrite=args.overwrite,
         batch_size=args.batch_size,
         workers=args.workers,
