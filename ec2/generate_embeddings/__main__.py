@@ -177,6 +177,7 @@ if __name__ == "__main__":
 
     _generate_embeddings(
         embedder_alias=args.embedder,
+        raw=args.raw,
         condition=args.condition,
         overwrite=args.overwrite,
         page_size=args.page_size,
