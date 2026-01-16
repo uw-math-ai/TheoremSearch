@@ -56,6 +56,11 @@ CREATE TABLE theorem_embedding_gemma (
     embedding vector(768) NOT NULL
 );
 
+CREATE TABLE raw_theorem_embedding_gemma (
+    theorem_id BIGINT PRIMARY KEY REFERENCES theorem(theorem_id) ON DELETE CASCADE,
+    embedding vector(768) NOT NULL
+)
+
 CREATE TABLE theorem_search_qwen (
     -- ids
     slogan_id        BIGINT PRIMARY KEY,

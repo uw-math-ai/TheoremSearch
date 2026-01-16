@@ -14,6 +14,7 @@ from ..printing.scripts import print_script_header
 
 def _generate_embeddings(
     embedder_alias: str,
+    raw: bool,
     condition: bool,
     overwrite: bool,
     page_size: int,
@@ -23,6 +24,7 @@ def _generate_embeddings(
         action="Generating embeddings for theorem slogans",
         params={
             "embedder": embedder_alias,
+            "raw?": raw,
             "condition?": condition,
             "overwrite": overwrite,
             "page_size": page_size,
@@ -32,28 +34,58 @@ def _generate_embeddings(
 
     conn = get_rds_connection()
 
-    query, params = build_query(
-        base_query="""
-            SELECT slogan_id, slogan
-            FROM theorem_slogan
-        """,
-        where_clauses=[
-            {
-                "if": not overwrite,
-                "condition": f"""
-                    NOT EXISTS (
-                        SELECT 1
-                        FROM theorem_embedding_{embedder_alias} AS teq
-                        WHERE teq.slogan_id = theorem_slogan.slogan_id
-                    )
-                """
-            },
-            {
-                "if": condition,
-                "condition": condition
-            }
-        ]
-    )
+    if raw:
+        table = f"raw_theorem_embedding_{embedder_alias}"
+        id_col = "theorem_id"
+
+        query, params = build_query(
+            base_query="""
+                SELECT theorem_id, body as slogan
+                FROM theorem
+            """,
+            where_clauses=[
+                {
+                    "if": not overwrite,
+                    "condition": f"""
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM {table} AS te
+                            WHERE te.theorem_id = theorem.theorem_id
+                        )
+                    """
+                },
+                {
+                    "if": condition,
+                    "condition": condition
+                }
+            ]
+        )
+    else:
+        table = f"theorem_embedding_{embedder_alias}"
+        id_col = "slogan_id"
+
+        query, params = build_query(
+            base_query="""
+                SELECT slogan_id, slogan
+                FROM theorem_slogan
+            """,
+            where_clauses=[
+                {
+                    "if": not overwrite,
+                    "condition": f"""
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM {table} AS te
+                            WHERE te.slogan_id = theorem_slogan.slogan_id
+                        )
+                    """
+                },
+                {
+                    "if": condition,
+                    "condition": condition
+                }
+            ]
+        )
 
     count = get_query_count(conn, query, params)
 
@@ -62,7 +94,7 @@ def _generate_embeddings(
             conn,
             base_query=query,
             base_params=params,
-            order_by="slogan_id",
+            order_by=id_col,
             descending=False,
             page_size=page_size
         ):
@@ -75,16 +107,16 @@ def _generate_embeddings(
             with conn.cursor() as cur:
                 upsert_rows(
                     cur,
-                    table=f"theorem_embedding_{embedder_alias}",
+                    table=table,
                     rows=[
                         {
-                            "slogan_id": slogan["slogan_id"],
+                            id_col: slogan[id_col],
                             "embedding": embedding
                         }
                         for slogan, embedding in zip(slogans, embeddings)
                     ],
                     on_conflict={
-                        "with": ["slogan_id"],
+                        "with": [id_col],
                         "replace": ["embedding"]
                     }
                 )
@@ -103,6 +135,12 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Alias (from `embedders.py`) of HuggingFace embedder"
+    )
+
+    parser.add_argument(
+        "-r", "--raw",
+        action="store_true",
+        help="Whether to use raw theorem bodies directly. By default, False (uses slogans)"
     )
 
     parser.add_argument(
