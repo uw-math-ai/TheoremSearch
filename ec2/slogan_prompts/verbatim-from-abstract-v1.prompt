@@ -1,0 +1,11 @@
+{
+    "id": "verbatim-from-abstract-v1",
+    "instructions": [
+        "You extract the verbatim sentences from paper_abstract that clearly describe the main result as given in theorem_body.",
+        "If paper_abstract does not describe the result from theorem_body, return 'NOT POSSIBLE:' followed by a brief explanation.",
+        "Otherwise, find the exact sentences from paper_abstract that describe the result from theorem_body and return them verbatim."  
+    ],
+    "context": ["paper.summary", "theorem.body"],
+    "temperature": 0.1,
+    "max_tokens": 1024
+}

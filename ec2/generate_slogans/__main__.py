@@ -29,6 +29,7 @@ def _generate_slogans(
     prompt_id: str,
     paper_ids: List[str],
     condition: str,
+    condition_params: List[str],
     overwrite: bool,
     batch_size: int,
     workers: int,
@@ -48,6 +49,7 @@ def _generate_slogans(
             "prompt_id": prompt_id,
             "paper_ids?": paper_ids,
             "condition?": condition,
+            "condition_params?": condition_params,
             "overwrite": overwrite,
             "batch_size": batch_size,
             "workers?": workers,
@@ -96,7 +98,8 @@ def _generate_slogans(
             },
             {
                 "if": condition,
-                "condition": condition
+                "condition": condition,
+                "params": condition_params
             }
         ]
     )
@@ -162,6 +165,9 @@ def _generate_slogans(
                             use_langfuse=use_langfuse,
                             mode=mode
                         )
+
+                        if slogan.startswith("NOT POSSIBLE"):
+                            raise ValueError(slogan)
                     except Exception as e:
                         print(f"[DEBUG] {theorem_id}: {e}")
                         continue
@@ -186,7 +192,7 @@ def _generate_slogans(
                         slogan = None
                         cost = 0
 
-                    if slogan:
+                    if slogan and not slogan.startswith("NOT POSSIBLE"):
                         sloganify_successes += 1
                         batch_slogan_rows.append({
                             "theorem_id": theorem_id,
@@ -243,8 +249,9 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--condition",
         type=str,
+        nargs="+",
         default="",
-        help="SQL condition to filter theorems"
+        help="SQL condition to filter theorems followed by args"
     )
 
     arg_parser.add_argument(
@@ -289,11 +296,18 @@ if __name__ == "__main__":
 
     args = arg_parser.parse_args()
 
+    if args.condition and len(args.condition) >= 2:
+        condition, *condition_params = args.condition
+    else:
+        condition = args.condition[0] if args.condition else None
+        condition_params = []
+
     _generate_slogans(
         model_name=args.model,
         prompt_id=args.prompt_id,
         paper_ids=args.paper_ids,
-        condition=args.condition,
+        condition=condition,
+        condition_params=condition_params,
         overwrite=args.overwrite,
         batch_size=args.batch_size,
         workers=args.workers,
