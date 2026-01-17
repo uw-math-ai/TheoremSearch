@@ -18,7 +18,8 @@ def _generate_embeddings(
     condition: bool,
     overwrite: bool,
     page_size: int,
-    batch_size: int
+    batch_size: int,
+    sample: int
 ):
     print_script_header(
         action="Generating embeddings for theorem slogans",
@@ -28,7 +29,8 @@ def _generate_embeddings(
             "condition?": condition,
             "overwrite": overwrite,
             "page_size": page_size,
-            "batch_size": batch_size
+            "batch_size": batch_size,
+            "sample?": sample if sample > 0 else 0
         }
     )
 
@@ -58,7 +60,8 @@ def _generate_embeddings(
                     "if": condition,
                     "condition": condition
                 }
-            ]
+            ],
+            sample=sample
         )
     else:
         table = f"theorem_embedding_{embedder_alias}"
@@ -84,7 +87,8 @@ def _generate_embeddings(
                     "if": condition,
                     "condition": condition
                 }
-            ]
+            ],
+            sample=sample
         )
 
     count = get_query_count(conn, query, params)
@@ -173,6 +177,13 @@ if __name__ == "__main__":
         help="The number of theorems slogans to embed in a batch. By default, 8"
     )
 
+    parser.add_argument(
+        "--sample",
+        required=False,
+        default=-1,
+        help="Number of theorems/slogans to randomly sample. By default, inactive"
+    )
+
     args = parser.parse_args()
 
     _generate_embeddings(
@@ -181,5 +192,6 @@ if __name__ == "__main__":
         condition=args.condition,
         overwrite=args.overwrite,
         page_size=args.page_size,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        sample=args.sample
     )
