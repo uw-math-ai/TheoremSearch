@@ -179,6 +179,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--sample",
+        type=int,
         required=False,
         default=-1,
         help="Number of theorems/slogans to randomly sample. By default, inactive"
