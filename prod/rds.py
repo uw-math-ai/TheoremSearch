@@ -86,6 +86,8 @@ def backfill(conn: connection):
             theorem_name,
             theorem_body,
             theorem_slogan,
+            theorem_type,
+            parsing_method,
             title,
             authors,
             link,
@@ -95,49 +97,55 @@ def backfill(conn: connection):
             categories,
             citations,
             source,
-            theorem_type,
             has_metadata
         )
         SELECT
-            ts.slogan_id,
-            t.theorem_id,
-            p.paper_id,
-            e.embedding,
-            ts.model,
-            ts.prompt_id,        
-            t.name,
-            t.body,
-            ts.slogan,
-            p.title,
-            p.authors,
-            p.link,
-            EXTRACT(YEAR FROM p.last_updated)::INT,
-            (p.journal_ref IS NOT NULL),
-            p.primary_category,
-            p.categories,
-            p.citations,
-            CASE
-                WHEN p.link ILIKE '%arxiv.org%' THEN 'arXiv'
-                WHEN p.link ILIKE '%stacks.math.columbia.edu%' THEN 'Stacks Project'
-                ELSE 'Other'
-            END,
-            CASE
-                WHEN t.name ILIKE 'lemma %'        THEN 'lemma'
-                WHEN t.name ILIKE 'proposition %'  THEN 'proposition'
-                WHEN t.name ILIKE 'corollary %'    THEN 'corollary'
-                WHEN t.name ILIKE 'theorem %'      THEN 'theorem'
-                ELSE 'theorem'
-            END AS theorem_type,
-            CASE
-                WHEN p.link ILIKE '%arxiv.org%' THEN TRUE
-                ELSE FALSE
-            END AS has_metadata
+        ts.slogan_id,
+        t.theorem_id,
+        t.paper_id,
+        e.embedding,
+        ts.model,
+        ts.prompt_id,
+        t.name,
+        t.body,
+        ts.slogan,
+        CASE
+            WHEN t.name ILIKE 'lemma %' THEN 'lemma'
+            WHEN t.name ILIKE 'proposition %' THEN 'proposition'
+            WHEN t.name ILIKE 'corollary %' THEN 'corollary'
+            WHEN t.name ILIKE 'theorem %' THEN 'theorem'
+            ELSE 'theorem'
+        END,
+        t.parsing_method,
+        p.title,
+        p.authors,
+        CASE
+            WHEN p.link ILIKE '%arxiv.org%' THEN p.link
+            ELSE t.link
+        END,
+        EXTRACT(YEAR FROM p.last_updated)::INT,
+        (p.journal_ref IS NOT NULL),
+        p.primary_category,
+        p.categories,
+        p.citations,
+        CASE
+            WHEN p.link ILIKE '%arxiv.org%' THEN 'arXiv'
+            WHEN p.link ILIKE '%stacks.math.columbia.edu%' THEN 'Stacks Project'
+            ELSE 'Other'
+        END,
+        (
+            p.last_updated IS NOT NULL
+            OR p.primary_category IS NOT NULL
+            OR p.categories IS NOT NULL
+            OR p.citations IS NOT NULL
+        )
         FROM theorem_embedding_qwen e
-        JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
-        JOIN theorem t ON t.theorem_id = ts.theorem_id
-        JOIN paper p ON p.paper_id = t.paper_id
+          JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
+          JOIN theorem t ON t.theorem_id = ts.theorem_id
+          JOIN paper p ON p.paper_id = t.paper_id
         WHERE ts.model = 'DeepSeek-V3.1'
-          AND ts.prompt_id = 'body-only-v1'
+          AND ts.prompt_id = 'body-only-v1' 
+          AND ts.slogan IS NOT NULL
         ON CONFLICT (slogan_id) DO NOTHING;
     """)
     print(f"Rows inserted: {cur.rowcount}")
