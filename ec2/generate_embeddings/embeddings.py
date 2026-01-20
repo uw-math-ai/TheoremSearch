@@ -51,7 +51,8 @@ def embed_texts(
                 texts_to_embed,
                 normalize_embeddings=True,
                 show_progress_bar=False,
-                batch_size=batch_size
+                batch_size=batch_size,
+                prompt="Instruct: Represent the given math statement for retrieving related statement by natural language query. \nQuery:"
             )
         else:
             embeddings = embedder.encode_multi_process(
