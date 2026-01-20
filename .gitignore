@@ -17,3 +17,4 @@ parsed_papers/
 data/sources/
 DEBUG/
 external/stacks-project/
+*.out

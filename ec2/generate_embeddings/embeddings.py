@@ -38,18 +38,16 @@ def embed_texts(
     """
     embedder = _get_embedder(embedder_alias)
 
-    # avoid oversubscription on Slurm
-    nthreads = int(os.environ.get("SLURM_CPUS_PER_TASK", multiprocessing.cpu_count()))
-    torch.set_num_threads(nthreads)
-
     with torch.inference_mode():
         if embedder.device.type == "cpu" and len(texts_to_embed) >= batch_size:
+            nthreads = int(os.environ.get("SLURM_CPUS_PER_TASK", multiprocessing.cpu_count()))
+            torch.set_num_threads(nthreads)
             pool = embedder.start_multi_process_pool()  # CPU workers
             try:
                 emb = embedder.encode(
                     texts_to_embed, pool,
                     normalize_embeddings=True,
-                    show_progress_bar=True,
+                    show_progress_bar=False,
                     batch_size=batch_size,
                     prompt="Instruct: Represent the given math statement for retrieving related statement by natural language query.\nQuery:",
                 )
@@ -59,7 +57,7 @@ def embed_texts(
             emb = embedder.encode(
                 texts_to_embed,
                 normalize_embeddings=True,
-                show_progress_bar=True,
+                show_progress_bar=False,
                 batch_size=batch_size,
                 prompt="Instruct: Represent the given math statement for retrieving related statement by natural language query.\nQuery:",
             )
