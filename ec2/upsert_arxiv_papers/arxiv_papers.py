@@ -43,13 +43,29 @@ def get_arxiv_papers(
     query: str, 
     date_partition: DatePartition,
     start_date: datetime = datetime(1992, 1, 1),
-    end_date: datetime = datetime.now()
+    end_date: datetime = datetime.now(),
+    empties_to_stop: int = 12
 ) -> Iterator[arxiv.Result]:
-    for start, end in _get_date_partitions(date_partition, start_date, end_date):
+    empties_to_stop_left = empties_to_stop
+
+    for start, end in reversed(list(_get_date_partitions(
+        date_partition, start_date, end_date
+    ))):
         search = arxiv.Search(
             query=f"submittedDate:[{start} TO {end}] AND {query}"
         )
 
+        partition_empty = True
+
         for paper_res in client.results(search):
-            yield paper_res
+            yield 
+            partition_empty = False
+
+        if partition_empty:
+            empties_to_stop_left -= 1
+
+            if empties_to_stop_left == 0:
+                break
+        else:
+            empties_to_stop_left = empties_to_stop
         
