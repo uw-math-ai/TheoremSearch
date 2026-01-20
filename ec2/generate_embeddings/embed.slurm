@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=embed_qwen8b
-#SBATCH --account=krishna
+#SBATCH --account=amath
 #SBATCH --partition=gpu-l40s
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
