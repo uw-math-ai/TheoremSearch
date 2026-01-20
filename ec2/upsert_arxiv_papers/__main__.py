@@ -93,13 +93,20 @@ def _upsert_arxiv_papers(
 
         paper_res_batch = []
 
-        with tqdm(total=_get_arxiv_query_size(query), dynamic_ncols=True) as pbar:
+        papers_left = _get_arxiv_query_size(query)
+
+        with tqdm(total=papers_left, dynamic_ncols=True) as pbar:
             for paper_res in get_arxiv_papers(client, query, date_partition="month"):
                 paper_res_batch.append(paper_res)
 
                 if len(paper_res_batch) == batch_size:
                     _upsert_arxiv_batch(paper_res_batch, workers=workers, pbar=pbar)
                     paper_res_batch = []
+
+                    papers_left -= batch_size
+
+                    if papers_left <= 0:
+                        break
 
             if len(paper_res_batch) > 0:
                 _upsert_arxiv_batch(paper_res_batch, workers=workers, pbar=pbar)
