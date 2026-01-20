@@ -58,7 +58,7 @@ def get_arxiv_papers(
         partition_empty = True
 
         for paper_res in client.results(search):
-            yield 
+            yield paper_res
             partition_empty = False
 
         if partition_empty:
