@@ -4,10 +4,10 @@ arXiv categories that likely contain mathematical theorems
 
 from typing import List
 
-# MATH_CATEGORIES: List[str] = [
-#     "math." + cat for cat in
-#     "AC,AG,AP,AT,CA,CO,CT,CV,DG,DS,FA,GM,GN,GR,GT,IT,KT,LO,MG,MP,NA,NT,OA,OC,PR,QA,RA,RT,SG,SP,ST".split(",")
-# ]
+MATH_CATEGORIES: List[str] = [
+    "math." + cat for cat in
+    "AC,AG,AP,AT,CA,CO,CT,CV,DG,DS,FA,GM,GN,GR,GT,IT,KT,LO,MG,MP,NA,NT,OA,OC,PR,QA,RA,RT,SG,SP,ST".split(",")
+]
 
 STAT_CATEGORIES: List[str] = [
     "stat." + cat for cat in
@@ -28,7 +28,7 @@ PHYS_CATEGORIES: List[str] = [
 
 CATEGORIES: List[str] = [
     # *MATH_CATEGORIES,
-    *STAT_CATEGORIES,
+    # *STAT_CATEGORIES,
     *CS_CATEGORIES,
     *MATH_PHYS_CATEGORIES,
     *PHYS_CATEGORIES
