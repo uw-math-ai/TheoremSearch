@@ -36,7 +36,8 @@ def _upsert_arxiv_paper(paper_res: arxiv.Result):
         "journal_ref": paper_res.journal_ref,
         "primary_category": paper_res.primary_category,
         "categories": paper_res.categories,
-        "citations": get_paper_citations(paper_id, paper_res)
+        "citations": get_paper_citations(paper_id, paper_res),
+        "source": "arXiv"
     }
 
     with conn.cursor() as cur:
