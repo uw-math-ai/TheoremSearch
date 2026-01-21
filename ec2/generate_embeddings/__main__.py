@@ -11,6 +11,7 @@ from ..rds.upsert import upsert_rows
 from ..rds.query import build_query, get_query_count
 from tqdm import tqdm
 from ..printing.scripts import print_script_header
+import warnings
 
 def _generate_embeddings(
     embedder_alias: str,
@@ -102,11 +103,16 @@ def _generate_embeddings(
             descending=False,
             page_size=page_size
         ):
-            embeddings = embed_texts(
-                embedder_alias,
-                [s["slogan"] for s in slogans],
-                batch_size=batch_size
-            )
+            try:
+                embeddings = embed_texts(
+                    embedder_alias,
+                    [s["slogan"] for s in slogans],
+                    batch_size=batch_size
+                )
+            except Exception as e:
+                ids = [s[id_col] for s in slogans]
+                warnings.warn(f"Error embedding slogans with IDs {min(ids)} - {max(ids)}: {e}")
+                continue
 
             with conn.cursor() as cur:
                 upsert_rows(

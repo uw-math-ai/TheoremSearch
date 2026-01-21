@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=embed_qwen8b
-#SBATCH --account=amath
-#SBATCH --partition=gpu-l40s
+#SBATCH --account=krishna
+#SBATCH --partition=gpu-a40
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
-#SBATCH --time=3:00:00
-#SBATCH --array=0-99
+#SBATCH --time=4:00:00
+#SBATCH --array=50-99
 #SBATCH --output=logs/%x_%N_%A_%a.out
 
 set -euo pipefail
@@ -22,6 +22,6 @@ conda activate thm-search
 
 python3.11 -m ec2.generate_embeddings \
   --embedder qwen8b \
-  --batch-size 64 \
-  --page-size 128 \
+  --batch-size 32 \
+  --page-size 32 \
   --condition "slogan_id >= ${START_ID} AND slogan_id < ${END_ID} AND prompt_id = 'body-only-v1' AND model = 'DeepSeek-V3.1'"
