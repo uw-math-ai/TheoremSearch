@@ -30,21 +30,47 @@ def get_rds_connection() -> connection:
     register_vector(conn)
     return conn
 
+@st.cache_data(ttl=60*60*24)
+def load_sources(_conn):
+    cur = _conn.cursor()
+    cur.execute("SELECT DISTINCT source FROM theorem_search_qwen;")
+    sources = cur.fetchall()
+    cur.close()
+    return [row[0] for row in sources]
+
 @st.cache_data(ttl=60*60*24) # cache for 24 hours
+def load_source_caps(_conn):
+    cur = _conn.cursor()
+    cur.execute("""
+                SELECT source, bool_or(has_metadata)
+                FROM theorem_search_qwen
+                GROUP BY source;
+                """)
+    caps = {
+        source: {"has_metadata": has_meta}
+        for source, has_meta in cur.fetchall()
+    }
+    cur.close()
+    return caps
+
+@st.cache_data(ttl=60*60*24)
 def load_authors(_conn):
     cur = _conn.cursor()
     cur.execute("""
-        SELECT DISTINCT unnest(authors)
+        SELECT source, unnest(authors)
         FROM theorem_search_qwen
         WHERE authors IS NOT NULL;
     """)
-
-    authors = sorted(row[0] for row in cur.fetchall() if row[0])
+    from collections import defaultdict
+    authors = defaultdict(set)
+    for source, author in cur.fetchall():
+        if source and author:
+            authors[source].add(author)
     cur.close()
-    return authors
+    return {s: sorted(v) for s, v in authors.items()}
 
-@st.cache_data(ttl=60*60*24) # cache for 24 hours
-def load_tags_per_source(_conn):
+@st.cache_data(ttl=60*60*24)
+def load_tags(_conn):
     cur = _conn.cursor()
     cur.execute("""
         SELECT source, primary_category
@@ -59,7 +85,7 @@ def load_tags_per_source(_conn):
     cur.close()
     return {src: sorted(tags) for src, tags in tags_per_source.items()}
 
-@st.cache_data(ttl=60*60*24) # cache for 24 hours
+@st.cache_data(ttl=60*60*24)
 def load_theorem_count(_conn):
     cur = _conn.cursor()
     cur.execute("SELECT COUNT(*) FROM theorem_search_qwen;")
@@ -109,24 +135,112 @@ def insert_feedback(conn, payload: dict):
         ))
     conn.commit()
 
-def serialize_filters(filters: dict) -> dict:
-    return {
-        "types": ",".join(filters.get("types", [])),
-        "tags": ",".join(filters.get("tags", [])),
-        "sources": ",".join(filters.get("sources", [])),
-        "paper_filter": ",".join(
-            list(filters.get("paper_filter", {}).get("ids", [])) +
-            list(filters.get("paper_filter", {}).get("titles", []))
-        ),
-        "year_range": (
-            f"{filters['year_range'][0]}–{filters['year_range'][1]}"
-            if filters.get("year_range") else None
-        ),
-        "citation_range": (
-            f"{filters['citation_range'][0]}–{filters['citation_range'][1]}"
-            if filters.get("citation_range") else None
-        ),
-        "citation_weight": float(filters.get("citation_weight", 0.0)),
-        "include_unknown_citations": str(filters.get("include_unknown_citations")),
-        "top_k": int(filters.get("top_k", 0)),
-    }
+def fetch_results(_conn, citation_weight, query_vec, params, where_sql, top_k):
+    cur = _conn.cursor()
+    cur.execute("SET LOCAL hnsw.ef_search = %s;", (80,))
+    if citation_weight == 0.0:
+        sql = f"""
+            SELECT
+                slogan_id,
+                theorem_id,
+                paper_id,
+                citations,
+                has_metadata,
+                theorem_type,
+                title,
+                authors,
+                link,
+                year,
+                primary_category,
+                categories,
+                source,
+                theorem_name,
+                theorem_body,
+                theorem_slogan,
+                (1.0 - (embedding <=> %s::vector)) AS similarity
+            FROM theorem_search_qwen
+            {where_sql}
+            ORDER BY embedding <=> %s::vector
+            LIMIT %s;
+            """
+
+        exec_params = [
+            query_vec,
+            *params,
+            query_vec,
+            top_k,
+        ]
+
+        cur.execute(sql, exec_params)
+        rows = cur.fetchall()
+        results = [
+            {
+                **row_to_dict(cur, row),
+                "similarity": row[-1],
+                "score": row[-1],
+            }
+            for row in rows
+        ]
+    else:
+        sql = f"""
+            WITH ann AS MATERIALIZED (
+                SELECT
+                    slogan_id,
+                    theorem_id,
+                    paper_id,
+                    citations,
+                    has_metadata,
+                    theorem_type,
+                    title,
+                    authors,
+                    link,
+                    year,
+                    primary_category,
+                    categories,
+                    source,
+                    theorem_name,
+                    theorem_body,
+                    theorem_slogan,
+                    (1.0 - (embedding <=> %s::vector)) AS similarity
+                FROM theorem_search_qwen
+                {where_sql}
+                ORDER BY embedding <=> %s::vector
+                LIMIT %s
+            )
+            SELECT *,
+                   (
+                       similarity +
+                       %s * CASE
+                              WHEN citations IS NOT NULL AND citations > 0
+                              THEN ln(citations::float)
+                              ELSE 0
+                            END
+                   ) AS score
+            FROM ann
+            ORDER BY score DESC, similarity DESC
+            LIMIT %s;
+            """
+
+        exec_params = [
+            query_vec,
+            *params,
+            query_vec,
+            min(5 * top_k, 200),
+            citation_weight,
+            top_k,
+        ]
+
+        cur.execute(sql, exec_params)
+        rows = cur.fetchall()
+        results = [
+            {
+                **row_to_dict(cur, row),
+                "similarity": row[-2],
+                "score": row[-1],
+            }
+            for row in rows
+        ]
+
+        cur.close()
+
+    return results

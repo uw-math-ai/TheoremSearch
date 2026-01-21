@@ -128,11 +128,7 @@ def backfill(conn: connection):
         p.primary_category,
         p.categories,
         p.citations,
-        CASE
-            WHEN p.link ILIKE '%arxiv.org%' THEN 'arXiv'
-            WHEN p.link ILIKE '%stacks.math.columbia.edu%' THEN 'Stacks Project'
-            ELSE 'Other'
-        END,
+        p.source,
         (
             p.last_updated IS NOT NULL
             OR p.primary_category IS NOT NULL
