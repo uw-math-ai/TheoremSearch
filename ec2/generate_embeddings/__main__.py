@@ -112,7 +112,19 @@ def _generate_embeddings(
             except Exception as e:
                 ids = [s[id_col] for s in slogans]
                 warnings.warn(f"Error embedding slogans with IDs {min(ids)} - {max(ids)}: {e}")
-                continue
+                print("Retrying with 4x smaller batch size...")
+                retry_batch_size = max(1, batch_size // 4)
+                try:
+                    embeddings = embed_texts(
+                        embedder_alias,
+                        [s["slogan"] for s in slogans],
+                        batch_size=retry_batch_size
+                    )
+                except Exception as e2:
+                    warnings.warn(f"Failed again embedding slogans with IDs {min(ids)} - {max(ids)}: {e2}")
+                    print("Skipping these slogans...")
+                    pbar.update(len(slogans))
+                    continue
 
             with conn.cursor() as cur:
                 upsert_rows(
