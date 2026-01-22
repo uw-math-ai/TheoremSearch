@@ -8,7 +8,7 @@ import os
 def get_rds_connection() -> connection:
     region = os.getenv("AWS_REGION")
     secret_arn = os.getenv("RDS_SECRET_ARN")
-    host = os.getenv("RDS_HOST")
+    host = os.getenv("RDS_WRITER_HOST")
     dbname = os.getenv("RDS_DB_NAME")
 
     sm = boto3.client("secretsmanager", region_name=region)

@@ -1,7 +1,8 @@
 import streamlit as st
 from sentence_transformers import SentenceTransformer
+
 from latex_clean import clean_latex_for_display
-from db import (get_rds_connection, row_to_dict, load_theorem_count, load_tags,
+from db import (fetch_results, load_theorem_count, load_tags,
                 load_authors, load_sources, insert_feedback, load_source_caps)
 from utils import (metadata_sources, serialize_filters, active_filters, SOURCE_FILTERS,
                    parse_paper_filter)
@@ -31,7 +32,7 @@ def search_and_display(query: str, model, filters: dict):
     # Encode query
     t0 = time.time()
     query_vec = model.encode(query or "", normalize_embeddings=True)
-    st.write("Embedding time:", time.time() - t0)
+    embed_time = time.time() - t0
 
     where = []
     params = []
@@ -90,120 +91,10 @@ def search_and_display(query: str, model, filters: dict):
 
     where_sql = "WHERE " + " AND ".join(where)
 
-    conn = get_rds_connection()
-    cur = conn.cursor()
-
     # Fetch results from RDS
-    cur.execute("SET LOCAL hnsw.ef_search = %s;", (80,))
-    if citation_weight == 0.0:
-        # Unweighted search
-        sql = f"""
-        SELECT
-            slogan_id,
-            theorem_id,
-            paper_id,
-            citations,
-            has_metadata,
-            theorem_type,
-            title,
-            authors,
-            link,
-            year,
-            primary_category,
-            categories,
-            source,
-            theorem_name,
-            theorem_body,
-            theorem_slogan,
-            (1.0 - (embedding <=> %s::vector)) AS similarity
-        FROM theorem_search_qwen
-        {where_sql}
-        ORDER BY embedding <=> %s::vector
-        LIMIT %s;
-        """
-
-        exec_params = [
-            query_vec,
-            *params,
-            query_vec,
-            top_k,
-        ]
-
-        t0 = time.time()
-        cur.execute(sql, exec_params)
-        st.write("SQL time:", time.time() - t0)
-        rows = cur.fetchall()
-        results = [
-            {
-                **row_to_dict(cur, row),
-                "similarity": row[-1],
-                "score": row[-1],
-            }
-            for row in rows
-        ]
-    else:
-        # Weighted search
-        sql = f"""
-        WITH ann AS MATERIALIZED (
-            SELECT
-                slogan_id,
-                theorem_id,
-                paper_id,
-                citations,
-                has_metadata,
-                theorem_type,
-                title,
-                authors,
-                link,
-                year,
-                primary_category,
-                categories,
-                source,
-                theorem_name,
-                theorem_body,
-                theorem_slogan,
-                (1.0 - (embedding <=> %s::vector)) AS similarity
-            FROM theorem_search_qwen
-            {where_sql}
-            ORDER BY embedding <=> %s::vector
-            LIMIT %s
-        )
-        SELECT *,
-               (
-                   similarity +
-                   %s * CASE
-                          WHEN citations IS NOT NULL AND citations > 0
-                          THEN ln(citations::float)
-                          ELSE 0
-                        END
-               ) AS score
-        FROM ann
-        ORDER BY score DESC, similarity DESC
-        LIMIT %s;
-        """
-
-        exec_params = [
-            query_vec,
-            *params,
-            query_vec,
-            min(5 * top_k, 200),
-            citation_weight,
-            top_k,
-        ]
-
-        cur.execute(sql, exec_params)
-        rows = cur.fetchall()
-        results = [
-            {
-                **row_to_dict(cur, row),
-                "similarity": row[-2],
-                "score": row[-1],
-            }
-            for row in rows
-        ]
-
-    cur.close()
-    conn.close()
+    t0 = time.time()
+    results = fetch_results(citation_weight, query_vec, params, where_sql, top_k)
+    st.toast(f"**Embed time:** {embed_time} &nbsp; **SQL time:** {time.time() - t0}", icon="⏱")
 
     # --- Display results ---
     if not results:
@@ -217,8 +108,8 @@ def search_and_display(query: str, model, filters: dict):
         ):
             theorem_col, feedback_col = st.columns([15, 1])
             with theorem_col:
-                with st.expander(f"{r['theorem_slogan']}\n"):
-                    st.markdown(clean_latex_for_display(r["theorem_body"]))
+                st.markdown(f"{r['theorem_slogan']}\n")
+                st.markdown(clean_latex_for_display(r["theorem_body"]))
             with feedback_col:
                 feedback = st.feedback(
                     "thumbs",
@@ -227,39 +118,34 @@ def search_and_display(query: str, model, filters: dict):
                 if feedback is not None:
                     submitted_key = f"submitted_{r['slogan_id']}"
                     if not st.session_state.get(submitted_key, False):
-                        conn = get_rds_connection()
                         payload = {
-                            "feedback": 1 if feedback == "👍" else -1,
+                            "feedback": 1 if feedback == 1 else -1,
                             "query": query,
                             "url": r["link"],
                             "theorem_name": r["theorem_name"],
                             "authors": ", ".join(r["authors"]) if r["authors"] else None,
                             **serialized_filters,
                         }
-                        insert_feedback(conn, payload)
-                        conn.close()
+                        insert_feedback(payload)
                         st.session_state[submitted_key] = True
-                        st.success("Thank you for the feedback!")
+                        st.toast("Thank you for the feedback!")
 
 # --- Main App Interface ---
 st.set_page_config(page_title="Theorem Search Demo", layout="wide")
 st.title("Math Theorem Search")
 st.write("This tool finds mathematical theorems that are semantically similar to your query.")
 
-conn = get_rds_connection()
-theorem_count = load_theorem_count(conn)
-authors_per_source = load_authors(conn)
-tags_per_source = load_tags(conn)
-all_sources = load_sources(conn)
-source_caps = load_source_caps(conn)
-conn.close()
+theorem_count = load_theorem_count()
+authors_per_source = load_authors()
+tags_per_source = load_tags()
+all_sources = load_sources()
+source_caps = load_source_caps()
 model = load_model()
 
-if 'show_success' not in st.session_state:
-    st.session_state['show_success'] = False
-
 if model:
-    if st.session_state['show_success']:
+    if 'show_success' not in st.session_state:
+        st.session_state['show_success'] = False
+    if not st.session_state['show_success']:
         st.toast(f"Successfully loaded {theorem_count} theorems from arXiv and the Stacks Project. Ready to search!")
         st.session_state['show_success'] = True
     # --- Sidebar filters ---
@@ -274,7 +160,7 @@ if model:
             help="Select one or more sources to search from."
         )
 
-        top_k_results = 20
+        top_k_results = 50
 
         if selected_sources:
             with st.expander("Advanced Filters"):

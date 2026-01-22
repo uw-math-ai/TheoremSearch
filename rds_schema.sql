@@ -101,3 +101,11 @@ WITH (lists = 100);
 
 CREATE INDEX IF NOT EXISTS theorem_search_qwen_type_idx
 ON theorem_search_qwen (theorem_type);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS theorem_search_authors_not_null
+ON theorem_search_qwen (source)
+WHERE authors IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS ts_pc_not_null
+ON theorem_search_qwen (source, primary_category)
+WHERE primary_category IS NOT NULL;
