@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40G
 #SBATCH --time=4:00:00
-#SBATCH --array=50-79
+#SBATCH --array=0-99
 #SBATCH --output=logs/%x_%N_%A_%a.out
 
 set -euo pipefail
