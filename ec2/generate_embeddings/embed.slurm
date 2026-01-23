@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=embed_qwen8b
-#SBATCH --account=cse
+#SBATCH --account=krishna
 #SBATCH --partition=gpu-l40s
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40G
 #SBATCH --time=4:00:00
-#SBATCH --array=0-99
+#SBATCH --array=100-149
 #SBATCH --output=logs/%x_%N_%A_%a.out
 
 set -euo pipefail
