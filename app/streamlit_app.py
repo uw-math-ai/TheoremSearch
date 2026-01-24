@@ -37,35 +37,30 @@ def search_and_display(query: str, model, filters: dict):
     where = []
     params = []
 
-    meta_sources = metadata_sources(filters["sources"], source_caps)
+    selected_sources = filters["sources"]
+    meta_sources = metadata_sources(selected_sources, source_caps)
+
+    where.append("source = ANY(%s)")
+    params.append(selected_sources)
 
     if meta_sources:
-        # Filter by source(s)
-        where.append("source = ANY(%s)")
-        params.append(meta_sources)
-
-        # Filter by author(s)
         if filters["authors"]:
             where.append("authors && %s")
             params.append(filters["authors"])
 
-        # Filter by primary arXiv category
         if filters["tags"]:
             where.append("primary_category = ANY(%s)")
             params.append(filters["tags"])
 
-        # Filter by year range
         if filters["year_range"]:
             y0, y1 = filters["year_range"]
             where.append("year BETWEEN %s AND %s")
             params.extend([y0, y1])
 
-        # Filter by published status
         if filters["journal_status"] != "All":
             where.append("journal_published = %s")
             params.append(filters["journal_status"] == "Journal Article")
 
-        # Filter by citation range
         low, high = filters["citation_range"]
         if filters["include_unknown_citations"]:
             where.append("(citations BETWEEN %s AND %s OR citations IS NULL)")
@@ -103,13 +98,15 @@ def search_and_display(query: str, model, filters: dict):
 
     for i, r in enumerate(results):
         with st.expander(
-            f"***{r['title']}* &nbsp; | &nbsp; {r['theorem_name']} &nbsp; | &nbsp; [Link]({r['link']})**",
+            f"***{r['title']}* &nbsp; | &nbsp; {', '.join(r['authors'])} &nbsp; | &nbsp; [Link]({r['link']})**",
             expanded=True
         ):
             theorem_col, feedback_col = st.columns([15, 1])
             with theorem_col:
-                st.markdown(f"{r['theorem_slogan']}\n")
-                st.markdown(clean_latex_for_display(r["theorem_body"]))
+                with st.expander(f"{r['theorem_slogan']}\n"):
+                    st.markdown(f"**{r['theorem_name']}:** {clean_latex_for_display(r['theorem_body'])}")
+                    cit_str = "Unknown" if r['citations'] is None else str(r['citations'])
+                    st.caption(f"**Citations:** {cit_str} | **Year:** {r['year']} | **Tag:** {r['primary_category']}")
             with feedback_col:
                 feedback = st.feedback(
                     "thumbs",
@@ -229,7 +226,7 @@ if model:
                     citation_weight = st.slider("Citation Weight", 0.0, 1.0, 0.0)
                     include_unknown_citations = st.checkbox("Include unknown citations", True)
                 else:
-                    citation_range = (0, 10 ** 9)
+                    citation_range = (0, 1502)
                     citation_weight = 0.0
                     include_unknown_citations = True
             filters = {
