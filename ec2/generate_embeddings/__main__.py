@@ -111,8 +111,7 @@ def _generate_embeddings(
                 )
             except Exception as e:
                 ids = [s[id_col] for s in slogans]
-                warnings.warn(f"Error embedding slogans with IDs {min(ids)} - {max(ids)}: {e}")
-                print("Retrying with 4x smaller batch size...")
+                warnings.warn(f"Error embedding slogans with IDs {min(ids)} - {max(ids)}: {e}\nRetrying with 4x smaller batch size...")
                 retry_batch_size = max(1, batch_size // 4)
                 try:
                     embeddings = embed_texts(
