@@ -42,7 +42,6 @@ def reader_conn():
         with conn.cursor() as cur:
             cur.execute("SELECT pg_is_in_recovery();")
             assert cur.fetchone()[0] is True, "Reader is not a replica."
-
         yield conn
 
 @contextmanager
@@ -53,7 +52,6 @@ def writer_conn():
         with conn.cursor() as cur:
             cur.execute("SELECT pg_is_in_recovery();")
             assert cur.fetchone()[0] is False, "Writer is not primary."
-
         yield conn
 
 @st.cache_data(ttl=60*60*24)
@@ -63,7 +61,7 @@ def load_sources():
             cur.execute("SELECT DISTINCT source FROM theorem_search_qwen;")
             rows = cur.fetchall()
             sources = [row[0] for row in rows]
-        return sources
+    return sources
 
 @st.cache_data(ttl=60*60*24) # cache for 24 hours
 def load_source_caps():
@@ -78,7 +76,7 @@ def load_source_caps():
                 source: {"has_metadata": has_meta}
                 for source, has_meta in cur.fetchall()
             }
-        return caps
+    return caps
 
 @st.cache_data(ttl=60*60*24)
 def load_authors():
@@ -95,7 +93,8 @@ def load_authors():
                 ) t
                 GROUP BY source;
             """)
-        return {source: authors for source, authors in cur.fetchall()}
+            rows = cur.fetchall()
+    return {source: authors for source, authors in rows}
 
 @st.cache_data(ttl=60*60*24)
 def load_tags():
@@ -109,7 +108,8 @@ def load_tags():
                 WHERE primary_category IS NOT NULL
                 GROUP BY source;
             """)
-        return {src: tags for src, tags in cur.fetchall()}
+            rows = cur.fetchall()
+    return {src: tags for src, tags in rows}
 
 @st.cache_data(ttl=60*60*24)
 def load_theorem_count():
@@ -117,7 +117,7 @@ def load_theorem_count():
         with conn.cursor() as cur:
             cur.execute("SELECT COUNT(*) FROM theorem_search_qwen;")
             count = cur.fetchone()[0]
-        return count
+    return count
 
 def row_to_dict(cursor, row):
     return {desc[0]: row[i] for i, desc in enumerate(cursor.description)}
@@ -268,4 +268,4 @@ def fetch_results(citation_weight, query_vec, params, where_sql, top_k):
                     }
                     for row in rows
                 ]
-        return results
+    return results
