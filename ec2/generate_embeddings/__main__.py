@@ -11,80 +11,134 @@ from ..rds.upsert import upsert_rows
 from ..rds.query import build_query, get_query_count
 from tqdm import tqdm
 from ..printing.scripts import print_script_header
+import warnings
 
 def _generate_embeddings(
     embedder_alias: str,
+    raw: bool,
     condition: bool,
     overwrite: bool,
     page_size: int,
-    batch_size: int
+    batch_size: int,
+    sample: int
 ):
     print_script_header(
         action="Generating embeddings for theorem slogans",
         params={
             "embedder": embedder_alias,
+            "raw?": raw,
             "condition?": condition,
             "overwrite": overwrite,
             "page_size": page_size,
-            "batch_size": batch_size
+            "batch_size": batch_size,
+            "sample?": sample if sample > 0 else 0
         }
     )
 
     conn = get_rds_connection()
 
-    query, params = build_query(
-        base_query="""
-            SELECT slogan_id, slogan
-            FROM theorem_slogan
-        """,
-        where_clauses=[
-            {
-                "if": not overwrite,
-                "condition": f"""
-                    NOT EXISTS (
-                        SELECT 1
-                        FROM theorem_embedding_{embedder_alias} AS teq
-                        WHERE teq.slogan_id = theorem_slogan.slogan_id
-                    )
-                """
-            },
-            {
-                "if": condition,
-                "condition": condition
-            }
-        ]
-    )
+    if raw:
+        table = f"raw_theorem_embedding_{embedder_alias}"
+        id_col = "theorem_id"
+
+        query, params = build_query(
+            base_query="""
+                SELECT theorem_id, body as slogan
+                FROM theorem
+            """,
+            where_clauses=[
+                {
+                    "if": not overwrite,
+                    "condition": f"""
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM {table} AS te
+                            WHERE te.theorem_id = theorem.theorem_id
+                        )
+                    """
+                },
+                {
+                    "if": condition,
+                    "condition": condition
+                }
+            ],
+            sample=sample
+        )
+    else:
+        table = f"theorem_embedding_{embedder_alias}"
+        id_col = "slogan_id"
+
+        query, params = build_query(
+            base_query="""
+                SELECT slogan_id, slogan
+                FROM theorem_slogan
+            """,
+            where_clauses=[
+                {
+                    "if": not overwrite,
+                    "condition": f"""
+                        NOT EXISTS (
+                            SELECT 1
+                            FROM {table} AS te
+                            WHERE te.slogan_id = theorem_slogan.slogan_id
+                        )
+                    """
+                },
+                {
+                    "if": condition,
+                    "condition": condition
+                }
+            ],
+            sample=sample
+        )
 
     count = get_query_count(conn, query, params)
+    print(f"Total slogans to embed: {count}")
 
     with tqdm(total=count, dynamic_ncols=True) as pbar:
         for slogans in paginate_query(
             conn,
             base_query=query,
             base_params=params,
-            order_by="slogan_id",
+            order_by=id_col,
             descending=False,
             page_size=page_size
         ):
-            embeddings = embed_texts(
-                embedder_alias,
-                [s["slogan"] for s in slogans],
-                batch_size=batch_size
-            )
+            try:
+                embeddings = embed_texts(
+                    embedder_alias,
+                    [s["slogan"] for s in slogans],
+                    batch_size=batch_size
+                )
+            except Exception as e:
+                ids = [s[id_col] for s in slogans]
+                warnings.warn(f"Error embedding slogans with IDs {min(ids)} - {max(ids)}: {e}\nRetrying with 4x smaller batch size...")
+                retry_batch_size = max(1, batch_size // 4)
+                try:
+                    embeddings = embed_texts(
+                        embedder_alias,
+                        [s["slogan"] for s in slogans],
+                        batch_size=retry_batch_size
+                    )
+                except Exception as e2:
+                    warnings.warn(f"Failed again embedding slogans with IDs {min(ids)} - {max(ids)}: {e2}")
+                    print("Skipping these slogans...")
+                    pbar.update(len(slogans))
+                    continue
 
             with conn.cursor() as cur:
                 upsert_rows(
                     cur,
-                    table=f"theorem_embedding_{embedder_alias}",
+                    table=table,
                     rows=[
                         {
-                            "slogan_id": slogan["slogan_id"],
+                            id_col: slogan[id_col],
                             "embedding": embedding
                         }
                         for slogan, embedding in zip(slogans, embeddings)
                     ],
                     on_conflict={
-                        "with": ["slogan_id"],
+                        "with": [id_col],
                         "replace": ["embedding"]
                     }
                 )
@@ -103,6 +157,12 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Alias (from `embedders.py`) of HuggingFace embedder"
+    )
+
+    parser.add_argument(
+        "-r", "--raw",
+        action="store_true",
+        help="Whether to use raw theorem bodies directly. By default, False (uses slogans)"
     )
 
     parser.add_argument(
@@ -135,12 +195,22 @@ if __name__ == "__main__":
         help="The number of theorems slogans to embed in a batch. By default, 8"
     )
 
+    parser.add_argument(
+        "--sample",
+        type=int,
+        required=False,
+        default=-1,
+        help="Number of theorems/slogans to randomly sample. By default, inactive"
+    )
+
     args = parser.parse_args()
 
     _generate_embeddings(
         embedder_alias=args.embedder,
+        raw=args.raw,
         condition=args.condition,
         overwrite=args.overwrite,
         page_size=args.page_size,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        sample=args.sample
     )

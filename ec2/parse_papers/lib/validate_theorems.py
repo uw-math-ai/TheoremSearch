@@ -23,7 +23,7 @@ def _validate_body(theorem: Theorem):
 
     if body.endswith((
         " and", " or", "such that", " where", " let", " then", "for all", 
-        "(", "[", "{", ",", ":", ";", "=", "<")
+        "(", "[", "{", ",", ":", ";", "=", "<", "%")
     ):
         raise ValueError(f"Theorem likely truncated `{body}`")
     

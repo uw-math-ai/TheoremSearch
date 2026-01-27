@@ -51,10 +51,20 @@ CREATE TABLE theorem_embedding_qwen (
     embedding vector(1024) NOT NULL
 );
 
+CREATE TABLE theorem_embedding_qwen8b (
+    slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
+    embedding vector(4096) NOT NULL
+);
+
 CREATE TABLE theorem_embedding_gemma (
     slogan_id BIGINT PRIMARY KEY REFERENCES theorem_slogan(slogan_id) ON DELETE CASCADE,
     embedding vector(768) NOT NULL
 );
+
+CREATE TABLE raw_theorem_embedding_gemma (
+    theorem_id BIGINT PRIMARY KEY REFERENCES theorem(theorem_id) ON DELETE CASCADE,
+    embedding vector(768) NOT NULL
+)
 
 CREATE TABLE theorem_search_qwen (
     -- ids
@@ -91,3 +101,11 @@ WITH (lists = 100);
 
 CREATE INDEX IF NOT EXISTS theorem_search_qwen_type_idx
 ON theorem_search_qwen (theorem_type);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS theorem_search_authors_not_null
+ON theorem_search_qwen (source)
+WHERE authors IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS ts_pc_not_null
+ON theorem_search_qwen (source, primary_category)
+WHERE primary_category IS NOT NULL;

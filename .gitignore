@@ -16,3 +16,5 @@ parsed_papers/
 *.sql
 data/sources/
 DEBUG/
+external/stacks-project/
+*.out

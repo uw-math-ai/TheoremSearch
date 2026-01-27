@@ -45,7 +45,9 @@ def get_arxiv_papers(
     start_date: datetime = datetime(1992, 1, 1),
     end_date: datetime = datetime.now()
 ) -> Iterator[arxiv.Result]:
-    for start, end in _get_date_partitions(date_partition, start_date, end_date):
+    for start, end in reversed(list(_get_date_partitions(
+        date_partition, start_date, end_date
+    ))):
         search = arxiv.Search(
             query=f"submittedDate:[{start} TO {end}] AND {query}"
         )
