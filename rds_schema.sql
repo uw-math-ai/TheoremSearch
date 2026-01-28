@@ -109,3 +109,6 @@ WHERE authors IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ts_pc_not_null
 ON theorem_search_qwen (source, primary_category)
 WHERE primary_category IS NOT NULL;
+
+CREATE INDEX ON theorem_embedding_qwen8b
+USING hnsw ((binary_quantize(embedding)::bit(4096)) bit_hamming_ops);

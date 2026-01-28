@@ -59,6 +59,9 @@ def main():
     pca = PCA(n_components=50, random_state=RANDOM_STATE)
     X_all_pca = pca.fit_transform(X_all)
 
+    # Re-normalize
+    X_all_pca = l2_normalize(X_all_pca)
+
     reducer = umap.UMAP(
         n_neighbors=30,
         min_dist=0.1,
