@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH --job-name=embed_gemma
-#SBATCH --account=krishna
-#SBATCH --partition=gpu-a40
+#SBATCH --account=amath
+#SBATCH --partition=gpu-rtx6k
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=40G
 #SBATCH --time=8:00:00
-#SBATCH --array=240-280
+#SBATCH --array=0-179,260,271-280
 #SBATCH --output=logs/%x_%N_%A_%a.out
 
 set -euo pipefail
@@ -25,4 +25,5 @@ python3.11 -m ec2.generate_embeddings \
   --batch-size 64 \
   --page-size 128 \
   --condition "theorem_id >= ${START_ID} AND theorem_id < ${END_ID}" \
-  --raw
+  --raw \
+  --overwrite
