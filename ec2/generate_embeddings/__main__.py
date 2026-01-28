@@ -93,6 +93,7 @@ def _generate_embeddings(
         )
 
     count = get_query_count(conn, query, params)
+    print(f"Total slogans to embed: {count}")
 
     with tqdm(total=count, dynamic_ncols=True) as pbar:
         for slogans in paginate_query(
