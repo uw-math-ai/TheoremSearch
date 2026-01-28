@@ -23,6 +23,7 @@ def get_rds_connection() -> connection:
         password=secret_dict["password"],
         sslmode="require",
     )
+    conn.autocommit = True
     register_vector(conn)
     return conn
 
