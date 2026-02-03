@@ -47,8 +47,8 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
-                    print(f"{arxiv_id}v%")
                     continue
+
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -56,8 +56,9 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
                         SET license = %s
                         WHERE source = %s AND (paper_id = %s OR paper_id LIKE %s)
                         """,
-                        ("arXiv", license_value, arxiv_id, f"{arxiv_id}v%"),
+                        (license_value, "arXiv", arxiv_id, f"{arxiv_id}v%"),
                     )
+                    print(cur.rowcount)
 
                 conn.commit()
 
