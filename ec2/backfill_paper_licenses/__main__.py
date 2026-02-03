@@ -4,7 +4,7 @@ import zipfile
 import tqdm
 import io
 
-from psycopg2.extras import execute_values
+from psycopg2.extras import execute_batch
 
 from ..rds.connect import get_rds_connection
 
@@ -12,23 +12,42 @@ arxiv_zip = Path("arxiv.zip")
 
 UPDATE_SQL = """
 UPDATE paper AS p
-SET license = v.license
-FROM (VALUES %s) AS v(arxiv_id, license)
-WHERE p.source = 'arXiv'
+SET license = %s
+WHERE p.source = %s
   AND (
-        p.paper_id = v.arxiv_id
-        OR p.paper_id LIKE (v.arxiv_id || 'v%%')
+        p.paper_id = %s
+        OR p.paper_id LIKE %s
       )
 """
 
-def _flush_batch(conn, batch: list[tuple[str, str]]) -> None:
-    """Runs one batched UPDATE. No commit happens in here."""
+def _flush_batch(conn, batch: list[tuple[str, str]]) -> int:
+    """
+    Runs a batched UPDATE. NO commit happens in here.
+    Returns number of parameter-sets executed (not rows updated).
+    """
     if not batch:
-        return
-    with conn.cursor() as cur:
-        execute_values(cur, UPDATE_SQL, batch, page_size=5_000)
+        return 0
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 10_000) -> None:
+    params = []
+    for arxiv_id, license_value in batch:
+        # IMPORTANT: execute_batch needs one tuple per execution with 4 params
+        params.append((
+            license_value,
+            "arXiv",
+            arxiv_id,
+            f"{arxiv_id}v%",
+        ))
+
+    with conn.cursor() as cur:
+        # Optional but often a big speedup for backfills (less WAL fsync pressure).
+        # If you crash mid-run, you just re-run; so this is usually acceptable.
+        cur.execute("SET LOCAL synchronous_commit TO OFF")
+
+        execute_batch(cur, UPDATE_SQL, params, page_size=128)
+
+    return len(params)
+
+def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 128) -> None:
     conn = get_rds_connection()
     conn.autocommit = False
 
@@ -50,12 +69,10 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 10_0
             print(f"Using metadata file: {meta_name}")
 
             batch: list[tuple[str, str]] = []
-            seen = 0
             staged = 0
 
             with zf.open(meta_name, "r") as raw_f, io.TextIOWrapper(raw_f, encoding="utf-8") as f:
                 for line in tqdm.tqdm(f, desc="Backfilling licenses", unit="lines"):
-                    seen += 1
                     line = line.strip()
                     if not line:
                         continue
@@ -71,18 +88,18 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 10_0
                         continue
 
                     batch.append((arxiv_id, license_value))
-                    staged += 1
 
                     if len(batch) >= commit_every:
-                        _flush_batch(conn, batch)   # NO commit inside cursor
-                        conn.commit()               # commit is outside cursor context
+                        staged += _flush_batch(conn, batch)  # NO commit in here
+                        conn.commit()                        # commit is outside cursor context
                         batch.clear()
 
-                # final flush
                 if batch:
-                    _flush_batch(conn, batch)       # NO commit inside cursor
-                    conn.commit()                   # commit is outside cursor context
+                    staged += _flush_batch(conn, batch)      # NO commit in here
+                    conn.commit()                            # commit is outside cursor context
                     batch.clear()
+
+            print(f"Done. Executed {staged:,} update statements (batched).")
 
     except Exception:
         conn.rollback()
