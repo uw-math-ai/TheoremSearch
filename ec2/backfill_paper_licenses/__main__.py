@@ -47,8 +47,8 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
-                    print(f"{arxiv_id}v%")
                     continue
+                
                 with conn.cursor() as cur:
                     cur.execute(
                         """
