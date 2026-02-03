@@ -7,7 +7,7 @@ from ..rds.connect import get_rds_connection
 
 arxiv_zip = Path("arxiv.zip")
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000) -> None:
+def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 100) -> None:
     conn = get_rds_connection()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -47,17 +47,16 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
+                    print(f"{arxiv_id}v%")
                     continue
-                else:
-                    print(arxiv_id, license_value)
 
                 cur.execute(
                     """
                     UPDATE paper
                     SET license = %s
-                    WHERE paper_id LIKE %s
+                    WHERE source = %s AND (paper_id = %s OR paper_id LIKE %s)
                     """,
-                    (license_value, f"{arxiv_id}%"),
+                    ("arXiv", license_value, arxiv_id, f"{arxiv_id}v%"),
                 )
                 updated += cur.rowcount
 
