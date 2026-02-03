@@ -7,7 +7,7 @@ from ..rds.connect import get_rds_connection
 
 arxiv_zip = Path("arxiv.zip")
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
+def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000) -> None:
     conn = get_rds_connection()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -47,8 +47,8 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
+                    print(f"{arxiv_id}v%")
                     continue
-
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -58,9 +58,14 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
                         """,
                         (license_value, "arXiv", arxiv_id, f"{arxiv_id}v%"),
                     )
-                    print(cur.rowcount)
+                    
+                updated += cur.rowcount
 
-                conn.commit()
+                if processed % commit_every == 0:
+                    # print("Updated:", updated)
+                    conn.commit()
+
+            conn.commit()
 
 if __name__ == "__main__":
     backfill_paper_licenses()
