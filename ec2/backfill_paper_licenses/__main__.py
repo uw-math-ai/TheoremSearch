@@ -7,7 +7,7 @@ from ..rds.connect import get_rds_connection
 
 arxiv_zip = Path("arxiv.zip")
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 100) -> None:
+def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
     conn = get_rds_connection()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -31,7 +31,7 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 100)
         updated = 0
         processed = 0
 
-        with zf.open(meta_name, "r") as f, conn.cursor() as cur:
+        with zf.open(meta_name, "r") as f:
             for raw in tqdm.tqdm(f, desc="Backfilling licenses", unit="lines"):
                 processed += 1
                 raw = raw.strip()
@@ -49,22 +49,17 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 100)
                 if not arxiv_id or not license_value:
                     print(f"{arxiv_id}v%")
                     continue
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        UPDATE paper
+                        SET license = %s
+                        WHERE source = %s AND (paper_id = %s OR paper_id LIKE %s)
+                        """,
+                        ("arXiv", license_value, arxiv_id, f"{arxiv_id}v%"),
+                    )
 
-                cur.execute(
-                    """
-                    UPDATE paper
-                    SET license = %s
-                    WHERE source = %s AND (paper_id = %s OR paper_id LIKE %s)
-                    """,
-                    ("arXiv", license_value, arxiv_id, f"{arxiv_id}v%"),
-                )
-                updated += cur.rowcount
-
-                if processed % commit_every == 0:
-                    print("Updated:", updated)
-                    conn.commit()
-
-            conn.commit()
+                conn.commit()
 
 if __name__ == "__main__":
     backfill_paper_licenses()
