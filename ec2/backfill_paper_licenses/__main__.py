@@ -40,13 +40,16 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 5000
 
                 try:
                     rec = json.loads(raw)
-                except json.JSONDecodeError:
+                except json.JSONDecodeError as e:
+                    print(e)
+
                     continue
 
                 arxiv_id = rec.get("id")
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
+                    print(raw)
                     continue
 
                 cur.execute(
