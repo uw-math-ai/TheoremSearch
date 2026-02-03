@@ -7,7 +7,7 @@ from ..rds.connect import get_rds_connection
 
 arxiv_zip = Path("arxiv.zip")
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 5000) -> None:
+def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000) -> None:
     conn = get_rds_connection()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -41,15 +41,12 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 5000
                 try:
                     rec = json.loads(raw)
                 except json.JSONDecodeError as e:
-                    print(e)
-
                     continue
 
                 arxiv_id = rec.get("id")
                 license_value = rec.get("license")  # Kaggle field
 
                 if not arxiv_id or not license_value:
-                    print(raw)
                     continue
 
                 cur.execute(
@@ -58,11 +55,12 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 5000
                     SET license = %s
                     WHERE paper_id LIKE %s
                     """,
-                    (license_value, f"{arxiv_id}%"),
+                    (license_value, f"%{arxiv_id}%"),
                 )
                 updated += cur.rowcount
 
                 if processed % commit_every == 0:
+                    print("Updated:", updated)
                     conn.commit()
 
             conn.commit()
