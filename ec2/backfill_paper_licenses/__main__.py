@@ -48,6 +48,8 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
 
                 if not arxiv_id or not license_value:
                     continue
+                else:
+                    print(arxiv_id, license_value)
 
                 cur.execute(
                     """
@@ -55,7 +57,7 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
                     SET license = %s
                     WHERE paper_id LIKE %s
                     """,
-                    (license_value, f"%{arxiv_id}%"),
+                    (license_value, f"{arxiv_id}%"),
                 )
                 updated += cur.rowcount
 
@@ -64,7 +66,6 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
                     conn.commit()
 
             conn.commit()
-
 
 if __name__ == "__main__":
     backfill_paper_licenses()
