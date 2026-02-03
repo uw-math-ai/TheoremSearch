@@ -7,7 +7,7 @@ from ..rds.connect import get_rds_connection
 
 arxiv_zip = Path("arxiv.zip")
 
-def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000) -> None:
+def backfill_paper_licenses(zip_path: Path = arxiv_zip) -> None:
     conn = get_rds_connection()
 
     with zipfile.ZipFile(zip_path, "r") as zf:
@@ -28,7 +28,6 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
         meta_name = candidates[0]
         print(f"Using metadata file: {meta_name}")
 
-        updated = 0
         processed = 0
 
         with zf.open(meta_name, "r") as f:
@@ -48,7 +47,7 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
 
                 if not arxiv_id or not license_value:
                     continue
-                
+
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -58,14 +57,8 @@ def backfill_paper_licenses(zip_path: Path = arxiv_zip, commit_every: int = 1000
                         """,
                         (license_value, "arXiv", arxiv_id, f"{arxiv_id}v%"),
                     )
-                    
-                updated += cur.rowcount
 
-                if processed % commit_every == 0:
-                    # print("Updated:", updated)
-                    conn.commit()
-
-            conn.commit()
+                conn.commit()
 
 if __name__ == "__main__":
     backfill_paper_licenses()
