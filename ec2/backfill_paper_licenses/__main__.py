@@ -11,15 +11,10 @@ arxiv_zip = Path("arxiv.zip")
 UPDATE_SQL = """
 UPDATE paper AS p
 SET license = %s
-WHERE p.source = %s
-  AND (
-        p.paper_id = %s
-        OR p.paper_id LIKE %s
-      )
+WHERE p.source = %s AND p.paper_id = %s
 """
 
 def _update(conn, batch):
-
     if not batch:
         return
     
@@ -28,8 +23,7 @@ def _update(conn, batch):
         params.append((
             license,
             "arXiv",
-            paper_id,
-            f"{paper_id}v%"
+            paper_id
         ))
 
     with conn.cursor() as cur:
@@ -63,6 +57,11 @@ def backfill_paper_licenses(batch_size: int):
                     row = json.loads(line)
 
                     paper_id = row.get("id")
+                    versions = row.get("versions")
+
+                    if versions:
+                        paper_id += versions[-1]["version"]
+
                     license = row.get("license")
 
                     if not paper_id or not license:
