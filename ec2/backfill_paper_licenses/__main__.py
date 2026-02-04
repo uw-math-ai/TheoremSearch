@@ -1,6 +1,5 @@
 from pathlib import Path
 import argparse
-import hashlib
 import json
 import zipfile
 import tqdm
@@ -22,21 +21,7 @@ WHERE p.source = %s
       )
 """
 
-def _stable_shard(arxiv_id: str, shard_mod: int) -> int:
-    """
-    Deterministic shard assignment in [0, shard_mod).
-    md5 is stable across runs/machines (unlike Python's built-in hash()).
-    """
-    digest = hashlib.md5(arxiv_id.encode("utf-8")).digest()
-    # Use first 8 bytes -> int, then mod
-    return int.from_bytes(digest[:8], byteorder="big", signed=False) % shard_mod
-
-
 def _flush_batch(conn, batch: list[tuple[str, str]]) -> int:
-    """
-    Runs a batched UPDATE. NO commit happens in here.
-    Returns number of parameter-sets executed (not rows updated).
-    """
     if not batch:
         return 0
 
@@ -58,7 +43,7 @@ def _flush_batch(conn, batch: list[tuple[str, str]]) -> int:
 
 def backfill_paper_licenses(
     zip_path: Path = arxiv_zip,
-    commit_every: int = 128,
+    commit_every: int = 10_000,
     shard_mod: int = 1,
     shard_idx: int = 0,
 ) -> None:
@@ -86,47 +71,61 @@ def backfill_paper_licenses(
 
             meta_name = candidates[0]
             print(f"Using metadata file: {meta_name}")
-            print(f"Sharding: shard_idx={shard_idx} / shard_mod={shard_mod}")
+            print(f"Row-sharding: shard_idx={shard_idx} / shard_mod={shard_mod}")
 
             batch: list[tuple[str, str]] = []
             staged = 0
-            seen = 0
-            matched = 0
+
+            seen_total = 0          # all lines read from the file
+            shard_lines = 0         # lines that belong to this shard (tqdm should show this)
+            parsed = 0              # shard lines successfully parsed as JSON
+            matched = 0             # shard lines with (id, license)
 
             with zf.open(meta_name, "r") as raw_f, io.TextIOWrapper(raw_f, encoding="utf-8") as f:
-                for line in tqdm.tqdm(f, desc="Backfilling licenses", unit="lines"):
-                    seen += 1
-                    line = line.strip()
-                    if not line:
-                        continue
+                pbar = tqdm.tqdm(desc=f"Backfilling licenses (shard {shard_idx}/{shard_mod})", unit="lines")
+                try:
+                    for line in f:
+                        seen_total += 1
 
-                    try:
-                        rec = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
+                        # decide shard membership using the file line index
+                        if (seen_total - 1) % shard_mod != shard_idx:
+                            continue
 
-                    arxiv_id = rec.get("id")
-                    license_value = rec.get("license")
-                    if not arxiv_id or not license_value:
-                        continue
+                        shard_lines += 1
+                        pbar.update(1)
 
-                    if _stable_shard(arxiv_id, shard_mod) != shard_idx:
-                        continue
+                        line = line.strip()
+                        if not line:
+                            continue
 
-                    matched += 1
-                    batch.append((arxiv_id, license_value))
+                        try:
+                            rec = json.loads(line)
+                            parsed += 1
+                        except json.JSONDecodeError:
+                            continue
 
-                    if len(batch) >= commit_every:
+                        arxiv_id = rec.get("id")
+                        license_value = rec.get("license")
+                        if not arxiv_id or not license_value:
+                            continue
+
+                        matched += 1
+                        batch.append((arxiv_id, license_value))
+
+                        if len(batch) >= commit_every:
+                            staged += _flush_batch(conn, batch)
+                            conn.commit()
+                            batch.clear()
+
+                    if batch:
                         staged += _flush_batch(conn, batch)
                         conn.commit()
                         batch.clear()
+                finally:
+                    pbar.close()
 
-                if batch:
-                    staged += _flush_batch(conn, batch)
-                    conn.commit()
-                    batch.clear()
-
-            print(f"Done. Lines seen: {seen:,}. Records in shard: {matched:,}.")
+            print(f"Done. Total lines read (all shards): {seen_total:,}.")
+            print(f"Shard lines processed (tqdm count): {shard_lines:,}. Parsed: {parsed:,}. Matched: {matched:,}.")
             print(f"Executed {staged:,} update statements (batched).")
 
     except Exception:
@@ -137,13 +136,11 @@ def backfill_paper_licenses(
 
 
 def _parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Backfill arXiv paper licenses from arxiv.zip using ID sharding.")
+    p = argparse.ArgumentParser(description="Backfill arXiv paper licenses from arxiv.zip using row-number sharding.")
     p.add_argument("--zip-path", type=Path, default=arxiv_zip, help="Path to arxiv.zip")
-    p.add_argument("--commit-every", type=int, default=128, help="How many updates to stage per commit")
-
+    p.add_argument("--commit-every", type=int, default=10_000, help="How many updates to stage per commit")
     p.add_argument("--shard-mod", type=int, required=True, help="Total number of shards (e.g., 20)")
     p.add_argument("--shard-idx", type=int, required=True, help="Shard index in [0, shard-mod)")
-
     return p.parse_args()
 
 
