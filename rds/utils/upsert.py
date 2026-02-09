@@ -1,7 +1,5 @@
 from typing import Dict, List, Optional, Any
-from psycopg2.extensions import cursor
-
-# TODO: Switch cursor paramter to connection for simpler interface
+from psycopg2.extensions import connection
 
 def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
     if not ("with" in on_conflict and "replace" in on_conflict):
@@ -10,7 +8,7 @@ def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
         raise ValueError("on_conflict must be a dictionary of exactly 'with' and 'replace'")
 
 def upsert_row(
-    cur: cursor, 
+    conn: connection, 
     table: str, 
     row: Dict[str, any],
     on_conflict: Optional[Dict[str, List[str]]] = None
@@ -20,13 +18,13 @@ def upsert_row(
 
     Parameters
     ----------
-    cur: cursor
-        An active SQL cursor
-    table: str
+    conn : connection
+        A SQL connection
+    table : str
         The table you want to add rows into
-    row: Dict[str, Any]
+    row : Dict[str, Any]
         The row to add into the table, a Dict mapping column names to values
-    on_conflict: Optional[Dict[str, List[str]]], optional
+    on_conflict : Optional[Dict[str, List[str]]], optional
         A config object for dealing with row conflict with the following form:
         ```
         {
@@ -47,14 +45,15 @@ def upsert_row(
     else:
         conflict_clause = ""
 
-    cur.execute(f"""
-        INSERT INTO {table} ({", ".join(row.keys())})
-        VALUES ({", ".join(["%s"] * len(row))})
-        {conflict_clause}
-    """, tuple(row.values()))
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            INSERT INTO {table} ({", ".join(row.keys())})
+            VALUES ({", ".join(["%s"] * len(row))})
+            {conflict_clause}
+        """, tuple(row.values()))
 
 def upsert_rows(
-    cur: cursor, 
+    conn: connection, 
     table: str, 
     rows: List[Dict[str, Any]],
     on_conflict: Optional[Dict[str, List[str]]] = None
@@ -64,8 +63,8 @@ def upsert_rows(
 
     Parameters
     ----------
-    cur: cursor
-        An active SQL cursor
+    cur: connection
+        A SQL connection
     table: str
         The table you want to add rows into
     rows: List[Dict[str, Any]]
@@ -90,9 +89,9 @@ def upsert_rows(
         conflict_clause += f"{', '.join(col + ' = EXCLUDED.' + col for col in on_conflict.get('replace', []))}"
     else:
         conflict_clause = ""
-
-    cur.executemany(f"""
-        INSERT INTO {table} ({", ".join(rows[0].keys())})
-        VALUES ({", ".join(["%s"] * len(rows[0]))})
-        {conflict_clause}
-    """, [tuple(row.values()) for row in rows])
+    with conn.cursor() as cur:
+        cur.executemany(f"""
+            INSERT INTO {table} ({", ".join(rows[0].keys())})
+            VALUES ({", ".join(["%s"] * len(rows[0]))})
+            {conflict_clause}
+        """, [tuple(row.values()) for row in rows])
