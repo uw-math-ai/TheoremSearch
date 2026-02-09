@@ -19,11 +19,11 @@ def build_paper_table(
 
     Parameters
     ----------
-    arxiv_dir : Optional[str], optional
-        Directory where 'arxiv.zip' from arXiv Kaggle dataset exists or will exist. Default,
-        uses a temporary directory that is deleted after the script is done.
+    arxiv_dir : Optional[str]
+        Directory where 'arxiv.zip' from arXiv Kaggle dataset exists or will exist. If None, uses
+        a temporary directory.
     batch_size : int, optional
-        Size of batch of papers to write to table. Default, 1_000.
+        Size of batch of papers to write to table.
     """
 
     if arxiv_dir is None:
@@ -62,7 +62,6 @@ def build_paper_table(
             rows=[
                 json.loads(paper.model_dump_json()) | {
                     "source": "arXiv",
-                    "link": "https://arxiv.org/pdf/" + paper.id,
                     "updated_at": current_time
                 } for paper in papers
             ],
@@ -100,8 +99,8 @@ if __name__ == "__main__":
         "--batch-size",
         type=int,
         required=False,
-        default=1_000,
-        help="Size of batch of papers to write to table. Default, 1_000."
+        default=100,
+        help="Size of batch of papers to write to table. Default, 100."
     )
     
     args = arg_parser.parse_args()

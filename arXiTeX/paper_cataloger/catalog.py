@@ -10,7 +10,7 @@ from .lib.citations import fetch_paper_citations
 def catalog_papers(
     download_dir: Path | str,
     categories: List[str],
-    batch_size: int = 1_000
+    batch_size: int = 100
 ) -> Iterator[Paper]:
     """
     Generator that yields arXiv paper metadata. Filters by categories and returns results in the
@@ -25,7 +25,7 @@ def catalog_papers(
         List of categories to filter papers by. Specify either the whole category name (i.e.
         math.AG) or just the main category (i.e. math).
     batch_size : int, optional
-        Size of batch of paper metadatas to yield. Default, 1_000
+        Size of batch of paper metadatas to yield. Default, 100
     
     Returns
     -------
@@ -65,19 +65,27 @@ def catalog_papers(
                     title=row.get("title"),
                     license=row.get("license"),
                     authors=[" ".join(filter(None, [f, *m, l])) for (l, f, *m) in row.get("authors_parsed")],
-                    link="https://arxiv.org/abs/" + row.get("id"),
+                    link="https://arxiv.org/pdf/" + row.get("id"),
                     abstract=row.get("abstract"),
                     journal_ref=row.get("journal-ref"),
                     categories=row_categories,
-                    citations=fetch_paper_citations(paper_id)
+                    citations=None
                 )
 
                 batch.append(paper)
 
                 if len(batch) >= batch_size:
+                    ks = fetch_paper_citations([paper.id for paper in batch])
+                    for k, paper in zip(ks, batch):
+                        paper.citations = k
+
                     yield batch
                     batch.clear()
 
             if len(batch) > 0:
+                ks = fetch_paper_citations([paper.id for paper in batch])
+                for k, paper in zip(ks, batch):
+                    paper.citations = k
+
                 yield batch
                 batch.clear()
