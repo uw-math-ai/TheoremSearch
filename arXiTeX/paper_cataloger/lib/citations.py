@@ -16,8 +16,8 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
     ----------
     arxiv_ids : List[str]
         List of papers' arXiv ids.
-    retries : int
-        Number of retries allowed for an empty citations batch.
+    retries : int, optional
+        Number of retries allowed for an empty citations batch. Default 3
 
     Returns
     -------
@@ -38,7 +38,10 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
         if scholar_res.ok:
             scholar_data = scholar_res.json()
             
-            ks = [paper_json.get("citationCount") if paper_json else None for paper_json in scholar_data]
+            ks = [
+                paper_json.get("citationCount", None) if paper_json else None
+                for paper_json in scholar_data
+            ]
 
             if all(k is None for k in ks):
                 raise ValueError("Empty citations")
@@ -47,10 +50,10 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
             
     except Exception:
         if retries > 0:
-            sleep_s = len(arxiv_ids)**(1/retries)
-            time.sleep(sleep_s)
-
+            sleep_s = round(len(arxiv_ids)**(1/retries), 2)
             print(f"Sleeping {sleep_s}s for SemanticScholar")
+            
+            time.sleep(sleep_s)
 
             return fetch_paper_citations(arxiv_ids, retries - 1)
         else:
