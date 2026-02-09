@@ -47,6 +47,8 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
                 raise ValueError("Empty citations")
             
             return ks
+        else:
+            raise ValueError("SemanticScholar response not OK")
             
     except Exception:
         if retries > 0:
