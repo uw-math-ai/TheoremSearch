@@ -1,5 +1,5 @@
 CREATE TABLE theorem (
-    theorem_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     paper_id TEXT NOT NULL,
     source TEXT NOT NULL,
     type TEXT NOT NULL,

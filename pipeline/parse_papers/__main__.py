@@ -114,8 +114,7 @@ def parse_papers(
                     batch_theorem_rows.extend([
                         json.loads(theorem.model_dump_json()) | {
                             "paper_id": paper_id,
-                            "source": "arXiv",
-                            "updated_at": current_time
+                            "source": "arXiv"
                         }
                         for theorem in theorems
                     ])
@@ -142,7 +141,13 @@ def parse_papers(
                     rows=batch_theorem_rows
                 )
 
-                conn.commit()
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE paper SET last_parse_attempt_at = %s WHERE id = ANY(%s) and source = 'arXiv'",
+                    (current_time, list(paper["id"] for paper in papers),),
+                )
+
+            conn.commit()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()

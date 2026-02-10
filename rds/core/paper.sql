@@ -10,7 +10,7 @@ CREATE TABLE paper (
     journal_ref TEXT,
     categories TEXT[],
     citations INT, -- NULL if unknown
-    parsing_method TEXT, -- NULL if not parsed
+    last_parse_attempt_at TIMESTAMPTZ, -- Last time this paper had a parse attempt
     in_validation BOOLEAN,
 
     PRIMARY KEY(id, source)
