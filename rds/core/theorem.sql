@@ -1,11 +1,18 @@
 CREATE TABLE theorem (
-    theorem_id BIGSERIAL PRIMARY KEY,
-    paper_id TEXT NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
-    name TEXT NOT NULL, -- Format if applicable: <type, capitalized> <ref> (<note>)
+    theorem_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    paper_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    type TEXT NOT NULL,
+    ref TEXT,
+    note TEXT,
     body TEXT NOT NULL, -- Raw LaTeX theorem body with macros expanded
+    proof TEXT, -- Raw LaTeX theorem proof with macros expanded
     label TEXT, -- Reference label of a theorem within a paper
     link TEXT, -- Closest link to the theorem. If the same as paper.link, keep NULL
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    FOREIGN KEY (paper_id, source) REFERENCES paper (id, source)
+    ON DELETE CASCADE
 );
 
 COMMENT ON TABLE theorem IS

@@ -59,7 +59,7 @@ def parse_by_plastex(
                 note=note,
                 label=label,
                 body=body,
-                proof=proof
+                proof=proof or None
             ))
 
     theorems.sort(key=attrgetter("ref"))
