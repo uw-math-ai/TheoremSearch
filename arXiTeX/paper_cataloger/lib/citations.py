@@ -2,8 +2,8 @@
 Helpers to check if a paper high enough quality to attempt to parse.
 """
 
+import os
 import time
-import math
 import requests
 from typing import List
 
@@ -29,10 +29,13 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
     arxiv_ids_formatted = ["ARXIV:" + arxiv_id.split("v")[0] for arxiv_id in arxiv_ids] # remove version just in case!
 
     try: # search Semantic Scholar
+        time.sleep(1.1) # guarantee we dont make more than 1 request per second
+
         scholar_res = requests.post(
             f"https://api.semanticscholar.org/graph/v1/paper/batch",
             params={"fields": "citationCount"},
-            json={"ids": arxiv_ids_formatted}
+            json={"ids": arxiv_ids_formatted},
+            headers={"x-api-key": os.getenv("SEMANTIC_SCHOLAR_API_KEY")}
         )
 
         if scholar_res.ok:
@@ -42,9 +45,6 @@ def fetch_paper_citations(arxiv_ids: List[str], retries: int = 3) -> List[int | 
                 paper_json.get("citationCount", None) if paper_json else None
                 for paper_json in scholar_data
             ]
-
-            if all(k is None for k in ks):
-                raise ValueError("Empty citations")
             
             return ks
         else:
