@@ -49,7 +49,6 @@ def parse_by_plastex(
 
     for proof_node in list(doc.getElementsByTagName("proof")):
         _, proof_note, _, proof_candidate = parse_node(proof_node)
-        print(proof_note)
 
         if proof_note:
             m = _PROOF_NOTE_LABEL_RE.search(proof_note)
