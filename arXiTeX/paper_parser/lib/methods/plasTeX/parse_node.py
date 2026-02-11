@@ -30,6 +30,8 @@ def _get_node_ref(node: Node) -> str | None:
 def _get_node_note(node: Node) -> str | None:
     if hasattr(node, "title"):
         return _strip_nuls(getattr(node.title, "source", None))
+    elif hasattr(node, "caption"):
+        return _strip_nuls(getattr(node.caption, "source", None))
 
     return None
 
