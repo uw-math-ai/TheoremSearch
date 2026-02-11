@@ -1,4 +1,0 @@
-pydantic
-pathlib
-plastex
-kaggle
