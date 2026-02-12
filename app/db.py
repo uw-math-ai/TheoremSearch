@@ -6,116 +6,159 @@ import psycopg2
 from contextlib import contextmanager
 from pgvector.psycopg2 import register_vector
 from dotenv import load_dotenv
+from utils import json_safe
+from openai import OpenAI
+from psycopg2.pool import SimpleConnectionPool
 
 load_dotenv()
 
+_openai_client = OpenAI(
+    base_url="https://api.tokenfactory.nebius.com/v1/",
+    api_key=os.environ.get("NEBIUS_API_KEY"),
+)
+
+_region = os.getenv("AWS_REGION")
+_secret_arn = os.getenv("RDS_SECRET_ARN")
+_dbname = os.getenv("RDS_DB_NAME")
+_sm_client = boto3.client("secretsmanager", region_name=_region)
+_secret_value = _sm_client.get_secret_value(SecretId=_secret_arn)
+_secret_dict = json.loads(_secret_value["SecretString"])
+
+_reader_host = os.getenv("RDS_READER_HOST")
+_writer_host = os.getenv("RDS_WRITER_HOST")
+
+_reader_pool = SimpleConnectionPool(
+    1, 10,
+    host=_reader_host,
+    port=int(_secret_dict.get("port", 5432)),
+    dbname=_dbname or _secret_dict.get("dbname"),
+    user=_secret_dict["username"],
+    password=_secret_dict["password"],
+    sslmode="require",
+)
+
+_writer_pool = SimpleConnectionPool(
+    1, 5,
+    host=_writer_host,
+    port=int(_secret_dict.get("port", 5432)),
+    dbname=_dbname or _secret_dict.get("dbname"),
+    user=_secret_dict["username"],
+    password=_secret_dict["password"],
+    sslmode="require",
+)
+
+def embed_query(query: str):
+    response = _openai_client.embeddings.create(
+        model="Qwen/Qwen3-Embedding-8B",
+        input=query
+    )
+    return response.data[0].embedding
+
+@st.cache_data(ttl=60*60*24*7)
+def cached_embed(query):
+    return embed_query(query)
+
 @contextmanager
 def get_rds_conn(host: str):
-    region = os.getenv("AWS_REGION")
-    secret_arn = os.getenv("RDS_SECRET_ARN")
-    dbname = os.getenv("RDS_DB_NAME")
-
-    sm = boto3.client("secretsmanager", region_name=region)
-    secret_value = sm.get_secret_value(SecretId=secret_arn)
-    secret_dict = json.loads(secret_value["SecretString"])
-
-    conn = psycopg2.connect(
+    with psycopg2.connect(
         host=host,
-        port=int(secret_dict.get("port", 5432)),
-        dbname=dbname or secret_dict.get("dbname"),
-        user=secret_dict["username"],
-        password=secret_dict["password"],
+        port=int(_secret_dict.get("port", 5432)),
+        dbname=_dbname or _secret_dict.get("dbname"),
+        user=_secret_dict["username"],
+        password=_secret_dict["password"],
         sslmode="require",
-    )
+    ) as conn:
+        register_vector(conn)
+        yield conn
 
+@contextmanager
+def reader_conn():
+    conn = _reader_pool.getconn()
     try:
         register_vector(conn)
         yield conn
     finally:
-        conn.close()
-
-@contextmanager
-def reader_conn():
-    host = os.getenv("RDS_READER_HOST")
-
-    with get_rds_conn(host) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT pg_is_in_recovery();")
-            assert cur.fetchone()[0] is True, "Reader is not a replica."
-        yield conn
+        _reader_pool.putconn(conn)
 
 @contextmanager
 def writer_conn():
-    host = os.getenv("RDS_WRITER_HOST")
-
-    with get_rds_conn(host) as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT pg_is_in_recovery();")
-            assert cur.fetchone()[0] is False, "Writer is not primary."
+    conn = _writer_pool.getconn()
+    try:
+        register_vector(conn)
         yield conn
+    finally:
+        _writer_pool.putconn(conn)
 
-@st.cache_data(ttl=60*60*24)
+@st.cache_data(ttl=60*60*24*7)
 def load_sources():
-    with reader_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT DISTINCT source FROM theorem_search_qwen;")
-            rows = cur.fetchall()
-            sources = [row[0] for row in rows]
-    return sources
+    with reader_conn() as conn, conn.cursor() as cur:
+        cur.execute("""
+            SELECT array_agg(DISTINCT source ORDER BY source)
+            FROM theorem_search_qwen8b;
+        """)
+        return cur.fetchone()[0] or []
 
-@st.cache_data(ttl=60*60*24) # cache for 24 hours
+@st.cache_data(ttl=60*60*24*7)
 def load_source_caps():
-    with reader_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                        SELECT source, bool_or(has_metadata)
-                        FROM theorem_search_qwen
-                        GROUP BY source;
-                        """)
-            caps = {
-                source: {"has_metadata": has_meta}
-                for source, has_meta in cur.fetchall()
-            }
-    return caps
+    with reader_conn() as conn, conn.cursor() as cur:
+        cur.execute("""
+            SELECT jsonb_object_agg(
+                source,
+                jsonb_build_object('has_metadata', has_metadata)
+            )
+            FROM (
+                SELECT
+                    source,
+                    bool_or(has_metadata) AS has_metadata
+                FROM theorem_search_qwen8b
+                GROUP BY source
+            ) s;
+        """)
+        return cur.fetchone()[0] or {}
 
-@st.cache_data(ttl=60*60*24)
+
+@st.cache_data(ttl=60*60*24*7)
 def load_authors():
-    with reader_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
+    with reader_conn() as conn, conn.cursor() as cur:
+        cur.execute("""
+            SELECT jsonb_object_agg(source, authors)
+            FROM (
                 SELECT
                     source,
                     array_agg(DISTINCT author ORDER BY author) AS authors
                 FROM (
                     SELECT source, unnest(authors) AS author
-                    FROM theorem_search_qwen
+                    FROM theorem_search_qwen8b
                     WHERE authors IS NOT NULL
                 ) t
-                GROUP BY source;
-            """)
-            rows = cur.fetchall()
-    return {source: authors for source, authors in rows}
+                GROUP BY source
+            ) s;
+        """)
+        return cur.fetchone()[0] or {}
 
-@st.cache_data(ttl=60*60*24)
+
+@st.cache_data(ttl=60*60*24*7)
 def load_tags():
-    with reader_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
+    with reader_conn() as conn, conn.cursor() as cur:
+        cur.execute("""
+            SELECT jsonb_object_agg(source, tags)
+            FROM (
                 SELECT
                     source,
-                    array_agg(DISTINCT primary_category ORDER BY primary_category)
-                FROM theorem_search_qwen
+                    array_agg(DISTINCT primary_category ORDER BY primary_category) AS tags
+                FROM theorem_search_qwen8b
                 WHERE primary_category IS NOT NULL
-                GROUP BY source;
-            """)
-            rows = cur.fetchall()
-    return {src: tags for src, tags in rows}
+                GROUP BY source
+            ) s;
+        """)
+        return cur.fetchone()[0] or {}
 
-@st.cache_data(ttl=60*60*24)
+
+@st.cache_data(ttl=60*60*24*7)
 def load_theorem_count():
     with reader_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM theorem_search_qwen;")
+            cur.execute("SELECT COUNT(*) FROM theorem_search_qwen8b;")
             count = cur.fetchone()[0]
     return count
 
@@ -161,111 +204,145 @@ def insert_feedback(payload: dict):
                 payload["top_k"],
             ))
 
-def fetch_results(citation_weight, query_vec, params, where_sql, top_k):
-    with reader_conn() as conn:
+def insert_query(query: str, filters: dict):
+    with writer_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SET LOCAL hnsw.ef_search = %s;", (40,))
-            cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order'")
-            if citation_weight == 0.0:
-                sql = f"""
-                    SELECT
-                        slogan_id,
-                        theorem_id,
-                        paper_id,
-                        citations,
-                        has_metadata,
-                        theorem_type,
-                        title,
-                        authors,
-                        link,
-                        year,
-                        primary_category,
-                        categories,
-                        source,
-                        theorem_name,
-                        theorem_body,
-                        theorem_slogan,
-                        (1.0 - (embedding <=> %s::vector)) AS similarity
-                    FROM theorem_search_qwen
-                    {where_sql}
-                    ORDER BY embedding <=> %s::vector
-                    LIMIT %s;
-                    """
+            cur.execute(
+                """
+                INSERT INTO public.queries (query, sources, filters)
+                VALUES (%s, %s, %s);
+                """,
+                (
+                    query,
+                    filters["sources"],
+                    json.dumps(json_safe(filters)),
+                ),
+            )
 
-                exec_params = [
-                    query_vec,
-                    *params,
-                    query_vec,
-                    top_k,
-                ]
+def fetch_candidate_ids(
+    query_vec,
+    citation_weight,
+    top_k,
+    where_sql,
+    where_params,
+):
+    with reader_conn() as conn, conn.cursor() as cur:
+        selected_sources = where_params.get("sources", [])
 
-                cur.execute(sql, exec_params)
-                rows = cur.fetchall()
-                results = [
-                    {
-                        **row_to_dict(cur, row),
-                        "similarity": row[-1],
-                        "score": row[-1],
-                    }
-                    for row in rows
-                ]
-            else:
-                sql = f"""
-                    WITH ann AS MATERIALIZED (
-                        SELECT
-                            slogan_id,
-                            theorem_id,
-                            paper_id,
-                            citations,
-                            has_metadata,
-                            theorem_type,
-                            title,
-                            authors,
-                            link,
-                            year,
-                            primary_category,
-                            categories,
-                            source,
-                            theorem_name,
-                            theorem_body,
-                            theorem_slogan,
-                            (1.0 - (embedding <=> %s::vector)) AS similarity
-                        FROM theorem_search_qwen
-                        {where_sql}
-                        ORDER BY embedding <=> %s::vector
-                        LIMIT %s
-                    )
-                    SELECT *,
-                           (
-                               similarity +
-                               %s * CASE
-                                      WHEN citations IS NOT NULL AND citations > 0
-                                      THEN ln(citations::float)
-                                      ELSE 0
-                                    END
-                           ) AS score
-                    FROM ann
-                    ORDER BY score DESC, similarity DESC
-                    LIMIT %s;
-                    """
+        if not selected_sources:
+            return []
 
-                exec_params = [
-                    query_vec,
-                    *params,
-                    query_vec,
-                    min(5 * top_k, 200),
-                    citation_weight,
-                    top_k,
-                ]
+        # Tune these
+        per_source_multiplier = 3
+        ef_search = max(80, top_k * 4)
 
-                cur.execute(sql, exec_params)
-                rows = cur.fetchall()
-                results = [
-                    {
-                        **row_to_dict(cur, row),
-                        "similarity": row[-2],
-                        "score": row[-1],
-                    }
-                    for row in rows
-                ]
-    return results
+        cur.execute("SET LOCAL hnsw.ef_search = %s;", (ef_search,))
+        cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
+
+        all_rows = []
+
+        for source in selected_sources:
+            sql = f"""
+            WITH ann AS (
+                SELECT
+                    slogan_id,
+                    citations,
+                    embedding
+                FROM theorem_search_qwen8b
+                WHERE source = %(source)s
+                ORDER BY
+                    (binary_quantize(embedding)::bit(4096))
+                    <~>
+                    binary_quantize(%(query_vec_ann)s::vector(4096))::bit(4096)
+                LIMIT %(per_source_limit)s
+            )
+            SELECT
+                slogan_id,
+                (1.0 - (embedding <=> %(query_vec_rerank)s::vector(4096))) AS similarity,
+                (1.0 - (embedding <=> %(query_vec_rerank)s::vector(4096)))
+                + %(citation_weight)s * CASE
+                    WHEN citations > 0 THEN ln(citations::float)
+                    ELSE 0
+                  END AS score
+            FROM ann;
+            """
+
+            params = {
+                "source": source,
+                "query_vec_ann": query_vec,
+                "query_vec_rerank": query_vec,
+                "citation_weight": citation_weight,
+                "per_source_limit": top_k * per_source_multiplier,
+            }
+
+            cur.execute(sql, params)
+            all_rows.extend(cur.fetchall())
+
+        if not all_rows:
+            return []
+
+        # Global rerank across sources
+        all_rows.sort(key=lambda x: x[2], reverse=True)
+
+        return all_rows[:top_k]
+
+def fetch_full_rows(slogan_rows):
+    if not slogan_rows:
+        return []
+
+    slogan_ids = [r[0] for r in slogan_rows]
+    score_map = {r[0]: (r[1], r[2]) for r in slogan_rows}
+
+    with reader_conn() as conn, conn.cursor() as cur:
+        sql = """
+        SELECT
+            slogan_id,
+            theorem_id,
+            paper_id,
+            theorem_name,
+            theorem_body,
+            theorem_slogan,
+            theorem_type,
+            title,
+            authors,
+            link,
+            year,
+            journal_published,
+            primary_category,
+            categories,
+            citations,
+            source,
+            has_metadata
+        FROM theorem_search_qwen8b
+        WHERE slogan_id = ANY(%(ids)s)
+        ORDER BY array_position(%(ids)s, slogan_id);
+        """
+
+        cur.execute(sql, {"ids": slogan_ids})
+        rows = cur.fetchall()
+
+    return [
+        {
+            **row_to_dict(cur, row),
+            "similarity": score_map[row[0]][0],
+            "score": score_map[row[0]][1],
+        }
+        for row in rows
+    ]
+
+def fetch_results(
+    query_vec,
+    citation_weight,
+    top_k,
+    where_sql,
+    where_params
+):
+    candidates = fetch_candidate_ids(
+        query_vec=query_vec,
+        citation_weight=citation_weight,
+        top_k=top_k,
+        where_sql=where_sql,
+        where_params=where_params,
+    )
+
+    return fetch_full_rows(candidates)

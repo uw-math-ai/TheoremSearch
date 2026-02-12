@@ -8,7 +8,7 @@ SOURCE_FILTERS = {
         "authors": False,
         "types": True,
         "tags": True,
-        "paper_filter": True,
+        "paper_filter": False,
         "year": False,
         "journal": False,
         "citations": False,
@@ -21,6 +21,51 @@ SOURCE_FILTERS = {
         "year": True,
         "journal": True,
         "citations": True,
+    },
+    "ProofWiki": {
+        "authors": False,
+        "types": True,
+        "tags": False,
+        "paper_filter": False,
+        "year": False,
+        "journal": False,
+        "citations": False,
+    },
+    "An Infinitely Large Napkin": {
+        "authors": False,
+        "types": True,
+        "tags": False,
+        "paper_filter": True,
+        "year": False,
+        "journal": False,
+        "citations": False,
+    },
+    "CRing Project": {
+        "authors": False,
+        "types": True,
+        "tags": False,
+        "paper_filter": True,
+        "year": False,
+        "journal": False,
+        "citations": False,
+    },
+    "HoTT Book": {
+        "authors": False,
+        "types": True,
+        "tags": False,
+        "paper_filter": False,
+        "year": False,
+        "journal": False,
+        "citations": False,
+    },
+    "Open Logic Project": {
+        "authors": False,
+        "types": True,
+        "tags": False,
+        "paper_filter": False,
+        "year": False,
+        "journal": False,
+        "citations": False,
     },
 }
 
@@ -90,3 +135,12 @@ def parse_paper_filter(raw: str) -> dict:
 
             titles.add(normalize_title(token))
     return {"ids": ids, "titles": titles}
+
+def json_safe(obj):
+    if isinstance(obj, dict):
+        return {k: json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [json_safe(v) for v in obj]
+    if isinstance(obj, set):
+        return sorted(json_safe(v) for v in obj)
+    return obj
