@@ -26,15 +26,15 @@ Feedback is welcome.
 
 ## Retrieval Performance (Hit@10)
 
-| Model | Hit@10 |
-|------|--------|
-| Google Search | <span style="color:red">0.378</span> |
-| Chat-GPT 5.2 | <span style="color:blue">0.180</span> |
-| Gemini 3 Pro | <span style="color:blue">0.252</span> |
-| **Ours** | **<span style="color:blue">0.432</span> / <span style="color:red">0.505</span>** |
+| Model | Theorem-level | Paper-level |
+|-------|--------------:|------------:|
+| Google Search | — | 0.378 |
+| ChatGPT 5.2 | 0.180 | — |
+| Gemini 3 Pro | 0.252 | — |
+| **Ours** | **0.432** | **0.505** |
 
-<span style="color:blue">Blue</span>: theorem-level results  
-<span style="color:red">Red</span>: paper-level results  
+Theorem-level = retrieval of exact theorem statements  
+Paper-level = retrieval of the correct paper containing the theorem
 
 </td>
 
