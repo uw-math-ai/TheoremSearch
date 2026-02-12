@@ -1,5 +1,3 @@
-<div align="center">
-
 # Semantic Search over 9 Million Mathematical Theorems
 
 **Luke Alexander, Eric Leonen, Sophie Szeto, Artemii Remizov, Ignacio Tejeda, Giovanni Inchiostro, Vasily Ilin**
@@ -9,57 +7,48 @@
 [![Dataset](https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg)](https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset)
 [![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
 
-</div>
-
-
 ---
+
+<table>
+<tr>
+<td width="60%" valign="top">
 
 ## Overview
 
-Mathematical knowledge is expressed in discrete statements — *theorems, lemmas, propositions, corollaries*.  
-Existing search engines operate at the **paper level**.
+Mathematicians and math prover agents need fast and efficient theorem search.  
+We release **[Theorem Search](https://huggingface.co/spaces/uw-math-ai/theorem-search)** over all of arXiv, the Stacks Project, and six other sources.
 
-We build:
+Our search is **2× more accurate than frontier LLMs**, with only **4 second latency**.
 
-- A unified corpus of **9.2 million human-authored theorem statements**
-- A **theorem-level semantic search engine**
-- An embedding setup that supports natural language and mathematical notation
-
-This enables precise retrieval of mathematical statements by meaning rather than keyword.
+Feedback is welcome.
 
 ---
 
-## Main Contributions
+## Retrieval Performance (Hit@10)
 
-- **9.2M extracted theorems** unified from arXiv and additional sources  
-- Theorem-level evaluation benchmark  
-- Embedding analysis across models and context formats  
-- Demonstrated improvement over document-level search baselines  
+| Model | Hit@10 |
+|------|--------|
+| Google Search | <span style="color:red">0.378</span> |
+| Chat-GPT 5.2 | <span style="color:blue">0.180</span> |
+| Gemini 3 Pro | <span style="color:blue">0.252</span> |
+| **Ours** | **<span style="color:blue">0.432</span> / <span style="color:red">0.505</span>** |
 
----
+<span style="color:blue">Blue</span>: theorem-level results  
+<span style="color:red">Red</span>: paper-level results  
 
-## System Overview
+</td>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/e9dd0a54-432e-4083-ba45-38a18885bd4d"
-       width="85%" />
-</p>
+<td width="40%" valign="top">
 
----
+<img src="https://github.com/user-attachments/assets/e9dd0a54-432e-4083-ba45-38a18885bd4d" width="100%" />
 
-## Retrieval Performance
+<br><br>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/089438a8-f679-4ef1-84da-bfade8d60072"
-       width="85%" />
-</p>
+<img src="https://github.com/user-attachments/assets/089438a8-f679-4ef1-84da-bfade8d60072" width="100%" />
 
----
-
-## Links
-
-- **Paper (arXiv):** https://arxiv.org/abs/2602.05216  
-- **Hugging Face paper page:** https://huggingface.co/papers/2602.05216  
+</td>
+</tr>
+</table>
 
 ---
 
