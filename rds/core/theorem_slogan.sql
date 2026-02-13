@@ -1,6 +1,6 @@
 CREATE TABLE theorem_slogan (
-    slogan_id BIGSERIAL PRIMARY KEY,
-    theorem_id BIGINT NOT NULL REFERENCES theorem(theorem_id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    theorem_id UUID NOT NULL REFERENCES theorem(id) ON DELETE CASCADE,
     model TEXT NOT NULL,
     prompt_id TEXT NOT NULL,
     slogan TEXT NOT NULL,
