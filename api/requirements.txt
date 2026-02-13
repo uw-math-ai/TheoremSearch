@@ -1,0 +1,7 @@
+boto3
+fastapi[standard]
+openai
+psycopg2-binary
+pgvector
+dotenv
+mangum
