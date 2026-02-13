@@ -4,11 +4,10 @@ from datetime import datetime, timezone
 from typing import Optional
 from tempfile import TemporaryDirectory
 from argparse import ArgumentParser
-from .categories import CATEGORIES
 from ..printing import print_script_header
 from rds.utils.connect import get_rds_connection
 from rds.utils.upsert import upsert_rows
-from arXiTeX.paper_cataloger.catalog import catalog_papers
+from arXiTeX import paper_catalog
 
 def build_paper_table(
     arxiv_dir: Optional[str],
@@ -43,9 +42,8 @@ def build_paper_table(
     conn = get_rds_connection("v2")
     pbar = None
 
-    for papers in catalog_papers(
+    for papers in paper_catalog(
         download_dir=arxiv_dir,
-        categories=CATEGORIES,
         batch_size=batch_size
     ):
         if pbar is None:
