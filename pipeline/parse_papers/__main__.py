@@ -4,8 +4,8 @@ from typing import List
 from datetime import datetime, timezone
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from argparse import ArgumentParser
-from arXiTeX.paper_parser.lib.types import TheoremValidationLevel
-from arXiTeX.paper_parser.parse import parse_paper
+from arXiTeX.types import TheoremValidationLevel
+from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
@@ -91,7 +91,8 @@ def parse_papers(
                     parse_paper,
                     paper_id,
                     None,
-                    validation_level
+                    validation_level,
+                    timeout
                 )
                 fut_to_paper_id[fut] = paper_id
 
