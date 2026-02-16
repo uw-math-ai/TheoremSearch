@@ -9,7 +9,6 @@ from contextlib import contextmanager
 from psycopg2.pool import SimpleConnectionPool
 from pgvector.psycopg2 import register_vector
 from dotenv import load_dotenv
-from mangum import Mangum
 
 load_dotenv()
 
@@ -391,5 +390,3 @@ async def search(payload: SearchRequest):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
-    
-handler = Mangum(app)
