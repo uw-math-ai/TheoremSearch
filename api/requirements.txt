@@ -3,4 +3,4 @@ fastapi[standard]
 openai
 psycopg2-binary
 pgvector
-dotenv
+python-dotenv
