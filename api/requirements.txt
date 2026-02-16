@@ -1,5 +1,6 @@
 boto3
 fastapi[standard]
+uvicorn[standard]
 openai
 psycopg2-binary
 pgvector
