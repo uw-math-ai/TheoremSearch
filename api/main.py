@@ -1,6 +1,4 @@
 import os
-import json
-import boto3
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
@@ -21,23 +19,13 @@ client = OpenAI(
 )
 
 # Database connection setup
-_region = os.getenv("AWS_REGION")
-_secret_arn = os.getenv("RDS_SECRET_ARN")
-_dbname = os.getenv("RDS_DB_NAME")
-_sm_client = boto3.client("secretsmanager", region_name=_region)
-_secret_value = _sm_client.get_secret_value(SecretId=_secret_arn)
-_secret_dict = json.loads(_secret_value["SecretString"])
-
-_reader_host = os.getenv("RDS_READER_HOST")
-_writer_host = os.getenv("RDS_WRITER_HOST")
-
 _reader_pool = SimpleConnectionPool(
     1, 10,
-    host=_reader_host,
-    port=int(_secret_dict.get("port", 5432)),
-    dbname=_dbname or _secret_dict.get("dbname"),
-    user=_secret_dict["username"],
-    password=_secret_dict["password"],
+    host=os.getenv("RDS_DB_HOST"),
+    port=int(os.getenv("RDS_DB_PORT", "5432")),
+    dbname=os.getenv("RDS_DB_NAME"),
+    user=os.getenv("RDS_DB_USER"),
+    password=os.getenv("RDS_DB_PASSWORD"),
     sslmode="require",
 )
 
