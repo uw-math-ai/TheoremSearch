@@ -19,7 +19,8 @@ def parse_papers(
     batch_size: int,
     workers: int,
     timeout: int,
-    validation_level: TheoremValidationLevel
+    validation_level: TheoremValidationLevel,
+    source_from_s3: bool
 ):
     print_script_header(
         action="Parsing papers into theorems",
@@ -30,14 +31,20 @@ def parse_papers(
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
-            "validation level": validation_level
+            "validation level": validation_level,
+            "source": "arXiv S3 bucket" if source_from_s3 else "arXiv API"
         }
     )
 
     conn = get_rds_connection("v2")
 
     query, params = build_query(
-        base_query="SELECT paper.id from paper",
+        base_query="""
+            SELECT paper.id, s3_location.bundle_key, s3_location.bytes_range
+            FROM paper
+            INNER JOIN s3_location
+            ON s3_location.arxiv_id = paper.id AND s3_location.source = paper.source
+        """ if source_from_s3 else "SELECT paper.id FROM paper",
         where_clauses=[
             {
                 "if": not overwrite,
@@ -87,9 +94,15 @@ def parse_papers(
             for paper in papers:
                 paper_id = paper["id"]
 
+                s3_bundle_key = paper.get("bundle_key", None)
+                s3_bytes_range = paper.get("bytes_range", None)
+
+
                 fut = ex.submit(
                     parse_paper,
                     paper_id,
+                    s3_bundle_key,
+                    s3_bytes_range,
                     None,
                     validation_level,
                     timeout
@@ -101,7 +114,7 @@ def parse_papers(
 
                 try:
                     theorems = fut.result()
-                except Exception:
+                except Exception as e:
                     theorems = None
 
                 if theorems is None:
@@ -148,7 +161,7 @@ def parse_papers(
                     (current_time, list(paper["id"] for paper in papers),),
                 )
 
-            conn.commit()
+            # conn.commit()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -201,6 +214,13 @@ if __name__ == "__main__":
         help="Level to validate theorems. Supported: paper (default), theorem"
     )
 
+    arg_parser.add_argument(
+        "-s3",
+        "--source-from-s3",
+        action="store_true",
+        help="Whether to source paper sources from S3. By default, API"
+    )
+
     args = arg_parser.parse_args()
 
     if args.condition and len(args.condition) >= 2:
@@ -216,5 +236,6 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         workers=args.workers,
         timeout=args.timeout,
-        validation_level=args.validation_level
+        validation_level=args.validation_level,
+        source_from_s3=args.source_from_s3
     )
