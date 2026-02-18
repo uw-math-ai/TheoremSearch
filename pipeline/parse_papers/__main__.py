@@ -71,7 +71,6 @@ def parse_papers(
    
     status_counts = {
         "success": 0,
-        "empty": 0,
         "failed": 0
     }
 
@@ -88,6 +87,7 @@ def parse_papers(
         ):
             fut_to_paper_id = {}
             batch_theorem_rows = []
+            batch_parse_status_rows = []
 
             current_time = datetime.now(timezone.utc)
 
@@ -111,18 +111,29 @@ def parse_papers(
 
             for fut in as_completed(fut_to_paper_id):
                 paper_id = fut_to_paper_id[fut]
+                error = None
 
                 try:
                     theorems = fut.result()
+
+                    if not theorems:
+                        raise RuntimeError()
                 except Exception as e:
+                    error = str(e) or "UNHANDLED ERROR"
                     theorems = None
 
-                if theorems is None:
+                if not theorems:
                     status_counts["failed"] += 1
-                elif len(theorems) == 0:
-                    status_counts["empty"] += 1
                 else:
                     status_counts["success"] += 1
+
+                batch_parse_status_rows.append({
+                    "paper_id": paper_id,
+                    "source": "arXiv",
+                    "last_parse_attempt_at": current_time,
+                    "error": error,
+                    "s3": source_from_s3
+                })
 
                 if theorems:
                     batch_theorem_rows.extend([
@@ -142,6 +153,16 @@ def parse_papers(
                     for status, count in status_counts.items()
                 })
 
+            upsert_rows(
+                conn,
+                table="parse_status",
+                rows=batch_parse_status_rows,
+                on_conflict={
+                    "with": ["paper_id", "source"],
+                    "replace": ["last_parse_attempt_at", "error", "s3"]
+                }
+            )
+
             if batch_theorem_rows:
                 with conn.cursor() as cur:
                     cur.execute(
@@ -155,13 +176,7 @@ def parse_papers(
                     rows=batch_theorem_rows
                 )
 
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE paper SET last_parse_attempt_at = %s WHERE id = ANY(%s) and source = 'arXiv'",
-                    (current_time, list(paper["id"] for paper in papers),),
-                )
-
-            # conn.commit()
+            conn.commit()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
