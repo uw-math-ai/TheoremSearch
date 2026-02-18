@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from latex_clean import clean_latex_for_display
 from db import (
     fetch_results,
@@ -155,6 +156,18 @@ def search_and_display(query: str, filters: dict):
 
 # Header and sidebar
 st.set_page_config(page_title="Theorem Search Demo", layout="wide")
+components.html(
+    """
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XKM7PWE7EN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XKM7PWE7EN');
+    </script>
+    """,
+    height=0,
+)
 st.title("Math Theorem Search")
 st.write("This tool finds mathematical theorems that are semantically similar to your query.")
 
