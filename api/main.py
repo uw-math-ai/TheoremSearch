@@ -331,13 +331,15 @@ async def search(payload: SearchRequest):
         
         # Use all sources if none specified
         if not payload.sources:
-            with reader_conn() as conn, conn.cursor() as cur:
-                cur.execute("""
-                    SELECT array_agg(DISTINCT source ORDER BY source)
-                    FROM theorem_search_qwen8b;
-                """)
-                result = cur.fetchone()
-                selected_sources = result[0] if result and result[0] else []
+            selected_sources = [
+                "Stacks Project",
+                "arXiv",
+                "ProofWiki",
+                "An Infinitely Large Napkin",
+                "CRing Project",
+                "HoTT Book",
+                "Open Logic Project"
+            ]
         else:
             selected_sources = payload.sources
         
