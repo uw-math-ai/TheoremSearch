@@ -4,6 +4,16 @@ ProofWiki Ingestor
 ==================
 Parses ProofWiki (https://proofwiki.org) via MediaWiki API.
 
+Output format:
+{
+    "theorem_name": "Fermat's Little Theorem",
+    "type": "theorem",
+    "note": "Modular Arithmetic Form",
+    "body": "...",
+    "proof": "...",
+    "url": "https://proofwiki.org/wiki/..."
+}
+
 Usage:
     python proofwiki_ingestor.py                    # Full run
     python proofwiki_ingestor.py --test 50          # Test with 50 pages per category
@@ -49,6 +59,7 @@ class ProofWikiIngestor:
             "successful": 0,
             "failed": 0,
             "skipped": 0,
+            "with_proof": 0,
             "by_type": {}
         }
         
@@ -195,6 +206,16 @@ class ProofWikiIngestor:
         
         return "theorem"  # Default for Proven Results
     
+    def extract_note_from_title(self, title):
+        """
+        Extract parenthetical note from a page title.
+        e.g. "Fermat's Little Theorem (Modular Arithmetic Form)" -> "Modular Arithmetic Form"
+        """
+        match = re.search(r'\(([^)]+)\)\s*$', title)
+        if match:
+            return match.group(1).strip()
+        return None
+
     def clean_wikitext(self, text):
         """Convert wikitext to cleaner format."""
         if not text:
@@ -248,7 +269,18 @@ class ProofWikiIngestor:
         text = re.sub(r' {2,}', ' ', text)
         
         return text.strip()
-    
+
+    def extract_proof_section(self, raw_content):
+        """Extract the proof section from wikitext."""
+        # Match == Proof == or == Proof 1 == etc.
+        match = re.search(
+            r'==\s*Proof\s*\d*\s*==\s*\n(.*?)(?=\n==|\Z)',
+            raw_content, re.DOTALL | re.IGNORECASE
+        )
+        if match:
+            return self.clean_wikitext(match.group(1))
+        return None
+
     def parse_wikitext(self, title, raw_content, categories):
         """Parse wikitext into structured format."""
         if not raw_content:
@@ -291,13 +323,28 @@ class ProofWikiIngestor:
         # Skip if body is too short
         if len(body.strip()) < 20:
             return None
-        
-        return {
+
+        # Extract proof section
+        proof_text = self.extract_proof_section(raw_content)
+
+        # Extract note from title (e.g. parenthetical subtitle)
+        note = self.extract_note_from_title(title)
+
+        # Build result
+        result = {
             "theorem_name": title,
-            "body": body,
             "type": page_type,
+            "body": body,
             "url": self.WIKI_BASE + title.replace(" ", "_"),
         }
+
+        # Optional fields — only added if they exist
+        if note:
+            result["note"] = note
+        if proof_text and len(proof_text.strip()) >= 20:
+            result["proof"] = proof_text
+
+        return result
     
     def process_page(self, title):
         """Process a single page."""
@@ -402,7 +449,6 @@ class ProofWikiIngestor:
             except Exception as e:
                 self.stats["failed"] += 1
         
-        # Save output
         self._save_output()
         self._print_summary(time.time() - start_time)
     
@@ -447,6 +493,7 @@ class ProofWikiIngestor:
         
         print("-"*60)
         print(f"  {'TOTAL':<20} {total_key:>6}")
+        print(f"  {'WITH PROOF':<20} {self.stats['with_proof']:>6}")
         print("="*60)
 
 
