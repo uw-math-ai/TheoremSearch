@@ -51,9 +51,10 @@ def search_and_display(query: str, filters: dict):
     selected_sources = filters["sources"]
     meta_sources = metadata_sources(selected_sources, source_caps)
 
-    # Source filter
-    where_clauses.append("source = ANY(%(sources)s)")
-    where_params["sources"] = selected_sources
+    # Types filter (all sources support types)
+    if filters["types"]:
+        where_clauses.append("theorem_type = ANY(%(types)s)")
+        where_params["types"] = filters["types"]
 
     if meta_sources:
         # Authors
@@ -108,17 +109,14 @@ def search_and_display(query: str, filters: dict):
         if or_clauses:
             where_clauses.append("(" + " OR ".join(or_clauses) + ")")
 
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-
     # Fetch results
     results = fetch_results(
         query_vec=query_vec,
         citation_weight=citation_weight,
         top_k=top_k,
-        where_sql=where_sql,
-        where_params=where_params,
+        selected_sources=selected_sources,
+        filter_clauses=where_clauses,
+        filter_params=where_params,
     )
     st.toast(f"**Embed time:** {embed_time} &nbsp; **SQL time:** {time.time() - t0}", icon="⏱")
 

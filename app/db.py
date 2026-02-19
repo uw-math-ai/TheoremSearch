@@ -92,75 +92,32 @@ def writer_conn():
 @st.cache_data(ttl=60*60*24*7)
 def load_sources():
     with reader_conn() as conn, conn.cursor() as cur:
-        cur.execute("""
-            SELECT array_agg(DISTINCT source ORDER BY source)
-            FROM theorem_search_qwen8b;
-        """)
+        cur.execute("SELECT sources FROM mv_sources;")
         return cur.fetchone()[0] or []
 
 @st.cache_data(ttl=60*60*24*7)
 def load_source_caps():
     with reader_conn() as conn, conn.cursor() as cur:
-        cur.execute("""
-            SELECT jsonb_object_agg(
-                source,
-                jsonb_build_object('has_metadata', has_metadata)
-            )
-            FROM (
-                SELECT
-                    source,
-                    bool_or(has_metadata) AS has_metadata
-                FROM theorem_search_qwen8b
-                GROUP BY source
-            ) s;
-        """)
-        return cur.fetchone()[0] or {}
-
+        cur.execute("SELECT source, has_metadata FROM mv_source_caps;")
+        return {row[0]: {"has_metadata": row[1]} for row in cur.fetchall()}
 
 @st.cache_data(ttl=60*60*24*7)
 def load_authors():
     with reader_conn() as conn, conn.cursor() as cur:
-        cur.execute("""
-            SELECT jsonb_object_agg(source, authors)
-            FROM (
-                SELECT
-                    source,
-                    array_agg(DISTINCT author ORDER BY author) AS authors
-                FROM (
-                    SELECT source, unnest(authors) AS author
-                    FROM theorem_search_qwen8b
-                    WHERE authors IS NOT NULL
-                ) t
-                GROUP BY source
-            ) s;
-        """)
-        return cur.fetchone()[0] or {}
-
+        cur.execute("SELECT source, authors FROM mv_authors_by_source;")
+        return {row[0]: row[1] for row in cur.fetchall()}
 
 @st.cache_data(ttl=60*60*24*7)
 def load_tags():
     with reader_conn() as conn, conn.cursor() as cur:
-        cur.execute("""
-            SELECT jsonb_object_agg(source, tags)
-            FROM (
-                SELECT
-                    source,
-                    array_agg(DISTINCT primary_category ORDER BY primary_category) AS tags
-                FROM theorem_search_qwen8b
-                WHERE primary_category IS NOT NULL
-                GROUP BY source
-            ) s;
-        """)
-        return cur.fetchone()[0] or {}
-
+        cur.execute("SELECT source, tags FROM mv_tags_by_source;")
+        return {row[0]: row[1] for row in cur.fetchall()}
 
 @st.cache_data(ttl=60*60*24*7)
 def load_theorem_count():
-    with reader_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT COUNT(*) FROM theorem_search_qwen8b;")
-            count = cur.fetchone()[0]
-    return count
+    with reader_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT cnt FROM mv_theorem_count;")
+        return cur.fetchone()[0]
 
 def row_to_dict(cursor, row):
     return {desc[0]: row[i] for i, desc in enumerate(cursor.description)}
@@ -223,15 +180,18 @@ def fetch_candidate_ids(
     query_vec,
     citation_weight,
     top_k,
-    where_sql,
-    where_params,
+    selected_sources,
+    filter_clauses,
+    filter_params,
 ):
+    if not selected_sources:
+        return []
+
+    extra_where = ""
+    if filter_clauses:
+        extra_where = " AND " + " AND ".join(filter_clauses)
+
     with reader_conn() as conn, conn.cursor() as cur:
-        selected_sources = where_params.get("sources", [])
-
-        if not selected_sources:
-            return []
-
         # Tune these
         per_source_multiplier = 3
         ef_search = max(80, top_k * 4)
@@ -249,7 +209,7 @@ def fetch_candidate_ids(
                     citations,
                     embedding
                 FROM theorem_search_qwen8b
-                WHERE source = %(source)s
+                WHERE source = %(source)s{extra_where}
                 ORDER BY
                     (binary_quantize(embedding)::bit(4096))
                     <~>
@@ -273,6 +233,7 @@ def fetch_candidate_ids(
                 "query_vec_rerank": query_vec,
                 "citation_weight": citation_weight,
                 "per_source_limit": top_k * per_source_multiplier,
+                **filter_params,
             }
 
             cur.execute(sql, params)
@@ -334,15 +295,17 @@ def fetch_results(
     query_vec,
     citation_weight,
     top_k,
-    where_sql,
-    where_params
+    selected_sources,
+    filter_clauses,
+    filter_params,
 ):
     candidates = fetch_candidate_ids(
         query_vec=query_vec,
         citation_weight=citation_weight,
         top_k=top_k,
-        where_sql=where_sql,
-        where_params=where_params,
+        selected_sources=selected_sources,
+        filter_clauses=filter_clauses,
+        filter_params=filter_params,
     )
 
     return fetch_full_rows(candidates)
