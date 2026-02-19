@@ -1,4 +1,8 @@
+import html
+import os
+import re
 import streamlit as st
+import streamlit.components.v1 as components
 from latex_clean import clean_latex_for_display
 from db import (
     fetch_results,
@@ -18,6 +22,11 @@ from utils import (
     SOURCE_FILTERS,
     parse_paper_filter)
 import time
+
+GA_MEASUREMENT_ID = os.getenv("GA_MEASUREMENT_ID", "G-XKM7PWE7EN")
+if not re.fullmatch(r"G-[A-Za-z0-9]{10}", GA_MEASUREMENT_ID or ""):
+    GA_MEASUREMENT_ID = "G-XKM7PWE7EN"
+SAFE_GA_MEASUREMENT_ID = html.escape(GA_MEASUREMENT_ID, quote=True)
 
 # Interface for searching and displaying results
 def search_and_display(query: str, filters: dict):
@@ -155,6 +164,20 @@ def search_and_display(query: str, filters: dict):
 
 # Header and sidebar
 st.set_page_config(page_title="Theorem Search Demo", layout="wide")
+if "ga_loaded" not in st.session_state:
+    components.html(
+        f"""
+        <script async src="https://www.googletagmanager.com/gtag/js?id={SAFE_GA_MEASUREMENT_ID}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){{dataLayer.push(arguments);}}
+          gtag('js', new Date());
+          gtag('config', '{SAFE_GA_MEASUREMENT_ID}');
+        </script>
+        """,
+        height=0,
+    )
+    st.session_state["ga_loaded"] = True
 st.title("Math Theorem Search")
 st.write("This tool finds mathematical theorems that are semantically similar to your query.")
 
