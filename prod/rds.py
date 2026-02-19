@@ -23,6 +23,7 @@ def get_rds_connection() -> connection:
         password=secret_dict["password"],
         sslmode="require",
     )
+    conn.autocommit = True
     register_vector(conn)
     return conn
 
@@ -74,9 +75,10 @@ def create_index(conn: connection):
 
 def backfill(conn: connection):
     cur = conn.cursor()
-    print("Backfilling theorem_search_qwen...")
+    print("Backfilling theorem_search_qwen8b...")
+
     cur.execute("""
-        INSERT INTO theorem_search_qwen (
+        INSERT INTO theorem_search_qwen8b (
             slogan_id,
             theorem_id,
             paper_id,
@@ -100,50 +102,56 @@ def backfill(conn: connection):
             has_metadata
         )
         SELECT
-        ts.slogan_id,
-        t.theorem_id,
-        t.paper_id,
-        e.embedding,
-        ts.model,
-        ts.prompt_id,
-        t.name,
-        t.body,
-        ts.slogan,
-        CASE
-            WHEN t.name ILIKE 'lemma %' THEN 'lemma'
-            WHEN t.name ILIKE 'proposition %' THEN 'proposition'
-            WHEN t.name ILIKE 'corollary %' THEN 'corollary'
-            WHEN t.name ILIKE 'theorem %' THEN 'theorem'
-            ELSE 'theorem'
-        END,
-        t.parsing_method,
-        p.title,
-        p.authors,
-        CASE
-            WHEN p.link ILIKE '%arxiv.org%' THEN p.link
-            ELSE t.link
-        END,
-        EXTRACT(YEAR FROM p.last_updated)::INT,
-        (p.journal_ref IS NOT NULL),
-        p.primary_category,
-        p.categories,
-        p.citations,
-        p.source,
-        (
-            p.last_updated IS NOT NULL
-            OR p.primary_category IS NOT NULL
-            OR p.categories IS NOT NULL
-            OR p.citations IS NOT NULL
-        )
-        FROM theorem_embedding_qwen e
-          JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
-          JOIN theorem t ON t.theorem_id = ts.theorem_id
-          JOIN paper p ON p.paper_id = t.paper_id
+            ts.slogan_id,
+            t.theorem_id,
+            t.paper_id,
+            e.embedding,
+            ts.model,
+            ts.prompt_id,
+            t.name,
+            t.body,
+            ts.slogan,
+            CASE
+                WHEN t.name ILIKE 'lemma%' THEN 'lemma'
+                WHEN t.name ILIKE 'proposition%' THEN 'proposition'
+                WHEN t.name ILIKE 'corollary%' THEN 'corollary'
+                WHEN t.name ILIKE 'theorem%' THEN 'theorem'
+                ELSE 'theorem'
+            END,
+            t.parsing_method,
+            p.title,
+            p.authors,
+            COALESCE(
+                CASE
+                    WHEN p.link IS NOT NULL AND p.link ILIKE '%arxiv.org%' THEN p.link
+                    ELSE t.link
+                END,
+                p.link,
+                t.link,
+                'about:blank'
+            ) AS link,
+            EXTRACT(YEAR FROM p.last_updated)::INT,
+            (p.journal_ref IS NOT NULL),
+            p.primary_category,
+            p.categories,
+            COALESCE(p.citations, 0),
+            p.source,
+            (
+                p.last_updated IS NOT NULL
+                OR p.primary_category IS NOT NULL
+                OR p.categories IS NOT NULL
+                OR p.citations IS NOT NULL
+            )
+        FROM theorem_embedding_qwen8b e
+        JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
+        JOIN theorem t ON t.theorem_id = ts.theorem_id
+        JOIN paper p ON p.paper_id = t.paper_id
         WHERE ts.model = 'DeepSeek-V3.1'
-          AND ts.prompt_id = 'body-only-v1' 
+          AND ts.prompt_id = 'body-only-v1'
           AND ts.slogan IS NOT NULL
         ON CONFLICT (slogan_id) DO NOTHING;
     """)
+
     print(f"Rows inserted: {cur.rowcount}")
     conn.commit()
     cur.close()

@@ -13,7 +13,6 @@ parsed_papers/
 !requirements.txt
 *pyc
 *.csv
-*.sql
 data/sources/
 DEBUG/
 external/stacks-project/

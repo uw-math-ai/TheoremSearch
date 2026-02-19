@@ -1,0 +1,5 @@
+fastapi[standard]
+openai
+psycopg2-binary
+pgvector
+python-dotenv
