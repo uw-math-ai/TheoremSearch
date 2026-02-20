@@ -13,7 +13,7 @@
 
 <table>
 <tr>
-<td width="60%" valign="top">
+<td width="50%" valign="top">
 
 ## Overview
 
@@ -40,7 +40,7 @@ Paper-level = retrieval of the correct paper containing the theorem
 
 </td>
 
-<td width="40%" valign="top">
+<td width="50%" valign="top">
 
 <img src="https://github.com/user-attachments/assets/e9dd0a54-432e-4083-ba45-38a18885bd4d" width="100%" />
 
