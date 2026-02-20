@@ -1,3 +1,8 @@
+---
+layout: default
+title: TheoremSearch
+---
+
 # Semantic Search over 9 Million Mathematical Theorems
 
 **Luke Alexander, Eric Leonen, Sophie Szeto, Artemii Remizov, Ignacio Tejeda, Giovanni Inchiostro, Vasily Ilin**
@@ -11,16 +16,12 @@
 
 ---
 
-<table>
-<tr>
-<td width="60%" valign="top">
-
 ## Overview
 
-Mathematicians and math prover agents need fast and efficient theorem search.  
-We release **[Theorem Search](https://huggingface.co/spaces/uw-math-ai/theorem-search)** over all of arXiv, the Stacks Project, and six other sources.
+Mathematicians and math prover agents need fast and efficient theorem search.
+We release **Theorem Search** over all of arXiv, the Stacks Project, and six other sources.
 
-Our search is **2× more accurate than frontier LLMs**, with only **4 second latency**.
+Our search is **70% more accurate than LLM search**, with only **5 second latency**.
 
 Feedback is welcome.
 
@@ -35,22 +36,8 @@ Feedback is welcome.
 | Gemini 3 Pro | 0.252 | — |
 | **Ours** | **0.432** | **0.505** |
 
-Theorem-level = retrieval of exact theorem statements  
+Theorem-level = retrieval of exact theorem statements
 Paper-level = retrieval of the correct paper containing the theorem
-
-</td>
-
-<td width="40%" valign="top">
-
-<img src="https://github.com/user-attachments/assets/e9dd0a54-432e-4083-ba45-38a18885bd4d" width="100%" />
-
-<br><br>
-
-<img src="https://github.com/user-attachments/assets/089438a8-f679-4ef1-84da-bfade8d60072" width="100%" />
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -86,3 +73,4 @@ TheoremSearch is also available as an MCP tool for AI agents with a single tool 
   doi    = {10.48550/arXiv.2602.05216},
   url    = {https://arxiv.org/abs/2602.05216}
 }
+```
