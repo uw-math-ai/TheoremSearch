@@ -1,18 +1,19 @@
 ---
 layout: default
-title: TheoremSearch
 ---
 
-# Semantic Search over 9 Million Mathematical Theorems
+<p style="text-align: center;">
+<strong><a href="https://www.linkedin.com/in/lukealexanderluke/">Luke Alexander</a>, <a href="https://github.com/ericleonen">Eric Leonen</a>, <a href="https://www.linkedin.com/in/sophie-szeto/">Sophie Szeto</a>, <a href="https://www.linkedin.com/in/artemii-remizov-62783631b/">Artemii Remizov</a>, <a href="https://www.ignaciotejeda.com/">Ignacio Tejeda</a>, <a href="https://sites.math.washington.edu/~ginchios/">Giovanni Inchiostro</a>, <a href="https://vilin97.github.io/">Vasily Ilin</a></strong>
+</p>
 
-**[Luke Alexander](https://www.linkedin.com/in/lukealexanderluke/), [Eric Leonen](https://github.com/ericleonen), [Sophie Szeto](https://www.linkedin.com/in/sophie-szeto/), [Artemii Remizov](https://www.linkedin.com/in/artemii-remizov-62783631b/), [Ignacio Tejeda](https://www.ignaciotejeda.com/), [Giovanni Inchiostro](https://sites.math.washington.edu/~ginchios/), [Vasily Ilin](https://vilin97.github.io/)**
-
-[![arXiv](https://img.shields.io/badge/arXiv-2602.05216-b31b1b.svg)](https://arxiv.org/abs/2602.05216)
-[![HF Paper](https://img.shields.io/badge/HF-Paper-yellow.svg)](https://huggingface.co/papers/2602.05216)
-[![Dataset](https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg)](https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset)
-[![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
-[![API](https://img.shields.io/badge/API-REST-orange.svg)](https://api.theoremsearch.com/search)
-[![MCP](https://img.shields.io/badge/MCP-Tool-purple.svg)](https://api.theoremsearch.com/mcp)
+<p style="text-align: center;">
+<a href="https://arxiv.org/abs/2602.05216"><img src="https://img.shields.io/badge/arXiv-2602.05216-b31b1b.svg" alt="arXiv"></a>
+<a href="https://huggingface.co/papers/2602.05216"><img src="https://img.shields.io/badge/HF-Paper-yellow.svg" alt="HF Paper"></a>
+<a href="https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset"><img src="https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg" alt="Dataset"></a>
+<a href="https://huggingface.co/spaces/uw-math-ai/theorem-search"><img src="https://img.shields.io/badge/Demo-Live-green.svg" alt="Demo"></a>
+<a href="https://api.theoremsearch.com/search"><img src="https://img.shields.io/badge/API-REST-orange.svg" alt="API"></a>
+<a href="https://api.theoremsearch.com/mcp"><img src="https://img.shields.io/badge/MCP-Tool-purple.svg" alt="MCP"></a>
+</p>
 
 <table>
 <tr>
