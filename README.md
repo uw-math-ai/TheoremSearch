@@ -8,6 +8,7 @@
 [![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
 [![API](https://img.shields.io/badge/API-REST-orange.svg)](https://api.theoremsearch.com/search)
 [![MCP](https://img.shields.io/badge/MCP-Tool-purple.svg)](https://api.theoremsearch.com/mcp)
+[![Website](https://img.shields.io/badge/Website-theoremsearch.com-teal.svg)](https://theoremsearch.com)
 
 ---
 
