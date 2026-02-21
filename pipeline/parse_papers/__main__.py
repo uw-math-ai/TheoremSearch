@@ -31,7 +31,7 @@ def parse_papers(
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
-            "validation level": validation_level,
+            "validation level": validation_level.value,
             "source": "arXiv S3 bucket" if source_from_s3 else "arXiv API"
         }
     )
@@ -134,7 +134,8 @@ def parse_papers(
                     "source": "arXiv",
                     "last_parse_attempt_at": current_time,
                     "error": error,
-                    "s3": source_from_s3
+                    "s3": source_from_s3,
+                    "validation_level": validation_level.value
                 })
 
                 if theorems:
@@ -227,7 +228,7 @@ if __name__ == "__main__":
         "--validation-level",
         type=TheoremValidationLevel,
         required=False,
-        default=TheoremValidationLevel.Paper.value,
+        default=TheoremValidationLevel.Paper,
         help="Level to validate theorems. Supported: paper (default), theorem"
     )
 
