@@ -116,10 +116,12 @@ def parse_papers(
                 try:
                     theorems = fut.result()
 
-                    if not theorems:
-                        raise RuntimeError()
+                    if theorems is None:
+                        raise RuntimeError() # this shouldn't happen
+                    elif not theorems:
+                        raise RuntimeError("[EMPTY ERROR] No theorems found")
                 except Exception as e:
-                    error = str(e) or "UNHANDLED ERROR"
+                    error = str(e) or "[UNHANDLED ERROR]"
                     theorems = None
 
                 if not theorems:
