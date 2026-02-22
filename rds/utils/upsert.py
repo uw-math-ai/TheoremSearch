@@ -95,3 +95,68 @@ def upsert_rows(
             VALUES ({", ".join(["%s"] * len(rows[0]))})
             {conflict_clause}
         """, [tuple(row.values()) for row in rows])
+
+def update_row(
+    conn: connection,
+    table: str,
+    row: Dict[str, Any],
+    where: List[str]
+):
+    """
+    Updates a row in a table.
+
+    Parameters
+    ----------
+    conn : connection
+        A SQL connection
+    table : str
+        The table you want to update
+    row : Dict[str, Any]
+        The columns to update, a Dict mapping column names to values.
+        Must include all keys listed in `where`
+    where : List[str]
+        The column names in `row` to match on
+    """
+    update_cols = [col for col in row if col not in where]
+    set_clause = ", ".join(f"{col} = %s" for col in update_cols)
+    where_clause = " AND ".join(f"{col} = %s" for col in where)
+
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            UPDATE {table}
+            SET {set_clause}
+            WHERE {where_clause}
+        """, (*[row[col] for col in update_cols], *[row[col] for col in where]))
+
+
+def update_rows(
+    conn: connection,
+    table: str,
+    rows: List[Dict[str, Any]],
+    where: List[str]
+):
+    """
+    Updates a batch of rows in a table efficiently.
+
+    Parameters
+    ----------
+    conn : connection
+        A SQL connection
+    table : str
+        The table you want to update
+    rows : List[Dict[str, Any]]
+        The batch of rows to update. Each row is a Dict mapping column names to values.
+        Each row must include all keys listed in `where`
+    where : List[str]
+        The column names in each row to match on
+    """
+    update_cols = [col for col in rows[0] if col not in where]
+    set_clause = ", ".join(f"{col} = %s" for col in update_cols)
+    where_clause = " AND ".join(f"{col} = %s" for col in where)
+
+    with conn.cursor() as cur:
+        cur.executemany(f"""
+            UPDATE {table}
+            SET {set_clause}
+            WHERE {where_clause}
+        """, [(*[row[col] for col in update_cols], *[row[col] for col in where]) for row in rows])
