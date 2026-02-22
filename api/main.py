@@ -329,7 +329,7 @@ async def root():
     return {"message": "TheoremSearch API", "version": "1.0.0"}
 
 @app.post("/search", response_model=SearchResponse)
-async def search(payload: SearchRequest):
+async def search(payload: SearchRequest, mcp=False):
     """
     Search for theorems using semantic similarity and optional filters.
     
@@ -354,9 +354,9 @@ async def search(payload: SearchRequest):
                 INSERT INTO api_search_query (
                     query_at, query, n_results, source, authors, types, tags,
                     paper_filter, year_range, citation_range, citation_weight,
-                    include_unknown_citations
+                    include_unknown_citations, mcp
                 ) VALUES (
-                    NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 """,
                 (
@@ -371,6 +371,7 @@ async def search(payload: SearchRequest):
                     payload.citation_range or None,
                     payload.citation_weight,
                     payload.include_unknown_citations,
+                    mcp
                 ),
             )
 
@@ -496,7 +497,7 @@ async def mcp(request: Request):
 
         try:
             payload = SearchRequest(**(params.get("arguments") or {}))
-            search_response = await search(payload)
+            search_response = await search(payload, mcp=True)
         except Exception as e:
             return _mcp_error(request_id, -32603, str(e))
 
