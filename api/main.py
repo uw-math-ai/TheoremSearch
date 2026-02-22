@@ -40,6 +40,28 @@ def reader_conn():
     finally:
         _reader_pool.putconn(conn)
 
+_writer_pool = SimpleConnectionPool(
+    1, 5,
+    host=os.getenv("RDS_DB_HOST"),
+    port=int(os.getenv("RDS_DB_PORT", "5432")),
+    dbname=os.getenv("RDS_DB_NAME"),
+    user=os.getenv("RDS_DB_USER"),
+    password=os.getenv("RDS_DB_PASSWORD"),
+    sslmode="require",
+)
+
+@contextmanager
+def writer_conn():
+    conn = _writer_pool.getconn()
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        _writer_pool.putconn(conn)
+
 # Pydantic Models
 class SearchRequest(BaseModel):
     query: str
@@ -326,6 +348,32 @@ async def search(payload: SearchRequest):
     """
     
     try:
+        with writer_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO api_search_query (
+                    query_at, query, n_results, source, authors, types, tags,
+                    paper_filter, year_range, citation_range, citation_weight,
+                    include_unknown_citations
+                ) VALUES (
+                    NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                """,
+                (
+                    payload.query,
+                    payload.n_results,
+                    payload.sources or None,
+                    payload.authors or None,
+                    payload.types or None,
+                    payload.tags or None,
+                    payload.paper_filter,
+                    payload.year_range or None,
+                    payload.citation_range or None,
+                    payload.citation_weight,
+                    payload.include_unknown_citations,
+                ),
+            )
+
         # Generate query embedding
         query_vec = embed_query(payload.query)
         
