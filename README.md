@@ -6,12 +6,15 @@
 [![HF Paper](https://img.shields.io/badge/HF-Paper-yellow.svg)](https://huggingface.co/papers/2602.05216)
 [![Dataset](https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg)](https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset)
 [![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
+[![API](https://img.shields.io/badge/API-REST-orange.svg)](https://api.theoremsearch.com/search)
+[![MCP](https://img.shields.io/badge/MCP-Tool-purple.svg)](https://api.theoremsearch.com/mcp)
+[![Website](https://img.shields.io/badge/Website-theoremsearch.com-teal.svg)](https://theoremsearch.com)
 
 ---
 
 <table>
 <tr>
-<td width="60%" valign="top">
+<td width="50%" valign="top">
 
 ## Overview
 
@@ -38,7 +41,7 @@ Paper-level = retrieval of the correct paper containing the theorem
 
 </td>
 
-<td width="40%" valign="top">
+<td width="50%" valign="top">
 
 <img src="https://github.com/user-attachments/assets/e9dd0a54-432e-4083-ba45-38a18885bd4d" width="100%" />
 
@@ -49,6 +52,27 @@ Paper-level = retrieval of the correct paper containing the theorem
 </td>
 </tr>
 </table>
+
+---
+
+## API
+
+TheoremSearch provides a production REST API for semantic theorem search.**Example:**
+
+```bash
+curl https://api.theoremsearch.com/search \
+  -H "Content-Type: application/json" \
+  -d '{
+        "query": "smooth DM stack codimension one",
+        "n_results": 5
+      }'
+```
+
+Returns a JSON object containing theorem-level results with metadata and similarity scores.
+
+## MCP
+
+TheoremSearch is also available as an MCP tool for AI agents with a single tool `theorem_search`. Endpoint: `https://api.theoremsearch.com/mcp`.
 
 ---
 

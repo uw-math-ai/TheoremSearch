@@ -4,6 +4,7 @@ CREATE TABLE parse_status (
     last_parse_attempt_at TIMESTAMPTZ NOT NULL, -- Last time this paper had a parse attempt
     error TEXT,
     s3 BOOLEAN DEFAULT FALSE,
+    validation_level TEXT NOT NULL,
 
     PRIMARY KEY (arxiv_id, source),
 
