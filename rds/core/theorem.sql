@@ -10,7 +10,9 @@ CREATE TABLE theorem (
     label TEXT, -- Reference label of a theorem within a paper
     link TEXT, -- Closest link to the theorem. If the same as paper.link, keep NULL
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    theorem_dependencies TEXT[],
+    intrapaper_theorem_deps TEXT[],
+    interpaper_paper_deps TEXT[],
+    interpaper_theorem_deps TEXT[]
 
     FOREIGN KEY (paper_id, source) REFERENCES paper (id, source)
     ON DELETE CASCADE
