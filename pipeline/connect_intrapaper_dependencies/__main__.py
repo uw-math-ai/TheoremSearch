@@ -1,76 +1,92 @@
 import re
+from collections import defaultdict
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from argparse import ArgumentParser
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
 
-def _has_label_ref(body: str, label: str) -> bool:
-    pattern = r'\\[a-zA-Z]*[Rr]ef\{' + re.escape(label) + r'\}'
-    return bool(re.search(pattern, body))
+REF_RE = re.compile(
+    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref)\s*\{([^}]*)\}'
+    r'|\\hyperref\s*\[([^\]]*)\]'
+)
 
-def _process_paper(paper) -> list:
-    conn = get_rds_connection("v2")
+def _process_paper(theorems: list) -> list:
+    label_to_theorem_id = {t["label"]: t["id"] for t in theorems if t["label"]}
 
-    try:
-        paper_id = paper["id"]
-        source = paper["source"]
+    if not label_to_theorem_id:
+        return []
 
-        label_to_theorem_id = {}
-        paper_theorems = []
+    escaped_labels = {label: re.escape(label) for label in label_to_theorem_id}
+    dependency_rows = []
 
-        for theorems in paginate_query(
-            conn,
-            base_query="SELECT * FROM theorem WHERE paper_id = %s AND source = %s",
-            base_params=[paper_id, source],
-            order_by="id",
-            page_size=100
-        ):
-            paper_theorems.extend(theorems)
+    for theorem in theorems:
+        matched_labels = set()
+        for m in REF_RE.finditer(theorem["body"]):
+            content = m.group(1) or m.group(2)
+            for label in label_to_theorem_id:
+                if re.search(r'\b' + escaped_labels[label] + r'\b', content):
+                    matched_labels.add(label)
 
-            for theorem in theorems:
-                if theorem["label"]:
-                    label_to_theorem_id[theorem["label"]] = theorem["id"]
+        for label in matched_labels:
+            dependency_rows.append({
+                "src_theorem_id": theorem["id"],
+                "dep_key": label,
+                "dep_theorem_id": label_to_theorem_id[label],
+                "interpaper": False
+            })
 
-        dependency_rows = []
+    return dependency_rows
 
-        for theorem in paper_theorems:
-            for label, theorem_dependency_id in label_to_theorem_id.items():
-                if _has_label_ref(theorem["body"], label):
-                    dependency_rows.append({
-                        "src_theorem_id": theorem["id"],
-                        "dep_key": label,
-                        "dep_theorem_id": theorem_dependency_id
-                    })
-
-        return dependency_rows
-    finally:
-        conn.close()
-
-def connect_intrapaper_dependencies(batch_size: int, workers: int = 4):
+def connect_intrapaper_dependencies(batch_size: int, overwrite: bool):
     """
-    Connects intrapaper theorem dependencies
+    Connects intrapaper theorem dependencies.
+
+    Parameters
+    ----------
+    batch_size : int
+        Number of papers to connect dependencies for in a batch
+    overwrite : bool
+        Whether to overwrite dependency rows or not
     """
+
     print_script_header(
         action="Connecting intrapaper theorem dependencies",
         params={
             "batch size": batch_size,
-            "workers": workers
+            "overwrite": overwrite
         }
     )
 
     conn = get_rds_connection("v2")
 
-    query = """
-        SELECT id, source FROM paper
-        WHERE EXISTS (
-            SELECT 1 FROM theorem 
-            WHERE theorem.paper_id = paper.id
-                AND theorem.source = paper.source
-        )
-    """
+    if overwrite:
+        query = """
+            SELECT id, source FROM paper
+            WHERE EXISTS (
+                SELECT 1 FROM theorem 
+                WHERE theorem.paper_id = paper.id
+                    AND theorem.source = paper.source
+            )
+        """
+    else:
+        query = """
+            SELECT id, source FROM paper
+            WHERE EXISTS (
+                SELECT 1 FROM theorem 
+                WHERE theorem.paper_id = paper.id
+                    AND theorem.source = paper.source
+            )
+            AND NOT EXISTS (
+                SELECT 1 FROM theorem
+                JOIN theorem_dependency ON theorem_dependency.src_theorem_id = theorem.id
+                WHERE theorem.paper_id = paper.id
+                    AND theorem.source = paper.source
+                    AND theorem_dependency.interpaper IS FALSE
+            )
+        """
 
     count = get_query_count(conn, query)
 
@@ -81,30 +97,67 @@ def connect_intrapaper_dependencies(batch_size: int, workers: int = 4):
             order_by="id",
             page_size=batch_size
         ):
-            batch_theorem_dependency_rows = []
+            paper_ids = [p["id"] for p in papers]
+            sources = [p["source"] for p in papers]
 
-            with ThreadPoolExecutor(max_workers=workers) as executor:
-                futures = {executor.submit(_process_paper, paper): paper for paper in papers}
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, paper_id, label, body FROM theorem WHERE paper_id = ANY(%s) AND source = ANY(%s)",
+                    (paper_ids, sources)
+                )
+                batch_theorems = [
+                    {
+                        key: val
+                        for key, val in zip(["id", "paper_id", "label", "body"], row)
+                    }
+                    for row in cur.fetchall()
+                ]
 
-                for future in as_completed(futures):
-                    batch_theorem_dependency_rows.extend(future.result())
+            theorems_by_paper = defaultdict(list)
+            for t in batch_theorems:
+                theorems_by_paper[t["paper_id"]].append(t)
 
-            if batch_theorem_dependency_rows:
+            batch_rows = []
+            for paper in papers:
+                batch_rows.extend(_process_paper(theorems_by_paper[paper["id"]]))
+
+            if batch_rows:
                 with conn.cursor() as cur:
                     cur.execute(
-                        "DELETE FROM theorem_dependency WHERE src_theorem_id::TEXT = ANY(%s)",
-                        (list({row["src_theorem_id"] for row in batch_theorem_dependency_rows}),)
+                        """
+                        DELETE FROM theorem_dependency
+                        WHERE interpaper IS FALSE
+                            AND src_theorem_id::TEXT = ANY(%s)
+                        """,
+                        (list({row["src_theorem_id"] for row in batch_rows}),)
                     )
 
-                upsert_rows(
-                    conn,
-                    table="theorem_dependency",
-                    rows=batch_theorem_dependency_rows
-                )
-
+                upsert_rows(conn, table="theorem_dependency", rows=batch_rows)
                 conn.commit()
 
             pbar.update(len(papers))
 
 if __name__ == "__main__":
-    connect_intrapaper_dependencies(batch_size=16, workers=4)
+    arg_parser = ArgumentParser()
+
+    arg_parser.add_argument(
+        "-b",
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Number of papers to connect dependencies for in a batch. Default, 64"
+    )
+
+    arg_parser.add_argument(
+        "-o",
+        "--overwrite",
+        action="store_true",
+        help="Whether to overwrite dependency rows or not. Default, false"
+    )
+
+    args = arg_parser.parse_args()
+
+    connect_intrapaper_dependencies(
+        batch_size=args.batch_size,
+        overwrite=args.overwrite
+    )
