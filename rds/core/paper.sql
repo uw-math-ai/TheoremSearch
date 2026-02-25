@@ -17,3 +17,5 @@ CREATE TABLE paper (
 
 COMMENT ON TABLE paper IS
 'Stores paper metadata. A paper groups related theorems for citation.';
+
+CREATE INDEX idx_paper_title_trgm ON paper USING GIN (LOWER(title) gin_trgm_ops);
