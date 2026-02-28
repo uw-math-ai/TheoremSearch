@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime, timezone
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from argparse import ArgumentParser
-from arXiTeX.types import TheoremValidationLevel
+from arXiTeX.types import TheoremValidationLevel, ParsingMethod
 from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
@@ -19,6 +19,7 @@ def parse_papers(
     batch_size: int,
     workers: int,
     timeout: int,
+    parsing_method: ParsingMethod,
     validation_level: TheoremValidationLevel,
     source_from_s3: bool
 ):
@@ -31,6 +32,7 @@ def parse_papers(
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
+            "parsing method": parsing_method.value,
             "validation level": validation_level.value,
             "source": "arXiv S3 bucket" if source_from_s3 else "arXiv API"
         }
@@ -75,7 +77,7 @@ def parse_papers(
     }
 
     pbar = tqdm(total=paper_count, dynamic_ncols=True)
-    ex = ProcessPoolExecutor(max_workers=workers)
+    ex = ProcessPoolExecutor(max_workers=workers, max_tasks_per_child=50)
 
     with pbar, ex:
         for papers in paginate_query(
@@ -104,6 +106,7 @@ def parse_papers(
                     s3_bundle_key,
                     s3_bytes_range,
                     None,
+                    parsing_method,
                     validation_level,
                     timeout
                 )
@@ -116,10 +119,8 @@ def parse_papers(
                 try:
                     theorems = fut.result()
 
-                    if theorems is None:
+                    if not theorems:
                         raise RuntimeError() # this shouldn't happen
-                    elif not theorems:
-                        raise RuntimeError("[EMPTY ERROR] No theorems found")
                 except Exception as e:
                     error = str(e) or "[UNHANDLED ERROR]"
                     theorems = None
@@ -135,6 +136,7 @@ def parse_papers(
                     "last_parse_attempt_at": current_time,
                     "error": error,
                     "s3": source_from_s3,
+                    "parsing_method": parsing_method.value,
                     "validation_level": validation_level.value
                 })
 
@@ -224,6 +226,14 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "-m",
+        "--parsing_method",
+        type=ParsingMethod,
+        default=ParsingMethod.PLASTEX,
+        help="Method to parse"
+    )
+
+    arg_parser.add_argument(
         "-v",
         "--validation-level",
         type=TheoremValidationLevel,
@@ -254,6 +264,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         workers=args.workers,
         timeout=args.timeout,
+        parsing_method=args.parsing_method,
         validation_level=args.validation_level,
         source_from_s3=args.source_from_s3
     )
