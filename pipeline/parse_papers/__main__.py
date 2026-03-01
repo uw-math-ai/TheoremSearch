@@ -164,7 +164,7 @@ def parse_papers(
                 rows=batch_parse_status_rows,
                 on_conflict={
                     "with": ["paper_id", "source"],
-                    "replace": ["last_parse_attempt_at", "error", "s3"]
+                    "replace": ["last_parse_attempt_at", "error", "s3", "parsing_method"]
                 }
             )
 
