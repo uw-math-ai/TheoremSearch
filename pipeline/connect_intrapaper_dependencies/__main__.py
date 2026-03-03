@@ -24,7 +24,8 @@ def _process_paper(theorems: list) -> list:
 
     for theorem in theorems:
         matched_labels = set()
-        for m in REF_RE.finditer(theorem["body"]):
+        searchable_text = " ".join(filter(None, [theorem["body"], theorem["note"], theorem["proof"]]))
+        for m in REF_RE.finditer(searchable_text):
             content = m.group(1) or m.group(2)
             for label in label_to_theorem_id:
                 if re.search(r'\b' + escaped_labels[label] + r'\b', content):
@@ -102,13 +103,13 @@ def connect_intrapaper_dependencies(batch_size: int, overwrite: bool):
 
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT id, paper_id, label, body FROM theorem WHERE paper_id = ANY(%s) AND source = ANY(%s)",
+                    "SELECT id, paper_id, label, note, body, proof FROM theorem WHERE paper_id = ANY(%s) AND source = ANY(%s)",
                     (paper_ids, sources)
                 )
                 batch_theorems = [
                     {
                         key: val
-                        for key, val in zip(["id", "paper_id", "label", "body"], row)
+                        for key, val in zip(["id", "paper_id", "label", "note", "body", "proof"], row)
                     }
                     for row in cur.fetchall()
                 ]
