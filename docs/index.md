@@ -11,8 +11,7 @@ layout: default
 <a href="https://huggingface.co/papers/2602.05216"><img src="https://img.shields.io/badge/HF-Paper-yellow.svg" alt="HF Paper"></a>
 <a href="https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset"><img src="https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg" alt="Dataset"></a>
 <a href="https://huggingface.co/spaces/uw-math-ai/theorem-search"><img src="https://img.shields.io/badge/Demo-Live-green.svg" alt="Demo"></a>
-<a href="https://api.theoremsearch.com/search"><img src="https://img.shields.io/badge/API-REST-orange.svg" alt="API"></a>
-<a href="https://api.theoremsearch.com/mcp"><img src="https://img.shields.io/badge/MCP-Tool-purple.svg" alt="MCP"></a>
+<a href="https://chatgpt.com/g/g-6994f4d1eb7c8191a1a8b6aad90e1449-mathgpt"><img src="https://img.shields.io/badge/MathGPT-Custom_GPT-74aa9c.svg" alt="MathGPT"></a>
 </p>
 
 <table>
