@@ -1,6 +1,4 @@
-import json
 from tqdm import tqdm
-from datetime import datetime, timezone
 from typing import Optional
 from tempfile import TemporaryDirectory
 from argparse import ArgumentParser
@@ -52,23 +50,47 @@ def build_paper_table(
                 unit=" papers"
             )
 
-        current_time = datetime.now(timezone.utc)
-
         upsert_rows(
             conn,
             table="paper",
             rows=[
-                json.loads(paper.model_dump_json()) | {
+                {
+                    "kind": "paper",
                     "source": "arXiv",
-                    "updated_at": current_time
+                    "title": paper.title,
+                    "authors": paper.authors,
+                    "url": paper.url,
+                    "external_id": paper.arxiv_id,
+                    "categories": paper.categories,
+                    "updated_at": paper.updated_at,
                 } for paper in papers
             ],
             on_conflict={
-                "with": ["id", "source"],
+                "with": ["source", "external_id"],
                 "replace": [
-                    "title", "license", "authors", 
-                    "updated_at", "abstract", "journal_ref", 
-                    "categories", "citations"
+                    "kind", "title", "authors", "url", "categories", "updated_at"
+                ]
+            }
+        )
+
+        upsert_rows(
+            conn,
+            table="arxiv_paper_metadata",
+            rows=[
+                {
+                    "arxiv_id": paper.arxiv_id,
+                    "journal_ref": paper.journal_ref,
+                    "doi": paper.doi,
+                    "license": paper.license,
+                    "abstract": paper.abstract,
+                    "citation_count": paper.citation_count,
+                    "reference_ids": paper.reference_ids
+                } for paper in papers
+            ],
+            on_conflict={
+                "with": ["arxiv_id"],
+                "replace": [
+                    "journal_ref", "doi", "license", "abstract", "citation_count", "reference_ids"
                 ]
             }
         )
@@ -77,7 +99,8 @@ def build_paper_table(
 
         pbar.update(len(papers))
 
-    pbar.close()
+    if pbar is not None:
+        pbar.close()
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
