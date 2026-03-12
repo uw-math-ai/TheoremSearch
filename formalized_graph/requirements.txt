@@ -1,0 +1,7 @@
+flask
+flask-cors
+loguru
+tqdm
+networkx
+requests
+beautifulsoup4

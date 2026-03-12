@@ -17,3 +17,23 @@ data/sources/
 DEBUG/
 external/stacks-project/
 *.out
+*gemini.md
+
+# --- Mathlib Graph / Formalized Graph ---
+# Project-specific data and DBs
+formalized_graph/data/
+formalized_graph/docs/
+formalized_graph/**/*.db
+formalized_graph/**/*.ast.json
+
+# Lean 4 Build Artifacts
+formalized_graph/**/.lake/
+formalized_graph/**/build/
+formalized_graph/**/*.olean
+formalized_graph/**/*.ilean
+
+# Python / Environment
+formalized_graph/**/__pycache__/
+formalized_graph/**/.venv/
+formalized_graph/**/.mypy_cache/
+formalized_graph/**/.ruff_cache/
