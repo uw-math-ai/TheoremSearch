@@ -99,7 +99,7 @@ def insert_rows(rows):
 
 
 def main():
-    arxiv_ids = []
+    arxiv_ids = ['1711.06962v1']
 
     with open("ag_papers_100.txt", encoding="utf-8") as f:
         reader = csv.DictReader(f)

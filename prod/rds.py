@@ -9,7 +9,7 @@ def get_rds_connection() -> connection:
     region = os.getenv("AWS_REGION")
     secret_arn = os.getenv("RDS_SECRET_ARN")
     host = os.getenv("RDS_WRITER_HOST")
-    dbname = os.getenv("RDS_DB_NAME")
+    dbname = os.getenv("postgres")
 
     sm = boto3.client("secretsmanager", region_name=region)
     secret_value = sm.get_secret_value(SecretId=secret_arn)
