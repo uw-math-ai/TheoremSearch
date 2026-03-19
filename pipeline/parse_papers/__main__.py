@@ -266,8 +266,8 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "-t",
         "--timeout",
-        type=Optional[int],
-        default=None,
+        type=int,
+        default=10,
         help="Number of seconds allows to parse a single paper. By default, 10 seconds"
     )
 
