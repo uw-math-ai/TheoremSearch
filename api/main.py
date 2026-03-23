@@ -20,7 +20,8 @@ client = OpenAI(
 )
 
 # Database connection setup
-_reader_pool = SimpleConnectionPool(
+
+_conn_pool = SimpleConnectionPool(
     1, 10,
     host=os.getenv("RDS_DB_HOST"),
     port=int(os.getenv("RDS_DB_PORT", "5432")),
@@ -31,28 +32,8 @@ _reader_pool = SimpleConnectionPool(
 )
 
 @contextmanager
-def reader_conn():
-    """Get a connection from the reader pool"""
-    conn = _reader_pool.getconn()
-    try:
-        register_vector(conn)
-        yield conn
-    finally:
-        _reader_pool.putconn(conn)
-
-_writer_pool = SimpleConnectionPool(
-    1, 5,
-    host=os.getenv("RDS_DB_HOST"),
-    port=int(os.getenv("RDS_DB_PORT", "5432")),
-    dbname=os.getenv("RDS_DB_NAME"),
-    user=os.getenv("RDS_DB_USER"),
-    password=os.getenv("RDS_DB_PASSWORD"),
-    sslmode="require",
-)
-
-@contextmanager
-def writer_conn():
-    conn = _writer_pool.getconn()
+def rds_conn():
+    conn = _conn_pool.getconn()
     try:
         yield conn
         conn.commit()
@@ -60,7 +41,7 @@ def writer_conn():
         conn.rollback()
         raise
     finally:
-        _writer_pool.putconn(conn)
+        _conn_pool.putconn(conn)
 
 # Pydantic Models
 class SearchRequest(BaseModel):
@@ -159,7 +140,7 @@ def fetch_candidate_ids(
     per_source_multiplier = 3
     ef_search = max(80, top_k * 4)
 
-    with reader_conn() as conn, conn.cursor() as cur:
+    with rds_conn() as conn, conn.cursor() as cur:
         cur.execute("SET LOCAL hnsw.ef_search = %s;", (ef_search,))
         cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
 
@@ -219,7 +200,7 @@ def fetch_full_rows(slogan_rows: List[tuple]) -> List[dict]:
     slogan_ids = [r[0] for r in slogan_rows]
     score_map = {r[0]: (r[1], r[2]) for r in slogan_rows}
 
-    with reader_conn() as conn, conn.cursor() as cur:
+    with rds_conn() as conn, conn.cursor() as cur:
         sql = """
         SELECT
             slogan_id,
@@ -348,7 +329,7 @@ async def search(payload: SearchRequest, mcp=False):
     """
     
     try:
-        with writer_conn() as conn, conn.cursor() as cur:
+        with rds_conn() as conn, conn.cursor() as cur:
             cur.execute(
                 """
                 INSERT INTO api_search_query (
