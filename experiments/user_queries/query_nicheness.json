@@ -1,0 +1,1512 @@
+[
+  {
+    "index": 0,
+    "query": "Let [n] = {0,...,n-1}. There is a prescribed way to write each functions f:[n] -> [m] as a linear combination G(f) over Z of monotone functions [n] -> [m]  such that:1. if f is monotone, then G(f) is the trivial linear combination \"f\". 2. If g:[m]->[k] another function, then G(gf)=G(g)G(f) when composition of linear combinations is extended bi-linearly from ordinar composition ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 1,
+    "query": "## Theorem Let $p \\ge 1$. For a tree $\\Gamma_p$ constructed as described in the setup, with degrees $n_k \\ge 2$, positive strengths $\\alpha_k > 0$ for $k=1,...,p$, and positive internal edge lengths $a_k > 0$ for $k=1,...,p-1$, the function $\\det D_{\\Gamma_p}(\\omega)$ has a root of order exactly $p-1$ at $\\omega=0$. In particular, $$\\partial_{\\omega}^{(p-1)}\\det D_{\\Gamma_p}(\\omega)_{\\vert \\omega=0}\\neq 0.$$",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 2,
+    "query": "Let P be a ranked poset with a unique minimal and maximal element.  Let C_n be a chain. The number of functions F:Px{1,2,..., } ->{0,1,2,...} such that F(x,y)-F(x',y') \\in {0,1} if (x,y) covers (x',y') in Px{1,..,n}, and F(0,y)=F(x,0)=0 for all x in P, y in {1,...,n} and F(x,y) is always bounded by rank of P",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 3,
+    "query": "For any $k\\geq 2$ let $g_k(n)$ denote the maximum value of\\[(a_1+\\cdots+a_k)-n\\]where $a_1,\\ldots,a_k$ are integers such that $a_1!\\cdots a_k! \\mid n!$. Can one show that\\[\\sum_{n\\leq x}g_k(n) \\sim c_k x\\log x\\]for some constant $c_k$? Is it true that there is a constant $c_k$ such that for almost all $n<x$ we have\\[g_k(n)=c_k\\log x+o(\\log x)?\\]",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 4,
+    "query": "(Artin). Let K be afield and let G be a finite group of automorphisms of K, of order n. Let k = K G be the fixed field. Then K is a finite Galois extension of k, and its Galois group is G. We have [K : k] = n.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 5,
+    "query": "There is an absolute constant C1 > 0 such that for every integer k \u2265 1, we have log num(B2k) \u2264 C1 k log(2k). Consequently, there is an absolute constant C2 > 0 such that for all m \u2265 2, log Pm \u2264 C2 m2 log m.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 6,
+    "query": "Let 1 < p < \u221e and A(D) be a homogeneous differential operator of order k on Rn from V to E. The estimate \u2225Dku\u2225Lp \u2264 C\u2225A(D)u\u2225Lp holds for every u \u2208 C\u221e c (Rn; V ) if and only if A(D) is elliptic.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 7,
+    "query": "The ratio between the total win and total bet of wagers on roulette will converge almost surely to 36/37; it does not matter whether the bet changes value at each spin, or that the player changes the betting opportunity (red, black, single number etc)",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 8,
+    "query": "Suppose p(t)/q(t) is a quotient of two polynomials p and q. Suppose q(t_0) not equal 0. Then the power series expansion for p/q about t_0 has radius of convergence equal to the closest distance from t_0 to the roots (including complex roots) of q.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 9,
+    "query": "a theorem about the number of functions F:Px{1,2,..., } ->{0,1,2,...} such that F(x,y)-F(x',y') \\in {0,1} if (x,y) covers (x',y') in Px{1,..,n}, and F(0,y)=F(x,0)=0 for all x in P, y in {1,...,n} and F(x,y) is always bounded by rank of P",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 10,
+    "query": "Let S be a scheme and P any operad, and let E be a sheaf of O_S-modules which is locally free of finite rank. Then the functor classifying P-algebra structures on E is representable by a scheme over S",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 11,
+    "query": "A probability distribution P factors according to an ex ponential model A if and only if the support of P is A-feasible and all poly nomials in an ideal basis of the toric ideal IA vanish at P.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 12,
+    "query": "The singular locus of the closure of BwB/B in GL_n/B  includes all smaller varieties of the form closure(BvB/B ) where v and w differ by a 3412 pattern, a 45312 pattern or a 4231 pattern",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 13,
+    "query": "Let X be a scheme over a field k. If X is finite and etale over k, and if X has a k-point, then X is either Spec k, or is topologically disconnected. ",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 14,
+    "query": "Given a smooth scheme S with an open U with complement of codimension 2, consider a finite etale gerbe over U. This extends to a finite etale gerbe over S",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 15,
+    "query": "Marstrand\u2019s theorem If the Hausdorff dimension of  K K is greater than 1, then the projection of  K K onto any line (in almost all directions) has positive Lebesgue measure.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 16,
+    "query": "Prove that for a globally generated coherent sheaf F on a normal variety X, if the top chern class of F is 0, then it has a no-where vanishing section.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 17,
+    "query": "given three knots, it is possible to find an embedded sphere with three boundary components, such that the boundary components are the prescribed knots. (the knots may be linked))",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 18,
+    "query": "For a tree with degrees greater than 2 and positive strengths and positive internal edge lengths, the function det D_{gamma_p}(omega) has a root of order exactly p-1 at omega=0",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 19,
+    "query": "if A is a normal ring and G is a finite group acting on A, then the ring of invariants A^G is also normal.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 20,
+    "query": "birkhoff recurrence on a uniform space, i.e. for a minimal dynamical system over a uniform space (aka a uniformity) there exists a recurrent point",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 21,
+    "query": "How long can be the trajectory  of gradient flow on a convex function when restricted to be in the unit ball of R^n",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 22,
+    "query": "given three knots, there is an embedded 2-sphere with three boundary components in the 3-sphere that has those three knots as boundary components",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 23,
+    "query": "is there a known bound on the norm of the Riemann tensor for a Ricci flat metric on the Fermat quartic K3 surface",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 24,
+    "query": "over a field of characteristic p > 0, finite connected group schemes of height one are equivalent to finite restricted Lie algebras",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 25,
+    "query": "if X \\to Y is an open immersion of G_m-equivariant schemes then its quotient X/G_m \u2192 Y/G_m is also an open immersion",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 26,
+    "query": "If an operator is not strongly monotone in Euclidean space, then it is not strongly monotone in any equivalent inner product.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 27,
+    "query": "A finite etale gerbe on a smooth scheme X is uniquely determined by its restriction to codimension one locus of X",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 28,
+    "query": "The b-bit sampling scheme derived  f rom a Beta(1, k- 1) distribution is a 2k-1-bounded  sampling scheme for b > 1.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 29,
+    "query": "four points on the plane are cocircular if and only if the determinant of their projection to the paraboloid is zero",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 30,
+    "query": "Suppose Assumptions \\ref{as:hypotheses}-\\ref{as:gc} hold. Let $c_\\alpha$ be defined as in \\eqref{eq:def_calpha}. Then, for any $\\alpha\\in (0,1)$, \\begin{align} \t\\lim_{n\\to\\infty}P^n_0(\\hat S_n>c_\\alpha)=\\alpha. \\end{align}",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 31,
+    "query": "The optimal path problem is NP-Hard for the maximum likelihood score, the minimum description length score and a Bayesian score.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 32,
+    "query": "The characteristic polynomial of a linear operator restricted to an invariant subspace divides the characteristic polynomial of the non-restricted operator.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 33,
+    "query": "if every hyperplane bisects a convex body into two parts of equal measure then the convex body is centrally symmetric",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 34,
+    "query": "there is a map from the quasimaps moduli space with coeff epsilon+ to the quasimaps moduli space with coeff epsilon-",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 35,
+    "query": "the stabilization morphism flat from the moduli space of prestable curves to the moduli space of stable curves is flat",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 36,
+    "query": "In a random bipartite matching, the matching status of  vertices on opposite sides of the partition are positively correlated.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 37,
+    "query": "Deligne-Mumford open in a stack with a good moduli space agrees with the semistable locus of a line bundle",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 38,
+    "query": "the local fundamental group of the vertex of the cone over the veronese embedding of Pn is finite",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 39,
+    "query": "Push-forward of the structure sheaf is the structure sheaf for morphism from a seminormal target with connected fibers",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 40,
+    "query": "The hodge bundle on an elliptic surface is the same as the hodge bundle on its Jacobian fibration",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 41,
+    "query": "toric ideal generated by 4-chains of elements of a poset, inside the ring generated by 2-chains of elements",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 42,
+    "query": "2-monoidal structure given by the day convolution on one side and the usual monoidal structure on the other.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 43,
+    "query": "the compactified jacobian of a genus 2 rational curve with an A_n singulariy is a weighted projective scheme",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 44,
+    "query": "The set of projections that are murray von neumann equivalent have the homotopy type of a CW complex",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 45,
+    "query": "the intersections a line and the opposite sides of a complete quadrilateral are pairs in a involution",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 46,
+    "query": "If a polynomial vanishes on a segment, it can be factorized by the equation of its line.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 47,
+    "query": "Certain triangle centers in an isosceles triangle form a specific order on the median to the base.",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 48,
+    "query": "measure of the largest sum free subset of the square is half the measure of the square",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 49,
+    "query": "dual of subcategory that is graded by universal grading group is graded by dual of group element",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 50,
+    "query": "a scheme which is finite over a field k and topologically connected must be topologically a point.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 51,
+    "query": "canonical vector space of polynomials of rank equal to the number of spanning trees of a graph",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 52,
+    "query": "Formula for the class of the zero section in a compactified universal Jacobian with given stability condition.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 53,
+    "query": "Ultrafilters where all sets have divergent series of reciprocals form a closed right ideal in beta N",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 54,
+    "query": "correspondence between Chow rings of the relative Jacobian and moduli of curves with markings, over compact type",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 55,
+    "query": "quotient of metric spaces are metrizable when the relation is closed and the equivalence classes are compact",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 56,
+    "query": "The cohomology groups with coefficients in the group ring are quasi-isometric invariants of groups of type FP",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 57,
+    "query": "The Borel sigma algebras of the weak-* and strong topologies in the space of Schwartz distributions coincide",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 58,
+    "query": "the determinant of a matrix polynomial with positive definite coefficients is a scalar polynomial with positive coefficients",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 59,
+    "query": "The law of a diffusion with additive noise that doesn't explode is equivalent to Wiener measure.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 60,
+    "query": "The lines from the vertices to triangle centers on the faces of a tetrahedron are concurrent.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 61,
+    "query": "A smooth Deligne-Mumford stack with ample tangent bundle is a quotient of a weighted projective stack",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 62,
+    "query": "the center of a flat, smooth, unipotent, connected group scheme is again flat, smooth, unipotent, connected",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 63,
+    "query": "A probability distribution P factors according to A only if the support of P is A-feasible.",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 64,
+    "query": "The opposite sides of a hexagon inscribed in a conic concur at three collinear points",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 65,
+    "query": "if f:X\u2192Y is nonzero in a tensor category, then id_Z\u2297f\u22600 for any nonzero object Z",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 66,
+    "query": "Given subadditive function f:N->R it holds that sum_{I=1}^n f(I)/I <= f(n) , for every n ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 67,
+    "query": "The Borel sigma algebras of the weak-* and strong topologies in a banach space coincide",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 68,
+    "query": "if f:X\u2192Y is nonzero in additive monoidal \ud835\udc9e, then id_Z\u2297f\u22600 for any nonzero object Z",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 69,
+    "query": "Degeneration to the polystable point in an orbit is realized by a family over [A^1/Gm]",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 70,
+    "query": "A borel toast exists implies that the equivalence relation generated by the action is hyperfinite",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 71,
+    "query": "canonical finite algebra of rank equal to the number of spanning trees of a graph",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 72,
+    "query": "the classifying space of a monoid which is also a poset is a simplicial complex",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 73,
+    "query": "Cuntz equivalence classes in a c* algebra have the homotopy type of a CW complex",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 74,
+    "query": "A language is recognized by a Deterministic PDA iff the end marked language is recognized",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 75,
+    "query": "a connected scheme which is finite over a field k must be topologically a point.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 76,
+    "query": "Global quotient by a torus with trivial stabilizers admits a dense open which is Deligne-Mumford",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 77,
+    "query": "The set of points where a good moduli space map is an isomorphism is open",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 78,
+    "query": "Projections in the same K0 class have the homotopy type of a CW complex",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 79,
+    "query": "There is a correspondence between skew braces and hopf Galois structures on Galois extensions ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 80,
+    "query": "the transversal ratio of a simplicial complex homeomorphic to S^2 is at least 1/2",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 81,
+    "query": "correspondence between Chow rings of the Jacobian of C and symmetric powers of C",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 82,
+    "query": "The hodge line bundle of an elliptic surface is the same as its Jacobian",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 83,
+    "query": "given local de rham splitting and parallel gradient implies global de rham splitting",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 84,
+    "query": "if a sequence of operators is summable, then it converges to 0 b.a.u.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 85,
+    "query": "There are invertible elements for addition in the Stone -Cech compactification of N",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 86,
+    "query": "smash product of complex oriented cohomology theory with algebraic k-theory has higher weight",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 87,
+    "query": "Rescalings of solutions to the KPZ equation converge to the KPZ fixed point.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 88,
+    "query": "One can contract a Cartier divisors with negative normal bundle, isomorphic to P^n",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 89,
+    "query": "a flat convex subset in a Euclidean building is contained in an apartment",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 90,
+    "query": "given any three nots, there is a genus-zero surface having them as boundary",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 91,
+    "query": "The k-th Dirichlet laplacian eigenvalue is attained among open sets with fixed volume. ",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 92,
+    "query": "an elliptic fibration and its corresponding Jacobian fibration have the same j-map",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 93,
+    "query": "solutions to a weakly hyperbolic cauchy problem have a loss of regularity",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 94,
+    "query": "local product riemannian metric and parallel gradient vector field implies global product",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 95,
+    "query": "microflexible h-principle for smooth sets (sheaves of the discrete category of manifolds)",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 96,
+    "query": "universal enveloping algebras are equivalent to Hopf algebras generated by primitive elements",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 97,
+    "query": "the measure of the largest sum free subset of [-1,1]^2 is half ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 98,
+    "query": "The dimension of global sections of a line bundle on a curve",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 99,
+    "query": "Matrix-vector multiplication distributes over the terms in a finite sum of vectors",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 100,
+    "query": "The full compressible Navier-Stokes-Korteweg equations have a unique weak local solution",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 101,
+    "query": "Every KSBA-stable pair is the stable model of a Q-stable pair",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 102,
+    "query": "maximal surface representations have euler number equal to the rotation number",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 103,
+    "query": "Which 3-manifolds exhibit infinitely many non-isotopic surfaces of the same genus?",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 104,
+    "query": "The caratheodory extension of a measure on (sub)locales is strictly additive.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 105,
+    "query": "the compactified jacobian of a rational curve with A_n singularity i",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 106,
+    "query": "any two knots are related by crossing changes in 3 manifolds",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 107,
+    "query": "the existence of a motivic t-structure implies the beillinson filtration conjecture",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 108,
+    "query": "classifying space of a topological monoid has the homotopy type of",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 109,
+    "query": "The baily borel compactification of the modul space of Enriques surfaces",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 110,
+    "query": "Solutions of singular linear systems  in term of adjugate matrix gate",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 111,
+    "query": "A finitely generated k algebra has finitely many minimal primes",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 112,
+    "query": "the solutions to the system of quantum hydrodynamics are unique",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 113,
+    "query": "Stochastic localization approximately conserves entropy when started from Ising measure",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 114,
+    "query": "Reductive group over an complete DVR admits a maximal torus",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 115,
+    "query": "Homtopy groups of the set of projections in a C*-algebra",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 116,
+    "query": "Dirichlet series have a pole on its abscissa of convergence",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 117,
+    "query": "the equilibrium of the Vlasov-Maxwell-Landau equations is a global Maxwellian",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 118,
+    "query": "homotopy type of cuntz equivalence orbits in a c* algebra",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 119,
+    "query": "sign of the cup-i product associated to alexander-whitney diagonal approximation",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 120,
+    "query": "The number of countable models of aleph1-categorical theory is aleph0",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 121,
+    "query": "a pointwise converging sequence of increasing functions is uniformly convergent",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 122,
+    "query": "Smooth DM stack is uniquely determined by codimension one locus",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 123,
+    "query": "Generically trivial gerbe over a smooth curve has trivial fibers",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 124,
+    "query": "problems and results on number theoretic properties of consecutive integers",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 125,
+    "query": "You can recover a field from its Milnor K theory",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 126,
+    "query": "the nonlinear stability of kerr in the full subextremal range",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 127,
+    "query": "the classifying space of a poset is a simplicial complex",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 128,
+    "query": "when are fraisse limits models of an almost sure theory",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 129,
+    "query": "chromatic height increases when smashing with algebraic k theory spectrum",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 130,
+    "query": "the classifying space of a monoid is a delta complex",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 131,
+    "query": "indeterminacy locus of the gauss map of a jacobian variety",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 132,
+    "query": "rates of metastability for the halpern iteration in cat(0) spaces",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 133,
+    "query": "cheeger gromoll local isometric product, busemann flow implies global product",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 134,
+    "query": "the quotient of a metric space is a pseudometric space",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 135,
+    "query": "relative equilibrium structure imply the existence of solitary wave solutions",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 136,
+    "query": "Feynmann transform of Associative cyclic operad and modular operads",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 137,
+    "query": "every inner product space is also a topological space",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 138,
+    "query": "function locally equal to infinitesimal rotation on connected set",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 139,
+    "query": "Hypersurfasec of genus greater zero admits no birational automorphisms",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 140,
+    "query": "j-map for an elliptic fibration and its jacobian fibration",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 141,
+    "query": "Moduli of Stable Bundles for Ruled Surfaces is nonempty",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 142,
+    "query": "function locally equal to linear function on connected set",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 143,
+    "query": "best bound for distances of algebraic geometric error-correcting codes",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 144,
+    "query": "sign of the cup-i product as an explicit operation",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 145,
+    "query": "local fundamental group for regular local ring is trivial",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 146,
+    "query": "Inf sup stability of spacetime dg acoustic Wave equatiom",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 147,
+    "query": "Arveson's hyperrigidity conjecture is true for type I algebras",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 148,
+    "query": "There exists a free monoid on a monoidal category",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 149,
+    "query": "Moduli stack of twsited maps to stacks is proper",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 150,
+    "query": "ideal of jacobian of curves as a projective variety",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 151,
+    "query": "Support functions are lipschitz in set by hausdorff distance",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 152,
+    "query": "Functions that differentiable everywhere but discontinuous at a point",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 153,
+    "query": "definition of knot sum for knots in other three-manifolds.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 154,
+    "query": "beillinson conjecture implies kimura conjecture on finite dimension motives",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 155,
+    "query": "The norm function f (x) = \u2225x\u2225 is 1-Lipschitz.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 156,
+    "query": "local fundamental group for a smooth point is trivial",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 157,
+    "query": "Quasi-isometry invariance cohomology with coefficient in group ring",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 158,
+    "query": "parity of meromorphic differentials on compact Riemann surfaces",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 159,
+    "query": "Minimax robust estimation rate under the wasserstein distance",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 160,
+    "query": "theorems about smooth DM stacks of codimension one",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 161,
+    "query": "Support functions are lipschitz in argument and set",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 162,
+    "query": "function locally equal to polynomial on connected set",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 163,
+    "query": "Representation is irreducible iff representation map is surjective",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 164,
+    "query": "homotopy type of projections in a c* algebra",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 165,
+    "query": "automorphism group scheme homomorphisms conjugate separably closed field",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 166,
+    "query": "sign of the cup-i product associated to steenrod",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 167,
+    "query": "Teichmuller transfer surface rational billiards polygon  orbit arithmetic",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 168,
+    "query": "Any compact Lie group carries a biinvariant metric. ",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 169,
+    "query": "Teichmuller theory of surfaces of topologically infinite type",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 170,
+    "query": "The abelianization of reductive group is a torus",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 171,
+    "query": "Is Heegaard genus known to be NP hard?",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 172,
+    "query": "Steklov spectrum discrete non-compact minimal surface free boundary",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 173,
+    "query": "closed negatively curved manifold is pinched negatively curved",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 174,
+    "query": "The Nuclei on a Frame/Locale form a Frame.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 175,
+    "query": "the transversal ratio of the sphere is 1/2",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 176,
+    "query": "The Couette flow is stable under Gevrey perturbations",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 177,
+    "query": "Cover ideals of modular lattices are cohen Macaulay ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 178,
+    "query": "the transversal ratio of S^2 is a half",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 179,
+    "query": "A theorem to calculate distance of a triangle ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 180,
+    "query": "Retakh Berenstein triangle group for non commutative surfaces",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 181,
+    "query": "L^2 energy of singular conical Kahler einstein metrics",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 182,
+    "query": "stability of the landau equation in relative entropy",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 183,
+    "query": "Complete regular local rings are defined by prisms",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 184,
+    "query": "A globally hyperbolic Lorentzian length space is geodesic.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 185,
+    "query": "action of the gradient flow of Kl divergence ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 186,
+    "query": "Nonparametric estimation in fractional stochastic differential equation",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 187,
+    "query": "Solutions of singular linear systems  in term",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 188,
+    "query": "gerbe for connected reductive group is bande",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 189,
+    "query": "Affine algebraic racks differentiate to Leibniz algebras",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 190,
+    "query": "the laplacian has a bounded H-infinity calculus",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 191,
+    "query": "Uniqueness of solutions to the Landau equation",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 192,
+    "query": "Geometric irreductibility is Zariski local modulo connectedness.",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 193,
+    "query": "a map is colourable with four colors",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 194,
+    "query": "criteria to blow down weighted projetctive stacks",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 195,
+    "query": "Monodromy of a semistable model is unipotent",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 196,
+    "query": "Deformation spines satisfy an exponential isoperimetric inequality",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 197,
+    "query": "locally convex topological vector space nash equilibrium",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 198,
+    "query": "p^2 divise (p-1)! -1 pour p premier",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 199,
+    "query": "Schr\u00f6dinger operators generate a group on L2",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 200,
+    "query": "Contracting elliptic tails is a weighted blow-up",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 201,
+    "query": "Computation of border bases no term ordering",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 202,
+    "query": "constant rank level set theorem quantitative version",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 203,
+    "query": "Sarkozy theorem for shifted primes assuming GRH",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 204,
+    "query": "spatially homogeneous Landau equation in relative entropy",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 205,
+    "query": "You can recover a field from its ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 206,
+    "query": "Arveson's hyperrigidity conjecte holds for function systems",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 207,
+    "query": "bounds on boolean rank of a matrix",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 208,
+    "query": "models for elliptic fibrations with multiple fibres",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 209,
+    "query": "are all homologous knots in thremanifolds homotopic",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 210,
+    "query": "fractal dimension of a nilpotent saddle node",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 211,
+    "query": "a scheme of finite type is geometric",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 212,
+    "query": "Isolated point is eigenvalue &class A operator ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 213,
+    "query": "classifying space of a topological monoid is",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 214,
+    "query": "GOSDT generates the optimal sparse decision tree",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 215,
+    "query": "The Betti numbers are invariant under flops ",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 216,
+    "query": "The Lefschetz Riemann Roch theorem for surfaces",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 217,
+    "query": "Representations are uniquely determined by their character",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 218,
+    "query": "finite local etale ring extensions are monogenic",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 219,
+    "query": "The jones polynomial is link invariant",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 220,
+    "query": "The ramsey number 3 is 6",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 221,
+    "query": "Reduction on proof nets is confluent",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 222,
+    "query": "affine paving of quiver flag variety",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 223,
+    "query": "Kolmogorov continuity theorem for schwartz distributions",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 224,
+    "query": "definition of de Rham fundamental group",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 225,
+    "query": "Skein bialgebra has a PBW basis",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 226,
+    "query": "Lefschetz Riemann Roch and coherent trace",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 227,
+    "query": "classifying space of a monoid is",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 228,
+    "query": "regularity of the homogeneous landau equation",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 229,
+    "query": "besov space embeds into sobolev space",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 230,
+    "query": "birkhoff recurrence on a uniform space",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 231,
+    "query": "every variety has finite dimensional motive",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 232,
+    "query": "polynomiality of the double ramification cycle",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 233,
+    "query": "convergence of methods for secular equations",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 234,
+    "query": "Commutants of shifts on Banach spaces",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 235,
+    "query": "a rational variety is simply connected",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 236,
+    "query": "Smashing with k theory increases weight",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 237,
+    "query": "universal optimality of the leech lattice",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 238,
+    "query": "Functor between Monoidal Categories and Topoi",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 239,
+    "query": "Mixed moments of derivatives of L-functions ",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 240,
+    "query": "Conditions for being a toric cover",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 241,
+    "query": "algebraic characterization of odd acyclic oriention",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 242,
+    "query": "stokes theorem for nonorientable manifold, density",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 243,
+    "query": "rational involution on an algebraic variety",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 244,
+    "query": "algorithm for computing dihedral linking number",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 245,
+    "query": "Triangle centers in an isosceles triangle.",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 246,
+    "query": "rank of polynomial kernels are bounded",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 247,
+    "query": "Moduli of Stable Bundles is nonempty",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 248,
+    "query": "WRT invariant as quantum modular forms",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 249,
+    "query": "isolated point is eigenvalue & hyponormal ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 250,
+    "query": "log terminal singularities have crepant reoslutions",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 251,
+    "query": "separated algebraic spaces satisfy valuative criterion",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 252,
+    "query": "Norm principle type Dn algebraic group",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 253,
+    "query": "Shared commodity problem for weighted graphs",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 254,
+    "query": "ABC conjecture implies no siegel zeroes",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 255,
+    "query": "Median graph convex cycle length 4",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 256,
+    "query": "completeness theorem first order predicate logic",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 257,
+    "query": "subgame perfect nash equilibrium backward induction",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 258,
+    "query": "The sum of the fibnacci numbers",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 259,
+    "query": "Growth estimates on weighted Fisher information",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 260,
+    "query": "Gibbs measures on the unit ball",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 261,
+    "query": "Navier stokes combined with Nash equilibrium",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 262,
+    "query": "there are infinitely many prime numbers",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 263,
+    "query": "structure of modules over PID",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 264,
+    "query": "Teichmuller transfer surface billiards polygon",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 265,
+    "query": "harmonic ultrafilters form an ideal",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 266,
+    "query": "every 3-manifold admits a foliation",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 267,
+    "query": "Representation ring of finite groups",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 268,
+    "query": "period maps on non-K\u00e4hler manifolds",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 269,
+    "query": "haar measure over unitary group",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 270,
+    "query": "Persson characterization of p laplacian",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 271,
+    "query": "constant rank level set theorem",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 272,
+    "query": "MMP descends along Calabi-Yau firbations",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 273,
+    "query": "Sarkozy theorem for shifted primes",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 274,
+    "query": "characterization of weighted projective stack",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 275,
+    "query": "bounded sequence has convergent subsequence",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 276,
+    "query": "deformations of complex parallelisable manifolds",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 277,
+    "query": "strongly monotone operator change metric",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 278,
+    "query": "Tate Shafarevich group is finite",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 279,
+    "query": "Restriction operator, invariant , paranormal ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 280,
+    "query": "theta correspondenc of associate cycle",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 281,
+    "query": "m primary monomial ideals glicciness",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 282,
+    "query": "Invariant, restriction, absolute paranormal operator ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 283,
+    "query": "definition of (\u221e,n)-category of cobordisms",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 284,
+    "query": "Vietoris ripps complex approximates curvature",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 285,
+    "query": "Class A(k) operator is isoloid ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 286,
+    "query": "Ring with unique simple module",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 287,
+    "query": "betti numbers on cubical complexes",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 288,
+    "query": "baire class two, complete co-analytic",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 289,
+    "query": "compact space hausdorff space bijection",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 290,
+    "query": "Howe correspondence between supercuspial representations",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 291,
+    "query": "dynamical flow on a uniformity",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 292,
+    "query": "sign of the cup-i product ",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 293,
+    "query": "chain operads define steenrod operations",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 294,
+    "query": "moore loopspaces are also posets",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 295,
+    "query": "Collapse mu- calculus intuitionistic s5",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 296,
+    "query": "three manifold knots connected sum",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 297,
+    "query": "free groups are matricial field",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 298,
+    "query": "beillinson conjecture implies kimura conjectuire",
+    "nicheness": "NICHE"
+  },
+  {
+    "index": 299,
+    "query": "characteristic polynomial upper semimodular lattices",
+    "nicheness": "VAGUE"
+  },
+  {
+    "index": 300,
+    "query": "completeness of the complex numbers",
+    "nicheness": "FAMOUS"
+  },
+  {
+    "index": 301,
+    "query": "Hodge conjecture for abelian fourfold",
+    "nicheness": "NICHE"
+  }
+]

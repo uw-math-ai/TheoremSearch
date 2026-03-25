@@ -1,0 +1,303 @@
+Unnamed: 0,query,sources,time,tags,top_k,types,authors,year_range,citation_range,journal_status,citation_weight,include_unknown_citations,paper_ids,paper_titles,frequency
+482,"Let [n] = {0,...,n-1}. There is a prescribed way to write each functions f:[n] -> [m] as a linear combination G(f) over Z of monotone functions [n] -> [m]  such that:1. if f is monotone, then G(f) is the trivial linear combination ""f"". 2. If g:[m]->[k] another function, then G(gf)=G(g)G(f) when composition of linear combinations is extended bi-linearly from ordinar composition ","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-16-2026 06:35 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+375,"## Theorem Let $p \ge 1$. For a tree $\Gamma_p$ constructed as described in the setup, with degrees $n_k \ge 2$, positive strengths $\alpha_k > 0$ for $k=1,...,p$, and positive internal edge lengths $a_k > 0$ for $k=1,...,p-1$, the function $\det D_{\Gamma_p}(\omega)$ has a root of order exactly $p-1$ at $\omega=0$. In particular, $$\partial_{\omega}^{(p-1)}\det D_{\Gamma_p}(\omega)_{\vert \omega=0}\neq 0.$$",arXiv,02-19-2026 11:01 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+742,"Let P be a ranked poset with a unique minimal and maximal element.  Let C_n be a chain. The number of functions F:Px{1,2,..., } ->{0,1,2,...} such that F(x,y)-F(x',y') \in {0,1} if (x,y) covers (x',y') in Px{1,..,n}, and F(0,y)=F(x,0)=0 for all x in P, y in {1,...,n} and F(x,y) is always bounded by rank of P",arXiv,02-03-2026 08:04 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+395,"For any $k\geq 2$ let $g_k(n)$ denote the maximum value of\[(a_1+\cdots+a_k)-n\]where $a_1,\ldots,a_k$ are integers such that $a_1!\cdots a_k! \mid n!$. Can one show that\[\sum_{n\leq x}g_k(n) \sim c_k x\log x\]for some constant $c_k$? Is it true that there is a constant $c_k$ such that for almost all $n<x$ we have\[g_k(n)=c_k\log x+o(\log x)?\]","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 10:51 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+23,"(Artin). Let K be afield and let G be a finite group of automorphisms of K, of order n. Let k = K G be the fixed field. Then K is a finite Galois extension of k, and its Galois group is G. We have [K : k] = n.",arXiv,03-20-2026 09:46 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+445,"There is an absolute constant C1 > 0 such that for every integer k ≥ 1, we have log num(B2k) ≤ C1 k log(2k). Consequently, there is an absolute constant C2 > 0 such that for all m ≥ 2, log Pm ≤ C2 m2 log m.","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 08:43 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+166,Let 1 < p < ∞ and A(D) be a homogeneous differential operator of order k on Rn from V to E. The estimate ∥Dku∥Lp ≤ C∥A(D)u∥Lp holds for every u ∈ C∞ c (Rn; V ) if and only if A(D) is elliptic.,arXiv,03-04-2026 07:17 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+219,"The ratio between the total win and total bet of wagers on roulette will converge almost surely to 36/37; it does not matter whether the bet changes value at each spin, or that the player changes the betting opportunity (red, black, single number etc)",arXiv,02-25-2026 08:52 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+631,Suppose p(t)/q(t) is a quotient of two polynomials p and q. Suppose q(t_0) not equal 0. Then the power series expansion for p/q about t_0 has radius of convergence equal to the closest distance from t_0 to the roots (including complex roots) of q.,arXiv,02-07-2026 05:45 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+744,"a theorem about the number of functions F:Px{1,2,..., } ->{0,1,2,...} such that F(x,y)-F(x',y') \in {0,1} if (x,y) covers (x',y') in Px{1,..,n}, and F(0,y)=F(x,0)=0 for all x in P, y in {1,...,n} and F(x,y) is always bounded by rank of P",arXiv,02-03-2026 08:00 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+506,"Let S be a scheme and P any operad, and let E be a sheaf of O_S-modules which is locally free of finite rank. Then the functor classifying P-algebra structures on E is representable by a scheme over S","Stacks Project,Open Logic Project,ProofWiki,An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book",02-15-2026 10:34 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+695,A probability distribution P factors according to an ex ponential model A if and only if the support of P is A-feasible and all poly nomials in an ideal basis of the toric ideal IA vanish at P.,arXiv,02-05-2026 10:44 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+736,"The singular locus of the closure of BwB/B in GL_n/B  includes all smaller varieties of the form closure(BvB/B ) where v and w differ by a 3412 pattern, a 45312 pattern or a 4231 pattern",arXiv,02-03-2026 11:49 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,3
+724,"Let X be a scheme over a field k. If X is finite and etale over k, and if X has a k-point, then X is either Spec k, or is topologically disconnected. ",Stacks Project,02-04-2026 02:22 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+726,"Given a smooth scheme S with an open U with complement of codimension 2, consider a finite etale gerbe over U. This extends to a finite etale gerbe over S",arXiv,02-04-2026 11:52 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+718,"Marstrand’s theorem If the Hausdorff dimension of  K K is greater than 1, then the projection of  K K onto any line (in almost all directions) has positive Lebesgue measure.",arXiv,02-04-2026 05:33 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+35,"Prove that for a globally generated coherent sheaf F on a normal variety X, if the top chern class of F is 0, then it has a no-where vanishing section.",arXiv,03-18-2026 03:25 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+614,"given three knots, it is possible to find an embedded sphere with three boundary components, such that the boundary components are the prescribed knots. (the knots may be linked))",arXiv,02-09-2026 12:09 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+374,"For a tree with degrees greater than 2 and positive strengths and positive internal edge lengths, the function det D_{gamma_p}(omega) has a root of order exactly p-1 at omega=0",arXiv,02-19-2026 11:09 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+104,"if A is a normal ring and G is a finite group acting on A, then the ring of invariants A^G is also normal.",arXiv,03-10-2026 06:33 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+268,"birkhoff recurrence on a uniform space, i.e. for a minimal dynamical system over a uniform space (aka a uniformity) there exists a recurrent point",arXiv,02-23-2026 12:55 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+651,How long can be the trajectory  of gradient flow on a convex function when restricted to be in the unit ball of R^n,arXiv,02-06-2026 03:06 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+312,"given three knots, there is an embedded 2-sphere with three boundary components in the 3-sphere that has those three knots as boundary components",arXiv,02-23-2026 05:27 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+162,is there a known bound on the norm of the Riemann tensor for a Ricci flat metric on the Fermat quartic K3 surface,arXiv,03-05-2026 03:09 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+561,"over a field of characteristic p > 0, finite connected group schemes of height one are equivalent to finite restricted Lie algebras",arXiv,02-10-2026 11:19 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+56,if X \to Y is an open immersion of G_m-equivariant schemes then its quotient X/G_m → Y/G_m is also an open immersion,arXiv,03-16-2026 01:32 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+496,"If an operator is not strongly monotone in Euclidean space, then it is not strongly monotone in any equivalent inner product.","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 06:11 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+401,A finite etale gerbe on a smooth scheme X is uniquely determined by its restriction to codimension one locus of X,"arXiv,Stacks Project",02-18-2026 05:02 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+708,"The b-bit sampling scheme derived  f rom a Beta(1, k- 1) distribution is a 2k-1-bounded  sampling scheme for b > 1.",arXiv,02-04-2026 05:39 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+334,four points on the plane are cocircular if and only if the determinant of their projection to the paraboloid is zero,arXiv,02-22-2026 06:46 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+411,"Suppose Assumptions \ref{as:hypotheses}-\ref{as:gc} hold. Let $c_\alpha$ be defined as in \eqref{eq:def_calpha}. Then, for any $\alpha\in (0,1)$, \begin{align} 	\lim_{n\to\infty}P^n_0(\hat S_n>c_\alpha)=\alpha. \end{align}","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 03:10 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+696,"The optimal path problem is NP-Hard for the maximum likelihood score, the minimum description length score and a Bayesian score.",arXiv,02-05-2026 10:42 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+479,The characteristic polynomial of a linear operator restricted to an invariant subspace divides the characteristic polynomial of the non-restricted operator.,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 12:18 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+707,if every hyperplane bisects a convex body into two parts of equal measure then the convex body is centrally symmetric,arXiv,02-04-2026 05:39 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+735,there is a map from the quasimaps moduli space with coeff epsilon+ to the quasimaps moduli space with coeff epsilon-,arXiv,02-03-2026 10:22 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+737,the stabilization morphism flat from the moduli space of prestable curves to the moduli space of stable curves is flat,arXiv,02-03-2026 10:55 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+362,"In a random bipartite matching, the matching status of  vertices on opposite sides of the partition are positively correlated.",arXiv,02-21-2026 02:43 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+593,Deligne-Mumford open in a stack with a good moduli space agrees with the semistable locus of a line bundle,arXiv,02-09-2026 04:32 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+731,the local fundamental group of the vertex of the cone over the veronese embedding of Pn is finite,arXiv,02-04-2026 11:41 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+583,Push-forward of the structure sheaf is the structure sheaf for morphism from a seminormal target with connected fibers,arXiv,02-09-2026 08:14 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+416,The hodge bundle on an elliptic surface is the same as the hodge bundle on its Jacobian fibration,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 01:56 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+302,"toric ideal generated by 4-chains of elements of a poset, inside the ring generated by 2-chains of elements",arXiv,02-23-2026 10:31 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+249,2-monoidal structure given by the day convolution on one side and the usual monoidal structure on the other.,arXiv,02-24-2026 09:31 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+540,the compactified jacobian of a genus 2 rational curve with an A_n singulariy is a weighted projective scheme,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 06:01 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+1,The set of projections that are murray von neumann equivalent have the homotopy type of a CW complex,arXiv,03-24-2026 07:38 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+602,the intersections a line and the opposite sides of a complete quadrilateral are pairs in a involution,arXiv,02-09-2026 10:20 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+547,"If a polynomial vanishes on a segment, it can be factorized by the equation of its line.","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 03:39 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+607,Certain triangle centers in an isosceles triangle form a specific order on the median to the base.,arXiv,02-09-2026 08:22 AM,,50,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+703,measure of the largest sum free subset of the square is half the measure of the square,arXiv,02-04-2026 05:44 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+322,dual of subcategory that is graded by universal grading group is graded by dual of group element,arXiv,02-22-2026 08:23 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+723,a scheme which is finite over a field k and topologically connected must be topologically a point.,Stacks Project,02-04-2026 03:24 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+243,canonical vector space of polynomials of rank equal to the number of spanning trees of a graph,arXiv,02-24-2026 10:14 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+248,Formula for the class of the zero section in a compactified universal Jacobian with given stability condition.,arXiv,02-24-2026 10:01 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+43,Ultrafilters where all sets have divergent series of reciprocals form a closed right ideal in beta N,arXiv,03-17-2026 04:52 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+245,"correspondence between Chow rings of the relative Jacobian and moduli of curves with markings, over compact type",arXiv,02-24-2026 10:12 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+289,quotient of metric spaces are metrizable when the relation is closed and the equivalence classes are compact,arXiv,02-23-2026 10:49 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+523,The cohomology groups with coefficients in the group ring are quasi-isometric invariants of groups of type FP,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 11:19 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+687,The Borel sigma algebras of the weak-* and strong topologies in the space of Schwartz distributions coincide,arXiv,02-06-2026 01:18 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+498,the determinant of a matrix polynomial with positive definite coefficients is a scalar polynomial with positive coefficients,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 05:25 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+503,The law of a diffusion with additive noise that doesn't explode is equivalent to Wiener measure.,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 01:17 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+608,The lines from the vertices to triangle centers on the faces of a tetrahedron are concurrent.,arXiv,02-09-2026 08:03 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+230,A smooth Deligne-Mumford stack with ample tangent bundle is a quotient of a weighted projective stack,arXiv,02-24-2026 07:30 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+167,"the center of a flat, smooth, unipotent, connected group scheme is again flat, smooth, unipotent, connected",arXiv,03-03-2026 09:09 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+694,A probability distribution P factors according to A only if the support of P is A-feasible.,arXiv,02-05-2026 10:45 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+603,The opposite sides of a hexagon inscribed in a conic concur at three collinear points,arXiv,02-09-2026 10:17 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+648,"if f:X→Y is nonzero in a tensor category, then id_Z⊗f≠0 for any nonzero object Z",Stacks Project,02-06-2026 05:04 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+309,"Given subadditive function f:N->R it holds that sum_{I=1}^n f(I)/I <= f(n) , for every n ",arXiv,02-23-2026 05:39 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+688,The Borel sigma algebras of the weak-* and strong topologies in a banach space coincide,arXiv,02-06-2026 01:09 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+649,"if f:X→Y is nonzero in additive monoidal 𝒞, then id_Z⊗f≠0 for any nonzero object Z",Stacks Project,02-06-2026 05:03 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+210,Degeneration to the polystable point in an orbit is realized by a family over [A^1/Gm],arXiv,02-25-2026 04:27 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+304,A borel toast exists implies that the equivalence relation generated by the action is hyperfinite,arXiv,02-23-2026 10:01 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+242,canonical finite algebra of rank equal to the number of spanning trees of a graph,arXiv,02-24-2026 10:15 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+290,the classifying space of a monoid which is also a poset is a simplicial complex,arXiv,02-23-2026 10:48 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+82,Cuntz equivalence classes in a c* algebra have the homotopy type of a CW complex,arXiv,03-13-2026 06:40 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+187,A language is recognized by a Deterministic PDA iff the end marked language is recognized,arXiv,02-28-2026 02:07 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+722,a connected scheme which is finite over a field k must be topologically a point.,Stacks Project,02-04-2026 03:25 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+594,Global quotient by a torus with trivial stabilizers admits a dense open which is Deligne-Mumford,arXiv,02-09-2026 04:31 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+595,The set of points where a good moduli space map is an isomorphism is open,arXiv,02-09-2026 04:30 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+3,Projections in the same K0 class have the homotopy type of a CW complex,arXiv,03-24-2026 07:35 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+220,There is a correspondence between skew braces and hopf Galois structures on Galois extensions ,arXiv,02-25-2026 08:44 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+713,the transversal ratio of a simplicial complex homeomorphic to S^2 is at least 1/2,arXiv,02-04-2026 05:37 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+247,correspondence between Chow rings of the Jacobian of C and symmetric powers of C,arXiv,02-24-2026 10:10 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+400,The hodge line bundle of an elliptic surface is the same as its Jacobian,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 05:20 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+488,given local de rham splitting and parallel gradient implies global de rham splitting,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-16-2026 02:09 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+542,"if a sequence of operators is summable, then it converges to 0 b.a.u.","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 05:58 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+26,There are invertible elements for addition in the Stone -Cech compactification of N,"arXiv,Open Logic Project",03-19-2026 07:54 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+645,smash product of complex oriented cohomology theory with algebraic k-theory has higher weight,arXiv,02-06-2026 09:49 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+501,Rescalings of solutions to the KPZ equation converge to the KPZ fixed point.,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 01:19 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+403,"One can contract a Cartier divisors with negative normal bundle, isomorphic to P^n","arXiv,Stacks Project",02-18-2026 04:45 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+615,a flat convex subset in a Euclidean building is contained in an apartment,arXiv,02-08-2026 11:59 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+610,"given any three nots, there is a genus-zero surface having them as boundary",Stacks Project,02-09-2026 01:50 AM,,25,,,,"[0, 1502]",All,0,True,,,1
+217,The k-th Dirichlet laplacian eigenvalue is attained among open sets with fixed volume. ,arXiv,02-25-2026 09:47 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+389,an elliptic fibration and its corresponding Jacobian fibration have the same j-map,arXiv,02-19-2026 07:28 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+451,solutions to a weakly hyperbolic cauchy problem have a loss of regularity,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 08:02 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+487,local product riemannian metric and parallel gradient vector field implies global product,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-16-2026 02:10 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+110,microflexible h-principle for smooth sets (sheaves of the discrete category of manifolds),arXiv,03-10-2026 11:50 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+693,universal enveloping algebras are equivalent to Hopf algebras generated by primitive elements,arXiv,02-05-2026 10:48 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+704,"the measure of the largest sum free subset of [-1,1]^2 is half ",arXiv,02-04-2026 05:44 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+208,The dimension of global sections of a line bundle on a curve,arXiv,02-25-2026 04:28 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+135,Matrix-vector multiplication distributes over the terms in a finite sum of vectors,arXiv,03-06-2026 02:18 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+452,The full compressible Navier-Stokes-Korteweg equations have a unique weak local solution,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 07:59 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+584,Every KSBA-stable pair is the stable model of a Q-stable pair,arXiv,02-09-2026 07:50 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,moduli of surfaces fibered in,1
+252,maximal surface representations have euler number equal to the rotation number,arXiv,02-24-2026 06:12 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+118,Which 3-manifolds exhibit infinitely many non-isotopic surfaces of the same genus?,arXiv,03-10-2026 02:58 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+356,The caratheodory extension of a measure on (sub)locales is strictly additive.,arXiv,02-22-2026 12:54 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+559,the compactified jacobian of a rational curve with A_n singularity i,arXiv,02-11-2026 02:23 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+154,any two knots are related by crossing changes in 3 manifolds,arXiv,03-06-2026 05:41 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+639,the existence of a motivic t-structure implies the beillinson filtration conjecture,arXiv,02-06-2026 09:54 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+285,classifying space of a topological monoid has the homotopy type of,arXiv,02-23-2026 11:04 AM,,50,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+627,The baily borel compactification of the modul space of Enriques surfaces,arXiv,02-07-2026 11:08 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+682,Solutions of singular linear systems  in term of adjugate matrix gate,arXiv,02-06-2026 01:30 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+532,A finitely generated k algebra has finitely many minimal primes,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 08:05 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+449,the solutions to the system of quantum hydrodynamics are unique,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 08:06 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+63,Stochastic localization approximately conserves entropy when started from Ising measure,arXiv,03-14-2026 08:39 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+51,Reductive group over an complete DVR admits a maximal torus,arXiv,03-16-2026 04:16 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,5
+357,Homtopy groups of the set of projections in a C*-algebra,arXiv,02-21-2026 10:22 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+427,Dirichlet series have a pole on its abscissa of convergence,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 06:37 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+436,the equilibrium of the Vlasov-Maxwell-Landau equations is a global Maxwellian,arXiv,02-17-2026 02:57 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+83,homotopy type of cuntz equivalence orbits in a c* algebra,arXiv,03-13-2026 06:40 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+279,sign of the cup-i product associated to alexander-whitney diagonal approximation,arXiv,02-23-2026 11:25 AM,,2,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+545,The number of countable models of aleph1-categorical theory is aleph0,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 03:58 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+574,a pointwise converging sequence of increasing functions is uniformly convergent,arXiv,02-10-2026 12:36 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+405,Smooth DM stack is uniquely determined by codimension one locus,"arXiv,Stacks Project",02-18-2026 04:38 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+407,Generically trivial gerbe over a smooth curve has trivial fibers,"arXiv,Stacks Project",02-18-2026 04:32 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,3
+417,problems and results on number theoretic properties of consecutive integers,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 01:04 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+335,You can recover a field from its Milnor K theory,arXiv,02-22-2026 06:28 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+66,the nonlinear stability of kerr in the full subextremal range,arXiv,03-14-2026 08:05 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+291,the classifying space of a poset is a simplicial complex,arXiv,02-23-2026 10:47 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+264,when are fraisse limits models of an almost sure theory,arXiv,02-23-2026 03:14 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+644,chromatic height increases when smashing with algebraic k theory spectrum,arXiv,02-06-2026 09:50 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+293,the classifying space of a monoid is a delta complex,arXiv,02-23-2026 10:46 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+642,indeterminacy locus of the gauss map of a jacobian variety,arXiv,02-06-2026 09:51 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+318,rates of metastability for the halpern iteration in cat(0) spaces,arXiv,02-22-2026 11:10 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+486,"cheeger gromoll local isometric product, busemann flow implies global product","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-16-2026 02:12 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+288,the quotient of a metric space is a pseudometric space,arXiv,02-23-2026 10:50 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+669,relative equilibrium structure imply the existence of solitary wave solutions,arXiv,02-06-2026 08:35 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+165,Feynmann transform of Associative cyclic operad and modular operads,arXiv,03-04-2026 10:57 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+73,every inner product space is also a topological space,arXiv,03-14-2026 02:24 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+85,function locally equal to infinitesimal rotation on connected set,arXiv,03-12-2026 04:36 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+29,Hypersurfasec of genus greater zero admits no birational automorphisms,arXiv,03-18-2026 08:08 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+388,j-map for an elliptic fibration and its jacobian fibration,arXiv,02-19-2026 07:28 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+425,Moduli of Stable Bundles for Ruled Surfaces is nonempty,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 09:10 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+87,function locally equal to linear function on connected set,arXiv,03-12-2026 03:21 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+27,best bound for distances of algebraic geometric error-correcting codes,arXiv,03-18-2026 06:39 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+281,sign of the cup-i product as an explicit operation,arXiv,02-23-2026 11:23 AM,,2,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+432,local fundamental group for regular local ring is trivial,Stacks Project,02-17-2026 06:40 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+549,Inf sup stability of spacetime dg acoustic Wave equatiom,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 03:24 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+202,Arveson's hyperrigidity conjecture is true for type I algebras,arXiv,02-26-2026 12:05 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+214,There exists a free monoid on a monoidal category,arXiv,02-25-2026 12:57 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+131,Moduli stack of twsited maps to stacks is proper,arXiv,03-07-2026 04:04 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+701,ideal of jacobian of curves as a projective variety,arXiv,02-04-2026 05:46 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+526,Support functions are lipschitz in set by hausdorff distance,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 09:12 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+41,Functions that differentiable everywhere but discontinuous at a point,arXiv,03-17-2026 06:09 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+311,definition of knot sum for knots in other three-manifolds.,arXiv,02-23-2026 05:29 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+635,beillinson conjecture implies kimura conjecture on finite dimension motives,arXiv,02-06-2026 09:56 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+634,The norm function f (x) = ∥x∥ is 1-Lipschitz.,arXiv,02-06-2026 09:57 PM,,10,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+434,local fundamental group for a smooth point is trivial,Stacks Project,02-17-2026 06:33 PM,,25,,,,"[0, 1502]",All,0,True,,,1
+521,Quasi-isometry invariance cohomology with coefficient in group ring,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 11:30 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+140,parity of meromorphic differentials on compact Riemann surfaces,arXiv,03-06-2026 02:12 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+497,Minimax robust estimation rate under the wasserstein distance,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 05:59 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+14,theorems about smooth DM stacks of codimension one,arXiv,03-22-2026 02:20 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+528,Support functions are lipschitz in argument and set,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 09:07 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+86,function locally equal to polynomial on connected set,arXiv,03-12-2026 03:22 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+546,Representation is irreducible iff representation map is surjective,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 03:56 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+84,homotopy type of projections in a c* algebra,arXiv,03-13-2026 06:32 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+456,automorphism group scheme homomorphisms conjugate separably closed field,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 03:49 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+278,sign of the cup-i product associated to steenrod,arXiv,02-23-2026 11:29 AM,,2,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+136,Teichmuller transfer surface rational billiards polygon  orbit arithmetic,arXiv,03-06-2026 02:17 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+632,Any compact Lie group carries a biinvariant metric. ,arXiv,02-07-2026 04:44 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+333,Teichmuller theory of surfaces of topologically infinite type,arXiv,02-22-2026 10:38 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+344,The abelianization of reductive group is a torus,arXiv,02-22-2026 02:12 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+119,Is Heegaard genus known to be NP hard?,arXiv,03-10-2026 02:57 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+36,Steklov spectrum discrete non-compact minimal surface free boundary,arXiv,03-18-2026 03:06 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+308,closed negatively curved manifold is pinched negatively curved,arXiv,02-23-2026 06:16 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+355,The Nuclei on a Frame/Locale form a Frame.,arXiv,02-22-2026 12:55 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+711,the transversal ratio of the sphere is 1/2,arXiv,02-04-2026 05:38 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+697,The Couette flow is stable under Gevrey perturbations,arXiv,02-05-2026 10:40 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+328,Cover ideals of modular lattices are cohen Macaulay ,arXiv,02-22-2026 01:46 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+714,the transversal ratio of S^2 is a half,arXiv,02-04-2026 05:37 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+50,A theorem to calculate distance of a triangle ,arXiv,03-16-2026 05:18 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+673,Retakh Berenstein triangle group for non commutative surfaces,arXiv,02-06-2026 08:12 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+105,L^2 energy of singular conical Kahler einstein metrics,arXiv,03-10-2026 03:34 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+377,stability of the landau equation in relative entropy,arXiv,02-19-2026 10:58 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+378,Complete regular local rings are defined by prisms,arXiv,02-19-2026 10:40 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+679,A globally hyperbolic Lorentzian length space is geodesic.,arXiv,02-06-2026 02:34 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+394,action of the gradient flow of Kl divergence ,arXiv,02-19-2026 03:50 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+502,Nonparametric estimation in fractional stochastic differential equation,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 01:19 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+684,Solutions of singular linear systems  in term,arXiv,02-06-2026 01:29 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+733,gerbe for connected reductive group is bande,arXiv,02-04-2026 10:08 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+555,Affine algebraic racks differentiate to Leibniz algebras,arXiv,02-11-2026 07:02 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+31,the laplacian has a bounded H-infinity calculus,arXiv,03-18-2026 06:17 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+531,Uniqueness of solutions to the Landau equation,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 08:06 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+588,Geometric irreductibility is Zariski local modulo connectedness.,Stacks Project,02-09-2026 04:50 PM,,25,,,,"[0, 1502]",All,0,True,,,2
+538,a map is colourable with four colors,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 06:04 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+729,criteria to blow down weighted projetctive stacks,arXiv,02-04-2026 11:48 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+24,Monodromy of a semistable model is unipotent,arXiv,03-19-2026 08:57 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+431,Deformation spines satisfy an exponential isoperimetric inequality,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 08:41 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+315,locally convex topological vector space nash equilibrium,arXiv,02-23-2026 02:16 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+306,p^2 divise (p-1)! -1 pour p premier,arXiv,02-23-2026 07:26 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+313,Schrödinger operators generate a group on L2,arXiv,02-23-2026 04:29 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+402,Contracting elliptic tails is a weighted blow-up,"arXiv,Stacks Project",02-18-2026 04:47 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+102,Computation of border bases no term ordering,arXiv,03-11-2026 01:49 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+212,constant rank level set theorem quantitative version,arXiv,02-25-2026 01:05 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+145,Sarkozy theorem for shifted primes assuming GRH,arXiv,03-06-2026 02:05 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+370,spatially homogeneous Landau equation in relative entropy,arXiv,02-19-2026 11:52 AM,,25,,.,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+336,You can recover a field from its ,arXiv,02-22-2026 06:28 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+201,Arveson's hyperrigidity conjecte holds for function systems,arXiv,02-26-2026 12:06 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+200,bounds on boolean rank of a matrix,arXiv,02-26-2026 01:26 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+152,models for elliptic fibrations with multiple fibres,arXiv,03-06-2026 06:04 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+199,are all homologous knots in thremanifolds homotopic,arXiv,02-27-2026 02:18 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+133,fractal dimension of a nilpotent saddle node,arXiv,03-07-2026 06:08 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+307,a scheme of finite type is geometric,arXiv,02-23-2026 06:53 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+92,Isolated point is eigenvalue &class A operator ,arXiv,03-11-2026 11:34 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+286,classifying space of a topological monoid is,arXiv,02-23-2026 10:54 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+443,GOSDT generates the optimal sparse decision tree,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 09:48 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+125,The Betti numbers are invariant under flops ,arXiv,03-08-2026 10:26 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+258,The Lefschetz Riemann Roch theorem for surfaces,arXiv,02-24-2026 03:52 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+121,Representations are uniquely determined by their character,arXiv,03-09-2026 12:15 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+232,finite local etale ring extensions are monogenic,arXiv,02-24-2026 06:47 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+692,The jones polynomial is link invariant,arXiv,02-06-2026 01:03 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,3
+128,The ramsey number 3 is 6,arXiv,03-08-2026 06:22 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+331,Reduction on proof nets is confluent,arXiv,02-22-2026 01:28 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+340,affine paving of quiver flag variety,arXiv,02-22-2026 02:27 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+690,Kolmogorov continuity theorem for schwartz distributions,arXiv,02-06-2026 01:04 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+343,definition of de Rham fundamental group,arXiv,02-22-2026 02:16 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+332,Skein bialgebra has a PBW basis,arXiv,02-22-2026 10:40 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+257,Lefschetz Riemann Roch and coherent trace,arXiv,02-24-2026 03:54 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+287,classifying space of a monoid is,arXiv,02-23-2026 10:52 AM,,5,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+699,regularity of the homogeneous landau equation,arXiv,02-05-2026 02:38 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+32,besov space embeds into sobolev space,arXiv,03-18-2026 06:16 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+270,birkhoff recurrence on a uniform space,arXiv,02-23-2026 12:53 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+641,every variety has finite dimensional motive,arXiv,02-06-2026 09:52 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+241,polynomiality of the double ramification cycle,arXiv,02-24-2026 10:16 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+493,convergence of methods for secular equations,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 06:42 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+33,Commutants of shifts on Banach spaces,arXiv,03-18-2026 05:13 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+720,a rational variety is simply connected,arXiv,02-04-2026 04:24 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,2
+646,Smashing with k theory increases weight,arXiv,02-06-2026 09:40 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+238,universal optimality of the leech lattice,"arXiv,An Infinitely Large Napkin,Stacks Project,Open Logic Project,CRing Project,ProofWiki,HoTT Book",02-24-2026 11:50 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+650,Functor between Monoidal Categories and Topoi,arXiv,02-06-2026 04:43 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+221,Mixed moments of derivatives of L-functions ,arXiv,02-25-2026 07:03 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+178,Conditions for being a toric cover,arXiv,03-02-2026 10:37 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+161,algebraic characterization of odd acyclic oriention,arXiv,03-05-2026 03:11 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+169,"stokes theorem for nonorientable manifold, density",arXiv,03-02-2026 10:32 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+98,rational involution on an algebraic variety,arXiv,03-11-2026 03:26 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+413,algorithm for computing dihedral linking number,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 03:08 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+606,Triangle centers in an isosceles triangle.,arXiv,02-09-2026 08:25 AM,,50,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+414,rank of polynomial kernels are bounded,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 03:06 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+426,Moduli of Stable Bundles is nonempty,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-18-2026 09:08 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+142,WRT invariant as quantum modular forms,arXiv,03-06-2026 02:10 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+91,isolated point is eigenvalue & hyponormal ,arXiv,03-11-2026 11:42 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+739,log terminal singularities have crepant reoslutions,"Stacks Project,arXiv",02-03-2026 09:12 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+7,separated algebraic spaces satisfy valuative criterion,arXiv,03-23-2026 10:27 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+483,Norm principle type Dn algebraic group,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-16-2026 05:41 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+508,Shared commodity problem for weighted graphs,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 03:05 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+143,ABC conjecture implies no siegel zeroes,arXiv,03-06-2026 02:09 PM,,25,,Ben Green,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+552,Median graph convex cycle length 4,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 02:42 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+100,completeness theorem first order predicate logic,Open Logic Project,03-11-2026 01:51 AM,,25,,,,"[0, 1502]",All,0,True,,,1
+107,subgame perfect nash equilibrium backward induction,arXiv,03-10-2026 02:16 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+115,The sum of the fibnacci numbers,arXiv,03-10-2026 05:03 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+367,Growth estimates on weighted Fisher information,arXiv,02-19-2026 11:54 AM,,50,,.,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+373,Gibbs measures on the unit ball,arXiv,02-19-2026 11:36 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+566,Navier stokes combined with Nash equilibrium,arXiv,02-10-2026 05:04 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+576,there are infinitely many prime numbers,arXiv,02-10-2026 12:35 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+740,structure of modules over PID,Stacks Project,02-03-2026 09:11 AM,,25,,,,"[0, 1502]",All,0,True,,,1
+138,Teichmuller transfer surface billiards polygon,arXiv,03-06-2026 02:15 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+42,harmonic ultrafilters form an ideal,arXiv,03-17-2026 05:01 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+188,every 3-manifold admits a foliation,arXiv,02-27-2026 05:34 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+155,Representation ring of finite groups,arXiv,03-06-2026 12:13 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+150,period maps on non-Kähler manifolds,arXiv,03-06-2026 06:07 AM,,13,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+20,haar measure over unitary group,arXiv,03-20-2026 07:07 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+216,Persson characterization of p laplacian,arXiv,02-25-2026 09:49 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+213,constant rank level set theorem,arXiv,02-25-2026 01:04 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+730,MMP descends along Calabi-Yau firbations,arXiv,02-04-2026 11:45 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+144,Sarkozy theorem for shifted primes,arXiv,03-06-2026 02:06 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+229,characterization of weighted projective stack,arXiv,02-24-2026 07:46 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+205,bounded sequence has convergent subsequence,arXiv,02-25-2026 04:55 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+151,deformations of complex parallelisable manifolds,arXiv,03-06-2026 06:06 AM,,13,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+494,strongly monotone operator change metric,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-15-2026 06:13 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+250,Tate Shafarevich group is finite,arXiv,02-24-2026 07:49 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+68,"Restriction operator, invariant , paranormal ",arXiv,03-14-2026 06:59 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+351,theta correspondenc of associate cycle,arXiv,02-22-2026 01:59 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+358,m primary monomial ideals glicciness,arXiv,02-21-2026 10:08 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+64,"Invariant, restriction, absolute paranormal operator ",arXiv,03-14-2026 11:44 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+111,"definition of (∞,n)-category of cobordisms",arXiv,03-10-2026 11:26 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+386,Vietoris ripps complex approximates curvature,arXiv,02-19-2026 08:21 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+96,Class A(k) operator is isoloid ,arXiv,03-11-2026 10:24 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+544,Ring with unique simple module,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 04:12 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+430,betti numbers on cubical complexes,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 09:52 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+442,"baire class two, complete co-analytic","An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-17-2026 09:54 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+524,compact space hausdorff space bijection,"An Infinitely Large Napkin,arXiv,CRing Project,HoTT Book,Open Logic Project,ProofWiki,Stacks Project",02-13-2026 09:49 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+347,Howe correspondence between supercuspial representations,arXiv,02-22-2026 02:02 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+271,dynamical flow on a uniformity,arXiv,02-23-2026 12:52 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+280,sign of the cup-i product ,arXiv,02-23-2026 11:25 AM,,2,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+283,chain operads define steenrod operations,arXiv,02-23-2026 11:21 AM,,2,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+284,moore loopspaces are also posets,arXiv,02-23-2026 11:04 AM,,50,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+120,Collapse mu- calculus intuitionistic s5,arXiv,03-09-2026 11:11 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+310,three manifold knots connected sum,arXiv,02-23-2026 05:30 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+319,free groups are matricial field,arXiv,02-22-2026 09:07 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+637,beillinson conjecture implies kimura conjectuire,arXiv,02-06-2026 09:56 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+329,characteristic polynomial upper semimodular lattices,arXiv,02-22-2026 01:44 PM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+629,completeness of the complex numbers,arXiv,02-07-2026 07:26 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
+338,Hodge conjecture for abelian fourfold,arXiv,02-22-2026 02:28 AM,,25,,,"[1991, 2026]","[0, 1502]",All,0,True,,,1
