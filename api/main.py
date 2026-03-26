@@ -57,6 +57,7 @@ class SearchRequest(BaseModel):
     citation_weight: float = 0.0
     include_unknown_citations: bool = True
     prompt: Optional[str] = None
+    db_top_k: Optional[int] = None
 
 DEFAULT_QUERY_PROMPT = "Instruct: Given an informal description of a mathematical result, retrieve the formal theorem statement that matches it. The query describes a specific theorem, lemma, or proposition from a research paper.\nQuery: "
 
@@ -110,6 +111,7 @@ MCP_SEARCH_TOOL = {
             "citation_weight": {"type": "number", "default": 0.0},
             "include_unknown_citations": {"type": "boolean", "default": True},
             "prompt": {"type": ["string", "null"], "default": None, "description": "Instruction prompt prepended to query before embedding. If null, uses the default prompt."},
+            "db_top_k": {"type": ["integer", "null"], "default": None, "description": "Number of ANN candidates to retrieve before reranking. Higher values improve recall at cost of latency. Default: 2 * n_results."},
         },
         "required": ["query"],
     },
@@ -118,7 +120,7 @@ MCP_SEARCH_TOOL = {
 # Helper functions
 def embed_query(query: str, prompt: Optional[str] = None) -> List[float]:
     """Generate embedding for search query, optionally prepending an instruction prompt."""
-    text = (prompt + query) if prompt else (DEFAULT_QUERY_PROMPT + query)
+    text = (prompt + query) if prompt is not None else (DEFAULT_QUERY_PROMPT + query)
     response = client.embeddings.create(
         model="Qwen/Qwen3-Embedding-8B",
         input=text,
@@ -382,7 +384,7 @@ async def search(payload: SearchRequest, mcp=False):
         candidates = fetch_candidate_ids(
             query_vec=query_vec,
             citation_weight=payload.citation_weight,
-            top_k=payload.n_results * 2,  # Fetch more to allow for filtering
+            top_k=payload.db_top_k or payload.n_results * 2,  # Fetch more to allow for filtering
             selected_sources=selected_sources,
         )
         
