@@ -6,12 +6,24 @@ import subprocess
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+import shutil
+
 from loguru import logger
 from tqdm import tqdm
 
 from .database import CorpusDatabase
 
-LAKE_PATH = "/Users/simon/.elan/bin/lake"
+
+def _get_lake_path() -> str:
+    """Resolve lake binary: env var > PATH > common elan location."""
+    if path := os.environ.get("LAKE_BIN"):
+        return path
+    if path := shutil.which("lake"):
+        return path
+    fallback = Path.home() / ".elan" / "bin" / "lake"
+    if fallback.exists():
+        return str(fallback)
+    raise RuntimeError("lake binary not found. Set LAKE_BIN env var or ensure lake is on PATH.")
 
 
 def _extract_single_file(
@@ -19,7 +31,7 @@ def _extract_single_file(
 ) -> str | None:
     """Helper for parallel execution of the Lean compiler."""
     try:
-        cmd = [LAKE_PATH, "env", "lean", "--run", str(extractor_path), str(lean_file)]
+        cmd = [_get_lake_path(), "env", "lean", "--run", str(extractor_path), str(lean_file)]
         subprocess.run(
             cmd,
             cwd=project_root,
@@ -28,8 +40,7 @@ def _extract_single_file(
             check=True,
             timeout=600,
         )
-        # Search for the resulting JSON in build/ir
-        return None  # Result is now found via filesystem scan
+        return None  # Result is found via filesystem scan
     except Exception:
         return None
 
@@ -44,17 +55,30 @@ class GroundTruthFactory:
         self.extractor_lean = Path(__file__).parent.parent / "lean" / "ExtractData.lean"
 
     def process_project(
-        self, project_path: Path, project_name: str, is_mathlib: bool = False
+        self,
+        project_path: Path,
+        project_name: str,
+        is_mathlib: bool = False,
+        task_id: int = 0,
+        total_tasks: int = 1,
+        limit: int | None = None,
     ) -> None:
-        logger.info(f"--- Starting Verified Extraction: {project_name} ---")
+        logger.info(f"--- Starting Verified Extraction: {project_name} (task {task_id}/{total_tasks}) ---")
         project_id = self.db.add_project(project_name, is_mathlib=is_mathlib)
 
-        lean_files = [
+        all_lean_files = sorted(
             f
             for f in project_path.rglob("*.lean")
             if f.name != "ExtractData.lean" and ".lake" not in str(f)
-        ]
-        logger.info(f"Found {len(lean_files)} Lean files to process.")
+        )
+        if limit is not None:
+            all_lean_files = all_lean_files[:limit]
+            logger.info(f"Limiting to {limit} files for test run.")
+
+        # Partition files across SLURM tasks via round-robin so each task gets
+        # an even spread (avoids one task getting all large files alphabetically).
+        lean_files = [f for i, f in enumerate(all_lean_files) if i % total_tasks == task_id]
+        logger.info(f"Found {len(all_lean_files)} total files; this task processing {len(lean_files)}.")
 
         temp_extractor = project_path / "ExtractData.lean"
         temp_extractor.write_text(self.extractor_lean.read_text())
