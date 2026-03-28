@@ -31,17 +31,20 @@ def _extract_single_file(
 ) -> str | None:
     """Helper for parallel execution of the Lean compiler."""
     try:
-        cmd = [_get_lake_path(), "env", "lean", "--run", str(extractor_path), str(lean_file)]
-        subprocess.run(
+        lake = _get_lake_path()
+        cmd = [lake, "env", "lean", "--run", str(extractor_path), str(lean_file)]
+        result = subprocess.run(
             cmd,
             cwd=project_root,
             capture_output=True,
             text=True,
-            check=True,
             timeout=600,
         )
-        return None  # Result is found via filesystem scan
-    except Exception:
+        if result.returncode != 0:
+            logger.warning(f"FAILED {lean_file}: {result.stderr[:300]}")
+        return None
+    except Exception as e:
+        logger.warning(f"EXCEPTION {lean_file}: {e}")
         return None
 
 
