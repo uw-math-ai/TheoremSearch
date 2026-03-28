@@ -20,7 +20,7 @@ MATHLIB_DIR="$WORK_DIR/formalized_graph/data/mathlib/mathlib4"
 
 mkdir -p /gscratch/amath/simku22/logs
 
-pip install loguru tqdm --quiet
+python3 -m pip install loguru tqdm --quiet
 
 echo "=== Step 1: lake build ==="
 cd "$MATHLIB_DIR"
