@@ -13,7 +13,7 @@
 set -euo pipefail
 
 export PATH="$HOME/.elan/bin:$PATH"
-module load coenv/python/3.11.9
+module load coenv/python/3.13.11
 
 WORK_DIR="/gscratch/amath/simku22/TheoremSearch"
 MATHLIB_DIR="$WORK_DIR/formalized_graph/data/mathlib/mathlib4"
@@ -24,7 +24,11 @@ pip install loguru tqdm --quiet
 
 echo "=== Step 1: lake build ==="
 cd "$MATHLIB_DIR"
-lake build
+if [[ ! -f ".lake/build/lib/lean/Mathlib.olean" ]]; then
+    lake build
+else
+    echo "Oleans already present, skipping build."
+fi
 
 echo "=== Step 2: Test run (50 files) ==="
 cd "$WORK_DIR"
