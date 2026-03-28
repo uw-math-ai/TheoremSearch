@@ -13,7 +13,7 @@
 set -euo pipefail
 
 export PATH="$HOME/.elan/bin:$PATH"
-module load coenv/python/3.13.11
+module load foster/python/miniconda/3.8
 
 WORK_DIR="/gscratch/amath/simku22/TheoremSearch"
 MATHLIB_DIR="$WORK_DIR/formalized_graph/data/mathlib/mathlib4"
