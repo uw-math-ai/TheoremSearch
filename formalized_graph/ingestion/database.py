@@ -46,6 +46,8 @@ class CorpusDatabase:
                 file_path TEXT,
                 docstring TEXT,
                 statement TEXT,
+                in_degree INTEGER NOT NULL DEFAULT 0,
+                out_degree INTEGER NOT NULL DEFAULT 0,
                 FOREIGN KEY(project_id) REFERENCES projects(id)
             )
         """
