@@ -69,10 +69,13 @@ class GroundTruthFactory:
         logger.info(f"--- Starting Verified Extraction: {project_name} (task {task_id}/{total_tasks}) ---")
         project_id = self.db.add_project(project_name, is_mathlib=is_mathlib)
 
+        build_lib = project_path / ".lake" / "build" / "lib" / "lean"
         all_lean_files = sorted(
             f
             for f in project_path.rglob("*.lean")
-            if f.name != "ExtractData.lean" and ".lake" not in str(f)
+            if f.name != "ExtractData.lean"
+            and ".lake" not in str(f)
+            and (build_lib / f.relative_to(project_path).with_suffix(".olean")).exists()
         )
         if limit is not None:
             all_lean_files = all_lean_files[:limit]
