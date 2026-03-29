@@ -55,6 +55,13 @@ class CorpusDatabase:
 
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_nodes_name ON nodes(full_name)")
 
+        # Migrate existing DBs that predate in_degree/out_degree columns
+        for col in ("in_degree", "out_degree"):
+            try:
+                cursor.execute(f"ALTER TABLE nodes ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0")
+            except sqlite3.OperationalError:
+                pass  # Column already exists
+
         # Edges: Verified dependencies
         cursor.execute(
             """
