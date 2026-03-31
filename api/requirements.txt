@@ -3,3 +3,4 @@ openai
 psycopg2-binary
 pgvector
 python-dotenv
+boto3
