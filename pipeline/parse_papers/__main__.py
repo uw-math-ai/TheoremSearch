@@ -1,16 +1,27 @@
-import json
 from tqdm import tqdm
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from argparse import ArgumentParser
-from arXiTeX.types import TheoremValidationLevel
+from arXiTeX.types import StatementValidationLevel, ParsingMethod
 from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
+
+STATEMENT_KINDS = [
+    "theorem", "lemma", "proposition", "corollary",
+    "definition",
+    "axiom", "postulate",
+    "conjecture", "hypothesis",
+    "remark", "note", "observation",
+    "claim",
+    "fact",
+    "assumption",
+    "notation", "convention"
+]
 
 def parse_papers(
     condition: str,
@@ -19,11 +30,12 @@ def parse_papers(
     batch_size: int,
     workers: int,
     timeout: int,
-    validation_level: TheoremValidationLevel,
+    parsing_method: ParsingMethod,
+    validation_level: StatementValidationLevel,
     source_from_s3: bool
 ):
     print_script_header(
-        action="Parsing papers into theorems",
+        action="Parsing papers into statements",
         params={
             "condition?": condition,
             "condition params?": condition_params,
@@ -31,6 +43,7 @@ def parse_papers(
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
+            "parsing method": parsing_method.value,
             "validation level": validation_level.value,
             "source": "arXiv S3 bucket" if source_from_s3 else "arXiv API"
         }
@@ -40,18 +53,18 @@ def parse_papers(
 
     query, params = build_query(
         base_query="""
-            SELECT paper.id, s3_location.bundle_key, s3_location.bytes_range
+            SELECT paper.paper_id, s3_location.arxiv_id, s3_location.bundle_key, s3_location.bytes_range
             FROM paper
             INNER JOIN s3_location
-            ON s3_location.arxiv_id = paper.id AND s3_location.source = paper.source
-        """ if source_from_s3 else "SELECT paper.id FROM paper",
+            ON s3_location.arxiv_id = paper.external_id
+        """ if source_from_s3 else "SELECT paper.paper_id, external_id as arxiv_id FROM paper",
         where_clauses=[
             {
                 "if": not overwrite,
                 "condition": """
                     NOT EXISTS (
-                        SELECT 1 from theorem
-                        WHERE theorem.paper_id = paper.id and theorem.source = paper.source
+                        SELECT 1 from statement
+                        WHERE statement.paper_id = paper.paper_id
                     )
                 """
             },
@@ -62,7 +75,7 @@ def parse_papers(
             },
             {
                 "if": True,
-                "condition": "paper.source = 'arXiv'"
+                "condition": "paper.kind = 'paper'"
             }
         ]
     )
@@ -75,76 +88,90 @@ def parse_papers(
     }
 
     pbar = tqdm(total=paper_count, dynamic_ncols=True)
-    ex = ProcessPoolExecutor(max_workers=workers)
+    ex = ProcessPoolExecutor(max_workers=workers, max_tasks_per_child=50)
 
     with pbar, ex:
         for papers in paginate_query(
             conn,
             base_query=query,
             base_params=params,
-            order_by="id",
+            order_by="arxiv_id",
             page_size=batch_size
         ):
-            fut_to_paper_id = {}
-            batch_theorem_rows = []
+            fut_to_paper = {}
+            batch_statement_rows = []
+            batch_informal_metadata_rows = []
             batch_parse_status_rows = []
 
             current_time = datetime.now(timezone.utc)
 
             for paper in papers:
-                paper_id = paper["id"]
+                paper_id = paper["paper_id"]
+                arxiv_id = paper["arxiv_id"]
 
                 s3_bundle_key = paper.get("bundle_key", None)
                 s3_bytes_range = paper.get("bytes_range", None)
 
-
                 fut = ex.submit(
                     parse_paper,
-                    paper_id,
+                    arxiv_id,
                     s3_bundle_key,
                     s3_bytes_range,
                     None,
+                    ["proof", *STATEMENT_KINDS],
+                    parsing_method,
                     validation_level,
                     timeout
                 )
-                fut_to_paper_id[fut] = paper_id
+                fut_to_paper[fut] = {"paper_id": paper_id, "arxiv_id": arxiv_id}
 
-            for fut in as_completed(fut_to_paper_id):
-                paper_id = fut_to_paper_id[fut]
+            for fut in as_completed(fut_to_paper):
+                paper_id = fut_to_paper[fut]["paper_id"]
+                arxiv_id = fut_to_paper[fut]["arxiv_id"]
                 error = None
 
                 try:
-                    theorems = fut.result()
+                    statements = fut.result()
 
-                    if theorems is None:
+                    if not statements:
                         raise RuntimeError() # this shouldn't happen
-                    elif not theorems:
-                        raise RuntimeError("[EMPTY ERROR] No theorems found")
                 except Exception as e:
                     error = str(e) or "[UNHANDLED ERROR]"
-                    theorems = None
+                    statements = None
 
-                if not theorems:
+                if not statements:
                     status_counts["failed"] += 1
                 else:
                     status_counts["success"] += 1
 
                 batch_parse_status_rows.append({
-                    "paper_id": paper_id,
-                    "source": "arXiv",
+                    "arxiv_id": arxiv_id,
                     "last_parse_attempt_at": current_time,
                     "error": error,
                     "s3": source_from_s3,
+                    "parsing_method": parsing_method.value,
                     "validation_level": validation_level.value
                 })
 
-                if theorems:
-                    batch_theorem_rows.extend([
-                        json.loads(theorem.model_dump_json()) | {
+                if statements:
+                    batch_statement_rows.extend([
+                        {
                             "paper_id": paper_id,
-                            "source": "arXiv"
+                            "formality": "informal",
+                            "kind": statement.kind,
+                            "body": statement.body,
+                            "proof": statement.proof
                         }
-                        for theorem in theorems
+                        for statement in statements
+                    ])
+
+                    batch_informal_metadata_rows.extend([
+                        {
+                            "ref": statement.ref,
+                            "label": statement.label,
+                            "note": statement.note
+                        }
+                        for statement in statements
                     ])
 
                 pbar.update()
@@ -158,26 +185,47 @@ def parse_papers(
 
             upsert_rows(
                 conn,
-                table="parse_status",
+                table="arxiv_parse_status",
                 rows=batch_parse_status_rows,
                 on_conflict={
-                    "with": ["paper_id", "source"],
-                    "replace": ["last_parse_attempt_at", "error", "s3"]
+                    "with": ["arxiv_id"],
+                    "replace": ["last_parse_attempt_at", "error", "s3", "parsing_method", "validation_level"]
                 }
             )
 
-            if batch_theorem_rows:
+            if batch_statement_rows:
+                paper_ids = list({row["paper_id"] for row in batch_statement_rows})
+
                 with conn.cursor() as cur:
                     cur.execute(
-                        "DELETE FROM theorem WHERE paper_id = ANY(%s) and source = 'arXiv'",
-                        (list({row["paper_id"] for row in batch_theorem_rows}),),
+                        "DELETE FROM statement WHERE paper_id::TEXT = ANY(%s)",
+                        (paper_ids,),
                     )
 
-                upsert_rows(
-                    conn,
-                    table="theorem",
-                    rows=batch_theorem_rows
-                )
+                    # Insert statement rows and collect generated statement_ids,
+                    # keeping order in sync with batch_informal_metadata_rows.
+                    inserted_ids = []
+                    for row in batch_statement_rows:
+                        cur.execute(
+                            """
+                            INSERT INTO statement (paper_id, formality, kind, body, proof)
+                            VALUES (%(paper_id)s, %(formality)s, %(kind)s, %(body)s, %(proof)s)
+                            RETURNING statement_id
+                            """,
+                            row,
+                        )
+                        inserted_ids.append(cur.fetchone()[0])
+
+                    cur.executemany(
+                        """
+                        INSERT INTO informal_metadata (statement_id, ref, label, note)
+                        VALUES (%(statement_id)s, %(ref)s, %(label)s, %(note)s)
+                        """,
+                        [
+                            {"statement_id": sid, **meta}
+                            for sid, meta in zip(inserted_ids, batch_informal_metadata_rows)
+                        ],
+                    )
 
             conn.commit()
 
@@ -196,7 +244,7 @@ if __name__ == "__main__":
         "-o",
         "--overwrite",
         action="store_true",
-        help="Whether to overwrite theorems from previously parsed papers. By default, False"
+        help="Whether to overwrite statements from previously parsed papers. By default, False"
     )
 
     arg_parser.add_argument(
@@ -224,12 +272,20 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "-m",
+        "--parsing_method",
+        type=ParsingMethod,
+        default=ParsingMethod.PLASTEX,
+        help="Method to parse"
+    )
+
+    arg_parser.add_argument(
         "-v",
         "--validation-level",
-        type=TheoremValidationLevel,
+        type=StatementValidationLevel,
         required=False,
-        default=TheoremValidationLevel.Paper,
-        help="Level to validate theorems. Supported: paper (default), theorem"
+        default=StatementValidationLevel.Paper,
+        help="Level to validate statements. Supported: paper (default), statement"
     )
 
     arg_parser.add_argument(
@@ -254,6 +310,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         workers=args.workers,
         timeout=args.timeout,
+        parsing_method=args.parsing_method,
         validation_level=args.validation_level,
         source_from_s3=args.source_from_s3
     )

@@ -6,8 +6,7 @@
 [![HF Paper](https://img.shields.io/badge/HF-Paper-yellow.svg)](https://huggingface.co/papers/2602.05216)
 [![Dataset](https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg)](https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset)
 [![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
-[![API](https://img.shields.io/badge/API-REST-orange.svg)](https://api.theoremsearch.com/search)
-[![MCP](https://img.shields.io/badge/MCP-Tool-purple.svg)](https://api.theoremsearch.com/mcp)
+[![MathGPT](https://img.shields.io/badge/MathGPT-Custom_GPT-74aa9c.svg)](https://chatgpt.com/g/g-6994f4d1eb7c8191a1a8b6aad90e1449-mathgpt)
 [![Website](https://img.shields.io/badge/Website-theoremsearch.com-teal.svg)](https://theoremsearch.com)
 
 ---

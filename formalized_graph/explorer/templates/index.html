@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Mathlib + FLT Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #ffffff;
+            --bg-sidebar: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-stat: #f1f5f9;
+            --bg-code: #1e1e1e;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --text-code: #d4d4d4;
+            --border: #e2e8f0;
+            --accent: #6366f1;
+            --edge-color: #cbd5e1;
+            --paper-bg: #ffffff;
+            --paper-border: #e2e8f0;
+            --doc-bg: #eff6ff;
+            --doc-border: #3b82f6;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-card: #334155;
+            --bg-stat: #0f172a;
+            --bg-code: #000000;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-code: #e2e8f0;
+            --border: #334155;
+            --edge-color: #475569;
+            --paper-bg: #1e293b;
+            --paper-border: #475569;
+            --doc-bg: #172554;
+            --doc-border: #3b82f6;
+        }
+
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
+        .sidebar { width: 450px; background: var(--bg-sidebar); padding: 25px; box-shadow: 2px 0 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; z-index: 100; overflow-y: auto; border-right: 1px solid var(--border); }
+        #cy { flex-grow: 1; background: var(--bg-main); }
+        
+        .theme-toggle { width: 100%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; margin-bottom: 20px; transition: background 0.2s; }
+        .theme-toggle:hover { background: var(--bg-stat); }
+        
+        .search-box { padding: 14px; width: 100%; border: 2px solid var(--border); border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; font-size: 15px; outline: none; background: var(--bg-card); color: var(--text-main); }
+        .project-select { padding: 10px; width: 100%; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; background: var(--bg-card); color: var(--text-main); font-size: 14px; cursor: pointer; }
+        .stats-panel { background: var(--bg-card); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 12px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .stat-item { background: var(--bg-stat); padding: 8px; border-radius: 6px; text-align: center; }
+        .stat-value { font-weight: bold; font-size: 16px; color: var(--text-main); display: block; }
+        .stat-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .capstone-item { padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .capstone-item:hover { border-color: var(--accent); background: var(--bg-stat); }
+        .capstone-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+
+        .code-block { background: var(--bg-code); color: var(--text-code); padding: 20px; border-radius: 8px; font-family: 'Menlo', 'Monaco', monospace; font-size: 12px; white-space: pre; margin-top: 15px; border: 1px solid var(--border); line-height: 1.6; overflow-x: auto; tab-size: 2; }
+        .kw { color: #569cd6; font-weight: bold; } .tac { color: #c586c0; } .sym { color: #ffd700; } .cmt { color: #6a9955; font-style: italic; }
+        
+        .paper-block { background: var(--paper-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-top: 15px; font-family: 'Georgia', serif; font-size: 15px; line-height: 1.6; }
+        .doc-block { background: var(--doc-bg); border-left: 4px solid var(--doc-border); padding: 12px; margin-top: 15px; font-size: 14px; color: var(--text-main); }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 6px; background: var(--accent); color: white; font-weight: bold; font-size: 11px; margin-right: 6px; text-transform: uppercase; }
+        
+        #degree-overlay { position: fixed; bottom: 20px; right: 20px; background: rgba(15, 23, 42, 0.9); color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-size: 13px; border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div id="degree-overlay">
+        <b>Selected Node</b><br>
+        <span id="deg-in" style="color: #38bdf8">In-Degree: 0</span> &bull; 
+        <span id="deg-out" style="color: #fb7185">Out-Degree: 0</span>
+    </div>
+
+    <div class="sidebar">
+        <h2 style="margin-bottom:10px">Lean Explorer</h2>
+        <button class="theme-toggle" id="theme-toggle">Toggle Theme</button>
+        <select id="project-selector" class="project-select">
+            <option value="" disabled selected>Select a project...</option>
+        </select>
+        
+        <div id="project-stats" class="stats-panel">
+            <b style="color: var(--text-muted)">PROJECT INSIGHTS</b>
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-value" id="stat-lean-nodes">-</span><span class="stat-label">Declarations</span></div>
+                <div class="stat-item"><span class="stat-value" id="stat-paper-nodes">-</span><span class="stat-label">Paper Nodes</span></div>
+                <div class="stat-item"><span class="stat-value" id="stat-lean-files">-</span><span class="stat-label">Lean Files</span></div>
+                <div class="stat-item"><span class="stat-value" id="stat-mathlib-count">-</span><span class="stat-label">Mathlib Refs</span></div>
+            </div>
+        </div>
+
+        <div id="capstone-container" class="capstone-list">
+            <b style="color: var(--text-muted); font-size: 12px; display:block; margin-bottom:8px">MAIN RESULTS</b>
+            <div id="capstone-items"></div>
+        </div>
+
+        <input type="text" id="search" class="search-box" placeholder="Search (e.g. Frey, irrational)..." list="suggestions">
+        <datalist id="suggestions"></datalist>
+        
+        <div id="view-stats" style="margin-bottom:15px; font-size:11px; color: var(--text-muted); display:none">
+            CURRENT VIEW: <span id="view-count-nodes">0</span> nodes, <span id="view-count-edges">0</span> edges
+        </div>
+
+        <div id="details"><div id="info-content" style="color: var(--text-muted); font-size:14px">Search and click nodes to explore.</div></div>
+    </div>
+    <div id="cy"></div>
+    <script>
+        let katexMacros = {};
+
+        async function fetchMacros() {
+            try {
+                const resp = await fetch('/api/macros');
+                if (resp.ok) katexMacros = await resp.json();
+            } catch(e) { console.error("Failed to fetch macros", e); }
+        }
+
+        function highlightLean(code) {
+            if (!code) return "";
+            let html = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            html = html.replace(/\b(theorem|lemma|def|definition|inductive|structure|class|instance|namespace|section|end|open|import|variable|universe|example|axiom)\b/g, '<span class="kw">$1</span>');
+            html = html.replace(/\b(rw|simp|simpa|aesop|apply|exact|refine|intro|intros|induction|cases|obtain|exists|split|constructor|left|right|ring|linarith|gcongr|positivity)\b/g, '<span class="tac">$1</span>');
+            html = html.replace(/([\u2115\u211a\u211d\u2124\u213c\u2200\u2203\u2208\u2209\u2211\u220f\u2192\u21a6\u222a\u2229\u2264\u2265\u2260\u2248\u2243\u2245\u2261\u2223\u2226\u22a2\u22a3\u27e8\u27e9\u2218\u2022]|:=|[:])+/g, '<span class="sym">$1</span>');
+            html = html.replace(/(--.*$)/gm, '<span class="cmt">$1</span>');
+            return html;
+        }
+
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateGraphTheme(newTheme);
+        });
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        function updateGraphTheme(theme) {
+            const edgeColor = theme === 'dark' ? '#475569' : '#cbd5e1';
+            cy.style().selector('edge').style('line-color', edgeColor).update();
+            cy.style().selector('edge').style('target-arrow-color', edgeColor).update();
+        }
+
+        async function updateStats() {
+            try {
+                const resp = await fetch('/api/stats');
+                const data = await resp.json();
+                document.getElementById('stat-lean-nodes').innerText = data.lean_nodes.toLocaleString();
+                document.getElementById('stat-paper-nodes').innerText = data.paper_nodes.toLocaleString();
+                document.getElementById('stat-lean-files').innerText = data.lean_files.toLocaleString();
+                document.getElementById('stat-mathlib-count').innerText = data.mathlib_coverage.toLocaleString();
+                
+                const cResp = await fetch('/api/capstones');
+                const caps = await cResp.json();
+                const container = document.getElementById('capstone-items');
+                container.innerHTML = caps.map(c => `
+                    <div class="capstone-item" onclick="triggerSearch('${c.id}')" style="${!c.is_linked ? 'opacity: 0.6; border-style: dashed;' : ''}">
+                        <span style="font-weight:500">${c.label}</span>
+                        <span class="capstone-tag" style="background:${c.type==='paper'?'#f43f5e':'#10b981'}; color:white">${c.type}</span>
+                    </div>
+                `).join('');
+            } catch(e) { console.error("Stats fetch failed", e); }
+        }
+
+        function triggerSearch(id) {
+            document.getElementById('search').value = id;
+            search();
+        }
+
+        async function initProjects() {
+            await fetchMacros();
+            try {
+                const resp = await fetch('/api/projects');
+                const data = await resp.json();
+                const selector = document.getElementById('project-selector');
+                selector.innerHTML = data.projects.map(p => `<option value="${p}" ${p === data.active ? 'selected' : ''}>${p}</option>`).join('');
+                updateStats();
+            } catch(e) { console.error("Project init failed", e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initProjects();
+            document.getElementById('search').addEventListener('keypress', e => { if (e.key === 'Enter') search(); });
+        });
+
+        async function search() {
+            const query = document.getElementById('search').value.trim();
+            try {
+                const response = await fetch('/api/search?q=' + encodeURIComponent(query));
+                const elements = await response.json();
+                cy.elements().remove(); cy.add(elements);
+                cy.layout({ name: 'dagre', rankDir: 'TB', nodeSep: 80, rankSep: 120, ranker: 'network-simplex' }).run();
+                updateGraphTheme(document.documentElement.getAttribute('data-theme'));
+                
+                const nodeCount = elements.filter(e => !e.data.source).length;
+                const edgeCount = elements.filter(e => e.data.source).length;
+                document.getElementById('view-count-nodes').innerText = nodeCount;
+                document.getElementById('view-count-edges').innerText = edgeCount;
+                document.getElementById('view-stats').style.display = 'block';
+            } catch(e) { console.error("Search failed", e); }
+        }
+
+        let cy = cytoscape({
+            container: document.getElementById('cy'),
+            style: [
+                { selector: 'node', style: { 'label': 'data(label)', 'width': 180, 'height': 60, 'shape': 'round-rectangle', 'text-valign': 'center', 'text-halign': 'center', 'font-size': '10px', 'font-weight': 'bold', 'color': '#fff', 'text-wrap': 'wrap', 'text-max-width': 160 } },
+                { selector: 'node[type="paper"]', style: { 'background-color': '#f43f5e' } },
+                { selector: 'node[type="lean"]', style: { 'background-color': '#10b981' } },
+                { selector: 'node[type="mathlib"]', style: { 'background-color': '#3b82f6' } },
+                { selector: 'node:selected', style: { 'border-width': 4, 'border-color': '#000', 'border-opacity': 0.9 } },
+                { selector: 'edge', style: { 'width': 2.5, 'line-color': '#cbd5e1', 'target-arrow-color': '#94a3b8', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'arrow-scale': 1.2 } },
+                { selector: 'edge[type="impl"]', style: { 'line-style': 'dashed', 'line-color': '#f43f5e', 'target-arrow-shape': 'none', 'width': 3 } }
+            ]
+        });
+
+        cy.on('tap', 'node', async evt => {
+            const id = evt.target.id();
+            const type = evt.target.data('type');
+            cy.nodes().unselect();
+            evt.target.select();
+            
+            const infoBox = document.getElementById('info-content');
+            infoBox.innerHTML = '<div style="padding:20px; text-align:center;"><div class="spinner" style="margin:0 auto;"></div><p>Fetching Truth...</p></div>';
+            
+            try {
+                const response = await fetch('/api/details?id=' + encodeURIComponent(id) + '&type=' + type);
+                if (!response.ok) throw new Error("Backend error");
+                const data = await response.json();
+                
+                const degIn = document.getElementById('deg-in');
+                const degOut = document.getElementById('deg-out');
+                const overlay = document.getElementById('degree-overlay');
+                
+                if (degIn) degIn.innerText = "In-Degree: " + (data.in_degree || 0);
+                if (degOut) degOut.innerText = "Out-Degree: " + (data.out_degree || 0);
+                if (overlay) overlay.style.display = 'block';
+
+                let content = '<div style="display:flex; justify-content:space-between; align-items:flex-start"><h3>' + id.split('.').pop() + '</h3><span class="badge">' + type + '</span></div><p style="font-size:11px; color: var(--text-muted); margin:5px 0">' + id + '</p>';
+                
+                if (data.doc) content += '<div class="doc-block"><b>Lean Docstring:</b><br>' + data.doc + '</div>';
+                
+                if (data.linked_papers && data.linked_papers.length > 0) {
+                    data.linked_papers.forEach(lp => {
+                        if (type === 'paper' && lp.lean_link) {
+                            const leanNode = cy.getElementById(lp.lean_link);
+                            if (leanNode.length > 0) {
+                                leanNode.select();
+                                cy.animate({ center: { eles: leanNode } }, { duration: 500 });
+                            }
+                        }
+                        content += '<div style="background: var(--paper-bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-top: 15px;">';
+                        content += '<b style="color: var(--accent); font-size: 11px; text-transform:uppercase;">Mathematical Result (Paper)</b>';
+                        if (lp.title) content += '<div style="font-weight:bold; margin:5px 0;">' + lp.title + '</div>';
+                        if (lp.context) content += '<div class="math-render" style="font-family:Georgia,serif; font-size:13px; color: var(--text-muted); margin-bottom:10px; font-style:italic;">' + lp.context + '</div>';
+                        content += '<div class="math-render" style="font-family:Georgia,serif; font-size:14px; margin-top:8px;">' + lp.body + '</div>';
+                        content += '</div>';
+                    });
+                }
+
+                if (data.body) content += '<div class="code-block">' + highlightLean(data.body) + '</div>';
+                
+                if (data.docs_url || data.source_url) {
+                    content += '<div style="margin-top:20px; display:flex; gap:10px; border-top:1px solid var(--border); padding-top:15px;">';
+                    if (data.docs_url) content += '<a href="' + data.docs_url + '" target="_blank" style="flex:1; text-align:center; background:#3b82f6; color:white; padding:8px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">Mathlib Docs ↗</a>';
+                    if (data.source_url) content += '<a href="' + data.source_url + '" target="_blank" style="flex:1; text-align:center; background: var(--text-main); color: var(--bg-main); padding:8px; border-radius:6px; font-size:12px; font-weight:bold; text-decoration:none;">View Source ↗</a>';
+                    content += '</div>';
+                }
+
+                infoBox.innerHTML = content;
+                document.querySelectorAll('.math-render').forEach(el => {
+                    renderMathInElement(el, { 
+                        delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}, {left: "\\(", right: "\\)", display: false}, {left: "\\[", right: "\\]", display: true}],
+                        macros: katexMacros, throwOnError: false, trust: true
+                    });
+                });
+            } catch(e) { 
+                infoBox.innerHTML = '<div style="color:#ef4444; padding:20px; text-align:center;"><b>Failed to fetch node details.</b><br>' + e.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
