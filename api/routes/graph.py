@@ -6,7 +6,7 @@ from models import StatementNode, PaperNode, DependencyEdge, GraphResponse
 router = APIRouter()
 
 
-@router.get("/graph/{external_id:path}", response_model=GraphResponse)
+@router.get("/graph", response_model=GraphResponse)
 async def graph(external_id: str):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
