@@ -36,16 +36,24 @@ def clean_path(p: str) -> str:
         import re
         p = re.sub(r'\.lake/packages/[^/]+/', '', p)
 
-    # At this point p may still have an absolute machine prefix if no build marker
-    # was found (e.g. old defPath format or unexpected structure).  Find the first
-    # path component that starts with a capital letter — Lean module roots always do
-    # (Mathlib, Init, Std, FLT, …).
+    # At this point p may still have an absolute machine prefix (e.g. old defPath
+    # format: /Users/simon/.elan/.../Init/Prelude.lean or
+    # /Users/simon/Desktop/math lab/.../Mathlib/Algebra/Basic.lean).
+    # Lean module paths have ALL directory components starting with uppercase.
+    # Find the leftmost index where this holds for the rest of the path, then
+    # strip everything before it.
     if p.startswith("/"):
         parts = p.lstrip("/").split("/")
         for i, part in enumerate(parts):
             if part and part[0].isupper() and part[0].isalpha():
-                p = "/".join(parts[i:])
-                break
+                tail = parts[i:]
+                # Every directory in a Lean module tree starts uppercase.
+                if all(
+                    c and (c[0].isupper() and c[0].isalpha() or c.endswith(".lean"))
+                    for c in tail
+                ):
+                    p = "/".join(tail)
+                    break
 
     if p.startswith("./"): p = p[2:]
     return p
