@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from db import rds_conn
-from models import StatementNode, PaperNode, DependencyEdge, GraphResponse
+from models import PaperNode, DependencyEdge, GraphResponse
 
 router = APIRouter()
 
@@ -36,38 +36,25 @@ async def graph(external_id: str):
         cur.execute(
             """
             SELECT
-                d.kind,
                 d.interpaper,
-                d.dep_name,
-                d.dep_key,
                 d.cite_key,
-                d.tactic_context,
-                ss.statement_id  AS src_id,
-                ss.formality     AS src_formality,
+                d.dep_key,
+                ss.statement_id  AS src_statement_id,
                 ss.kind          AS src_kind,
                 ss.body          AS src_body,
+                ss.proof         AS src_proof,
                 sim.ref          AS src_ref,
-                sim.label        AS src_label,
-                sfm.decl_name    AS src_decl_name,
-                ds.statement_id  AS dep_id,
-                ds.formality     AS dep_formality,
+                sim.note         AS src_note,
+                ds.statement_id  AS dep_statement_id,
                 ds.kind          AS dep_kind,
                 ds.body          AS dep_body,
                 dim.ref          AS dep_ref,
-                dim.label        AS dep_label,
-                dfm.decl_name    AS dep_decl_name,
-                dp.paper_id      AS dep_paper_id,
-                dp.title         AS dep_paper_title,
-                dp.external_id   AS dep_paper_ext_id,
-                dp.source        AS dep_paper_source,
-                dp.url           AS dep_paper_url
+                dp.external_id   AS dep_paper_ext_id
             FROM dependency d
             JOIN statement ss ON ss.statement_id = d.source_id
             LEFT JOIN informal_metadata sim ON sim.statement_id = d.source_id
-            LEFT JOIN formal_metadata   sfm ON sfm.statement_id = d.source_id
             LEFT JOIN statement         ds  ON ds.statement_id  = d.dep_id
             LEFT JOIN informal_metadata dim ON dim.statement_id = d.dep_id
-            LEFT JOIN formal_metadata   dfm ON dfm.statement_id = d.dep_id
             LEFT JOIN paper             dp  ON dp.paper_id      = ds.paper_id
             WHERE ss.paper_id = %s
             """,
@@ -78,54 +65,31 @@ async def graph(external_id: str):
     edges = []
     for row in rows:
         (
-            kind, interpaper, dep_name, dep_key, cite_key, tactic_context,
-            src_id, src_formality, src_kind, src_body, src_ref, src_label, src_decl,
-            dep_sid, dep_formality, dep_kind, dep_body, dep_ref, dep_label, dep_decl,
-            dep_paper_id, dep_paper_title, dep_paper_ext_id, dep_paper_source, dep_paper_url,
+            interpaper, cite_key, dep_key,
+            src_statement_id, src_kind, src_body, src_proof, src_ref, src_note,
+            dep_statement_id, dep_kind, dep_body, dep_ref,
+            dep_paper_ext_id,
         ) = row
 
-        source_node = StatementNode(
-            statement_id=str(src_id),
-            formality=src_formality,
-            kind=src_kind,
-            body=src_body,
-            ref=src_ref,
-            label=src_label,
-            decl_name=src_decl,
-        )
+        src_name = f"{src_kind.capitalize()} {src_ref}" if src_ref else src_kind.capitalize()
 
-        dep_node = None
-        if dep_sid is not None:
-            dep_node = StatementNode(
-                statement_id=str(dep_sid),
-                formality=dep_formality,
-                kind=dep_kind,
-                body=dep_body,
-                ref=dep_ref,
-                label=dep_label,
-                decl_name=dep_decl,
-            )
-
-        dep_paper_node = None
-        if dep_paper_id is not None:
-            dep_paper_node = PaperNode(
-                paper_id=str(dep_paper_id),
-                title=dep_paper_title,
-                external_id=dep_paper_ext_id,
-                source=dep_paper_source,
-                url=dep_paper_url,
-            )
+        dep_name = None
+        if dep_kind is not None:
+            dep_name = f"{dep_kind.capitalize()} {dep_ref}" if dep_ref else dep_kind.capitalize()
 
         edges.append(DependencyEdge(
-            kind=kind,
-            interpaper=interpaper,
+            src_statement_id=str(src_statement_id),
+            src_name=src_name,
+            src_body=src_body,
+            src_note=src_note,
+            src_proof=src_proof,
+            dep_statement_id=str(dep_statement_id) if dep_statement_id is not None else None,
             dep_name=dep_name,
+            dep_body=dep_body,
             dep_key=dep_key,
-            cite_key=cite_key,
-            tactic_context=tactic_context,
-            source=source_node,
-            dep=dep_node,
-            dep_paper=dep_paper_node,
+            cited_arxiv_id=dep_paper_ext_id,
+            cited_paper_key=cite_key,
+            interpaper=interpaper,
         ))
 
     return GraphResponse(paper=paper, dependencies=edges)
