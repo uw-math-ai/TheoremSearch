@@ -458,7 +458,12 @@ unsafe def processFile (path : FilePath) : IO Unit := do
     throw $ IO.userError "Errors during import; aborting"
 
   let env := env.setMainModule (← moduleNameOfFileName path none)
-  let commandState := { Command.mkState env messages {} with infoState.enabled := true }
+  -- Pass maxHeartbeats 0 (unlimited) into the elaboration of the target file.
+  -- The top-level `set_option maxHeartbeats` only covers the script itself;
+  -- commandState uses its own options and defaults to 400k, causing ~40% of
+  -- Mathlib files to fail with heartbeat exhaustion during re-elaboration.
+  let opts := Options.empty |>.set `maxHeartbeats (0 : Nat)
+  let commandState := { Command.mkState env messages opts with infoState.enabled := true }
   let s ← IO.processCommands inputCtx parserState commandState
   let env' := s.commandState.env
   let commands := s.commands.pop -- Remove EOI command.
