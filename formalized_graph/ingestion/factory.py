@@ -98,9 +98,6 @@ class GroundTruthFactory:
         lean_files = [f for i, f in enumerate(all_lean_files) if i % total_tasks == task_id]
         logger.info(f"Found {len(all_lean_files)} total files; this task processing {len(lean_files)}.")
 
-        temp_extractor = project_path / "ExtractData.lean"
-        temp_extractor.write_text(self.extractor_lean.read_text())
-
         # Cap at 2 for retry mode: timed-out files are the heaviest in Mathlib
         # and need more RAM per process. Normal mode uses 4 workers.
         max_workers = min(os.cpu_count() or 4, 2 if retry_missing else 4)
@@ -112,7 +109,7 @@ class GroundTruthFactory:
                     _extract_single_file,
                     f.relative_to(project_path),
                     project_path,
-                    Path("ExtractData.lean"),
+                    self.extractor_lean,  # absolute path — no copy/delete race
                     timeout,
                 ): f
                 for f in lean_files
@@ -128,8 +125,6 @@ class GroundTruthFactory:
         ast_files = list(project_path.rglob("*.ast.json"))
         self._ingest_ast_files(ast_files, project_id, project_path)
 
-        if temp_extractor.exists():
-            os.remove(temp_extractor)
         logger.success(f"--- {project_name} Ingested into Corpus ---")
 
     def _ingest_ast_files(
