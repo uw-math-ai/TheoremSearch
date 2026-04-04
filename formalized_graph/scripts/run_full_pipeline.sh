@@ -2,8 +2,8 @@
 #SBATCH --job-name=mathlib-extract
 #SBATCH --account=amath
 #SBATCH --partition=cpu-g2
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=64G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
 #SBATCH --time=08:00:00
 #SBATCH --output=/gscratch/amath/simku22/logs/pipeline_%j.out
 #SBATCH --error=/gscratch/amath/simku22/logs/pipeline_%j.err

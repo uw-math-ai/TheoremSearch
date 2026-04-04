@@ -89,7 +89,10 @@ class GroundTruthFactory:
         temp_extractor = project_path / "ExtractData.lean"
         temp_extractor.write_text(self.extractor_lean.read_text())
 
-        max_workers = os.cpu_count() or 4
+        # Cap at 4: each `lake env lean` process loads the full Lean/Mathlib
+        # olean environment (~2-4 GB). More than 4 concurrent workers saturates
+        # RAM on typical cluster nodes and causes swap-induced timeouts.
+        max_workers = min(os.cpu_count() or 4, 4)
         logger.info(f"Using {max_workers} parallel workers.")
 
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
