@@ -13,13 +13,21 @@ sys.path.append(os.path.join(os.getcwd(), "formalized_graph"))
 from ingestion.factory import GroundTruthFactory
 
 
-def run_global_ingestion(task_id: int = 0, total_tasks: int = 1, limit: int | None = None):
+def run_global_ingestion(
+    task_id: int = 0,
+    total_tasks: int = 1,
+    limit: int | None = None,
+    retry_missing: bool = False,
+    timeout: int = 600,
+):
     """
     The master runner for the Verified Lean Corpus.
     When total_tasks > 1, only processes this task's slice of files (for SLURM array jobs).
     When limit is set, only processes the first N files (for test runs).
+    When retry_missing is set, only processes files without an existing .ast.json.
     """
-    logger.info(f"🚀 Starting Extraction — task {task_id}/{total_tasks}" + (f" (limit {limit})" if limit else ""))
+    mode = "retry" if retry_missing else (f"limit {limit}" if limit else "full")
+    logger.info(f"🚀 Starting Extraction — task {task_id}/{total_tasks} [{mode}] timeout={timeout}s")
 
     repo_root = Path(__file__).parent.parent
     db_path = repo_root / "data" / "generated" / "global_corpus.db"
@@ -31,7 +39,7 @@ def run_global_ingestion(task_id: int = 0, total_tasks: int = 1, limit: int | No
         factory.process_project(
             mathlib_path, "Mathlib", is_mathlib=True,
             task_id=task_id, total_tasks=total_tasks,
-            limit=limit,
+            limit=limit, retry_missing=retry_missing, timeout=timeout,
         )
     else:
         logger.warning(f"Mathlib not found at {mathlib_path}.")
@@ -55,10 +63,21 @@ if __name__ == "__main__":
         "--limit", type=int, default=None,
         help="Only process the first N files. Useful for test runs.",
     )
+    parser.add_argument(
+        "--retry", action="store_true",
+        help="Only process files missing a .ast.json (timed out or errored in a previous pass).",
+    )
+    parser.add_argument(
+        "--timeout", type=int, default=600,
+        help="Per-file timeout in seconds (default 600). Use 3600 for retry pass.",
+    )
     args = parser.parse_args()
 
     try:
-        run_global_ingestion(task_id=args.task_id, total_tasks=args.total_tasks, limit=args.limit)
+        run_global_ingestion(
+            task_id=args.task_id, total_tasks=args.total_tasks,
+            limit=args.limit, retry_missing=args.retry, timeout=args.timeout,
+        )
     except KeyboardInterrupt:
         logger.warning("Interrupted.")
     except Exception as e:
