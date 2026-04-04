@@ -393,16 +393,16 @@ private def traverseTopLevelTree (tree : InfoTree) (env : Environment) : TraceM 
 
 /--
 Collect all declarations *defined* in the current file.
-Uses `env.constants.map₂` which contains only constants added during the current
-elaboration session — O(declarations in this file) not O(all of Mathlib).
+Filters using `const2ModIdx`: imported constants have an entry; current-file
+constants do not. This ensures `findDeclarationRanges?` is only called for the
+~150 declarations in the current file, not the ~200k imported constants.
 -/
 def collectDeclarations (env : Environment) : TraceM Unit := do
-  -- env.constants.map₂ contains only declarations added during the current
-  -- elaboration session (this file). Imported constants live in map₁.
-  -- This avoids iterating the full ~200k-entry Mathlib environment.
   for (name, constInfo) in env.constants.map₂.toList do
     if name.isAnonymous then continue
     if name.isInternal then continue
+    -- Skip imported constants — only process declarations from the current file.
+    if env.const2ModIdx.contains name then continue
     -- Use findDeclarationRanges? as a proxy for "user-visible" — macro-generated
     -- auxiliary declarations typically have no source range.
     let some decRanges ← withEnv env $ findDeclarationRanges? name | continue
