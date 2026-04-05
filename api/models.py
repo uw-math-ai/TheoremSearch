@@ -56,16 +56,6 @@ class SearchResponse(BaseModel):
 
 # Graph route models
 
-class StatementNode(BaseModel):
-    statement_id: str
-    formality: str
-    kind: str
-    body: str
-    ref: Optional[str] = None
-    label: Optional[str] = None
-    decl_name: Optional[str] = None
-
-
 class PaperNode(BaseModel):
     paper_id: str
     title: str
@@ -75,15 +65,18 @@ class PaperNode(BaseModel):
 
 
 class DependencyEdge(BaseModel):
-    kind: str
-    interpaper: bool
+    src_statement_id: str
+    src_name: str
+    src_body: str
+    src_note: Optional[str] = None
+    src_proof: Optional[str] = None
+    dep_statement_id: Optional[str] = None
     dep_name: Optional[str] = None
+    dep_body: Optional[str] = None
     dep_key: Optional[str] = None
-    cite_key: Optional[str] = None
-    tactic_context: Optional[str] = None
-    source: StatementNode
-    dep: Optional[StatementNode] = None
-    dep_paper: Optional[PaperNode] = None
+    cited_arxiv_id: Optional[str] = None
+    cited_paper_key: Optional[str] = None
+    interpaper: bool
 
 
 class GraphResponse(BaseModel):
