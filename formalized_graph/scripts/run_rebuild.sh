@@ -4,7 +4,7 @@
 #SBATCH --partition=cpu-g2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --output=/gscratch/amath/simku22/logs/rebuild_%j.out
 #SBATCH --error=/gscratch/amath/simku22/logs/rebuild_%j.err
 #SBATCH --mail-type=END,FAIL
