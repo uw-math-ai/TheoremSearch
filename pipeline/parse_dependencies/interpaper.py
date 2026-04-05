@@ -1,8 +1,13 @@
 import re
 from collections import defaultdict
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
+from tqdm import tqdm
+from psycopg2.extensions import connection
 from arXiTeX import parse_bibliography
 
+from rds.utils.query import build_query, get_query_count
+from rds.utils.paginate import paginate_query
+from rds.utils.upsert import upsert_rows
 
 _CITE_PATTERN = re.compile(
     r'\\cite\w*'
@@ -33,8 +38,11 @@ def _parse_cites(field: str) -> List[Dict]:
     results = []
     for m in _CITE_PATTERN.finditer(field):
         raw = m.group(0)
+        # Re-scan the full match for bracket args to handle both \cite[note]{key}
+        # and \citealt[pre][post]{key} variants uniformly.
         bracket_args = re.findall(r'\[([^\]]*)\]', raw[raw.find('\\'):raw.rfind('{')])
         opt_arg = bracket_args[0] if bracket_args else None
+
         theorem_type = theorem_ref = None
         if opt_arg:
             rm = _THEOREM_REF_PATTERN.match(opt_arg.strip())
@@ -47,13 +55,15 @@ def _parse_cites(field: str) -> List[Dict]:
             if cm:
                 theorem_type = (cm.group(1) or cm.group(3)).lower()
                 theorem_ref  = cm.group(2) or cm.group(4)
+
         for key in m.group(2).split(","):
             results.append({"key": key.strip(), "type": theorem_type, "ref": theorem_ref})
+
     return results
 
 
 def get_interpaper_dependencies(
-    conn,
+    conn: connection,
     arxiv_id: str,
     reference_ids: List[str],
     similarity_threshold: float,
@@ -105,7 +115,6 @@ def get_interpaper_dependencies(
         return []
 
     # statement_id → list of (bib_key, theorem_type, theorem_ref)
-    # All cites are kept; type/ref are None for bare cites.
     statement_cites: Dict[str, list] = defaultdict(list)
     needed_keys: set = set()
 
@@ -244,7 +253,7 @@ def get_interpaper_dependencies(
                 "source_id":  stmt["statement_id"],
                 "cite_id":    cite_id,
                 "cite_key":   bib_key,
-                "dep_id":     dep_id,   # None for bare cites or unresolved statements
+                "dep_id":     dep_id,
                 "kind":       "cites",
                 "interpaper": True,
                 "dep_key":    None,
@@ -252,3 +261,109 @@ def get_interpaper_dependencies(
             })
 
     return dependency_rows
+
+
+def connect_interpaper_dependencies(
+    conn: connection,
+    condition: str,
+    condition_params: List[str],
+    overwrite: bool,
+    batch_size: int,
+    similarity_threshold: float,
+):
+    query, params = build_query(
+        base_query="""
+            SELECT p.paper_id, p.external_id, m.reference_ids
+            FROM paper p
+            INNER JOIN arxiv_paper_metadata m ON m.arxiv_id = p.external_id
+        """,
+        where_clauses=[
+            {
+                "if": condition,
+                "condition": condition,
+                "params": condition_params,
+            },
+            {
+                "if": not overwrite,
+                "condition": """
+                    NOT EXISTS (
+                        SELECT 1 FROM dependency d
+                        INNER JOIN statement s ON s.statement_id = d.source_id
+                        WHERE s.paper_id = p.paper_id
+                          AND d.interpaper IS TRUE
+                    )
+                """
+            },
+            {
+                "if": True,
+                "condition": """
+                    EXISTS (
+                        SELECT 1 FROM statement s
+                        WHERE s.paper_id = p.paper_id
+                    )
+                """
+            },
+            {
+                "if": True,
+                "condition": "p.kind = 'paper'"
+            },
+        ]
+    )
+
+    count = get_query_count(conn, query, params)
+
+    with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Interpaper") as pbar:
+        for papers in paginate_query(
+            conn,
+            base_query=query,
+            base_params=params,
+            order_by="paper_id",
+            page_size=batch_size,
+        ):
+            batch_rows: List = []
+
+            for paper in papers:
+                rows = get_interpaper_dependencies(
+                    conn=conn,
+                    arxiv_id=paper["external_id"],
+                    reference_ids=paper["reference_ids"] or [],
+                    similarity_threshold=similarity_threshold,
+                )
+                batch_rows.extend(rows)
+
+            if batch_rows:
+                resolved_rows   = [r for r in batch_rows if r["dep_id"] is not None]
+                unresolved_rows = [r for r in batch_rows if r["dep_id"] is None]
+                source_ids = list({row["source_id"] for row in batch_rows})
+
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        DELETE FROM dependency
+                        WHERE interpaper IS TRUE
+                          AND source_id::TEXT = ANY(%s)
+                        """,
+                        (source_ids,)
+                    )
+
+                if resolved_rows:
+                    upsert_rows(conn, table="dependency", rows=resolved_rows)
+
+                if unresolved_rows:
+                    with conn.cursor() as cur:
+                        cur.executemany(
+                            """
+                            INSERT INTO dependency
+                                (source_id, cite_id, dep_id, kind, interpaper,
+                                 cite_key, dep_key, dep_name)
+                            VALUES
+                                (%(source_id)s, %(cite_id)s, NULL, %(kind)s, %(interpaper)s,
+                                 %(cite_key)s, %(dep_key)s, %(dep_name)s)
+                            ON CONFLICT DO NOTHING
+                            """,
+                            unresolved_rows
+                        )
+
+                conn.commit()
+
+            pbar.update(len(papers))

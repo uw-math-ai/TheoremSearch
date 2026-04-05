@@ -7,14 +7,14 @@ import dotenv
 
 dotenv.load_dotenv()
 
-def get_rds_connection(db_name: str = "postgres") -> connection:
+def get_rds_connection(db_name: str = "v2") -> connection:
     """
     Provides a connection to the AWS RDS database.
 
     Parameters
     ----------
     db_name : str, optional
-        Name of the database. Default 'postgres'.
+        Name of the database. Default 'v2'.
     
     Returns
     -------
@@ -33,7 +33,7 @@ def get_rds_connection(db_name: str = "postgres") -> connection:
     conn = psycopg2.connect(
         host=host or secret_dict.get("host"),
         port=int(secret_dict.get("port", 5432)),
-        dbname="v2",
+        dbname=db_name,
         user=secret_dict["username"],
         password=secret_dict["password"],
         sslmode="require",
