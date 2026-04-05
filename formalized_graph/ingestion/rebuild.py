@@ -298,15 +298,8 @@ def rebuild_database():
         cursor.executemany("INSERT OR IGNORE INTO edges (source_id, target_id, is_implicit, tactic_context) VALUES (?, ?, ?, ?)", all_edges)
         conn.commit()
 
-    # Recalculate Degrees
-    logger.info("Recalculating node degrees...")
-    cursor.execute("UPDATE nodes SET in_degree = 0, out_degree = 0")
-    cursor.execute("""
-        UPDATE nodes SET 
-        in_degree = (SELECT COUNT(*) FROM edges WHERE target_id = nodes.id AND is_implicit = 0),
-        out_degree = (SELECT COUNT(*) FROM edges WHERE source_id = nodes.id AND is_implicit = 0)
-    """)
-    conn.commit()
+    # Note: in_degree/out_degree columns are skipped — query the edges table directly.
+    # The correlated subquery over 1.4M edges × 292k nodes is too slow for SQLite.
 
     # Verify State Final
     log_db_state(db_path, cursor, "FINAL VERIFIED REBUILD")
