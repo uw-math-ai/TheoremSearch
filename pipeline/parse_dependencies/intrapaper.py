@@ -55,6 +55,8 @@ def connect_intrapaper_dependencies(
     condition_params: List[str],
     batch_size: int,
     overwrite: bool,
+    shard: int = 0,
+    n_shards: int = 1,
 ):
     query, params = build_query(
         base_query="SELECT paper_id FROM paper",
@@ -84,6 +86,11 @@ def connect_intrapaper_dependencies(
                 "condition": condition,
                 "params": condition_params,
             },
+            {
+                "if": n_shards > 1,
+                "condition": "hashtext(paper_id::text) %% %s = %s",
+                "params": [n_shards, shard],
+            },
         ]
     )
 
@@ -105,7 +112,7 @@ def connect_intrapaper_dependencies(
                     SELECT s.statement_id, s.paper_id, im.label, im.note, s.body, s.proof
                     FROM statement s
                     INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
-                    WHERE s.paper_id::TEXT = ANY(%s)
+                    WHERE s.paper_id = ANY(%s::uuid[])
                     """,
                     (paper_ids,)
                 )
@@ -128,7 +135,7 @@ def connect_intrapaper_dependencies(
                         """
                         DELETE FROM dependency
                         WHERE interpaper IS FALSE
-                          AND source_id::TEXT = ANY(%s)
+                          AND source_id = ANY(%s::uuid[])
                         """,
                         (list({row["source_id"] for row in batch_rows}),)
                     )

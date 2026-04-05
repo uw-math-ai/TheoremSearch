@@ -270,6 +270,8 @@ def connect_interpaper_dependencies(
     overwrite: bool,
     batch_size: int,
     similarity_threshold: float,
+    shard: int = 0,
+    n_shards: int = 1,
 ):
     query, params = build_query(
         base_query="""
@@ -307,6 +309,11 @@ def connect_interpaper_dependencies(
                 "if": True,
                 "condition": "p.kind = 'paper'"
             },
+            {
+                "if": n_shards > 1,
+                "condition": "hashtext(p.paper_id::text) %% %s = %s",
+                "params": [n_shards, shard],
+            },
         ]
     )
 
@@ -341,7 +348,7 @@ def connect_interpaper_dependencies(
                         """
                         DELETE FROM dependency
                         WHERE interpaper IS TRUE
-                          AND source_id::TEXT = ANY(%s)
+                          AND source_id = ANY(%s::uuid[])
                         """,
                         (source_ids,)
                     )

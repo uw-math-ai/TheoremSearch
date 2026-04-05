@@ -25,14 +25,26 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "-b", "--batch-size",
         type=int,
-        default=64,
-        help="Papers processed per batch (default: 64)",
+        default=32,
+        help="Papers processed per batch (default: 32)",
     )
     arg_parser.add_argument(
         "-s", "--similarity-threshold",
         type=float,
         default=0.8,
         help="pg_trgm title-match threshold for inter-paper resolution (default: 0.8)",
+    )
+    arg_parser.add_argument(
+        "--shard",
+        type=int,
+        default=0,
+        help="Shard index (0-based). Run alongside --n-shards to parallelize across workers",
+    )
+    arg_parser.add_argument(
+        "--n-shards",
+        type=int,
+        default=1,
+        help="Total number of shards. Papers are split by hashtext(paper_id) %% n_shards",
     )
     arg_parser.add_argument(
         "--skip-intra",
@@ -61,6 +73,7 @@ if __name__ == "__main__":
             "overwrite":            args.overwrite,
             "batch size":           args.batch_size,
             "similarity threshold": args.similarity_threshold,
+            "shard":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else "off",
             "intra":                not args.skip_intra,
             "inter":                not args.skip_inter,
         }
@@ -75,6 +88,8 @@ if __name__ == "__main__":
             condition_params=condition_params,
             batch_size=args.batch_size,
             overwrite=args.overwrite,
+            shard=args.shard,
+            n_shards=args.n_shards,
         )
 
     if not args.skip_inter:
@@ -85,4 +100,6 @@ if __name__ == "__main__":
             overwrite=args.overwrite,
             batch_size=args.batch_size,
             similarity_threshold=args.similarity_threshold,
+            shard=args.shard,
+            n_shards=args.n_shards,
         )
