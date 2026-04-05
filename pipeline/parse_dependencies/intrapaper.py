@@ -28,6 +28,10 @@ def _process_paper(statements: list, paper_id: str) -> list:
             content = m.group(1) or m.group(2)
             # Each ref contains a comma-separated list of labels; a set lookup
             # is O(1) vs the previous O(N) per-label regex scan.
+
+            if not content:
+                continue
+
             for ref in (r.strip() for r in content.split(',')):
                 if ref in label_to_statement_id:
                     matched_labels.add(ref)
