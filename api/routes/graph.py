@@ -125,6 +125,26 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
     return GraphResponse(paper=paper, dependencies=edges)
 
 
+@router.get("/paper-links")
+async def paper_links():
+    """Return all directed citation edges among the galaxy papers (ag_papers_100)."""
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT sp.paper_id AS src, d.cite_id AS tgt
+            FROM dependency d
+            JOIN statement s  ON s.statement_id = d.source_id
+            JOIN paper sp     ON sp.paper_id     = s.paper_id
+            WHERE d.interpaper IS TRUE
+              AND d.cite_id IS NOT NULL
+              AND sp.paper_id IN (SELECT paper_id FROM ag_papers_100)
+              AND d.cite_id   IN (SELECT paper_id FROM ag_papers_100)
+            """
+        )
+        rows = cur.fetchall()
+    return {"links": [{"source": str(r[0]), "target": str(r[1])} for r in rows]}
+
+
 @router.get("/papers")
 async def list_papers():
     with rds_conn("v2") as conn, conn.cursor() as cur:
