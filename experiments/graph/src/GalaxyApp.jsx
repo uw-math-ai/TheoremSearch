@@ -24,8 +24,8 @@ export default function GalaxyApp({ onSwitch }) {
   // Fetch papers + citation links in parallel
   useEffect(() => {
     Promise.all([
-      fetch(`${__API_BASE__}/api/papers`).then(r => r.json()),
-      fetch(`${__API_BASE__}/api/paper-links`).then(r => r.json()),
+      fetch(`${__API_BASE__}/papers`).then(r => r.json()),
+      fetch(`${__API_BASE__}/paper-links`).then(r => r.json()),
     ])
       .then(([papersData, linksData]) => {
         setPapers(papersData.papers || [])

@@ -11,11 +11,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'https://api.theoremsearch.com',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, ''),
-      },
+      '/graph': { target: 'https://api.theoremsearch.com', changeOrigin: true },
+      '/papers': { target: 'https://api.theoremsearch.com', changeOrigin: true },
+      '/paper-links': { target: 'https://api.theoremsearch.com', changeOrigin: true },
     },
   },
 })
