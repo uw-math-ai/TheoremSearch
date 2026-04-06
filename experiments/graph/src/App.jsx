@@ -128,7 +128,7 @@ export default function App({ onSwitch, seedId }) {
     setGraph(null)
     try {
       const res = await fetch(
-        `/api/graph?external_id=${encodeURIComponent(id)}`
+        `${__API_BASE__}/api/graph?external_id=${encodeURIComponent(id)}`
       )
       if (!res.ok) {
         const msg = res.status === 404
