@@ -1,4 +1,5 @@
 import re
+import traceback
 from collections import defaultdict
 from typing import List, Dict, Optional
 from tqdm import tqdm
@@ -136,7 +137,10 @@ def get_interpaper_dependencies(
     # ------------------------------------------------------------------ #
     # Step 2 – resolve only the needed bib keys                           #
     # ------------------------------------------------------------------ #
-    bib: Dict[str, Dict] = parse_bibliography(arxiv_id=arxiv_id) or {}
+    try:
+        bib: Dict[str, Dict] = parse_bibliography(arxiv_id=arxiv_id) or {}
+    except Exception:
+        return []
     needed_bib = {k: v for k, v in bib.items() if k in needed_keys}
     if not needed_bib:
         return []
@@ -330,13 +334,16 @@ def connect_interpaper_dependencies(
             batch_rows: List = []
 
             for paper in papers:
-                rows = get_interpaper_dependencies(
-                    conn=conn,
-                    arxiv_id=paper["external_id"],
-                    reference_ids=paper["reference_ids"] or [],
-                    similarity_threshold=similarity_threshold,
-                )
-                batch_rows.extend(rows)
+                try:
+                    rows = get_interpaper_dependencies(
+                        conn=conn,
+                        arxiv_id=paper["external_id"],
+                        reference_ids=paper["reference_ids"] or [],
+                        similarity_threshold=similarity_threshold,
+                    )
+                    batch_rows.extend(rows)
+                except Exception:
+                    tqdm.write(f"[interpaper] skipping {paper['external_id']}:\n{traceback.format_exc()}")
 
             if batch_rows:
                 resolved_rows   = [r for r in batch_rows if r["dep_id"] is not None]
