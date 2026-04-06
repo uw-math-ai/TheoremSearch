@@ -123,3 +123,30 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
         ))
 
     return GraphResponse(paper=paper, dependencies=edges)
+
+
+@router.get("/papers")
+async def list_papers():
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT p.paper_id, p.title, p.external_id, p.source, p.url
+            FROM paper p
+            JOIN statement s ON s.paper_id = p.paper_id
+            JOIN informal_metadata im ON im.statement_id = s.statement_id
+            ORDER BY p.title
+            """
+        )
+        rows = cur.fetchall()
+    return {
+        "papers": [
+            {
+                "paper_id": str(r[0]),
+                "title": r[1],
+                "external_id": r[2],
+                "source": r[3],
+                "url": r[4],
+            }
+            for r in rows
+        ]
+    }
