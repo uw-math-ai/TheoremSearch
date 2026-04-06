@@ -1,4 +1,6 @@
-export default function NodePanel({ node, onClose }) {
+import LatexText from './LatexText'
+
+export default function NodePanel({ node, onClose, onNavigate }) {
   const isPaper = node.type === 'paper'
   const arxivUrl = node.external_id
     ? `https://arxiv.org/abs/${node.external_id}`
@@ -19,7 +21,7 @@ export default function NodePanel({ node, onClose }) {
       <div className="panel-body">
         {isPaper ? (
           <>
-            <h3 className="panel-title">{node.name}</h3>
+            <h3 className="panel-title"><LatexText>{node.name}</LatexText></h3>
 
             <div className="panel-stats">
               <div className="panel-stat">
@@ -33,6 +35,16 @@ export default function NodePanel({ node, onClose }) {
                 </div>
               )}
             </div>
+
+            {onNavigate && node.external_id && (
+              <button
+                className="panel-link"
+                style={{ border: 'none', cursor: 'pointer' }}
+                onClick={() => { onNavigate(node.external_id); onClose() }}
+              >
+                → View Dependency Graph
+              </button>
+            )}
 
             {arxivUrl && (
               <a
@@ -57,21 +69,21 @@ export default function NodePanel({ node, onClose }) {
             {node.body && (
               <div className="panel-section">
                 <p className="panel-section-label">Body</p>
-                <p className="panel-text">{node.body}</p>
+                <p className="panel-text"><LatexText>{node.body}</LatexText></p>
               </div>
             )}
 
             {node.note && (
               <div className="panel-section">
                 <p className="panel-section-label">Note</p>
-                <p className="panel-text">{node.note}</p>
+                <p className="panel-text"><LatexText>{node.note}</LatexText></p>
               </div>
             )}
 
             {node.proof && (
               <div className="panel-section">
                 <p className="panel-section-label">Proof</p>
-                <p className="panel-text proof">{node.proof}</p>
+                <p className="panel-text proof"><LatexText>{node.proof}</LatexText></p>
               </div>
             )}
           </>

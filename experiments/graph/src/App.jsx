@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import GraphView from './GraphView'
 import NodePanel from './NodePanel'
 import './App.css'
@@ -19,18 +19,43 @@ function buildGraph(data) {
 
   const rawLinks = []
 
+  // Collect statement IDs that participate in dep edges (as src or dep)
+  const stmtsInDeps = new Set()
   for (const edge of data.dependencies) {
-    // Source statement
+    stmtsInDeps.add(edge.src_statement_id)
+    if (edge.dep_statement_id) stmtsInDeps.add(edge.dep_statement_id)
+  }
+
+  // Add ALL statements for this paper; ghost if not in any dep edge
+  for (const stmt of data.statements) {
+    const stmtId = `stmt:${stmt.statement_id}`
+    nodesMap.set(stmtId, {
+      id: stmtId,
+      type: 'statement',
+      ghost: !stmtsInDeps.has(stmt.statement_id),
+      name: stmt.name,
+      body: stmt.body,
+      note: stmt.note,
+      proof: stmt.proof,
+    })
+    rawLinks.push({ source: mainPaperId, target: stmtId, kind: 'membership' })
+  }
+
+  // Dep edges
+  for (const edge of data.dependencies) {
     const srcId = `stmt:${edge.src_statement_id}`
+    // Ensure src node exists (may be missing if not in data.statements, e.g. external)
     if (!nodesMap.has(srcId)) {
       nodesMap.set(srcId, {
         id: srcId,
         type: 'statement',
+        ghost: false,
         name: edge.src_name,
         body: edge.src_body,
         note: edge.src_note,
         proof: edge.src_proof,
       })
+      rawLinks.push({ source: mainPaperId, target: srcId, kind: 'membership' })
     }
 
     if (edge.dep_statement_id) {
@@ -39,14 +64,14 @@ function buildGraph(data) {
         nodesMap.set(depId, {
           id: depId,
           type: 'statement',
+          ghost: false,
           name: edge.dep_name,
           body: edge.dep_body,
         })
       }
-      rawLinks.push({ source: srcId, target: depId, interpaper: edge.interpaper })
-    } else if (edge.cited_arxiv_id || edge.cited_paper_key) {
-      // Dep is an external paper
-      const extKey = edge.cited_arxiv_id || edge.cited_paper_key
+      rawLinks.push({ source: srcId, target: depId, kind: edge.interpaper ? 'inter' : 'intra' })
+    } else if (edge.dep_paper_ext_id || edge.cited_paper_key) {
+      const extKey = edge.dep_paper_ext_id || edge.cited_paper_key
       const paperId = `paper:${extKey}`
       if (!nodesMap.has(paperId)) {
         nodesMap.set(paperId, {
@@ -54,14 +79,14 @@ function buildGraph(data) {
           type: 'paper',
           isMain: false,
           name: extKey,
-          external_id: edge.cited_arxiv_id,
+          external_id: edge.dep_paper_ext_id,
         })
       }
-      rawLinks.push({ source: srcId, target: paperId, interpaper: true })
+      rawLinks.push({ source: srcId, target: paperId, kind: 'inter' })
     }
   }
 
-  // Deduplicate links (same source+target pair)
+  // Deduplicate links
   const seenLinks = new Set()
   const links = rawLinks.filter(l => {
     const key = `${l.source}|${l.target}`
@@ -70,9 +95,10 @@ function buildGraph(data) {
     return true
   })
 
-  // Compute degree for node sizing
+  // Degree counts only dep edges (not membership) for node sizing
   const degree = new Map()
   for (const l of links) {
+    if (l.kind === 'membership') continue
     degree.set(l.source, (degree.get(l.source) || 0) + 1)
     degree.set(l.target, (degree.get(l.target) || 0) + 1)
   }
@@ -85,15 +111,16 @@ function buildGraph(data) {
   return { nodes, links }
 }
 
-export default function App({ onSwitch }) {
-  const [input, setInput] = useState('')
+export default function App({ onSwitch, seedId }) {
+  const [input, setInput] = useState(seedId || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [graph, setGraph] = useState(null)
   const [selected, setSelected] = useState(null)
 
-  const handleFetch = useCallback(async () => {
-    const id = input.trim()
+  // Auto-fetch when arriving from galaxy with a pre-selected paper
+  const handleFetch = useCallback(async (overrideId) => {
+    const id = (typeof overrideId === 'string' ? overrideId : input).trim()
     if (!id) return
     setLoading(true)
     setError(null)
@@ -117,6 +144,10 @@ export default function App({ onSwitch }) {
       setLoading(false)
     }
   }, [input])
+
+  useEffect(() => {
+    if (seedId) handleFetch(seedId)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="app">
@@ -172,6 +203,7 @@ export default function App({ onSwitch }) {
             links={graph.links}
             selected={selected}
             onSelect={setSelected}
+            onNavigate={handleFetch}
           />
         )}
 
@@ -189,7 +221,11 @@ export default function App({ onSwitch }) {
       </main>
 
       {selected && (
-        <NodePanel node={selected} onClose={() => setSelected(null)} />
+        <NodePanel
+          node={selected}
+          onClose={() => setSelected(null)}
+          onNavigate={selected.type === 'paper' ? handleFetch : undefined}
+        />
       )}
     </div>
   )

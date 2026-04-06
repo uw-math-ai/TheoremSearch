@@ -6,8 +6,24 @@ import GalaxyApp from './GalaxyApp.jsx'
 
 function Root() {
   const [view, setView] = useState('graph')
-  if (view === 'galaxy') return <GalaxyApp onSwitch={() => setView('graph')} />
-  return <App onSwitch={() => setView('galaxy')} />
+  const [seedId, setSeedId] = useState(null)
+
+  if (view === 'galaxy') {
+    return (
+      <GalaxyApp
+        onSwitch={externalId => {
+          setSeedId(externalId || null)
+          setView('graph')
+        }}
+      />
+    )
+  }
+  return (
+    <App
+      seedId={seedId}
+      onSwitch={() => { setSeedId(null); setView('galaxy') }}
+    />
+  )
 }
 
 createRoot(document.getElementById('root')).render(
