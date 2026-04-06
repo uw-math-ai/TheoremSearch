@@ -1,15 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
 from db import rds_conn
-from models import PaperNode, DependencyEdge, GraphResponse
+from models import PaperNode, StatementNode, DependencyEdge, GraphResponse
 
 router = APIRouter()
 
-MAX_DEPTH = 5
-
 
 @router.get("/graph", response_model=GraphResponse)
-async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEPTH)):
+async def graph(external_id: str):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -35,45 +33,42 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
             url=url,
         )
 
-        # Recursively expand the source frontier depth-1 levels into external papers,
-        # then fetch all dependency edges whose source is in that frontier.
+        # All statements belonging to this paper
         cur.execute(
             """
-            WITH RECURSIVE src_frontier(statement_id, lvl) AS (
-                SELECT s.statement_id, 0
-                FROM statement s
-                WHERE s.paper_id = %s
+            SELECT s.statement_id, s.kind, s.body, s.proof, im.ref, im.note
+            FROM statement s
+            LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+            WHERE s.paper_id = %s
+            """,
+            (paper_id,),
+        )
+        stmt_rows = cur.fetchall()
 
-                UNION
-
-                SELECT d.dep_id, f.lvl + 1
-                FROM src_frontier f
-                JOIN dependency d ON d.source_id = f.statement_id
-                WHERE d.dep_id IS NOT NULL
-                  AND f.lvl < %s - 1
-            )
+        # All dependency edges whose source statement belongs to this paper
+        cur.execute(
+            """
             SELECT
                 d.interpaper,
                 d.cite_key,
                 d.dep_key,
-                ss.statement_id                       AS src_statement_id,
-                ss.kind                               AS src_kind,
-                ss.body                               AS src_body,
-                ss.proof                              AS src_proof,
-                sim.ref                               AS src_ref,
-                sim.note                              AS src_note,
-                sp.paper_id                           AS src_paper_id,
-                sp.external_id                        AS src_paper_ext_id,
-                sp.title                              AS src_paper_title,
-                ds.statement_id                       AS dep_statement_id,
-                ds.kind                               AS dep_kind,
-                ds.body                               AS dep_body,
-                dim.ref                               AS dep_ref,
-                COALESCE(ds.paper_id, d.cite_id)      AS dep_paper_id,
+                ss.statement_id                          AS src_statement_id,
+                ss.kind                                  AS src_kind,
+                ss.body                                  AS src_body,
+                ss.proof                                 AS src_proof,
+                sim.ref                                  AS src_ref,
+                sim.note                                 AS src_note,
+                sp.paper_id                              AS src_paper_id,
+                sp.external_id                           AS src_paper_ext_id,
+                sp.title                                 AS src_paper_title,
+                ds.statement_id                          AS dep_statement_id,
+                ds.kind                                  AS dep_kind,
+                ds.body                                  AS dep_body,
+                dim.ref                                  AS dep_ref,
+                COALESCE(ds.paper_id, d.cite_id)         AS dep_paper_id,
                 COALESCE(dp.external_id, cp.external_id) AS dep_paper_ext_id,
-                COALESCE(dp.title,       cp.title)    AS dep_paper_title
-            FROM src_frontier f
-            JOIN dependency d   ON d.source_id    = f.statement_id
+                COALESCE(dp.title,       cp.title)       AS dep_paper_title
+            FROM dependency d
             JOIN statement ss   ON ss.statement_id = d.source_id
             JOIN paper sp       ON sp.paper_id     = ss.paper_id
             LEFT JOIN informal_metadata sim ON sim.statement_id = d.source_id
@@ -81,13 +76,26 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
             LEFT JOIN informal_metadata dim ON dim.statement_id = d.dep_id
             LEFT JOIN paper             dp  ON dp.paper_id      = ds.paper_id
             LEFT JOIN paper             cp  ON cp.paper_id      = d.cite_id
+            WHERE ss.paper_id = %s
             """,
-            (paper_id, depth),
+            (paper_id,),
         )
-        rows = cur.fetchall()
+        dep_rows = cur.fetchall()
+
+    statements = []
+    for row in stmt_rows:
+        sid, kind, body, proof, ref, note = row
+        name = f"{kind.capitalize()} {ref}" if ref else kind.capitalize()
+        statements.append(StatementNode(
+            statement_id=str(sid),
+            name=name,
+            body=body or '',
+            note=note,
+            proof=proof,
+        ))
 
     edges = []
-    for row in rows:
+    for row in dep_rows:
         (
             interpaper, cite_key, dep_key,
             src_statement_id, src_kind, src_body, src_proof, src_ref, src_note,
@@ -97,7 +105,6 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
         ) = row
 
         src_name = f"{src_kind.capitalize()} {src_ref}" if src_ref else src_kind.capitalize()
-
         dep_name = None
         if dep_kind is not None:
             dep_name = f"{dep_kind.capitalize()} {dep_ref}" if dep_ref else dep_kind.capitalize()
@@ -122,7 +129,7 @@ async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEP
             interpaper=interpaper,
         ))
 
-    return GraphResponse(paper=paper, dependencies=edges)
+    return GraphResponse(paper=paper, statements=statements, dependencies=edges)
 
 
 @router.get("/paper-links")

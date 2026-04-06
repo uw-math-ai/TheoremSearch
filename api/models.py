@@ -84,6 +84,15 @@ class DependencyEdge(BaseModel):
     interpaper: bool
 
 
+class StatementNode(BaseModel):
+    statement_id: str
+    name: str
+    body: str
+    note: Optional[str] = None
+    proof: Optional[str] = None
+
+
 class GraphResponse(BaseModel):
     paper: PaperNode
+    statements: List[StatementNode]
     dependencies: List[DependencyEdge]
