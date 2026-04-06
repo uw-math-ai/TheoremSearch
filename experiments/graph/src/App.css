@@ -340,6 +340,125 @@
   word-break: break-word;
 }
 
+/* ── Nav button ──────────────────────────────────────────── */
+.nav-btn {
+  padding: 7px 16px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.nav-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(79, 126, 255, 0.07);
+}
+
+/* ── Galaxy legend dot for external nodes ─────────────────── */
+.legend-dot.external {
+  background: #64748b;
+}
+
+/* ── Galaxy search ───────────────────────────────────────── */
+.galaxy-search {
+  position: relative;
+  flex: 1;
+  max-width: 360px;
+}
+
+.galaxy-search .search-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.galaxy-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.galaxy-dropdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.galaxy-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.galaxy-dropdown-item:hover,
+.galaxy-dropdown-item.active {
+  background: rgba(79, 126, 255, 0.1);
+}
+
+.galaxy-dropdown-id {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--paper-main);
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+.galaxy-dropdown-title {
+  font-size: 11.5px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Galaxy active paper label ───────────────────────────── */
+.galaxy-active-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.galaxy-active-id {
+  color: var(--paper-main);
+  font-weight: 500;
+}
+
+/* ── Galaxy loading overlay ──────────────────────────────── */
+.galaxy-loading-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(11, 13, 20, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+  z-index: 5;
+  pointer-events: none;
+}
+
 .panel-stats {
   display: flex;
   gap: 12px;

@@ -85,7 +85,7 @@ function buildGraph(data) {
   return { nodes, links }
 }
 
-export default function App() {
+export default function App({ onSwitch }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -140,6 +140,12 @@ export default function App() {
             {loading ? 'Loading…' : 'Graph'}
           </button>
         </div>
+
+        {onSwitch && (
+          <button className="nav-btn" onClick={onSwitch}>
+            Paper Galaxy →
+          </button>
+        )}
 
         <div className="legend">
           <span className="legend-item">
