@@ -1,13 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from db import rds_conn
 from models import PaperNode, DependencyEdge, GraphResponse
 
 router = APIRouter()
 
+MAX_DEPTH = 5
+
 
 @router.get("/graph", response_model=GraphResponse)
-async def graph(external_id: str):
+async def graph(external_id: str, depth: int = Query(default=1, ge=1, le=MAX_DEPTH)):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -33,32 +35,54 @@ async def graph(external_id: str):
             url=url,
         )
 
+        # Recursively expand the source frontier depth-1 levels into external papers,
+        # then fetch all dependency edges whose source is in that frontier.
         cur.execute(
             """
+            WITH RECURSIVE src_frontier(statement_id, lvl) AS (
+                SELECT s.statement_id, 0
+                FROM statement s
+                WHERE s.paper_id = %s
+
+                UNION
+
+                SELECT d.dep_id, f.lvl + 1
+                FROM src_frontier f
+                JOIN dependency d ON d.source_id = f.statement_id
+                WHERE d.dep_id IS NOT NULL
+                  AND f.lvl < %s - 1
+            )
             SELECT
                 d.interpaper,
                 d.cite_key,
                 d.dep_key,
-                ss.statement_id  AS src_statement_id,
-                ss.kind          AS src_kind,
-                ss.body          AS src_body,
-                ss.proof         AS src_proof,
-                sim.ref          AS src_ref,
-                sim.note         AS src_note,
-                ds.statement_id  AS dep_statement_id,
-                ds.kind          AS dep_kind,
-                ds.body          AS dep_body,
-                dim.ref          AS dep_ref,
-                dp.external_id   AS dep_paper_ext_id
-            FROM dependency d
-            JOIN statement ss ON ss.statement_id = d.source_id
+                ss.statement_id                       AS src_statement_id,
+                ss.kind                               AS src_kind,
+                ss.body                               AS src_body,
+                ss.proof                              AS src_proof,
+                sim.ref                               AS src_ref,
+                sim.note                              AS src_note,
+                sp.paper_id                           AS src_paper_id,
+                sp.external_id                        AS src_paper_ext_id,
+                sp.title                              AS src_paper_title,
+                ds.statement_id                       AS dep_statement_id,
+                ds.kind                               AS dep_kind,
+                ds.body                               AS dep_body,
+                dim.ref                               AS dep_ref,
+                COALESCE(ds.paper_id, d.cite_id)      AS dep_paper_id,
+                COALESCE(dp.external_id, cp.external_id) AS dep_paper_ext_id,
+                COALESCE(dp.title,       cp.title)    AS dep_paper_title
+            FROM src_frontier f
+            JOIN dependency d   ON d.source_id    = f.statement_id
+            JOIN statement ss   ON ss.statement_id = d.source_id
+            JOIN paper sp       ON sp.paper_id     = ss.paper_id
             LEFT JOIN informal_metadata sim ON sim.statement_id = d.source_id
             LEFT JOIN statement         ds  ON ds.statement_id  = d.dep_id
             LEFT JOIN informal_metadata dim ON dim.statement_id = d.dep_id
             LEFT JOIN paper             dp  ON dp.paper_id      = ds.paper_id
-            WHERE ss.paper_id = %s
+            LEFT JOIN paper             cp  ON cp.paper_id      = d.cite_id
             """,
-            (paper_id,),
+            (paper_id, depth),
         )
         rows = cur.fetchall()
 
@@ -67,8 +91,9 @@ async def graph(external_id: str):
         (
             interpaper, cite_key, dep_key,
             src_statement_id, src_kind, src_body, src_proof, src_ref, src_note,
+            src_paper_id, src_paper_ext_id, src_paper_title,
             dep_statement_id, dep_kind, dep_body, dep_ref,
-            dep_paper_ext_id,
+            dep_paper_id, dep_paper_ext_id, dep_paper_title,
         ) = row
 
         src_name = f"{src_kind.capitalize()} {src_ref}" if src_ref else src_kind.capitalize()
@@ -83,11 +108,16 @@ async def graph(external_id: str):
             src_body=src_body,
             src_note=src_note,
             src_proof=src_proof,
+            src_paper_id=str(src_paper_id),
+            src_paper_ext_id=src_paper_ext_id,
+            src_paper_title=src_paper_title,
             dep_statement_id=str(dep_statement_id) if dep_statement_id is not None else None,
             dep_name=dep_name,
             dep_body=dep_body,
             dep_key=dep_key,
-            cited_arxiv_id=dep_paper_ext_id,
+            dep_paper_id=str(dep_paper_id) if dep_paper_id is not None else None,
+            dep_paper_ext_id=dep_paper_ext_id,
+            dep_paper_title=dep_paper_title,
             cited_paper_key=cite_key,
             interpaper=interpaper,
         ))

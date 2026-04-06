@@ -70,11 +70,16 @@ class DependencyEdge(BaseModel):
     src_body: str
     src_note: Optional[str] = None
     src_proof: Optional[str] = None
+    src_paper_id: str                    # UUID — always present
+    src_paper_ext_id: Optional[str] = None
+    src_paper_title: Optional[str] = None
     dep_statement_id: Optional[str] = None
     dep_name: Optional[str] = None
     dep_body: Optional[str] = None
     dep_key: Optional[str] = None
-    cited_arxiv_id: Optional[str] = None
+    dep_paper_id: Optional[str] = None  # UUID of dep's paper (if resolvable)
+    dep_paper_ext_id: Optional[str] = None
+    dep_paper_title: Optional[str] = None
     cited_paper_key: Optional[str] = None
     interpaper: bool
 
