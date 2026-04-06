@@ -23,52 +23,52 @@ export default function NodePanel({ node, onClose, onNavigate }) {
           <>
             <h3 className="panel-title"><LatexText>{node.name}</LatexText></h3>
 
-            <div className="panel-stats">
-              <div className="panel-stat">
-                <span className="panel-stat-value">{node.degree}</span>
-                <span className="panel-stat-label">Connections</span>
+            <div className="panel-meta">
+              <div className="panel-meta-chip">
+                <span className="panel-meta-value">{node.degree}</span>
+                <span className="panel-meta-label">Connections</span>
               </div>
               {node.isMain && (
-                <div className="panel-stat">
-                  <span className="panel-stat-value">Main</span>
-                  <span className="panel-stat-label">Role</span>
+                <div className="panel-meta-chip">
+                  <span className="panel-meta-value">Main</span>
+                  <span className="panel-meta-label">Role</span>
                 </div>
               )}
             </div>
 
-            {onNavigate && node.external_id && (
-              <button
-                className="panel-link"
-                style={{ border: 'none', cursor: 'pointer' }}
-                onClick={() => { onNavigate(node.external_id); onClose() }}
-              >
-                → View Dependency Graph
-              </button>
-            )}
-
-            {arxivUrl && (
-              <a
-                className="panel-link"
-                href={arxivUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                ↗ View on arXiv
-              </a>
-            )}
+            <div className="panel-actions">
+              {onNavigate && node.external_id && (
+                <button
+                  className="panel-link"
+                  onClick={() => { onNavigate(node.external_id); onClose() }}
+                >
+                  → View Dependency Graph
+                </button>
+              )}
+              {arxivUrl && (
+                <a
+                  className="panel-link"
+                  href={arxivUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ↗ View on arXiv
+                </a>
+              )}
+            </div>
           </>
         ) : (
           <>
-            <div className="panel-stats">
-              <div className="panel-stat">
-                <span className="panel-stat-value">{node.degree}</span>
-                <span className="panel-stat-label">Connections</span>
+            <div className="panel-meta">
+              <div className="panel-meta-chip">
+                <span className="panel-meta-value">{node.degree}</span>
+                <span className="panel-meta-label">Connections</span>
               </div>
             </div>
 
             {node.body && (
               <div className="panel-section">
-                <p className="panel-section-label">Body</p>
+                <p className="panel-section-label">Statement</p>
                 <p className="panel-text"><LatexText>{node.body}</LatexText></p>
               </div>
             )}

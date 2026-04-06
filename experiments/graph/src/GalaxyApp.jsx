@@ -192,8 +192,7 @@ export default function GalaxyApp({ onSwitch }) {
     <div className="app">
       <header className="header">
         <div className="brand">
-          <span className="brand-name">TheoremSearch</span>
-          <span className="brand-sub">Paper Galaxy</span>
+          <span className="brand-name">TheoremSearch Graph</span>
         </div>
 
         <div className="galaxy-search">

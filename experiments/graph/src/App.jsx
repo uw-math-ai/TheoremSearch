@@ -153,8 +153,7 @@ export default function App({ onSwitch, seedId }) {
     <div className="app">
       <header className="header">
         <div className="brand">
-          <span className="brand-name">TheoremSearch</span>
-          <span className="brand-sub">Dependency Graph</span>
+          <span className="brand-name">TheoremSearch Graph</span>
         </div>
 
         <div className="search-bar">
@@ -177,21 +176,6 @@ export default function App({ onSwitch, seedId }) {
             Paper Galaxy →
           </button>
         )}
-
-        <div className="legend">
-          <span className="legend-item">
-            <span className="legend-dot stmt" /> Statement
-          </span>
-          <span className="legend-item">
-            <span className="legend-dot paper" /> Paper
-          </span>
-          <span className="legend-item">
-            <span className="legend-line intra" /> Intra-paper dep
-          </span>
-          <span className="legend-item">
-            <span className="legend-line inter" /> Inter-paper dep
-          </span>
-        </div>
       </header>
 
       <main className="main">
@@ -218,6 +202,21 @@ export default function App({ onSwitch, seedId }) {
             <div className="spinner" />
           </div>
         )}
+
+        <div className="legend">
+          <span className="legend-item">
+            <span className="legend-dot stmt" /> Statement
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot paper" /> Paper
+          </span>
+          <span className="legend-item">
+            <span className="legend-line intra" /> Intra-paper dep
+          </span>
+          <span className="legend-item">
+            <span className="legend-line inter" /> Inter-paper dep
+          </span>
+        </div>
       </main>
 
       {selected && (

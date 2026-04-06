@@ -8,9 +8,10 @@
 .header {
   flex-shrink: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
-  padding: 14px 24px;
+  gap: 12px 20px;
+  padding: 12px 20px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -20,6 +21,13 @@
   flex-direction: column;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .brand {
+    width: 100%;
+    align-items: center;
+  }
 }
 
 .brand-name {
@@ -38,12 +46,14 @@
 .search-bar {
   display: flex;
   flex: 1;
+  min-width: 200px;
   max-width: 480px;
   gap: 8px;
 }
 
 .search-input {
   flex: 1;
+  min-width: 0;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -87,10 +97,21 @@
 }
 
 .legend {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin-left: auto;
+  gap: 8px 16px;
+  padding: 7px 16px;
+  background: rgba(11, 13, 20, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
 }
 
 .legend-item {
@@ -106,6 +127,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .legend-dot.stmt {
@@ -120,6 +142,7 @@
   width: 18px;
   height: 2px;
   border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .legend-line.intra {
@@ -156,6 +179,8 @@
   gap: 12px;
   color: var(--text-muted);
   font-size: 14px;
+  text-align: center;
+  padding: 16px;
 }
 
 .spinner {
@@ -183,15 +208,19 @@
   border-radius: 8px;
   font-size: 13px;
   z-index: 10;
+  white-space: nowrap;
+  max-width: calc(100% - 32px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Node panel ──────────────────────────────────────────── */
 .node-panel {
   position: fixed;
-  top: 57px; /* below header */
+  top: 0;
   right: 0;
   bottom: 0;
-  width: 360px;
+  width: min(360px, 100vw);
   background: var(--surface);
   border-left: 1px solid var(--border);
   display: flex;
@@ -200,18 +229,56 @@
   animation: slide-in 0.18s ease;
 }
 
+@media (max-width: 600px) {
+  .node-panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 55vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    animation: slide-up 0.18s ease;
+  }
+}
+
 @keyframes slide-in {
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
 
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
 .panel-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
+  gap: 8px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+}
+
+/* Drag handle hint on mobile */
+@media (max-width: 600px) {
+  .panel-header::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .panel-header {
+    position: relative;
+    padding-top: 20px;
+  }
 }
 
 .panel-type-badge {
@@ -221,6 +288,7 @@
   text-transform: uppercase;
   padding: 3px 8px;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .panel-type-badge.statement {
@@ -238,7 +306,7 @@
   font-weight: 500;
   color: var(--text-dim);
   flex: 1;
-  margin-left: 10px;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -250,11 +318,12 @@
   color: var(--text-muted);
   font-size: 16px;
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 6px;
   border-radius: 4px;
   line-height: 1;
   transition: color 0.1s;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .panel-close:hover {
@@ -267,7 +336,7 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .panel-body::-webkit-scrollbar {
@@ -284,10 +353,16 @@
 }
 
 .panel-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  line-height: 1.4;
+  line-height: 1.5;
+}
+
+.panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .panel-link {
@@ -297,16 +372,47 @@
   font-size: 12px;
   color: var(--accent-bright);
   text-decoration: none;
-  padding: 5px 10px;
+  padding: 7px 12px;
   border-radius: 6px;
   background: rgba(79, 126, 255, 0.1);
   border: 1px solid rgba(79, 126, 255, 0.2);
   width: fit-content;
   transition: background 0.1s;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .panel-link:hover {
   background: rgba(79, 126, 255, 0.18);
+}
+
+.panel-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.panel-meta-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.panel-meta-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.panel-meta-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .panel-section {
@@ -342,7 +448,7 @@
 
 /* ── Nav button ──────────────────────────────────────────── */
 .nav-btn {
-  padding: 7px 16px;
+  padding: 7px 14px;
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border);
@@ -370,6 +476,7 @@
 .galaxy-search {
   position: relative;
   flex: 1;
+  min-width: 160px;
   max-width: 360px;
 }
 
@@ -425,21 +532,6 @@
   white-space: nowrap;
 }
 
-/* ── Galaxy active paper label ───────────────────────────── */
-.galaxy-active-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-}
-
-.galaxy-active-id {
-  color: var(--paper-main);
-  font-weight: 500;
-}
-
 /* ── Galaxy loading overlay ──────────────────────────────── */
 .galaxy-loading-overlay {
   position: absolute;
@@ -459,20 +551,23 @@
   pointer-events: none;
 }
 
+/* ── Panel stats (legacy alias, kept for compat) ──────────── */
 .panel-stats {
   display: flex;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .panel-stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 6px;
   flex: 1;
+  min-width: 60px;
 }
 
 .panel-stat-value {
