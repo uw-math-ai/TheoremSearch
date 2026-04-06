@@ -130,11 +130,9 @@ async def list_papers():
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT DISTINCT p.paper_id, p.title, p.external_id, p.source, p.url
-            FROM paper p
-            JOIN statement s ON s.paper_id = p.paper_id
-            JOIN informal_metadata im ON im.statement_id = s.statement_id
-            ORDER BY p.title
+            SELECT paper_id, title, external_id, source, url
+            FROM ag_papers_100
+            ORDER BY title
             """
         )
         rows = cur.fetchall()
