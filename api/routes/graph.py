@@ -150,9 +150,12 @@ async def list_papers():
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT paper_id, title, external_id, source, url
-            FROM ag_papers_100
-            ORDER BY title
+            SELECT p.paper_id, p.title, p.external_id, p.source, p.url,
+                   COUNT(s.statement_id) AS statement_count
+            FROM ag_papers_100 p
+            LEFT JOIN statement s ON s.paper_id = p.paper_id
+            GROUP BY p.paper_id, p.title, p.external_id, p.source, p.url
+            ORDER BY p.title
             """
         )
         rows = cur.fetchall()
@@ -164,6 +167,7 @@ async def list_papers():
                 "external_id": r[2],
                 "source": r[3],
                 "url": r[4],
+                "statement_count": r[5],
             }
             for r in rows
         ]
