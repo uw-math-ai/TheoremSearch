@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Multi-project extraction orchestrator.
 
@@ -21,7 +22,6 @@ Usage:
     # Force re-extract even if commit unchanged:
     python3 formalized_graph/scripts/process_projects.py --force
 """
-from __future__ import annotations
 
 import argparse
 import json
