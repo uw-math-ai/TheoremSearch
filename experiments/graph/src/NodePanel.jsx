@@ -36,6 +36,20 @@ export default function NodePanel({ node, onClose, onNavigate }) {
               )}
             </div>
 
+            {node.authors?.length > 0 && (
+              <div className="panel-section">
+                <p className="panel-section-label">Authors</p>
+                <p className="panel-text">{node.authors.join(', ')}</p>
+              </div>
+            )}
+
+            {node.abstract && (
+              <div className="panel-section">
+                <p className="panel-section-label">Abstract</p>
+                <p className="panel-text"><LatexText>{node.abstract}</LatexText></p>
+              </div>
+            )}
+
             <div className="panel-actions">
               {onNavigate && node.external_id && (
                 <button

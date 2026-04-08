@@ -51,6 +51,21 @@
   gap: 8px;
 }
 
+.search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-input-wrap .search-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-input-wrap .galaxy-dropdown {
+  top: calc(100% + 4px);
+}
+
 .search-input {
   flex: 1;
   min-width: 0;
@@ -175,13 +190,11 @@
 }
 
 .legend-line.intra {
-  background: #2a3050;
-  border: 1px solid #3a4570;
+  background: #4a6abf;
 }
 
 .legend-line.inter {
-  background: transparent;
-  border-top: 2px dashed var(--paper-main);
+  background: var(--paper-main);
 }
 
 /* ── Main canvas ─────────────────────────────────────────── */

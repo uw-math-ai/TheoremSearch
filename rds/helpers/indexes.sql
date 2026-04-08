@@ -31,3 +31,9 @@ CREATE INDEX IF NOT EXISTS idx_paper_title_trgm
 --    Interpaper step 3 dep lookup: WHERE im.ref = q.ref.
 CREATE INDEX IF NOT EXISTS idx_informal_metadata_ref
     ON informal_metadata(ref);
+
+-- 6. B-tree prefix index on lower(external_id)
+--    Supports fast case-insensitive prefix search (arXiv IDs typed from start)
+--    in the /paper-search endpoint. text_pattern_ops enables LIKE 'q%' plans.
+CREATE INDEX IF NOT EXISTS idx_paper_external_id_lower_prefix
+    ON paper (lower(external_id) text_pattern_ops);

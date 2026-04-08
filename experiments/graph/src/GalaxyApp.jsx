@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import NodePanel from './NodePanel'
+import LatexText from './LatexText'
 import './App.css'
 
 const NODE_R_MIN = 4
@@ -20,6 +21,8 @@ export default function GalaxyApp({ onSwitch }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [active, setActive] = useState(null)   // { paper_id, title, external_id }
   const simRef = useRef(null)
+  const onSwitchRef = useRef(onSwitch)
+  useEffect(() => { onSwitchRef.current = onSwitch }, [onSwitch])
 
   // Fetch papers + citation links in parallel
   useEffect(() => {
@@ -146,7 +149,7 @@ export default function GalaxyApp({ onSwitch }) {
       })
       .on('dblclick', (event, d) => {
         event.stopPropagation()
-        if (d.external_id) onSwitch(d.external_id)
+        if (d.external_id) onSwitchRef.current(d.external_id)
       })
 
     sim.on('tick', () => {
@@ -214,7 +217,7 @@ export default function GalaxyApp({ onSwitch }) {
                   onMouseDown={() => handleSelectPaper(p)}
                 >
                   <span className="galaxy-dropdown-id">{p.external_id}</span>
-                  <span className="galaxy-dropdown-title">{p.title}</span>
+                  <LatexText className="galaxy-dropdown-title">{p.title}</LatexText>
                 </div>
               ))}
             </div>

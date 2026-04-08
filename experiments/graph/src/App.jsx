@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import GraphView from './GraphView'
 import NodePanel from './NodePanel'
+import LatexText from './LatexText'
 import './App.css'
 
 function buildGraphFromJSON(data) {
@@ -40,7 +41,7 @@ function buildGraphFromJSON(data) {
             id: extPaperId,
             type: 'paper',
             isMain: false,
-            name: extKey,
+            name: extKey, // resolved below after fetch
             external_id: dep.cited_arxiv_id,
           })
         }
@@ -97,6 +98,8 @@ function buildGraph(data) {
     name: data.paper.title,
     external_id: data.paper.external_id,
     url: data.paper.url,
+    authors: data.paper.authors,
+    abstract: data.paper.abstract,
   })
 
   const rawLinks = []
@@ -152,6 +155,23 @@ function buildGraph(data) {
         })
       }
       rawLinks.push({ source: srcId, target: depId, kind: edge.interpaper ? 'inter' : 'intra' })
+
+      // For interpaper deps resolved to a specific statement, also show the cited
+      // paper node and connect it to that statement via a membership link
+      if (edge.interpaper && (edge.dep_paper_ext_id || edge.cited_paper_key)) {
+        const extKey = edge.dep_paper_ext_id || edge.cited_paper_key
+        const citedPaperId = `paper:${extKey}`
+        if (!nodesMap.has(citedPaperId)) {
+          nodesMap.set(citedPaperId, {
+            id: citedPaperId,
+            type: 'paper',
+            isMain: false,
+            name: edge.dep_paper_title || extKey,
+            external_id: edge.dep_paper_ext_id,
+          })
+        }
+        rawLinks.push({ source: citedPaperId, target: depId, kind: 'membership' })
+      }
     } else if (edge.dep_paper_ext_id || edge.cited_paper_key) {
       const extKey = edge.dep_paper_ext_id || edge.cited_paper_key
       const paperId = `paper:${extKey}`
@@ -160,7 +180,7 @@ function buildGraph(data) {
           id: paperId,
           type: 'paper',
           isMain: false,
-          name: extKey,
+          name: edge.dep_paper_title || extKey,
           external_id: edge.dep_paper_ext_id,
         })
       }
@@ -193,14 +213,18 @@ function buildGraph(data) {
   return { nodes, links }
 }
 
-export default function App({ onSwitch, seedId }) {
+export default function App({ onSwitch, seedId, onPaperFetched }) {
   const [mode, setMode] = useState('arxiv') // 'arxiv' | 'json'
-  const [input, setInput] = useState(seedId || '')
+  const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [graph, setGraph] = useState(null)
   const [selected, setSelected] = useState(null)
+  const [suggestions, setSuggestions] = useState([])
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
   const fileInputRef = useRef(null)
+  const lastFetchedRef = useRef(null)
+  const suggestAbortRef = useRef(null)
 
   const resetGraph = () => {
     setGraph(null)
@@ -214,7 +238,6 @@ export default function App({ onSwitch, seedId }) {
     resetGraph()
   }
 
-  // Auto-fetch when arriving from galaxy with a pre-selected paper
   const handleFetch = useCallback(async (overrideId) => {
     const id = (typeof overrideId === 'string' ? overrideId : input).trim()
     if (!id) return
@@ -222,6 +245,7 @@ export default function App({ onSwitch, seedId }) {
     setError(null)
     setSelected(null)
     setGraph(null)
+    setSuggestionsOpen(false)
     try {
       const res = await fetch(
         `${__API_BASE__}/graph?external_id=${encodeURIComponent(id)}`
@@ -234,36 +258,104 @@ export default function App({ onSwitch, seedId }) {
       }
       const data = await res.json()
       setGraph(buildGraph(data))
+      lastFetchedRef.current = data.paper.external_id
+      onPaperFetched?.(data.paper.external_id)
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
-  }, [input])
+  }, [input, onPaperFetched])
 
-  const handleFileUpload = useCallback((e) => {
+  const handleFileUpload = useCallback(async (e) => {
     const file = e.target.files?.[0]
+    e.target.value = '' // reset immediately so same file can be re-uploaded
     if (!file) return
     setError(null)
     setSelected(null)
     setGraph(null)
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result)
-        setGraph(buildGraphFromJSON(data))
-      } catch {
-        setError('Invalid JSON file.')
+    setLoading(true)
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      const { nodes, links } = buildGraphFromJSON(data)
+
+      // Resolve titles for external paper nodes
+      const externalIds = nodes
+        .filter(n => n.type === 'paper' && !n.isMain && n.external_id)
+        .map(n => n.external_id)
+
+      if (externalIds.length > 0) {
+        const params = externalIds.map(id => `external_id=${encodeURIComponent(id)}`).join('&')
+        const res = await fetch(`${__API_BASE__}/paper-resolve?${params}`)
+        if (res.ok) {
+          const resolved = await res.json()
+          const titleMap = new Map(resolved.papers.map(p => [p.external_id, p.title]))
+          for (const node of nodes) {
+            if (node.type === 'paper' && !node.isMain && node.external_id && titleMap.has(node.external_id)) {
+              node.name = titleMap.get(node.external_id)
+            }
+          }
+        }
       }
+
+      setGraph({ nodes, links })
+    } catch {
+      setError('Invalid JSON file.')
+    } finally {
+      setLoading(false)
     }
-    reader.readAsText(file)
-    // Reset so the same file can be re-uploaded
-    e.target.value = ''
   }, [])
 
+  // Respond to seedId prop changes (URL navigation via back/forward or external link)
   useEffect(() => {
-    if (seedId) handleFetch(seedId)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (seedId === lastFetchedRef.current) return
+    if (seedId) {
+      handleFetch(seedId)
+    } else {
+      resetGraph()
+      setInput('')
+      lastFetchedRef.current = null
+    }
+  }, [seedId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced suggestions fetch with abort on new keystroke
+  useEffect(() => {
+    if (mode !== 'arxiv' || !input.trim()) {
+      setSuggestions([])
+      suggestAbortRef.current?.abort()
+      return
+    }
+    const timer = setTimeout(async () => {
+      suggestAbortRef.current?.abort()
+      const controller = new AbortController()
+      suggestAbortRef.current = controller
+      try {
+        const res = await fetch(
+          `${__API_BASE__}/paper-search?q=${encodeURIComponent(input.trim())}&limit=8`,
+          { signal: controller.signal }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setSuggestions(data.papers || [])
+          if (data.papers?.length > 0) setSuggestionsOpen(true)
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') {/* ignore */}
+      }
+    }, 200)
+    return () => {
+      clearTimeout(timer)
+      suggestAbortRef.current?.abort()
+    }
+  }, [input, mode])
+
+  const handleSuggestionSelect = useCallback((paper) => {
+    setInput('')
+    setSuggestions([])
+    setSuggestionsOpen(false)
+    handleFetch(paper.external_id)
+  }, [handleFetch])
 
   return (
     <div className="app">
@@ -289,18 +381,36 @@ export default function App({ onSwitch, seedId }) {
 
         {mode === 'arxiv' ? (
           <div className="search-bar">
-            <input
-              className="search-input"
-              type="text"
-              placeholder="arXiv ID — e.g. 2402.06935"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleFetch()}
-              disabled={loading}
-            />
-            <button className="search-btn" onClick={handleFetch} disabled={loading}>
-              {loading ? 'Loading…' : 'Graph'}
-            </button>
+            <div className="search-input-wrap">
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search by title or arXiv ID…"
+                value={input}
+                onChange={e => { setInput(e.target.value); setSuggestionsOpen(true) }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { setSuggestionsOpen(false); handleFetch() }
+                  if (e.key === 'Escape') setSuggestionsOpen(false)
+                }}
+                onFocus={() => suggestions.length > 0 && setSuggestionsOpen(true)}
+                onBlur={() => setTimeout(() => setSuggestionsOpen(false), 150)}
+                disabled={loading}
+              />
+              {suggestionsOpen && suggestions.length > 0 && (
+                <div className="galaxy-dropdown">
+                  {suggestions.map(p => (
+                    <div
+                      key={p.paper_id}
+                      className="galaxy-dropdown-item"
+                      onMouseDown={() => handleSuggestionSelect(p)}
+                    >
+                      <span className="galaxy-dropdown-id">{p.external_id}</span>
+                      <LatexText className="galaxy-dropdown-title">{p.title}</LatexText>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="search-bar">
@@ -343,7 +453,7 @@ export default function App({ onSwitch, seedId }) {
         {!graph && !loading && !error && (
           <div className="empty-state">
             {mode === 'arxiv'
-              ? <p>Enter an arXiv ID to visualize its theorem dependency graph.</p>
+              ? <p>Enter a paper title or arXiv ID to visualize its theorem dependency graph.</p>
               : <p>Upload a JSON file to visualize its theorem dependency graph.</p>
             }
           </div>

@@ -4,32 +4,22 @@ import * as d3 from 'd3'
 const STMT_BASE = 6
 const PAPER_BASE = 14
 const DEGREE_SCALE = 2.2
-const STMT_MAX = 18
-const PAPER_MAX = 28
+const STMT_MAX = 12
 
 function nodeRadius(n) {
-  const base = n.type === 'paper' ? PAPER_BASE : STMT_BASE
-  const max  = n.type === 'paper' ? PAPER_MAX  : STMT_MAX
-  return Math.min(base + n.degree * DEGREE_SCALE, max)
+  if (n.type === 'paper') return PAPER_BASE
+  return Math.min(STMT_BASE + n.degree * DEGREE_SCALE, STMT_MAX)
 }
 
 function linkStroke(l) {
   if (l.kind === 'membership') return '#475569'
   if (l.kind === 'inter')      return '#b45309'
-  return '#1e2a4a'
+  return '#4a6abf'
 }
 function linkWidth(l) {
   if (l.kind === 'membership') return 0.75
   if (l.kind === 'inter')      return 1.5
   return 1
-}
-function linkDash(l) {
-  if (l.kind === 'membership') return '3,4'
-  if (l.kind === 'inter')      return '5,3'
-  return null
-}
-function linkOpacity(l) {
-  return l.kind === 'membership' ? 0.3 : 0.75
 }
 
 export default function GraphView({ nodes, links, selected, onSelect, onNavigate }) {
@@ -44,6 +34,36 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
 
     const nodeData = nodes.map(n => ({ ...n }))
     const linkData = links.map(l => ({ ...l }))
+
+    // ── BFS depth (run before forceLink mutates linkData) ─────
+    // Build outgoing adjacency on raw string ids
+    const adj = new Map(nodeData.map(n => [n.id, []]))
+    for (const l of linkData) adj.get(l.source)?.push(l.target)
+
+    const depthMap = new Map()
+    const mainNode = nodeData.find(n => n.isMain)
+    if (mainNode) {
+      depthMap.set(mainNode.id, 0)
+      const q = [mainNode.id]
+      while (q.length) {
+        const id = q.shift()
+        const d = depthMap.get(id)
+        for (const nb of adj.get(id) || []) {
+          if (!depthMap.has(nb)) { depthMap.set(nb, d + 1); q.push(nb) }
+        }
+      }
+    }
+    const maxDepth = depthMap.size ? Math.max(...depthMap.values()) : 0
+
+    // Pin main node near top-centre; scale layer height to viewport
+    const MAIN_Y = Math.max(60, height * 0.1)
+    // Ghost nodes sit in a compact half-row just below the main paper;
+    // dep nodes get full LAYER_H spacing so the tree can breathe
+    const LAYER_H = maxDepth > 0
+      ? Math.min(160, (height * 0.85) / maxDepth)
+      : 140
+    const GHOST_Y = MAIN_Y + LAYER_H * 0.45   // compact ghost row
+    if (mainNode) { mainNode.fx = width / 2; mainNode.fy = MAIN_Y }
 
     d3.select(el).selectAll('*').remove()
 
@@ -83,17 +103,46 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
         d3.forceLink(linkData)
           .id(d => d.id)
           .distance(d => {
-            if (d.kind === 'membership') return 100
+            if (d.kind === 'membership') return 50
             const either = d.source.type === 'paper' || d.target.type === 'paper'
-            return either ? 160 : 90
+            return either ? 140 : 100
           })
-          .strength(d => d.kind === 'membership' ? 0.15 : 0.35)
+          // Very weak — forceY + barycenter own the layout; links just keep edges visible
+          .strength(d => d.kind === 'membership' ? 0.08 : 0.05)
       )
-      .force('charge',
-        d3.forceManyBody().strength(d => d.type === 'paper' ? -500 : -180)
-      )
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 10).strength(0.7))
+      .force('charge', d3.forceManyBody().strength(d => d.type === 'paper' ? -1200 : -700))
+      // Strict row assignment — nodes are pinned hard to their depth layer
+      .force('y', d3.forceY(d => {
+        if (d.ghost) return GHOST_Y
+        return MAIN_Y + (depthMap.get(d.id) ?? maxDepth) * LAYER_H
+      }).strength(d => d.ghost ? 0.97 : 0.9))
+      .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 30).strength(1.0))
+      // Barycenter force: pull each node toward the mean x of its dep-edge neighbours.
+      // Runs every tick — this is the continuous Sugiyama crossing-minimisation
+      // heuristic. Weighted 2:1 toward parent positions (nodes at shallower depth)
+      // since aligning children under parents is most effective for tree untangling.
+      .force('barycenter', alpha => {
+        const nbx = new Map(nodeData.map(n => [n.id, { sum: 0, count: 0, wsum: 0, wcount: 0 }]))
+        for (const l of linkData) {
+          if (l.kind === 'membership') continue
+          const s = l.source, t = l.target
+          if (s.x == null || t.x == null) continue
+          const sd = depthMap.get(s.id) ?? 0
+          const td = depthMap.get(t.id) ?? 0
+          // parent→child: target is deeper, so target gets weight-2 pull from source
+          // child→parent: source is deeper, so source gets weight-2 pull from target
+          const sWeight = sd > td ? 2 : 1
+          const tWeight = td > sd ? 2 : 1
+          nbx.get(s.id).wsum += t.x * sWeight; nbx.get(s.id).wcount += sWeight
+          nbx.get(t.id).wsum += s.x * tWeight; nbx.get(t.id).wcount += tWeight
+        }
+        for (const n of nodeData) {
+          if (n.fx != null) continue
+          const nb = nbx.get(n.id)
+          if (!nb || nb.wcount === 0) continue
+          n.vx += (nb.wsum / nb.wcount - n.x) * 0.7 * alpha
+        }
+      })
 
     // ── Edges ──────────────────────────────────────────────
     // Membership links drawn first (underneath)
@@ -105,8 +154,7 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
       .attr('fill', 'none')
       .attr('stroke', '#475569')
       .attr('stroke-width', 0.75)
-      .attr('stroke-dasharray', '3,4')
-      .attr('stroke-opacity', 0.3)
+      .attr('stroke-opacity', 0.5)
 
     const depLink = g.append('g')
       .attr('class', 'dep-links')
@@ -116,7 +164,6 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
       .attr('fill', 'none')
       .attr('stroke', l => linkStroke(l))
       .attr('stroke-width', l => linkWidth(l))
-      .attr('stroke-dasharray', l => linkDash(l))
       .attr('stroke-opacity', 0.75)
       .attr('marker-end', l => `url(#${l.kind === 'inter' ? 'arrow-inter' : 'arrow-intra'})`)
 
@@ -166,7 +213,8 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
       .append('text')
       .text(d => {
         const raw = d.name || d.id
-        return raw.length > 26 ? raw.slice(0, 24) + '…' : raw
+        const maxLen = d.type === 'paper' ? 40 : 26
+        return raw.length > maxLen ? raw.slice(0, maxLen - 1) + '…' : raw
       })
       .attr('x', d => nodeRadius(d) + 5)
       .attr('y', '0.35em')
@@ -205,14 +253,14 @@ export default function GraphView({ nodes, links, selected, onSelect, onNavigate
             return n.ghost ? 0.45 : 0.8
           })
         depLink.attr('stroke-opacity', 0.75)
-        memberLink.attr('stroke-opacity', 0.3)
+        memberLink.attr('stroke-opacity', 0.5)
       })
       .on('click', (event, d) => {
         event.stopPropagation()
         onSelect(d)
       })
-      .on('dblclick', (event, d) => {
-        event.stopPropagation()
+      .on('dblclick', (e, d) => {
+        e.stopPropagation()
         if (d.type === 'paper' && d.external_id && onNavigate) onNavigate(d.external_id)
       })
 

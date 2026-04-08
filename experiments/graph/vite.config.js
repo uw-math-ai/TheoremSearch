@@ -14,6 +14,8 @@ export default defineConfig({
       '/graph': { target: 'https://api.theoremsearch.com', changeOrigin: true },
       '/papers': { target: 'https://api.theoremsearch.com', changeOrigin: true },
       '/paper-links': { target: 'https://api.theoremsearch.com', changeOrigin: true },
+      '/paper-search': { target: 'https://api.theoremsearch.com', changeOrigin: true },
+      '/paper-resolve': { target: 'https://api.theoremsearch.com', changeOrigin: true },
     },
   },
 })
