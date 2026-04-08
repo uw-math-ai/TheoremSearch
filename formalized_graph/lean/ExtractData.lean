@@ -398,11 +398,16 @@ constants do not. This ensures `findDeclarationRanges?` is only called for the
 ~150 declarations in the current file, not the ~200k imported constants.
 -/
 def collectDeclarations (env : Environment) : TraceM Unit := do
+  let mainMod := env.header.mainModule
   for (name, constInfo) in env.constants.map₂.toList do
     if name.isAnonymous then continue
     if name.isInternal then continue
-    -- Skip imported constants — only process declarations from the current file.
-    if env.const2ModIdx.contains name then continue
+    -- Skip constants imported from OTHER modules.
+    -- With the new `module` / `public import` syntax, current-file constants
+    -- also appear in const2ModIdx, so we compare module names rather than
+    -- just checking membership.
+    if let some modIdx := env.const2ModIdx.get? name then
+      if env.header.moduleNames[modIdx.toNat]! != mainMod then continue
     -- Use findDeclarationRanges? as a proxy for "user-visible" — macro-generated
     -- auxiliary declarations typically have no source range.
     let some decRanges ← withEnv env $ findDeclarationRanges? name | continue
