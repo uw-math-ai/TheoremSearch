@@ -26,8 +26,8 @@ mkdir -p /gscratch/amath/simku22/logs
 
 python3 -m pip install loguru tqdm --quiet
 
-echo "=== Retry pass (task $SLURM_ARRAY_TASK_ID / 100, timeout=3600s) ==="
+echo "=== Retry pass (task $SLURM_ARRAY_TASK_ID / 10, timeout=3600s) ==="
 cd "$WORK_DIR"
-python3 formalized_graph/scripts/ingest_all.py --retry --timeout 3600 --total-tasks 100
+python3 formalized_graph/scripts/ingest_all.py --retry --timeout 3600 --total-tasks 10
 
 echo "=== Task $SLURM_ARRAY_TASK_ID done ==="
