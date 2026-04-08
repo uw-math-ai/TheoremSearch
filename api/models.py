@@ -62,6 +62,8 @@ class PaperNode(BaseModel):
     external_id: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
+    authors: List[str] = []
+    abstract: Optional[str] = None
 
 
 class DependencyEdge(BaseModel):

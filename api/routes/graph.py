@@ -11,9 +11,11 @@ async def graph(external_id: str):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT paper_id, title, external_id, source, url
-            FROM paper
-            WHERE external_id = %s
+            SELECT p.paper_id, p.title, p.external_id, p.source, p.url,
+                   p.authors, apm.abstract
+            FROM paper p
+            LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
+            WHERE p.external_id = %s
             """,
             (external_id,),
         )
@@ -24,13 +26,15 @@ async def graph(external_id: str):
                 detail=f"No paper found with external_id '{external_id}'",
             )
 
-        paper_id, title, ext_id, source, url = paper_row
+        paper_id, title, ext_id, source, url, authors, abstract = paper_row
         paper = PaperNode(
             paper_id=str(paper_id),
             title=title,
             external_id=ext_id,
             source=source,
             url=url,
+            authors=authors or [],
+            abstract=abstract,
         )
 
         # All statements belonging to this paper
