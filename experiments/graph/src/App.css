@@ -96,6 +96,35 @@
   cursor: not-allowed;
 }
 
+.mode-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn:hover {
+  color: var(--text);
+}
+
+.mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .legend {
   position: absolute;
   bottom: 12px;
