@@ -148,7 +148,6 @@ def parse_papers(
                     "arxiv_id": arxiv_id,
                     "last_parse_attempt_at": current_time,
                     "error": error,
-                    "s3": False,
                     "parsing_method": parsing_method.value,
                     "validation_level": validation_level.value
                 })
@@ -194,7 +193,7 @@ def parse_papers(
                 rows=batch_parse_status_rows,
                 on_conflict={
                     "with": ["arxiv_id"],
-                    "replace": ["last_parse_attempt_at", "error", "s3", "parsing_method", "validation_level"]
+                    "replace": ["last_parse_attempt_at", "error", "parsing_method", "validation_level"]
                 }
             )
 
