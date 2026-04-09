@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 EXAMPLE_NODE_RE = re.compile(r"^Example\b")
+ARXIV_ID_RE = re.compile(r"([0-9]{4}\.[0-9]{4,5})")
 
 
 @dataclass(frozen=True)
@@ -99,6 +100,7 @@ def load_graph(path: Path, include_interpaper: bool, node_identity_mode: str) ->
 
     payload = json.loads(path.read_text(encoding="utf-8"))
     entries = extract_entries(payload)
+    graph_external_id = infer_graph_external_id(payload, path)
 
     nodes: set[str] = set()
     edges: set[tuple[str, str]] = set()
@@ -116,7 +118,11 @@ def load_graph(path: Path, include_interpaper: bool, node_identity_mode: str) ->
         source = extract_source_node(entry, node_identity_mode=node_identity_mode)
         if is_example_node(source):
             continue
-        target = extract_target_node(entry, node_identity_mode=node_identity_mode)
+        target = extract_target_node(
+            entry,
+            node_identity_mode=node_identity_mode,
+            graph_external_id=graph_external_id,
+        )
         if is_example_node(target):
             continue
         if target is None:
@@ -124,6 +130,7 @@ def load_graph(path: Path, include_interpaper: bool, node_identity_mode: str) ->
                 entry,
                 source=source,
                 node_identity_mode=node_identity_mode,
+                graph_external_id=graph_external_id,
                 unnamed_dependency_counts=unnamed_dependency_counts,
             )
         if is_example_node(target):
@@ -136,7 +143,10 @@ def load_graph(path: Path, include_interpaper: bool, node_identity_mode: str) ->
         nodes.add(target.node_id)
         labels.setdefault(source.node_id, source.label)
         labels.setdefault(target.node_id, target.label)
-        edges.add((source.node_id, target.node_id))
+        if is_dependency_style_entry(entry):
+            edges.add((target.node_id, source.node_id))
+        else:
+            edges.add((source.node_id, target.node_id))
 
     return GraphData(
         path=path,
@@ -157,11 +167,10 @@ def synthesize_missing_dependency_target(
     entry: Mapping[str, Any],
     source: NodeRef | None,
     node_identity_mode: str,
+    graph_external_id: str | None,
     unnamed_dependency_counts: dict[str, int],
 ) -> NodeRef | None:
     if source is None or node_identity_mode not in {"auto", "name"}:
-        return None
-    if entry.get("interpaper"):
         return None
     if not any(key.startswith("dep_") for key in entry):
         return None
@@ -172,12 +181,40 @@ def synthesize_missing_dependency_target(
     if source_name is None:
         return None
 
-    unnamed_dependency_counts[source_name] += 1
-    occurrence = unnamed_dependency_counts[source_name]
-    token = f"[unnamed dependency {occurrence} from {source_name}]"
+    counter_key = source_name
+    paper_token = None
+    if entry.get("interpaper"):
+        paper_token = normalize_external_paper_id(
+            entry.get("dep_paper_ext_id"),
+            graph_external_id=graph_external_id,
+        )
+        if paper_token is not None:
+            return NodeRef(
+                node_id=f"paper::{paper_token}",
+                label=f"Paper {paper_token}",
+            )
+        counter_key = f"{source_name}::{paper_token or 'external'}"
+
+    unnamed_dependency_counts[counter_key] += 1
+    occurrence = unnamed_dependency_counts[counter_key]
+    if paper_token is not None:
+        token = f"[unnamed dependency {occurrence} from {source_name} in {paper_token}]"
+    else:
+        token = f"[unnamed dependency {occurrence} from {source_name}]"
+
+    if entry.get("interpaper"):
+        node_id = f"external::{paper_token}::{token}" if paper_token else f"external::{token}"
+    else:
+        node_id = f"generated::{token}"
     return NodeRef(
-        node_id=f"generated::{token}",
+        node_id=node_id,
         label=token,
+    )
+
+
+def is_dependency_style_entry(entry: Mapping[str, Any]) -> bool:
+    return any(key.startswith("src_") for key in entry) or any(
+        key.startswith("dep_") for key in entry
     )
 
 
@@ -197,21 +234,8 @@ def extract_entries(payload: Any) -> list[Any]:
 
 def extract_source_node(entry: Mapping[str, Any], node_identity_mode: str) -> NodeRef | None:
     if any(key.startswith("src_") for key in entry):
-        prefer_names = node_identity_mode in {"auto", "name"}
-        if prefer_names:
-            token = first_present(entry.get("src_name"))
-            label = first_present(entry.get("src_name"))
-        else:
-            token = first_present(
-                entry.get("src_statement_id"),
-                entry.get("src_key"),
-                entry.get("src_name"),
-            )
-            label = first_present(
-                entry.get("src_name"),
-                entry.get("src_statement_id"),
-                entry.get("src_key"),
-            )
+        token = first_present(entry.get("src_name"))
+        label = first_present(entry.get("src_name"))
         if token is None or label is None:
             return None
         return NodeRef(node_id=f"local::{token}", label=label)
@@ -222,65 +246,30 @@ def extract_source_node(entry: Mapping[str, Any], node_identity_mode: str) -> No
     return generic_node_ref(generic_source, default_namespace="node")
 
 
-def extract_target_node(entry: Mapping[str, Any], node_identity_mode: str) -> NodeRef | None:
+def extract_target_node(
+    entry: Mapping[str, Any],
+    node_identity_mode: str,
+    graph_external_id: str | None,
+) -> NodeRef | None:
     if "interpaper" in entry or any(key.startswith("dep_") for key in entry):
-        prefer_names = node_identity_mode in {"auto", "name"}
         if entry.get("interpaper"):
-            if prefer_names:
-                statement_token = first_present(
-                    entry.get("dep_name"),
-                    entry.get("cited_paper_key"),
-                    entry.get("dep_paper_title"),
-                    entry.get("dep_paper_ext_id"),
-                )
-                label = first_present(
-                    entry.get("dep_name"),
-                    entry.get("cited_paper_key"),
-                    entry.get("dep_paper_title"),
-                    entry.get("dep_paper_ext_id"),
-                )
-                if statement_token is None or label is None:
-                    return None
-                return NodeRef(
-                    node_id=f"external::{statement_token}",
-                    label=label,
-                )
-
-            paper_token = first_present(
-                entry.get("cited_arxiv_id"),
-                entry.get("cited_paper_key"),
-                "unknown-paper",
+            statement_token = first_present(entry.get("dep_name"))
+            label = first_present(entry.get("dep_name"))
+            if statement_token is None or label is None:
+                return None
+            paper_token = normalize_external_paper_id(
+                entry.get("dep_paper_ext_id"),
+                graph_external_id=graph_external_id,
             )
-            statement_token = first_present(
-                entry.get("dep_statement_id"),
-                entry.get("dep_key"),
-                entry.get("dep_name"),
-                "unknown-statement",
-            )
-            label = first_present(
-                entry.get("dep_name"),
-                entry.get("dep_key"),
-                statement_token,
-            )
+            if paper_token is None:
+                return NodeRef(node_id=f"external::{statement_token}", label=label)
             return NodeRef(
                 node_id=f"external::{paper_token}::{statement_token}",
                 label=label,
             )
 
-        if prefer_names:
-            token = first_present(entry.get("dep_name"))
-            label = first_present(entry.get("dep_name"))
-        else:
-            token = first_present(
-                entry.get("dep_statement_id"),
-                entry.get("dep_key"),
-                entry.get("dep_name"),
-            )
-            label = first_present(
-                entry.get("dep_name"),
-                entry.get("dep_key"),
-                entry.get("dep_statement_id"),
-            )
+        token = first_present(entry.get("dep_name"))
+        label = first_present(entry.get("dep_name"))
         if token is None or label is None:
             return None
         return NodeRef(node_id=f"local::{token}", label=label)
@@ -289,6 +278,32 @@ def extract_target_node(entry: Mapping[str, Any], node_identity_mode: str) -> No
     if generic_target is None:
         return None
     return generic_node_ref(generic_target, default_namespace="node")
+
+
+def infer_graph_external_id(payload: Any, path: Path) -> str | None:
+    if isinstance(payload, Mapping):
+        paper = payload.get("paper")
+        if isinstance(paper, Mapping):
+            external_id = first_present(paper.get("external_id"))
+            if external_id is not None:
+                return external_id
+
+    match = ARXIV_ID_RE.search(path.stem)
+    if match:
+        return match.group(1)
+    return None
+
+
+def normalize_external_paper_id(
+    dep_paper_ext_id: Any,
+    graph_external_id: str | None,
+) -> str | None:
+    paper_id = first_present(dep_paper_ext_id)
+    if paper_id is None:
+        return None
+    if graph_external_id is not None and paper_id == graph_external_id:
+        return None
+    return paper_id
 
 
 def generic_node_ref(value: Any, default_namespace: str) -> NodeRef | None:
@@ -328,6 +343,8 @@ def compare_graphs(
 ) -> dict[str, Any]:
     all_nodes = sorted(graph_a.nodes | graph_b.nodes)
     node_count = len(all_nodes)
+    unique_nodes_a = sorted(graph_a.nodes - graph_b.nodes)
+    unique_nodes_b = sorted(graph_b.nodes - graph_a.nodes)
 
     edge_symmetric_difference = graph_a.edges ^ graph_b.edges
     node_symmetric_difference = graph_a.nodes ^ graph_b.nodes
@@ -365,6 +382,10 @@ def compare_graphs(
             "graph_edit_distance": graph_edit_distance,
             "spectral_distance": spectral_distance,
         },
+        "unique_nodes": {
+            "graph_a": unique_node_records(graph_a, unique_nodes_a),
+            "graph_b": unique_node_records(graph_b, unique_nodes_b),
+        },
         "definitions": {
             "edge_hamming_distance": (
                 "Number of differing entries in the binary adjacency matrices over "
@@ -395,6 +416,26 @@ def summarize_graph(graph: GraphData) -> dict[str, Any]:
         "edge_count": len(graph.edges),
         "skipped_entries": graph.skipped_entries,
     }
+
+
+def unique_node_records(graph: GraphData, node_ids: list[str]) -> list[dict[str, str]]:
+    records = [
+        {
+            "node_id": node_id,
+            "label": graph.labels.get(node_id, node_id),
+            "namespace": node_id.split("::", 1)[0] if "::" in node_id else "node",
+            "paper_id": external_paper_id_from_node_id(node_id),
+        }
+        for node_id in node_ids
+    ]
+    return sorted(records, key=lambda record: (record["label"], record["node_id"]))
+
+
+def external_paper_id_from_node_id(node_id: str) -> str | None:
+    parts = node_id.split("::", 2)
+    if len(parts) >= 3 and parts[0] == "external":
+        return parts[1]
+    return None
 
 
 def adjacency_matrix(nodes: list[str], edges: Iterable[tuple[str, str]]) -> list[list[float]]:
@@ -558,6 +599,7 @@ def format_result(result: Mapping[str, Any], output_format: str) -> str:
     graph_b = result["graph_b"]
     alignment = result["alignment"]
     metrics = result["metrics"]
+    unique_nodes = result["unique_nodes"]
 
     lines = [
         f"Graph A: {graph_a['path']}",
@@ -581,7 +623,22 @@ def format_result(result: Mapping[str, Any], output_format: str) -> str:
         "  graph_edit_distance uses fixed node IDs with unit node/edge insertion/deletion costs.",
         "  spectral_distance compares adjacency singular values, which works naturally for directed graphs.",
     ]
+    lines.extend(format_unique_nodes_section("Graph A", unique_nodes["graph_a"]))
+    lines.extend(format_unique_nodes_section("Graph B", unique_nodes["graph_b"]))
     return "\n".join(lines)
+
+
+def format_unique_nodes_section(graph_label: str, unique_nodes: list[Mapping[str, str]]) -> list[str]:
+    lines = [f"Unique Nodes In {graph_label} ({len(unique_nodes)}):"]
+    if not unique_nodes:
+        lines.append("  (none)")
+        return lines
+    for record in unique_nodes:
+        if record["namespace"] == "external" and record.get("paper_id"):
+            lines.append(f"  [external {record['paper_id']}] {record['label']}")
+        else:
+            lines.append(f"  [{record['namespace']}] {record['label']}")
+    return lines
 
 
 if __name__ == "__main__":
