@@ -8,7 +8,7 @@ from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
-from rds.utils.upsert import upsert_rows
+from rds.utils.upsert import upsert_rows, update_rows
 from ..printing import print_script_header
 
 STATEMENT_KINDS = [
@@ -23,74 +23,6 @@ STATEMENT_KINDS = [
     "notation", "convention"
 ]
 
-def _fetch_existing_statements(cur, paper_id: str) -> list[dict]:
-    """
-    Return all existing statements + informal_metadata for *paper_id*.
-    Each row: {statement_id, kind, body, ref, label, note}
-    """
-    cur.execute(
-        """
-        SELECT s.statement_id, s.kind, s.body,
-               im.ref, im.label, im.note
-        FROM statement s
-        LEFT JOIN informal_metadata im USING (statement_id)
-        WHERE s.paper_id = %s AND s.formality = 'informal'
-        """,
-        (paper_id,),
-    )
-    cols = [d.name for d in cur.description]
-    return [dict(zip(cols, row)) for row in cur.fetchall()]
-
-
-def _fix_refs_for_paper(cur, paper_id: str, statements, ref_counts: dict) -> None:
-    """
-    For each newly parsed statement, try to find an existing DB row that
-    matches on kind + label + body (all three must match).  On a match,
-    update ref in informal_metadata.  On no match, insert as a new statement.
-
-    ref_counts is mutated: {"seen": n, "updated": n}
-    """
-    existing = _fetch_existing_statements(cur, paper_id)
-
-    # Build a lookup: (kind, label, body) -> {statement_id, ref}.
-    # First match wins for duplicates.
-    existing_lookup: dict[tuple, dict] = {}
-    for row in existing:
-        key = (row["kind"], row["label"], row["body"])
-        if key not in existing_lookup:
-            existing_lookup[key] = {"statement_id": row["statement_id"], "ref": row["ref"]}
-
-    for stmt in statements:
-        ref_counts["seen"] += 1
-        key = (stmt.kind, stmt.label, stmt.body)
-        existing_row = existing_lookup.get(key)
-
-        if existing_row is not None:
-            if stmt.ref != existing_row["ref"]:
-                cur.execute(
-                    "UPDATE informal_metadata SET ref = %s WHERE statement_id = %s",
-                    (stmt.ref, existing_row["statement_id"]),
-                )
-                ref_counts["updated"] += 1
-        else:
-            # No match — insert as new statement + metadata
-            cur.execute(
-                """
-                INSERT INTO statement (paper_id, formality, kind, body, proof)
-                VALUES (%s, 'informal', %s, %s, %s)
-                RETURNING statement_id
-                """,
-                (paper_id, stmt.kind, stmt.body, stmt.proof),
-            )
-            new_id = cur.fetchone()[0]
-            cur.execute(
-                """
-                INSERT INTO informal_metadata (statement_id, ref, label, note)
-                VALUES (%s, %s, %s, %s)
-                """,
-                (new_id, stmt.ref, stmt.label, stmt.note),
-            )
-
 
 def parse_papers(
     condition: str,
@@ -101,40 +33,34 @@ def parse_papers(
     timeout: int,
     parsing_method: ParsingMethod,
     validation_level: StatementValidationLevel,
-    source_from_s3: bool,
-    fix_ref: bool = False,
+    shard: int = 0,
+    n_shards: int = 1,
 ):
     if timeout < 0:
         timeout = None
 
     print_script_header(
-        action="Parsing papers into statements" + (" (fix-ref mode)" if fix_ref else ""),
+        action="Parsing papers into statements",
         params={
             "condition?": condition,
             "condition params?": condition_params,
             "overwrite": overwrite,
-            "fix-ref": fix_ref,
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
             "parsing method": parsing_method.value,
             "validation level": validation_level.value,
-            "source": "arXiv S3 bucket" if source_from_s3 else "arXiv API"
+            "shard": f"{shard}/{n_shards}" if n_shards > 1 else "off",
         }
     )
 
     conn = get_rds_connection("v2")
 
     query, params = build_query(
-        base_query="""
-            SELECT paper.paper_id, s3_location.arxiv_id, s3_location.bundle_key, s3_location.bytes_range
-            FROM paper
-            INNER JOIN s3_location
-            ON s3_location.arxiv_id = paper.external_id
-        """ if source_from_s3 else "SELECT paper.paper_id, external_id as arxiv_id FROM paper",
+        base_query="SELECT paper.paper_id, external_id as arxiv_id FROM paper",
         where_clauses=[
             {
-                "if": not overwrite and not fix_ref,
+                "if": not overwrite,
                 "condition": """
                     NOT EXISTS (
                         SELECT 1 from statement
@@ -150,17 +76,18 @@ def parse_papers(
             {
                 "if": True,
                 "condition": "paper.kind = 'paper'"
-            }
+            },
+            {
+                "if": n_shards > 1,
+                "condition": "ABS(hashtext(paper.paper_id::text)) %% %s = %s",
+                "params": [n_shards, shard],
+            },
         ]
     )
 
     paper_count = get_query_count(conn, query, params)
 
-    status_counts = {
-        "success": 0,
-        "failed": 0
-    }
-    ref_counts = {"seen": 0, "updated": 0}
+    status_counts = {"success": 0, "failed": 0}
 
     pbar = tqdm(total=paper_count, dynamic_ncols=True)
     ex = ProcessPoolExecutor(max_workers=workers, max_tasks_per_child=50)
@@ -177,6 +104,7 @@ def parse_papers(
             batch_statement_rows = []
             batch_informal_metadata_rows = []
             batch_parse_status_rows = []
+            batch_preamble_rows = []
 
             current_time = datetime.now(timezone.utc)
 
@@ -184,16 +112,11 @@ def parse_papers(
                 paper_id = paper["paper_id"]
                 arxiv_id = paper["arxiv_id"]
 
-                s3_bundle_key = paper.get("bundle_key", None)
-                s3_bytes_range = paper.get("bytes_range", None)
-
                 fut = ex.submit(
                     parse_paper,
                     arxiv_id,
-                    s3_bundle_key,
-                    s3_bytes_range,
-                    None,
-                    ["proof", *STATEMENT_KINDS],
+                    None, None, None,
+                    STATEMENT_KINDS,
                     parsing_method,
                     validation_level,
                     None
@@ -204,12 +127,14 @@ def parse_papers(
                 paper_id = fut_to_paper[fut]["paper_id"]
                 arxiv_id = fut_to_paper[fut]["arxiv_id"]
                 error = None
+                statements = None
+                preamble = None
 
                 try:
-                    statements = fut.result()
+                    statements, preamble = fut.result()
 
                     if not statements:
-                        raise RuntimeError() # this shouldn't happen
+                        raise RuntimeError()  # this shouldn't happen
                 except Exception as e:
                     error = str(e) or "[UNHANDLED ERROR]"
                     statements = None
@@ -223,48 +148,45 @@ def parse_papers(
                     "arxiv_id": arxiv_id,
                     "last_parse_attempt_at": current_time,
                     "error": error,
-                    "s3": source_from_s3,
+                    "s3": False,
                     "parsing_method": parsing_method.value,
                     "validation_level": validation_level.value
                 })
 
                 if statements:
-                    if fix_ref:
-                        with conn.cursor() as cur:
-                            _fix_refs_for_paper(cur, paper_id, statements, ref_counts)
-                    else:
-                        batch_statement_rows.extend([
-                            {
-                                "paper_id": paper_id,
-                                "formality": "informal",
-                                "kind": statement.kind,
-                                "body": statement.body,
-                                "proof": statement.proof
-                            }
-                            for statement in statements
-                        ])
+                    batch_statement_rows.extend([
+                        {
+                            "paper_id": paper_id,
+                            "formality": "informal",
+                            "kind": statement.kind,
+                            "body": statement.body,
+                            "proof": statement.proof
+                        }
+                        for statement in statements
+                    ])
 
-                        batch_informal_metadata_rows.extend([
-                            {
-                                "ref": statement.ref,
-                                "label": statement.label,
-                                "note": statement.note
-                            }
-                            for statement in statements
-                        ])
+                    batch_informal_metadata_rows.extend([
+                        {
+                            "ref": statement.ref,
+                            "label": statement.label,
+                            "note": statement.note
+                        }
+                        for statement in statements
+                    ])
+
+                if preamble:
+                    batch_preamble_rows.append({
+                        "arxiv_id": arxiv_id,
+                        "preamble": preamble,
+                    })
 
                 pbar.update()
 
                 parse_attempts = sum(status_counts.values())
-
-                postfix = {
+                pbar.set_postfix({
                     status: f"{(100.0 * count / parse_attempts):.2f}%"
                     for status, count in status_counts.items()
-                }
-                if fix_ref:
-                    postfix["stmts"] = ref_counts["seen"]
-                    postfix["updated"] = ref_counts["updated"]
-                pbar.set_postfix(postfix)
+                })
 
             upsert_rows(
                 conn,
@@ -276,7 +198,7 @@ def parse_papers(
                 }
             )
 
-            if not fix_ref and batch_statement_rows:
+            if batch_statement_rows:
                 paper_ids = list({row["paper_id"] for row in batch_statement_rows})
 
                 with conn.cursor() as cur:
@@ -285,8 +207,6 @@ def parse_papers(
                         (paper_ids,),
                     )
 
-                    # Insert statement rows and collect generated statement_ids,
-                    # keeping order in sync with batch_informal_metadata_rows.
                     inserted_ids = []
                     for row in batch_statement_rows:
                         cur.execute(
@@ -310,82 +230,90 @@ def parse_papers(
                         ],
                     )
 
+            if batch_preamble_rows:
+                update_rows(
+                    conn,
+                    table="arxiv_paper_metadata",
+                    rows=batch_preamble_rows,
+                    where=["arxiv_id"],
+                )
+
             conn.commit()
 
+            pbar.update(0)  # flush postfix
+
+
 if __name__ == "__main__":
-    arg_parser = ArgumentParser()
+    arg_parser = ArgumentParser(
+        description="Parse arXiv papers into statements and store them in the database."
+    )
 
     arg_parser.add_argument(
-        "-c",
-        "--condition",
+        "-c", "--condition",
         type=str,
         nargs="+",
-        help="SQL condition to filter papers followed by its arguments. 'paper' table is available"
+        metavar=("SQL", "PARAM"),
+        help="SQL WHERE condition to filter papers, followed by any bind parameters. "
+             "The 'paper' table is in scope. "
+             "Example: -c \"paper.external_id = %%s\" 2301.00001"
     )
 
     arg_parser.add_argument(
-        "-o",
-        "--overwrite",
+        "-o", "--overwrite",
         action="store_true",
-        help="Whether to overwrite statements from previously parsed papers. By default, False"
+        help="Re-parse and overwrite papers that already have statements. Default: skip them."
     )
 
     arg_parser.add_argument(
-        "-b",
-        "--batch-size",
+        "-b", "--batch-size",
         type=int,
         default=64,
-        help="Number of papers parsed in one batch with workers. By default, 64"
+        help="Papers dispatched to the worker pool per iteration. Default: 64."
     )
 
     arg_parser.add_argument(
-        "-w",
-        "--workers",
+        "-w", "--workers",
         type=int,
         default=8,
-        help="Number of workers used to parse a batch of papers. By default, 8"
+        help="Parallel worker processes. Default: 8."
     )
 
     arg_parser.add_argument(
-        "-t",
-        "--timeout",
+        "-t", "--timeout",
         type=int,
         default=10,
-        help="Number of seconds allows to parse a single paper. By default, 10 seconds"
+        help="Per-paper parse timeout in seconds. -1 = no limit. Default: 10."
     )
 
     arg_parser.add_argument(
-        "-m",
-        "--parsing_method",
+        "-m", "--parsing-method",
         type=ParsingMethod,
         default=ParsingMethod.PLASTEX,
-        help="Method to parse"
+        dest="parsing_method",
+        help="Parsing backend: plasTeX (default) or regex."
     )
 
     arg_parser.add_argument(
-        "-v",
-        "--validation-level",
+        "-v", "--validation-level",
         type=StatementValidationLevel,
-        required=False,
         default=StatementValidationLevel.Paper,
-        help="Level to validate statements. Supported: paper (default), statement"
+        dest="validation_level",
+        help="Validation strictness: paper (default) or statement."
     )
 
     arg_parser.add_argument(
-        "-s3",
-        "--source-from-s3",
-        action="store_true",
-        help="Whether to source paper sources from S3. By default, API"
+        "--shard",
+        type=int,
+        default=0,
+        help="0-based shard index for this job. Use with --n-shards for array jobs. Default: 0."
     )
 
     arg_parser.add_argument(
-        "--fix-ref",
-        action="store_true",
-        help=(
-            "Fix-ref mode: match newly parsed statements to existing DB rows by "
-            "kind + label + body, updating only the ref. Unmatched statements are "
-            "inserted as new. Existing unmatched rows are left untouched."
-        )
+        "--n-shards",
+        type=int,
+        default=1,
+        dest="n_shards",
+        help="Total number of shards (sbatch array size). Default: 1 (no sharding)."
     )
 
     args = arg_parser.parse_args()
@@ -405,6 +333,6 @@ if __name__ == "__main__":
         timeout=args.timeout,
         parsing_method=args.parsing_method,
         validation_level=args.validation_level,
-        source_from_s3=args.source_from_s3,
-        fix_ref=args.fix_ref,
+        shard=args.shard,
+        n_shards=args.n_shards,
     )
