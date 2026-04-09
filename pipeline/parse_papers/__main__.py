@@ -11,7 +11,7 @@ from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows, update_rows
 from ..printing import print_script_header
 
-STATEMENT_KINDS = [
+STATEMENT_KINDS = {
     "theorem", "lemma", "proposition", "corollary",
     "definition",
     "axiom", "postulate",
@@ -21,7 +21,7 @@ STATEMENT_KINDS = [
     "fact",
     "assumption",
     "notation", "convention"
-]
+}
 
 
 def parse_papers(
