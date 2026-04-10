@@ -32,7 +32,13 @@ CREATE INDEX IF NOT EXISTS idx_paper_title_trgm
 CREATE INDEX IF NOT EXISTS idx_informal_metadata_ref
     ON informal_metadata(ref);
 
--- 6. B-tree prefix index on lower(external_id)
+-- 6. dependency(dep_id)
+--    Speeds up ON DELETE CASCADE from statement: without this, deleting a
+--    statement does a seq scan on dependency for every dep_id match.
+CREATE INDEX IF NOT EXISTS idx_dependency_dep_id
+    ON dependency(dep_id);
+
+-- 8. B-tree prefix index on lower(external_id)
 --    Supports fast case-insensitive prefix search (arXiv IDs typed from start)
 --    in the /paper-search endpoint. text_pattern_ops enables LIKE 'q%' plans.
 CREATE INDEX IF NOT EXISTS idx_paper_external_id_lower_prefix
