@@ -3,7 +3,9 @@ from typing import List
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from contextlib import contextmanager
 from argparse import ArgumentParser
+import time
 from arXiTeX.types import StatementValidationLevel, ParsingMethod
 from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
@@ -26,6 +28,16 @@ STATEMENT_KINDS = {
 }
 
 
+@contextmanager
+def _timer(label: str, enabled: bool):
+    if not enabled:
+        yield
+        return
+    t = time.perf_counter()
+    yield
+    print(f"[timer] {label}: {time.perf_counter() - t:.3f}s")
+
+
 def parse_papers(
     condition: str,
     condition_params: List[str],
@@ -37,6 +49,7 @@ def parse_papers(
     validation_level: StatementValidationLevel,
     shard: int = 0,
     n_shards: int = 1,
+    timings: bool = False,
 ):
     if timeout < 0:
         timeout = None
@@ -189,50 +202,55 @@ def parse_papers(
                     for status, count in status_counts.items()
                 })
 
-            upsert_rows(
-                conn,
-                table="arxiv_parse_status",
-                rows=batch_parse_status_rows,
-                on_conflict={
-                    "with": ["arxiv_id"],
-                    "replace": ["last_parse_attempt_at", "error", "parsing_method", "validation_level"]
-                }
-            )
+            with _timer("upsert arxiv_parse_status", timings):
+                upsert_rows(
+                    conn,
+                    table="arxiv_parse_status",
+                    rows=batch_parse_status_rows,
+                    on_conflict={
+                        "with": ["arxiv_id"],
+                        "replace": ["last_parse_attempt_at", "error", "parsing_method", "validation_level"]
+                    }
+                )
 
             if batch_statement_rows:
                 paper_ids = list({row["paper_id"] for row in batch_statement_rows})
 
-                with conn.cursor() as cur:
+                with _timer("delete statement", timings), conn.cursor() as cur:
                     cur.execute(
                         "DELETE FROM statement WHERE paper_id = ANY(%s::uuid[])",
                         (paper_ids,),
                     )
 
-                inserted_ids = insert_rows_returning(
-                    conn,
-                    table="statement",
-                    rows=batch_statement_rows,
-                    returning="statement_id",
-                )
+                with _timer("insert statement", timings):
+                    inserted_ids = insert_rows_returning(
+                        conn,
+                        table="statement",
+                        rows=batch_statement_rows,
+                        returning="statement_id",
+                    )
 
-                upsert_rows(
-                    conn,
-                    table="informal_metadata",
-                    rows=[
-                        {"statement_id": sid, **meta}
-                        for sid, meta in zip(inserted_ids, batch_informal_metadata_rows)
-                    ],
-                )
+                with _timer("insert informal_metadata", timings):
+                    upsert_rows(
+                        conn,
+                        table="informal_metadata",
+                        rows=[
+                            {"statement_id": sid, **meta}
+                            for sid, meta in zip(inserted_ids, batch_informal_metadata_rows)
+                        ],
+                    )
 
             if batch_preamble_rows:
-                update_rows(
-                    conn,
-                    table="arxiv_paper_metadata",
-                    rows=batch_preamble_rows,
-                    where=["arxiv_id"],
-                )
+                with _timer("update arxiv_paper_metadata", timings):
+                    update_rows(
+                        conn,
+                        table="arxiv_paper_metadata",
+                        rows=batch_preamble_rows,
+                        where=["arxiv_id"],
+                    )
 
-            conn.commit()
+            with _timer("commit", timings):
+                conn.commit()
 
             pbar.update(0)  # flush postfix
 
@@ -310,6 +328,12 @@ if __name__ == "__main__":
         help="Total number of shards (sbatch array size). Default: 1 (no sharding)."
     )
 
+    arg_parser.add_argument(
+        "--timings",
+        action="store_true",
+        help="Print timing for each database operation."
+    )
+
     args = arg_parser.parse_args()
 
     if args.condition and len(args.condition) >= 2:
@@ -329,4 +353,5 @@ if __name__ == "__main__":
         validation_level=args.validation_level,
         shard=args.shard,
         n_shards=args.n_shards,
+        timings=args.timings,
     )
