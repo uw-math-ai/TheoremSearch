@@ -1,7 +1,6 @@
 from tqdm import tqdm
 from typing import List
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import contextmanager
 from argparse import ArgumentParser
@@ -121,8 +120,6 @@ def parse_papers(
             batch_parse_status_rows = []
             batch_preamble_rows = []
 
-            current_time = datetime.now(ZoneInfo("America/Los_Angeles"))
-
             for paper in papers:
                 paper_id = paper["paper_id"]
                 arxiv_id = paper["arxiv_id"]
@@ -141,6 +138,7 @@ def parse_papers(
             for fut in as_completed(fut_to_paper):
                 paper_id = fut_to_paper[fut]["paper_id"]
                 arxiv_id = fut_to_paper[fut]["arxiv_id"]
+                current_time = datetime.now(timezone.utc)
                 error = None
                 statements = None
                 preamble = None
