@@ -2,6 +2,16 @@ from typing import Any, Dict, List, Optional, Tuple
 from psycopg2.extensions import connection
 from psycopg2.extras import execute_values
 
+
+def _strip_nul(value: Any) -> Any:
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    return value
+
+
+def _clean_row(row: Dict[str, Any]) -> tuple:
+    return tuple(_strip_nul(v) for v in row.values())
+
 def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
     if not ("with" in on_conflict and "replace" in on_conflict):
         raise ValueError("both 'with' and 'replace' must be included in on_conflict")
@@ -51,7 +61,7 @@ def upsert_row(
             INSERT INTO {table} ({", ".join(row.keys())})
             VALUES ({", ".join(["%s"] * len(row))})
             {conflict_clause}
-        """, tuple(row.values()))
+        """, _clean_row(row))
 
 def upsert_rows(
     conn: connection, 
@@ -95,7 +105,7 @@ def upsert_rows(
             INSERT INTO {table} ({", ".join(rows[0].keys())})
             VALUES %s
             {conflict_clause}
-        """, [tuple(row.values()) for row in rows])
+        """, [_clean_row(row) for row in rows])
 
 def update_row(
     conn: connection,
@@ -127,7 +137,7 @@ def update_row(
             UPDATE {table}
             SET {set_clause}
             WHERE {where_clause}
-        """, (*[row[col] for col in update_cols], *[row[col] for col in where]))
+        """, (*[_strip_nul(row[col]) for col in update_cols], *[_strip_nul(row[col]) for col in where]))
 
 
 def update_rows(
@@ -161,7 +171,7 @@ def update_rows(
             SET {", ".join(f"{col} = v.{col}" for col in update_cols)}
             FROM (VALUES %s) AS v({", ".join(update_cols + where)})
             WHERE {" AND ".join(f"t.{col} = v.{col}" for col in where)}
-        """, [(*[row[col] for col in update_cols], *[row[col] for col in where]) for row in rows])
+        """, [(*[_strip_nul(row[col]) for col in update_cols], *[_strip_nul(row[col]) for col in where]) for row in rows])
 
 
 def insert_rows_returning(
@@ -194,5 +204,5 @@ def insert_rows_returning(
             INSERT INTO {table} ({", ".join(rows[0].keys())})
             VALUES %s
             RETURNING {returning}
-        """, [tuple(row.values()) for row in rows], fetch=True)
+        """, [_clean_row(row) for row in rows], fetch=True)
     return [r[0] for r in result]
