@@ -1,5 +1,6 @@
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional, Tuple
 from psycopg2.extensions import connection
+from psycopg2.extras import execute_values
 
 def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
     if not ("with" in on_conflict and "replace" in on_conflict):
@@ -90,9 +91,9 @@ def upsert_rows(
     else:
         conflict_clause = ""
     with conn.cursor() as cur:
-        cur.executemany(f"""
+        execute_values(cur, f"""
             INSERT INTO {table} ({", ".join(rows[0].keys())})
-            VALUES ({", ".join(["%s"] * len(rows[0]))})
+            VALUES %s
             {conflict_clause}
         """, [tuple(row.values()) for row in rows])
 
@@ -155,8 +156,43 @@ def update_rows(
     where_clause = " AND ".join(f"{col} = %s" for col in where)
 
     with conn.cursor() as cur:
-        cur.executemany(f"""
-            UPDATE {table}
-            SET {set_clause}
-            WHERE {where_clause}
+        execute_values(cur, f"""
+            UPDATE {table} AS t
+            SET {", ".join(f"{col} = v.{col}" for col in update_cols)}
+            FROM (VALUES %s) AS v({", ".join(update_cols + where)})
+            WHERE {" AND ".join(f"t.{col} = v.{col}" for col in where)}
         """, [(*[row[col] for col in update_cols], *[row[col] for col in where]) for row in rows])
+
+
+def insert_rows_returning(
+    conn: connection,
+    table: str,
+    rows: List[Dict[str, Any]],
+    returning: str,
+) -> List[Any]:
+    """
+    Inserts a batch of rows and returns a column value for each inserted row.
+
+    Parameters
+    ----------
+    conn : connection
+        A SQL connection
+    table : str
+        The table to insert into
+    rows : List[Dict[str, Any]]
+        Rows to insert
+    returning : str
+        Column name to return for each inserted row
+
+    Returns
+    -------
+    List[Any]
+        Values of the returning column, in insertion order
+    """
+    with conn.cursor() as cur:
+        result = execute_values(cur, f"""
+            INSERT INTO {table} ({", ".join(rows[0].keys())})
+            VALUES %s
+            RETURNING {returning}
+        """, [tuple(row.values()) for row in rows], fetch=True)
+    return [r[0] for r in result]

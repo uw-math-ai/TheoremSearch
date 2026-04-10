@@ -1,6 +1,7 @@
 from tqdm import tqdm
-from typing import List, Optional
-from datetime import datetime, timezone
+from typing import List
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from argparse import ArgumentParser
 from arXiTeX.types import StatementValidationLevel, ParsingMethod
@@ -8,7 +9,7 @@ from arXiTeX import parse_paper
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
-from rds.utils.upsert import upsert_rows, update_rows
+from rds.utils.upsert import upsert_rows, update_rows, insert_rows_returning
 from ..printing import print_script_header
 
 STATEMENT_KINDS = {
@@ -20,7 +21,8 @@ STATEMENT_KINDS = {
     "claim",
     "fact",
     "assumption",
-    "notation", "convention"
+    "notation", "convention",
+    "criterion", "principle"
 }
 
 
@@ -106,7 +108,7 @@ def parse_papers(
             batch_parse_status_rows = []
             batch_preamble_rows = []
 
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(ZoneInfo("America/Los_Angeles"))
 
             for paper in papers:
                 paper_id = paper["paper_id"]
@@ -202,32 +204,25 @@ def parse_papers(
 
                 with conn.cursor() as cur:
                     cur.execute(
-                        "DELETE FROM statement WHERE paper_id::TEXT = ANY(%s)",
+                        "DELETE FROM statement WHERE paper_id = ANY(%s::uuid[])",
                         (paper_ids,),
                     )
 
-                    inserted_ids = []
-                    for row in batch_statement_rows:
-                        cur.execute(
-                            """
-                            INSERT INTO statement (paper_id, formality, kind, body, proof)
-                            VALUES (%(paper_id)s, %(formality)s, %(kind)s, %(body)s, %(proof)s)
-                            RETURNING statement_id
-                            """,
-                            row,
-                        )
-                        inserted_ids.append(cur.fetchone()[0])
+                inserted_ids = insert_rows_returning(
+                    conn,
+                    table="statement",
+                    rows=batch_statement_rows,
+                    returning="statement_id",
+                )
 
-                    cur.executemany(
-                        """
-                        INSERT INTO informal_metadata (statement_id, ref, label, note)
-                        VALUES (%(statement_id)s, %(ref)s, %(label)s, %(note)s)
-                        """,
-                        [
-                            {"statement_id": sid, **meta}
-                            for sid, meta in zip(inserted_ids, batch_informal_metadata_rows)
-                        ],
-                    )
+                upsert_rows(
+                    conn,
+                    table="informal_metadata",
+                    rows=[
+                        {"statement_id": sid, **meta}
+                        for sid, meta in zip(inserted_ids, batch_informal_metadata_rows)
+                    ],
+                )
 
             if batch_preamble_rows:
                 update_rows(
