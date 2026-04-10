@@ -134,7 +134,7 @@ def parse_papers(
                     STATEMENT_KINDS,
                     parsing_method,
                     validation_level,
-                    None
+                    timeout
                 )
                 fut_to_paper[fut] = {"paper_id": paper_id, "arxiv_id": arxiv_id}
 
