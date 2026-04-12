@@ -26,6 +26,8 @@ CREATE TABLE arxiv_paper_metadata (
     license TEXT,
     abstract TEXT,
     preamble TEXT,
+    bibliography JSONB, -- Map of cite key -> {title?, arxiv_id?}
+    bibtex BOOLEAN,
     citation_count int,
     reference_ids TEXT[] -- ARXIV (preferred) or DOI-prefixed ID (e.g. ARXIV:2109.06451)
 );

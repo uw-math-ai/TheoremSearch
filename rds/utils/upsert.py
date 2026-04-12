@@ -144,7 +144,8 @@ def update_rows(
     conn: connection,
     table: str,
     rows: List[Dict[str, Any]],
-    where: List[str]
+    where: List[str],
+    casts: Optional[Dict[str, str]] = None,
 ):
     """
     Updates a batch of rows in a table efficiently.
@@ -160,15 +161,20 @@ def update_rows(
         Each row must include all keys listed in `where`
     where : List[str]
         The column names in each row to match on
+    casts : Dict[str, str], optional
+        Explicit PostgreSQL type casts for columns whose types cannot be inferred from
+        the VALUES literal (e.g. {"bibliography": "jsonb"}). By default None.
     """
+    casts = casts or {}
     update_cols = [col for col in rows[0] if col not in where]
-    set_clause = ", ".join(f"{col} = %s" for col in update_cols)
-    where_clause = " AND ".join(f"{col} = %s" for col in where)
+
+    def _ref(col):
+        return f"v.{col}::{casts[col]}" if col in casts else f"v.{col}"
 
     with conn.cursor() as cur:
         execute_values(cur, f"""
             UPDATE {table} AS t
-            SET {", ".join(f"{col} = v.{col}" for col in update_cols)}
+            SET {", ".join(f"{col} = {_ref(col)}" for col in update_cols)}
             FROM (VALUES %s) AS v({", ".join(update_cols + where)})
             WHERE {" AND ".join(f"t.{col} = v.{col}" for col in where)}
         """, [(*[_strip_nul(row[col]) for col in update_cols], *[_strip_nul(row[col]) for col in where]) for row in rows])
