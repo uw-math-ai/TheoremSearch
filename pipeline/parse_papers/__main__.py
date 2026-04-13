@@ -87,6 +87,7 @@ def parse_papers(
     condition: str,
     condition_params: List[str],
     focus: ParseFocus,
+    context: int,
     overwrite: bool,
     batch_size: int,
     workers: int,
@@ -104,6 +105,7 @@ def parse_papers(
         action="Parsing papers",
         params={
             "focus": focus.value,
+            "context": context,
             "condition?": condition,
             "condition params?": condition_params,
             "overwrite": overwrite,
@@ -189,6 +191,7 @@ def parse_papers(
                     validation_level,
                     timeout,
                     focus,
+                    context
                 )
                 fut_to_paper[fut] = {"paper_id": paper_id, "arxiv_id": arxiv_id}
 
@@ -239,7 +242,9 @@ def parse_papers(
                             {
                                 "ref": statement.ref,
                                 "label": statement.label,
-                                "note": statement.note
+                                "note": statement.note,
+                                "pre_context": statement.pre_context,
+                                "post_context": statement.post_context,
                             }
                             for statement in result.statements
                         ])
@@ -336,6 +341,13 @@ if __name__ == "__main__":
     )
 
     arg_parser.add_argument(
+        "-x", "--context",
+        type=int,
+        default=0,
+        help="Amount of context (number of characters) to grab before and after a parsed statement"
+    )
+
+    arg_parser.add_argument(
         "-c", "--condition",
         type=str,
         nargs="+",
@@ -422,6 +434,7 @@ if __name__ == "__main__":
         condition=condition,
         condition_params=condition_params,
         focus=args.focus,
+        context=args.context,
         overwrite=args.overwrite,
         batch_size=args.batch_size,
         workers=args.workers,
