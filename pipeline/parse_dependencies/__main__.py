@@ -47,17 +47,20 @@ if __name__ == "__main__":
         help="Total number of shards. Papers are split by hashtext(paper_id) %% n_shards",
     )
     arg_parser.add_argument(
-        "--skip-intra",
+        "--intra",
         action="store_true",
-        help="Skip intra-paper dependency parsing",
+        help="Parse only intra-paper dependencies (omit to do both)",
     )
     arg_parser.add_argument(
-        "--skip-inter",
+        "--inter",
         action="store_true",
-        help="Skip inter-paper dependency parsing",
+        help="Parse only inter-paper dependencies (omit to do both)",
     )
 
     args = arg_parser.parse_args()
+
+    do_intra = args.intra or not args.inter
+    do_inter = args.inter or not args.intra
 
     if args.condition and len(args.condition) >= 2:
         condition, *condition_params = args.condition
@@ -74,14 +77,14 @@ if __name__ == "__main__":
             "batch size":           args.batch_size,
             "similarity threshold": args.similarity_threshold,
             "shard":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else "off",
-            "intra":                not args.skip_intra,
-            "inter":                not args.skip_inter,
+            "intra":                do_intra,
+            "inter":                do_inter,
         }
     )
 
     conn = get_rds_connection("v2")
 
-    if not args.skip_intra:
+    if do_intra:
         connect_intrapaper_dependencies(
             conn=conn,
             condition=condition,
@@ -92,7 +95,7 @@ if __name__ == "__main__":
             n_shards=args.n_shards,
         )
 
-    if not args.skip_inter:
+    if do_inter:
         connect_interpaper_dependencies(
             conn=conn,
             condition=condition,

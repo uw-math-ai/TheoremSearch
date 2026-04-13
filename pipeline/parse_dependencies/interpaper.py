@@ -4,7 +4,6 @@ from collections import defaultdict
 from typing import List, Dict, Optional
 from tqdm import tqdm
 from psycopg2.extensions import connection
-from arXiTeX import parse_bibliography
 
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
@@ -26,21 +25,12 @@ _CONTEXT_BEFORE_PATTERN = re.compile(
     r'|(?<!\w)(Theorem|Lemma|Proposition|Corollary)\s+([\w.]+)\s+in\s*$',
     re.IGNORECASE
 )
-_ARXIV_PREFIX = "ARXIV:"
-
-
-def _strip_arxiv_prefix(ref_id: str) -> Optional[str]:
-    if ref_id.startswith(_ARXIV_PREFIX):
-        return ref_id[len(_ARXIV_PREFIX):]
-    return None
 
 
 def _parse_cites(field: str) -> List[Dict]:
     results = []
     for m in _CITE_PATTERN.finditer(field):
         raw = m.group(0)
-        # Re-scan the full match for bracket args to handle both \cite[note]{key}
-        # and \citealt[pre][post]{key} variants uniformly.
         bracket_args = re.findall(r'\[([^\]]*)\]', raw[raw.find('\\'):raw.rfind('{')])
         opt_arg = bracket_args[0] if bracket_args else None
 
@@ -66,35 +56,40 @@ def _parse_cites(field: str) -> List[Dict]:
 def get_interpaper_dependencies(
     conn: connection,
     arxiv_id: str,
-    reference_ids: List[str],
     similarity_threshold: float,
 ) -> List[Dict]:
     """
     Resolve inter-paper statement dependencies for a single arXiv paper.
 
     Strategy (cite-first):
-      1. Fetch this paper's statements and parse \\cite keys from them.
-         All cites are kept — bare cites (no theorem type/ref) record the
+      1. Read bibliography JSONB from arxiv_paper_metadata.
+      2. Fetch this paper's statements and parse \\cite keys per location
+         (body / note / proof). All cites are kept — bare cites record the
          paper-level dependency; specific cites additionally resolve dep_id.
-      2. Resolve bib entries only for cited keys.
+      3. Resolve bib entries only for cited keys.
          Stage 1: exact arXiv ID match.
-         Stage 2: pg_trgm title match, restricted to cited_arxiv_ids.
-      3. Batch-resolve dep statement UUIDs for cites that name a specific theorem.
-      4. Emit one row per (source, cite) pair. dep_id is None for bare cites or
-         when the specific statement could not be resolved.
+         Stage 2: pg_trgm title match, restricted to arxiv IDs in the bib.
+      4. Batch-resolve dep statement UUIDs for cites that name a specific theorem.
+      5. Emit one row per (src, cite, location) triple. dep_id is None for bare
+         cites or when the specific statement could not be resolved.
     """
-    cited_arxiv_ids = [
-        stripped
-        for ref_id in reference_ids
-        if (stripped := _strip_arxiv_prefix(ref_id)) is not None
-    ]
-    if not cited_arxiv_ids:
+    # ------------------------------------------------------------------ #
+    # Step 1 – read bibliography from DB                                  #
+    # ------------------------------------------------------------------ #
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT bibliography FROM arxiv_paper_metadata WHERE arxiv_id = %s",
+            (arxiv_id,),
+        )
+        row = cur.fetchone()
+    if not row or row[0] is None:
+        return []
+    bib: Dict[str, Dict] = row[0]
+    if not bib:
         return []
 
-    cited_set = set(cited_arxiv_ids)
-
     # ------------------------------------------------------------------ #
-    # Step 1 – fetch statements and parse cite keys                       #
+    # Step 2 – fetch statements and parse cite keys per location          #
     # ------------------------------------------------------------------ #
     with conn.cursor() as cur:
         cur.execute(
@@ -115,32 +110,32 @@ def get_interpaper_dependencies(
     if not statements:
         return []
 
-    # statement_id → list of (bib_key, theorem_type, theorem_ref)
+    # statement_id → list of (bib_key, theorem_type, theorem_ref, location)
     statement_cites: Dict[str, list] = defaultdict(list)
     needed_keys: set = set()
 
     for stmt in statements:
         seen: set = set()
-        for field in (stmt["body"], stmt.get("note"), stmt.get("proof")):
+        for location, field in [
+            ("body",  stmt["body"]),
+            ("note",  stmt.get("note")),
+            ("proof", stmt.get("proof")),
+        ]:
             if not field or r'\cite' not in field:
                 continue
             for cite in _parse_cites(field):
-                triple = (cite["key"], cite["type"], cite["ref"])
-                if triple not in seen:
-                    seen.add(triple)
-                    statement_cites[stmt["statement_id"]].append(triple)
+                quad = (cite["key"], cite["type"], cite["ref"], location)
+                if quad not in seen:
+                    seen.add(quad)
+                    statement_cites[stmt["statement_id"]].append(quad)
                     needed_keys.add(cite["key"])
 
     if not needed_keys:
         return []
 
     # ------------------------------------------------------------------ #
-    # Step 2 – resolve only the needed bib keys                           #
+    # Step 3 – resolve only the needed bib keys                           #
     # ------------------------------------------------------------------ #
-    try:
-        bib: Dict[str, Dict] = parse_bibliography(arxiv_id=arxiv_id) or {}
-    except Exception:
-        return []
     needed_bib = {k: v for k, v in bib.items() if k in needed_keys}
     if not needed_bib:
         return []
@@ -151,7 +146,7 @@ def get_interpaper_dependencies(
     arxiv_to_key = {
         meta["arxiv_id"]: key
         for key, meta in needed_bib.items()
-        if meta.get("arxiv_id") and meta["arxiv_id"] in cited_set
+        if meta.get("arxiv_id")
     }
     if arxiv_to_key:
         with conn.cursor() as cur:
@@ -174,8 +169,9 @@ def get_interpaper_dependencies(
         if key not in resolved and meta.get("title")
     }
     if unresolved_with_title:
-        keys_arr   = list(unresolved_with_title)
-        titles_arr = [unresolved_with_title[k]["title"] for k in keys_arr]
+        keys_arr      = list(unresolved_with_title)
+        titles_arr    = [unresolved_with_title[k]["title"] for k in keys_arr]
+        all_arxiv_ids = [meta["arxiv_id"] for meta in needed_bib.values() if meta.get("arxiv_id")]
 
         with conn.cursor() as cur:
             cur.execute(
@@ -192,22 +188,19 @@ def get_interpaper_dependencies(
                     LIMIT 1
                 ) p ON TRUE
                 """,
-                (keys_arr, titles_arr, cited_arxiv_ids, similarity_threshold),
+                (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
             )
             for bib_key, paper_id in cur.fetchall():
                 if bib_key not in resolved:
                     resolved[bib_key] = paper_id
 
-    if not resolved:
-        return []
-
     # ------------------------------------------------------------------ #
-    # Step 3 – batch-resolve dep statement UUIDs                          #
+    # Step 4 – batch-resolve dep statement UUIDs                          #
     # ------------------------------------------------------------------ #
     lookups = list(dict.fromkeys(
         (resolved[key], ttype, tref)
         for cites in statement_cites.values()
-        for key, ttype, tref in cites
+        for key, ttype, tref, _ in cites
         if key in resolved and ttype and tref
     ))
 
@@ -242,26 +235,23 @@ def get_interpaper_dependencies(
         dep_id_cache.setdefault(lk, None)
 
     # ------------------------------------------------------------------ #
-    # Step 4 – build dependency rows                                      #
+    # Step 5 – build dependency rows                                      #
     # ------------------------------------------------------------------ #
     dependency_rows: List[Dict] = []
 
     for stmt in statements:
-        for bib_key, theorem_type, theorem_ref in statement_cites.get(stmt["statement_id"], []):
-            if bib_key not in resolved:
-                continue
-            cite_id = resolved[bib_key]
-            dep_id  = dep_id_cache.get((cite_id, theorem_type, theorem_ref))
+        for bib_key, theorem_type, theorem_ref, location in statement_cites.get(stmt["statement_id"], []):
+            cite_id = resolved.get(bib_key)  # None if unresolved — still emit the row
+            dep_id  = dep_id_cache.get((cite_id, theorem_type, theorem_ref)) if cite_id else None
 
             dependency_rows.append({
-                "source_id":  stmt["statement_id"],
-                "cite_id":    cite_id,
-                "cite_key":   bib_key,
-                "dep_id":     dep_id,
-                "kind":       "cites",
-                "interpaper": True,
-                "dep_key":    None,
-                "dep_name":   f"{theorem_type.capitalize()} {theorem_ref}" if theorem_type else None,
+                "src_id":   stmt["statement_id"],
+                "location": location,
+                "cite_id":  cite_id,
+                "cite_key": bib_key,
+                "dep_id":   dep_id,
+                "dep_key":  theorem_ref,
+                "dep_name": f"{theorem_type.capitalize()} {theorem_ref}" if theorem_type else None,
             })
 
     return dependency_rows
@@ -278,11 +268,12 @@ def connect_interpaper_dependencies(
     n_shards: int = 1,
 ):
     query, params = build_query(
-        base_query="""
-            SELECT p.paper_id, p.external_id, m.reference_ids
-            FROM paper p
-            INNER JOIN arxiv_paper_metadata m ON m.arxiv_id = p.external_id
-        """,
+        base_query=(
+            "SELECT p.paper_id, p.external_id"
+            " FROM paper p"
+            " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
+            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
+        ),
         where_clauses=[
             {
                 "if": condition,
@@ -293,10 +284,10 @@ def connect_interpaper_dependencies(
                 "if": not overwrite,
                 "condition": """
                     NOT EXISTS (
-                        SELECT 1 FROM dependency d
-                        INNER JOIN statement s ON s.statement_id = d.source_id
+                        SELECT 1 FROM informal_dependency d
+                        INNER JOIN statement s ON s.statement_id = d.src_id
                         WHERE s.paper_id = p.paper_id
-                          AND d.interpaper IS TRUE
+                          AND d.cite_key IS NOT NULL
                     )
                 """
             },
@@ -338,7 +329,6 @@ def connect_interpaper_dependencies(
                     rows = get_interpaper_dependencies(
                         conn=conn,
                         arxiv_id=paper["external_id"],
-                        reference_ids=paper["reference_ids"] or [],
                         similarity_threshold=similarity_threshold,
                     )
                     batch_rows.extend(rows)
@@ -346,38 +336,19 @@ def connect_interpaper_dependencies(
                     tqdm.write(f"[interpaper] skipping {paper['external_id']}:\n{traceback.format_exc()}")
 
             if batch_rows:
-                resolved_rows   = [r for r in batch_rows if r["dep_id"] is not None]
-                unresolved_rows = [r for r in batch_rows if r["dep_id"] is None]
-                source_ids = list({row["source_id"] for row in batch_rows})
+                source_ids = list({row["src_id"] for row in batch_rows})
 
                 with conn.cursor() as cur:
                     cur.execute(
                         """
-                        DELETE FROM dependency
-                        WHERE interpaper IS TRUE
-                          AND source_id = ANY(%s::uuid[])
+                        DELETE FROM informal_dependency
+                        WHERE cite_key IS NOT NULL
+                          AND src_id = ANY(%s::uuid[])
                         """,
                         (source_ids,)
                     )
 
-                if resolved_rows:
-                    upsert_rows(conn, table="dependency", rows=resolved_rows)
-
-                if unresolved_rows:
-                    with conn.cursor() as cur:
-                        cur.executemany(
-                            """
-                            INSERT INTO dependency
-                                (source_id, cite_id, dep_id, kind, interpaper,
-                                 cite_key, dep_key, dep_name)
-                            VALUES
-                                (%(source_id)s, %(cite_id)s, NULL, %(kind)s, %(interpaper)s,
-                                 %(cite_key)s, %(dep_key)s, %(dep_name)s)
-                            ON CONFLICT DO NOTHING
-                            """,
-                            unresolved_rows
-                        )
-
+                upsert_rows(conn, table="informal_dependency", rows=batch_rows)
                 conn.commit()
 
             pbar.update(len(papers))

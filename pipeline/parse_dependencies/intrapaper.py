@@ -14,37 +14,41 @@ _REF_RE = re.compile(
 )
 
 
-def _process_paper(statements: list, paper_id: str) -> list:
-    label_to_statement_id = {s["label"]: s["statement_id"] for s in statements if s["label"]}
-    if not label_to_statement_id:
+def _process_paper(statements: list) -> list:
+    label_to_dep = {
+        s["label"]: s["statement_id"]
+        for s in statements
+        if s["label"]
+    }
+    if not label_to_dep:
         return []
 
     dependency_rows = []
     for statement in statements:
-        matched_labels = set()
-        searchable_text = " ".join(filter(None, [statement["body"], statement["note"], statement["proof"]]))
-
-        for m in _REF_RE.finditer(searchable_text):
-            content = m.group(1) or m.group(2)
-            # Each ref contains a comma-separated list of labels; a set lookup
-            # is O(1) vs the previous O(N) per-label regex scan.
-
-            if not content:
+        for location, text in [
+            ("body",  statement["body"]),
+            ("note",  statement["note"]),
+            ("proof", statement["proof"]),
+        ]:
+            if not text:
                 continue
-
-            for ref in (r.strip() for r in content.split(',')):
-                if ref in label_to_statement_id:
-                    matched_labels.add(ref)
-
-        for label in matched_labels:
-            dependency_rows.append({
-                "source_id": statement["statement_id"],
-                "cite_id":   paper_id,
-                "dep_key":   label,
-                "dep_id":    label_to_statement_id[label],
-                "kind":      "references",
-                "interpaper": False,
-            })
+            seen = set()
+            for m in _REF_RE.finditer(text):
+                content = m.group(1) or m.group(2)
+                if not content:
+                    continue
+                for label in (lbl.strip() for lbl in content.split(',')):
+                    if label in label_to_dep and label not in seen:
+                        seen.add(label)
+                        dependency_rows.append({
+                            "src_id":   statement["statement_id"],
+                            "location": location,
+                            "cite_id":  None,
+                            "cite_key": None,
+                            "dep_key":  label,
+                            "dep_id":   label_to_dep[label],
+                            "dep_name": None,
+                        })
 
     return dependency_rows
 
@@ -59,7 +63,11 @@ def connect_intrapaper_dependencies(
     n_shards: int = 1,
 ):
     query, params = build_query(
-        base_query="SELECT paper_id FROM paper",
+        base_query=(
+            "SELECT paper_id FROM paper"
+            + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
+            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
+        ),
         where_clauses=[
             {
                 "if": True,
@@ -75,9 +83,9 @@ def connect_intrapaper_dependencies(
                 "condition": """
                     NOT EXISTS (
                         SELECT 1 FROM statement
-                        JOIN dependency ON dependency.source_id = statement.statement_id
+                        JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id
                         WHERE statement.paper_id = paper.paper_id
-                          AND dependency.interpaper IS FALSE
+                          AND informal_dependency.cite_key IS NULL
                     )
                 """
             },
@@ -127,19 +135,19 @@ def connect_intrapaper_dependencies(
 
             batch_rows = []
             for paper in papers:
-                batch_rows.extend(_process_paper(statements_by_paper[paper["paper_id"]], paper["paper_id"]))
+                batch_rows.extend(_process_paper(statements_by_paper[paper["paper_id"]]))
 
             if batch_rows:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
-                        DELETE FROM dependency
-                        WHERE interpaper IS FALSE
-                          AND source_id = ANY(%s::uuid[])
+                        DELETE FROM informal_dependency
+                        WHERE cite_key IS NULL
+                          AND src_id = ANY(%s::uuid[])
                         """,
-                        (list({row["source_id"] for row in batch_rows}),)
+                        (list({row["src_id"] for row in batch_rows}),)
                     )
-                upsert_rows(conn, table="dependency", rows=batch_rows)
+                upsert_rows(conn, table="informal_dependency", rows=batch_rows)
                 conn.commit()
 
             pbar.update(len(papers))
