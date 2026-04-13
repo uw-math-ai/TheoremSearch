@@ -13,19 +13,7 @@ from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows, update_rows, insert_rows_returning
 from ..printing import print_script_header
-
-STATEMENT_KINDS = {
-    "theorem", "lemma", "proposition", "corollary",
-    "definition",
-    "axiom", "postulate",
-    "conjecture", "hypothesis",
-    "remark", "note", "observation",
-    "claim",
-    "fact",
-    "assumption",
-    "notation", "convention",
-    "criterion", "principle"
-}
+from ..constants import STATEMENT_KINDS
 
 
 @contextmanager
@@ -240,13 +228,14 @@ def parse_papers(
 
                         batch_informal_metadata_rows.extend([
                             {
+                                "ordinal": ordinal,
                                 "ref": statement.ref,
                                 "label": statement.label,
                                 "note": statement.note,
                                 "pre_context": statement.pre_context,
                                 "post_context": statement.post_context,
                             }
-                            for statement in result.statements
+                            for ordinal, statement in enumerate(result.statements)
                         ])
 
                     if result.preamble is not None:

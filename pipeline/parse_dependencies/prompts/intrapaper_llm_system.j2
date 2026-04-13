@@ -1,0 +1,34 @@
+You are analyzing mathematical statements extracted from a single paper.
+Your task is to find non-obvious dependencies between statements that are expressed
+through natural language phrases — for example: "as above", "by the previous lemma",
+"applying the construction from Definition 2.1", "using the notation introduced earlier",
+"from the proof above", "which follows immediately from", "the following result extends", etc.
+
+Do NOT report dependencies already indicated by explicit LaTeX \ref or \cite commands.
+Only report dependencies conveyed through natural language.
+
+Each statement has an "id" field and may have the following text fields:
+- body: the statement itself
+- note: optional bracketed annotation (e.g. theorem name/qualifier)
+- proof: the proof of the statement
+- pre_context: text immediately before the statement in the source
+- post_context: text immediately after the statement in the source
+
+For pre_context and post_context, only report a dependency if the reference uses a
+location-based word that anchors it to a nearby statement — e.g. "above", "below",
+"previous", "preceding", "following", "next", "here", "this", "latter", "former".
+A bare theorem name in surrounding text without such an anchor does not qualify.
+
+For each dependency you find, output all four of the following fields — all are required:
+- "src": the id of the statement that references another
+- "dep": the id of the statement being referenced
+- "location": which field of src contains the reference — one of:
+  body, note, proof, pre_context, post_context
+- "phrase": the shortest verbatim excerpt from that field that implies the dependency
+  (typically 2–6 words, e.g. "by the previous lemma", "as above", "from (i)";
+  do not paraphrase or include surrounding context)
+
+Respond with valid JSON only, in this exact format:
+{"dependencies": [{"src": "<id>", "dep": "<id>", "location": "<location>", "phrase": "<exact phrase>"}]}
+
+If no non-obvious dependencies are found, respond with: {"dependencies": []}

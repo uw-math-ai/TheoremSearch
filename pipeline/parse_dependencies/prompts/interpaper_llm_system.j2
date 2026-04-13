@@ -1,0 +1,32 @@
+You are analyzing mathematical statements extracted from a single paper.
+You will be given a bibliography (a JSON object mapping cite keys to {title, arxiv_id}) and
+a list of statements with their text fields.
+
+Your task is to find every place where a statement references an entry in the bibliography —
+including both explicit LaTeX \cite commands and implicit natural language citations such as
+"as proven by Smith and Jones", "by the result of [5]", "following [Foo20]", etc.
+
+For each citation found, output all five of the following fields — all are required:
+- "src": the id of the statement containing the citation
+- "cite_key": the exact key from the provided bibliography that is being cited
+  (match by key if explicitly written; match by title/author if implicit)
+- "dep_name": the specific theorem, lemma, or result being cited, if named
+  (e.g. "Theorem 3.2", "Lemma A.1"; null if only the paper in general is cited)
+- "location": which field of src contains the citation — one of:
+  body, note, proof, pre_context, post_context
+- "phrase": the shortest verbatim excerpt (2–8 words) from that field that implies the citation;
+  must include the natural language context around the cite (e.g. "as shown in", "it follows from",
+  "by the result of") — a bare LaTeX command like \cite{key} alone does not qualify
+
+For pre_context and post_context, only report a citation if the reference uses a
+location-based word that anchors it to a nearby statement — e.g. "above", "below",
+"previous", "preceding", "following", "next", "here", "this", "latter", "former".
+A bare citation in surrounding text without such an anchor does not qualify.
+
+Only output citations where you can confidently match to a bibliography key.
+Do not invent cite keys that are not in the provided bibliography.
+
+Respond with valid JSON only, in this exact format:
+{"citations": [{"src": "<id>", "cite_key": "<key>", "dep_name": "<name or null>", "location": "<location>", "phrase": "<phrase>"}]}
+
+If no citations are found, respond with: {"citations": []}

@@ -56,11 +56,29 @@ if __name__ == "__main__":
         action="store_true",
         help="Parse only inter-paper dependencies (omit to do both)",
     )
+    arg_parser.add_argument(
+        "--deterministic",
+        action="store_true",
+        help="Run only deterministic (\\ref/\\cite) dependency extraction (omit to do both)",
+    )
+    arg_parser.add_argument(
+        "--llm",
+        action="store_true",
+        help="Run only LLM-inferred dependency extraction (omit to do both)",
+    )
+    arg_parser.add_argument(
+        "--model",
+        type=str,
+        default="Qwen/Qwen3-235B-A22B-Instruct-2507",
+        help="LLM model name for dependency inference via Nebius (default: Qwen/Qwen2.5-72B-Instruct)",
+    )
 
     args = arg_parser.parse_args()
 
     do_intra = args.intra or not args.inter
     do_inter = args.inter or not args.intra
+    do_deterministic = args.deterministic or not args.llm
+    do_llm = args.llm or not args.deterministic
 
     if args.condition and len(args.condition) >= 2:
         condition, *condition_params = args.condition
@@ -79,6 +97,9 @@ if __name__ == "__main__":
             "shard":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else "off",
             "intra":                do_intra,
             "inter":                do_inter,
+            "deterministic":        do_deterministic,
+            "llm":                  do_llm,
+            **({"model": args.model} if do_llm else {}),
         }
     )
 
@@ -91,6 +112,9 @@ if __name__ == "__main__":
             condition_params=condition_params,
             batch_size=args.batch_size,
             overwrite=args.overwrite,
+            do_deterministic=do_deterministic,
+            do_llm=do_llm,
+            model=args.model,
             shard=args.shard,
             n_shards=args.n_shards,
         )
@@ -103,6 +127,9 @@ if __name__ == "__main__":
             overwrite=args.overwrite,
             batch_size=args.batch_size,
             similarity_threshold=args.similarity_threshold,
+            do_deterministic=do_deterministic,
+            do_llm=do_llm,
+            model=args.model,
             shard=args.shard,
             n_shards=args.n_shards,
         )

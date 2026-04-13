@@ -11,12 +11,14 @@
 -- interpaper deps only, and only when the cite explicitly names a target (e.g. "Theorem A.1").
 CREATE TABLE informal_dependency (
     src_id      UUID NOT NULL REFERENCES statement(statement_id) ON DELETE CASCADE,
-    location    TEXT NOT NULL CHECK (location IN ('body', 'note', 'proof')),
+    location    TEXT NOT NULL CHECK (location IN ('body', 'note', 'proof', 'pre_context', 'post_context')),
     cite_id     UUID REFERENCES paper(paper_id) ON DELETE CASCADE,  -- NULL for intrapaper
     cite_key    TEXT,       -- \cite key; NULL for intrapaper
     dep_id      UUID REFERENCES statement(statement_id) ON DELETE SET NULL,
-    dep_key     TEXT,       -- \label (intrapaper) or ref string within cite (interpaper, e.g. "A.1")
-    dep_name    TEXT        -- human-readable target name, e.g. "Theorem 3.2"
+    dep_key     TEXT,       -- \label (deterministic intrapaper) or implied phrase (LLM-only deps of either kind); NULL otherwise
+    dep_name    TEXT,       -- human-readable target name, e.g. "Theorem 3.2"
+    method      TEXT NOT NULL DEFAULT 'deterministic'
+                    CHECK (method IN ('deterministic', 'llm', 'deterministic+llm'))
 );
 
 COMMENT ON TABLE informal_dependency IS

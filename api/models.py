@@ -54,47 +54,54 @@ class SearchResponse(BaseModel):
     theorems: List[TheoremResult]
 
 
-# Graph route models
-
-class PaperNode(BaseModel):
-    paper_id: str
-    title: str
-    external_id: Optional[str] = None
-    source: Optional[str] = None
-    url: Optional[str] = None
-    authors: List[str] = []
-    abstract: Optional[str] = None
-
-
-class DependencyEdge(BaseModel):
-    src_statement_id: str
-    src_name: str
-    src_body: str
-    src_note: Optional[str] = None
-    src_proof: Optional[str] = None
-    src_paper_id: str                    # UUID — always present
-    src_paper_ext_id: Optional[str] = None
-    src_paper_title: Optional[str] = None
-    dep_statement_id: Optional[str] = None
-    dep_name: Optional[str] = None
-    dep_body: Optional[str] = None
-    dep_key: Optional[str] = None
-    dep_paper_id: Optional[str] = None  # UUID of dep's paper (if resolvable)
-    dep_paper_ext_id: Optional[str] = None
-    dep_paper_title: Optional[str] = None
-    cited_paper_key: Optional[str] = None
-    interpaper: bool
-
+# Graph route models — minimal; use hydration endpoints for full content
 
 class StatementNode(BaseModel):
     statement_id: str
-    name: str
-    body: str
-    note: Optional[str] = None
-    proof: Optional[str] = None
+    kind: str
+    ref: Optional[str] = None          # display label, e.g. "3.2"
+
+
+class DependencyEdge(BaseModel):
+    src_id: str
+    dep_id: Optional[str] = None       # resolved intrapaper target statement
+    cite_id: Optional[str] = None      # resolved interpaper target paper
+    cite_key: Optional[str] = None     # set for all interpaper deps
+    dep_name: Optional[str] = None     # e.g. "Theorem 3.2" (LLM-extracted or stored)
+    dep_key: Optional[str] = None      # verbatim phrase for LLM-only deps
+    location: str
+    method: str
 
 
 class GraphResponse(BaseModel):
-    paper: PaperNode
+    paper_id: str
     statements: List[StatementNode]
     dependencies: List[DependencyEdge]
+
+
+# Hydration models
+
+class IdsRequest(BaseModel):
+    ids: List[str]
+
+
+class StatementDetail(BaseModel):
+    statement_id: str
+    kind: str
+    ref: Optional[str] = None
+    body: str
+    proof: Optional[str] = None
+    note: Optional[str] = None
+    paper_id: str
+    paper_external_id: Optional[str] = None
+    paper_title: Optional[str] = None
+
+
+class PaperDetail(BaseModel):
+    paper_id: str
+    external_id: Optional[str] = None
+    title: Optional[str] = None
+    authors: List[str] = []
+    abstract: Optional[str] = None
+    url: Optional[str] = None
+    source: Optional[str] = None
