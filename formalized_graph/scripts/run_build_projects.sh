@@ -29,6 +29,6 @@ fi
 echo "=== Building $PROJECT (task $SLURM_ARRAY_TASK_ID) ==="
 cd "$PROJECTS_DIR/$PROJECT"
 
-lake build 2>&1
+lake -R build 2>&1
 
 echo "=== $PROJECT done ==="
