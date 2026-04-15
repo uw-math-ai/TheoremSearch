@@ -29,6 +29,9 @@ fi
 echo "=== Building $PROJECT (task $SLURM_ARRAY_TASK_ID) ==="
 cd "$PROJECTS_DIR/$PROJECT"
 
+echo "--- git pull ---"
+git pull --ff-only 2>&1 || echo "WARNING: git pull failed, building from existing state"
+
 lake -R build 2>&1
 
 echo "=== $PROJECT done ==="
