@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 from collections import defaultdict
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from tqdm import tqdm
 from jinja2 import Environment, FileSystemLoader
 from psycopg2.extensions import connection
@@ -76,9 +76,10 @@ def _process_paper_deterministic(statements: list) -> list:
     return rows
 
 
-def _process_paper_llm(statements: list, client, model: str) -> list:
+def _process_paper_llm(statements: list, client, model: str) -> Tuple[list, int, int]:
+    """Returns (rows, input_tokens, output_tokens)."""
     if len(statements) < 2:
-        return []
+        return [], 0, 0
 
     # Build a short human-readable id for each statement so the LLM can
     # refer to them naturally. Use ref ("Theorem 3.2") when available.
@@ -115,6 +116,9 @@ def _process_paper_llm(statements: list, client, model: str) -> list:
             temperature=0,
             max_tokens=4096,
         )
+        usage = response.usage
+        in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
+        out_tokens = getattr(usage, "completion_tokens", 0) or 0
         text = response.choices[0].message.content.strip()
         # Strip markdown code fences if the model wraps its output
         if text.startswith("```"):
@@ -124,11 +128,11 @@ def _process_paper_llm(statements: list, client, model: str) -> list:
         deps = data.get("dependencies", [])
     except Exception as e:
         tqdm.write(f"[intrapaper llm] error: {e}")
-        return []
+        return [], 0, 0
 
     rows = []
     seen = set()
-    for dep in deps:
+    for dep in deps:  # noqa: E501  (in_tokens/out_tokens captured above)
         src_label = dep.get("src", "").strip()
         dep_label = dep.get("dep", "").strip()
         location  = dep.get("location", "").strip()
@@ -154,7 +158,7 @@ def _process_paper_llm(statements: list, client, model: str) -> list:
             "dep_id":   dep_stmt_id,
             "dep_name": None,
         })
-    return rows
+    return rows, in_tokens, out_tokens
 
 
 def _merge(det_rows: list, llm_rows: list) -> list:
@@ -245,6 +249,12 @@ def connect_intrapaper_dependencies(
 
     count = get_query_count(conn, query, params)
 
+    total_in_tokens  = 0
+    total_out_tokens = 0
+
+    def _fmt_tokens(n: int) -> str:
+        return f"{n/1000:.1f}k" if n >= 1000 else str(n)
+
     with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Intrapaper") as pbar:
         for papers in paginate_query(
             conn,
@@ -282,8 +292,19 @@ def connect_intrapaper_dependencies(
             for paper in papers:
                 stmts = statements_by_paper[paper["paper_id"]]
                 det_rows = _process_paper_deterministic(stmts) if do_deterministic else []
-                llm_rows = _process_paper_llm(stmts, llm_client, model) if do_llm else []
+                if do_llm:
+                    llm_rows, in_tok, out_tok = _process_paper_llm(stmts, llm_client, model)
+                    total_in_tokens  += in_tok
+                    total_out_tokens += out_tok
+                else:
+                    llm_rows = []
                 batch_rows.extend(_merge(det_rows, llm_rows))
+
+            if do_llm:
+                pbar.set_postfix({
+                    "in":  _fmt_tokens(total_in_tokens),
+                    "out": _fmt_tokens(total_out_tokens),
+                })
 
             if batch_rows:
                 with conn.cursor() as cur:

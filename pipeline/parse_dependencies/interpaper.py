@@ -269,9 +269,10 @@ def _get_llm_deps(
     similarity_threshold: float,
     client,
     model: str,
-) -> List[Dict]:
+) -> Tuple[List[Dict], int, int]:
+    """Returns (rows, input_tokens, output_tokens)."""
     if not statements or not bib:
-        return []
+        return [], 0, 0
 
     # Pre-filter bib to keys that appear somewhere in the statement text,
     # so we don't send hundreds of irrelevant entries to the LLM.
@@ -286,7 +287,7 @@ def _get_llm_deps(
         if k in all_text
     }
     if not bib_for_llm:
-        return []
+        return [], 0, 0
 
     id_to_statement_id: Dict[str, str] = {}
     used_ids: Dict[str, int] = {}
@@ -324,6 +325,9 @@ def _get_llm_deps(
             temperature=0,
             max_tokens=8192,
         )
+        usage = response.usage
+        in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
+        out_tokens = getattr(usage, "completion_tokens", 0) or 0
         text = response.choices[0].message.content.strip()
         if text.startswith("```"):
             text = re.sub(r"^```[^\n]*\n?", "", text)
@@ -332,7 +336,7 @@ def _get_llm_deps(
         citations = data.get("citations", [])
     except Exception as e:
         tqdm.write(f"[interpaper llm] {arxiv_id}: {e}")
-        return []
+        return [], 0, 0
 
     statement_cites: Dict[str, list] = defaultdict(list)
     seen: set = set()
@@ -361,7 +365,7 @@ def _get_llm_deps(
 
         statement_cites[stmt_id].append((cite_key, theorem_type, theorem_ref, location, phrase))
 
-    return _build_rows(conn, bib, statement_cites, similarity_threshold)
+    return _build_rows(conn, bib, statement_cites, similarity_threshold), in_tokens, out_tokens
 
 
 # ------------------------------------------------------------------ #
@@ -459,6 +463,12 @@ def connect_interpaper_dependencies(
 
     count = get_query_count(conn, query, params)
 
+    total_in_tokens  = 0
+    total_out_tokens = 0
+
+    def _fmt_tokens(n: int) -> str:
+        return f"{n/1000:.1f}k" if n >= 1000 else str(n)
+
     with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Interpaper") as pbar:
         for papers in paginate_query(
             conn,
@@ -508,10 +518,19 @@ def connect_interpaper_dependencies(
                         conn, arxiv_id, bib, statements, similarity_threshold,
                     ) if do_deterministic else []
 
-                    llm_rows = _get_llm_deps(
-                        conn, arxiv_id, bib, statements, similarity_threshold,
-                        llm_client, model,
-                    ) if do_llm else []
+                    if do_llm:
+                        llm_rows, in_tok, out_tok = _get_llm_deps(
+                            conn, arxiv_id, bib, statements, similarity_threshold,
+                            llm_client, model,
+                        )
+                        total_in_tokens  += in_tok
+                        total_out_tokens += out_tok
+                        pbar.set_postfix({
+                                "in":  _fmt_tokens(total_in_tokens),
+                                "out": _fmt_tokens(total_out_tokens),
+                            })
+                    else:
+                        llm_rows = []
 
                     batch_rows.extend(_merge(det_rows, llm_rows))
 
