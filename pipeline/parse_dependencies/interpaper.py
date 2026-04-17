@@ -96,8 +96,15 @@ def _resolve_bib_keys(
     conn: connection,
     needed_bib: Dict[str, Dict],
     similarity_threshold: float,
+    bibtex: bool = True,
 ) -> Dict[str, str]:
-    """Resolve bib_key → paper_id (UUID) via arXiv ID match then pg_trgm title match."""
+    """Resolve bib_key → paper_id (UUID) via arXiv ID match then title match.
+
+    When bibtex=False the 'title' field is raw bibitem text that contains the
+    real title somewhere inside it, so we check whether the candidate paper's
+    clean title is a substring of the query string instead of using trigram
+    similarity.
+    """
     resolved: Dict[str, str] = {}
 
     arxiv_to_key = {
@@ -127,22 +134,41 @@ def _resolve_bib_keys(
         all_arxiv_ids = [meta["arxiv_id"] for meta in needed_bib.values() if meta.get("arxiv_id")]
 
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT bib_key, p.paper_id
-                FROM unnest(%s::text[], %s::text[]) AS q(bib_key, query_title)
-                JOIN LATERAL (
-                    SELECT paper_id FROM paper
-                    WHERE kind = 'paper'
-                      AND external_id = ANY(%s)
-                      AND title IS NOT NULL
-                      AND similarity(LOWER(title), LOWER(q.query_title)) >= %s
-                    ORDER BY similarity(LOWER(title), LOWER(q.query_title)) DESC
-                    LIMIT 1
-                ) p ON TRUE
-                """,
-                (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
-            )
+            if bibtex:
+                cur.execute(
+                    """
+                    SELECT bib_key, p.paper_id
+                    FROM unnest(%s::text[], %s::text[]) AS q(bib_key, query_title)
+                    JOIN LATERAL (
+                        SELECT paper_id FROM paper
+                        WHERE kind = 'paper'
+                          AND external_id = ANY(%s)
+                          AND title IS NOT NULL
+                          AND similarity(LOWER(title), LOWER(q.query_title)) >= %s
+                        ORDER BY similarity(LOWER(title), LOWER(q.query_title)) DESC
+                        LIMIT 1
+                    ) p ON TRUE
+                    """,
+                    (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
+                )
+            else:
+                # title field is raw bibitem text; check if the paper's clean
+                # title appears as a substring inside it
+                cur.execute(
+                    """
+                    SELECT bib_key, p.paper_id
+                    FROM unnest(%s::text[], %s::text[]) AS q(bib_key, query_title)
+                    JOIN LATERAL (
+                        SELECT paper_id FROM paper
+                        WHERE kind = 'paper'
+                          AND external_id = ANY(%s)
+                          AND title IS NOT NULL
+                          AND LOWER(q.query_title) LIKE '%' || LOWER(title) || '%'
+                        LIMIT 1
+                    ) p ON TRUE
+                    """,
+                    (keys_arr, titles_arr, all_arxiv_ids),
+                )
             for bib_key, paper_id in cur.fetchall():
                 if bib_key not in resolved:
                     resolved[bib_key] = paper_id
@@ -192,6 +218,7 @@ def _build_rows(
     # stmt_id → list of (cite_key, theorem_type, theorem_ref, location, dep_key_or_phrase)
     statement_cites: Dict[str, List[Tuple]],
     similarity_threshold: float,
+    bibtex: bool = True,
 ) -> List[Dict]:
     """Resolve bib keys and dep IDs, then build dependency rows."""
     needed_keys = {t[0] for cites in statement_cites.values() for t in cites}
@@ -199,7 +226,7 @@ def _build_rows(
     if not needed_bib:
         return []
 
-    resolved = _resolve_bib_keys(conn, needed_bib, similarity_threshold)
+    resolved = _resolve_bib_keys(conn, needed_bib, similarity_threshold, bibtex=bibtex)
 
     lookups = list(dict.fromkeys(
         (resolved[key], ttype, tref)
@@ -236,6 +263,7 @@ def _get_deterministic_deps(
     bib: Dict[str, Dict],
     statements: List[Dict],
     similarity_threshold: float,
+    bibtex: bool = True,
 ) -> List[Dict]:
     statement_cites: Dict[str, list] = defaultdict(list)
 
@@ -254,7 +282,7 @@ def _get_deterministic_deps(
                     seen.add(quad[:4])
                     statement_cites[stmt["statement_id"]].append(quad)
 
-    return _build_rows(conn, bib, statement_cites, similarity_threshold)
+    return _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex)
 
 
 # ------------------------------------------------------------------ #
@@ -269,6 +297,7 @@ def _get_llm_deps(
     similarity_threshold: float,
     client,
     model: str,
+    bibtex: bool = True,
 ) -> Tuple[List[Dict], int, int]:
     """Returns (rows, input_tokens, output_tokens)."""
     if not statements or not bib:
@@ -365,7 +394,7 @@ def _get_llm_deps(
 
         statement_cites[stmt_id].append((cite_key, theorem_type, theorem_ref, location, phrase))
 
-    return _build_rows(conn, bib, statement_cites, similarity_threshold), in_tokens, out_tokens
+    return _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex), in_tokens, out_tokens
 
 
 # ------------------------------------------------------------------ #
@@ -485,11 +514,12 @@ def connect_interpaper_dependencies(
                     # Fetch shared data once per paper
                     with conn.cursor() as cur:
                         cur.execute(
-                            "SELECT bibliography FROM arxiv_paper_metadata WHERE arxiv_id = %s",
+                            "SELECT bibliography, bibtex FROM arxiv_paper_metadata WHERE arxiv_id = %s",
                             (arxiv_id,),
                         )
                         row = cur.fetchone()
                     bib: Dict[str, Dict] = (row[0] or {}) if row else {}
+                    bibtex: bool = bool(row[1]) if row else True
 
                     with conn.cursor() as cur:
                         cur.execute(
@@ -515,13 +545,13 @@ def connect_interpaper_dependencies(
                         continue
 
                     det_rows = _get_deterministic_deps(
-                        conn, arxiv_id, bib, statements, similarity_threshold,
+                        conn, arxiv_id, bib, statements, similarity_threshold, bibtex=bibtex,
                     ) if do_deterministic else []
 
                     if do_llm:
                         llm_rows, in_tok, out_tok = _get_llm_deps(
                             conn, arxiv_id, bib, statements, similarity_threshold,
-                            llm_client, model,
+                            llm_client, model, bibtex=bibtex,
                         )
                         total_in_tokens  += in_tok
                         total_out_tokens += out_tok
