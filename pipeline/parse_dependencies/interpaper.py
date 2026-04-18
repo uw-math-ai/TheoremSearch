@@ -163,7 +163,7 @@ def _resolve_bib_keys(
                         WHERE kind = 'paper'
                           AND external_id = ANY(%s)
                           AND title IS NOT NULL
-                          AND LOWER(q.query_title) LIKE '%' || LOWER(title) || '%'
+                          AND LOWER(q.query_title) LIKE '%%' || LOWER(title) || '%%'
                         LIMIT 1
                     ) p ON TRUE
                     """,
