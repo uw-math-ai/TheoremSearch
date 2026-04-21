@@ -50,8 +50,8 @@ def _reset_methods(cur, source_ids: list, do_deterministic: bool, do_heuristic: 
 
 
 _REF_RE = re.compile(
-    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref)\s*\{([^}]*)\}'
-    r'|\\hyperref\s*\[([^\]]*)\]'
+    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref)\*?\s*\{([^}]*)\}'
+    r'|\\hyperref\*?\s*\[([^\]]*)\]'
 )
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -132,10 +132,10 @@ def _process_paper_deterministic(
                     if not content:
                         continue
                     kw = proximity_keywords(text, m.start(), proximity_threshold)
-                    dep_key = "|".join(filter(None, [m.group(0), kw])) or None
                     for label in (lbl.strip() for lbl in content.split(',')):
                         if label in label_to_dep and label not in seen:
                             seen.add(label)
+                            dep_key = f"{label}|{kw}" if kw else f"{label}|"
                             rows.append({
                                 "src_id":   statement["statement_id"],
                                 "location": location,
@@ -166,7 +166,7 @@ def _process_paper_deterministic(
                 "cite_id":  None,
                 "cite_key": None,
                 "dep_id":   stmt_a["statement_id"],
-                "dep_key":  adjacent_keywords(pre, proximity_threshold) or None,
+                "dep_key":  "|" + adjacent_keywords(pre, proximity_threshold),
                 "dep_name": None,
                 "method":   "heuristic",
             })

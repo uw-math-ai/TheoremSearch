@@ -302,7 +302,7 @@ def _get_deterministic_deps(
                     if proximity_score(field, cmd_start) < proximity_threshold:
                         continue
                     kw = proximity_keywords(field, cmd_start, proximity_threshold)
-                    dep_key = "|".join(filter(None, [verbatim, kw])) or None
+                    dep_key = f"{cite['key']}|{kw}" if kw else f"{cite['key']}|"
                     quad = (cite["key"], cite["type"], cite["ref"], location, dep_key)
                     if quad[:4] not in seen:
                         seen.add(quad[:4])
@@ -598,6 +598,33 @@ def connect_interpaper_dependencies(
                               WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
                           )
                     """, (source_ids,))
+                    # Dedup inter: keep one row per (src_id, cite_key)
+                    cur.execute("""
+                        DELETE FROM informal_dependency
+                        WHERE cite_key IS NOT NULL
+                          AND src_id = ANY(%s::uuid[])
+                          AND ctid NOT IN (
+                              SELECT DISTINCT ON (src_id, cite_key) ctid
+                              FROM informal_dependency
+                              WHERE cite_key IS NOT NULL AND src_id = ANY(%s::uuid[])
+                              ORDER BY src_id, cite_key,
+                                  CASE method
+                                      WHEN 'deterministic+llm' THEN 1
+                                      WHEN 'deterministic'     THEN 2
+                                      WHEN 'heuristic+llm'     THEN 3
+                                      WHEN 'heuristic'         THEN 4
+                                      ELSE 5
+                                  END,
+                                  CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
+                                  CASE location
+                                      WHEN 'body'         THEN 1
+                                      WHEN 'proof'        THEN 2
+                                      WHEN 'note'         THEN 3
+                                      WHEN 'pre_context'  THEN 4
+                                      ELSE 5
+                                  END
+                          )
+                    """, (source_ids, source_ids))
                 conn.commit()
 
             pbar.update(len(papers))
@@ -661,6 +688,32 @@ def connect_inter_llm_results(
                       WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
                   )
             """, (src_ids,))
+            cur.execute("""
+                DELETE FROM informal_dependency
+                WHERE cite_key IS NOT NULL
+                  AND src_id = ANY(%s::uuid[])
+                  AND ctid NOT IN (
+                      SELECT DISTINCT ON (src_id, cite_key) ctid
+                      FROM informal_dependency
+                      WHERE cite_key IS NOT NULL AND src_id = ANY(%s::uuid[])
+                      ORDER BY src_id, cite_key,
+                          CASE method
+                              WHEN 'deterministic+llm' THEN 1
+                              WHEN 'deterministic'     THEN 2
+                              WHEN 'heuristic+llm'     THEN 3
+                              WHEN 'heuristic'         THEN 4
+                              ELSE 5
+                          END,
+                          CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
+                          CASE location
+                              WHEN 'body'         THEN 1
+                              WHEN 'proof'        THEN 2
+                              WHEN 'note'         THEN 3
+                              WHEN 'pre_context'  THEN 4
+                              ELSE 5
+                          END
+                  )
+            """, (src_ids, src_ids))
         conn.commit()
         pending_rows.clear()
         pending_stmt_ids.clear()

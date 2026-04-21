@@ -352,6 +352,7 @@ def connect_combined_llm_dependencies(
                                       WHEN 'heuristic'         THEN 4
                                       ELSE 5
                                   END,
+                                  CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
                                   CASE location
                                       WHEN 'body'         THEN 1
                                       WHEN 'proof'        THEN 2
@@ -380,6 +381,33 @@ def connect_combined_llm_dependencies(
                               WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
                           )
                     """, (source_ids,))
+                    # Dedup inter: keep one row per (src_id, cite_key)
+                    cur.execute("""
+                        DELETE FROM informal_dependency
+                        WHERE cite_key IS NOT NULL
+                          AND src_id = ANY(%s::uuid[])
+                          AND ctid NOT IN (
+                              SELECT DISTINCT ON (src_id, cite_key) ctid
+                              FROM informal_dependency
+                              WHERE cite_key IS NOT NULL AND src_id = ANY(%s::uuid[])
+                              ORDER BY src_id, cite_key,
+                                  CASE method
+                                      WHEN 'deterministic+llm' THEN 1
+                                      WHEN 'deterministic'     THEN 2
+                                      WHEN 'heuristic+llm'     THEN 3
+                                      WHEN 'heuristic'         THEN 4
+                                      ELSE 5
+                                  END,
+                                  CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
+                                  CASE location
+                                      WHEN 'body'         THEN 1
+                                      WHEN 'proof'        THEN 2
+                                      WHEN 'note'         THEN 3
+                                      WHEN 'pre_context'  THEN 4
+                                      ELSE 5
+                                  END
+                          )
+                    """, (source_ids, source_ids))
 
                 conn.commit()
 

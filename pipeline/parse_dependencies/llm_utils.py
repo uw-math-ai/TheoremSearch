@@ -81,7 +81,7 @@ def proximity_keywords(text: str, cmd_start: int, threshold: float) -> str:
     """
     qualified = list(dict.fromkeys(p for p, s in _proximity_hits(text, cmd_start) if s >= threshold))
     result = [p for p in qualified if not any(p != q and p in q for q in qualified)]
-    return "|".join(result)
+    return ",".join(result)
 
 
 def max_anchor_strength(text: str) -> float:
@@ -102,7 +102,7 @@ def adjacent_keywords(text: str, threshold: float) -> str:
     lower = text.lower()
     qualified = list(dict.fromkeys(p for p, s in _PROXIMITY_ANCHORS if s >= threshold and p in lower))
     result = [p for p in qualified if not any(p != q and p in q for q in qualified)]
-    return "|".join(result)
+    return ",".join(result)
 
 
 def dedup_dep_rows(rows: List[Dict]) -> List[Dict]:
