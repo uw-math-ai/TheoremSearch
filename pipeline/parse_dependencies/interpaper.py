@@ -1,11 +1,11 @@
 import re
-import json
 import os
 import traceback
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import Iterable, List, Dict, Optional, Tuple
 from tqdm import tqdm
+import yaml
 from jinja2 import Environment, FileSystemLoader
 from psycopg2.extensions import connection
 
@@ -13,6 +13,8 @@ from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..constants import STATEMENT_KINDS
+from .llm_utils import build_stmt_id_map, parse_inter_llm_text, proximity_score, proximity_keywords
+from .intrapaper import _overwrite_method_clause, _reset_methods
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
 _jinja_env = Environment(loader=FileSystemLoader(_PROMPTS_DIR), keep_trailing_newline=True)
@@ -43,12 +45,9 @@ _DEP_NAME_PATTERN = re.compile(
     re.IGNORECASE
 )
 
-_FIELD_MAX_CHARS = 1000
-
-
-def _truncate(text: Optional[str]) -> Optional[str]:
-    if text and len(text) > _FIELD_MAX_CHARS:
-        return text[:_FIELD_MAX_CHARS] + "…"
+def _truncate(text: Optional[str], max_chars: int, tail: bool = False) -> Optional[str]:
+    if text and len(text) > max_chars:
+        return ("…" + text[-max_chars:]) if tail else (text[:max_chars] + "…")
     return text
 
 
@@ -62,8 +61,8 @@ def _parse_dep_name(dep_name: Optional[str]) -> Tuple[Optional[str], Optional[st
     return None, None
 
 
-def _parse_cites(field: str) -> List[Dict]:
-    results = []
+def _iter_cites(field: str):
+    """Yield (match_start, verbatim, cite_dict) for each \\cite occurrence in field."""
     for m in _CITE_PATTERN.finditer(field):
         raw = m.group(0)
         bracket_args = re.findall(r'\[([^\]]*)\]', raw[raw.find('\\'):raw.rfind('{')])
@@ -83,9 +82,11 @@ def _parse_cites(field: str) -> List[Dict]:
                 theorem_ref  = cm.group(2) or cm.group(4)
 
         for key in m.group(2).split(","):
-            results.append({"key": key.strip(), "type": theorem_type, "ref": theorem_ref})
+            yield m.start(), m.group(0), {"key": key.strip(), "type": theorem_type, "ref": theorem_ref}
 
-    return results
+
+def _parse_cites(field: str) -> List[Dict]:
+    return [cite for _, _, cite in _iter_cites(field)]
 
 
 # ------------------------------------------------------------------ #
@@ -264,25 +265,52 @@ def _get_deterministic_deps(
     statements: List[Dict],
     similarity_threshold: float,
     bibtex: bool = True,
+    run_pure: bool = True,
+    run_heuristic: bool = True,
+    proximity_threshold: float = 0.5,
 ) -> List[Dict]:
-    statement_cites: Dict[str, list] = defaultdict(list)
+    regular_cites:   Dict[str, list] = defaultdict(list)
+    heuristic_cites: Dict[str, list] = defaultdict(list)
 
     for stmt in statements:
         seen: set = set()
-        for location, field in [
-            ("body",  stmt["body"]),
-            ("note",  stmt.get("note")),
-            ("proof", stmt.get("proof")),
-        ]:
-            if not field or r'\cite' not in field:
-                continue
-            for cite in _parse_cites(field):
-                quad = (cite["key"], cite["type"], cite["ref"], location, None)
-                if quad[:4] not in seen:
-                    seen.add(quad[:4])
-                    statement_cites[stmt["statement_id"]].append(quad)
 
-    return _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex)
+        # ── body / note / proof: all \cite hits → regular ─────────────────
+        if run_pure:
+            for location, field in [
+                ("body",  stmt["body"]),
+                ("note",  stmt.get("note")),
+                ("proof", stmt.get("proof")),
+            ]:
+                if not field or r'\cite' not in field:
+                    continue
+                for cite in _parse_cites(field):
+                    quad = (cite["key"], cite["type"], cite["ref"], location, None)
+                    if quad[:4] not in seen:
+                        seen.add(quad[:4])
+                        regular_cites[stmt["statement_id"]].append(quad)
+
+        # ── pre_context / post_context: proximity-filtered → heuristic ────
+        if run_heuristic:
+            for location, field in [
+                ("pre_context",  stmt.get("pre_context")),
+                ("post_context", stmt.get("post_context")),
+            ]:
+                if not field or r'\cite' not in field:
+                    continue
+                for cmd_start, verbatim, cite in _iter_cites(field):
+                    if proximity_score(field, cmd_start) < proximity_threshold:
+                        continue
+                    kw = proximity_keywords(field, cmd_start, proximity_threshold)
+                    dep_key = "|".join(filter(None, [verbatim, kw])) or None
+                    quad = (cite["key"], cite["type"], cite["ref"], location, dep_key)
+                    if quad[:4] not in seen:
+                        seen.add(quad[:4])
+                        heuristic_cites[stmt["statement_id"]].append(quad)
+
+    regular_rows   = [{**r, "method": "deterministic"} for r in _build_rows(conn, bib, regular_cites,   similarity_threshold, bibtex=bibtex)] if run_pure      else []
+    heuristic_rows = [{**r, "method": "heuristic"}     for r in _build_rows(conn, bib, heuristic_cites, similarity_threshold, bibtex=bibtex)] if run_heuristic  else []
+    return regular_rows + heuristic_rows
 
 
 # ------------------------------------------------------------------ #
@@ -297,6 +325,7 @@ def _get_llm_deps(
     similarity_threshold: float,
     client,
     model: str,
+    max_chars: int = 128,
     bibtex: bool = True,
 ) -> Tuple[List[Dict], int, int]:
     """Returns (rows, input_tokens, output_tokens)."""
@@ -310,11 +339,7 @@ def _get_llm_deps(
         for s in statements
         for f in ("body", "proof", "note", "pre_context", "post_context")
     )
-    bib_for_llm = {
-        k: {f: v[f] for f in ("title", "arxiv_id") if v.get(f)}
-        for k, v in bib.items()
-        if k in all_text
-    }
+    bib_for_llm = [k for k in bib if k in all_text]
     if not bib_for_llm:
         return [], 0, 0
 
@@ -334,14 +359,15 @@ def _get_llm_deps(
 
         item: dict = {"id": sid, "kind": s["kind"]}
         for field in ("note", "body", "proof", "pre_context", "post_context"):
-            val = _truncate(s.get(field))
+            val = _truncate(s.get(field), max_chars, tail=(field == "pre_context"))
             if val:
                 item[field] = val
         stmt_items.append(item)
 
-    user_content = json.dumps(
+    user_content = yaml.dump(
         {"bibliography": bib_for_llm, "statements": stmt_items},
-        ensure_ascii=False,
+        allow_unicode=True,
+        sort_keys=False,
     )
 
     try:
@@ -351,48 +377,21 @@ def _get_llm_deps(
                 {"role": "system", "content": _render("interpaper_llm_system.j2")},
                 {"role": "user",   "content": user_content},
             ],
-            temperature=0,
             max_tokens=8192,
+            extra_body={"chat_template_kwargs": {"enable_thinking": True, "thinking_budget": 3000}},
         )
         usage = response.usage
         in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
         out_tokens = getattr(usage, "completion_tokens", 0) or 0
         text = response.choices[0].message.content.strip()
-        if text.startswith("```"):
-            text = re.sub(r"^```[^\n]*\n?", "", text)
-            text = re.sub(r"\n?```$", "", text.strip())
-        data = json.loads(text)
-        citations = data.get("citations", [])
     except Exception as e:
         tqdm.write(f"[interpaper llm] {arxiv_id}: {e}")
         return [], 0, 0
 
-    statement_cites: Dict[str, list] = defaultdict(list)
-    seen: set = set()
-
-    for c in citations:
-        src_label = c.get("src", "").strip()
-        cite_key  = c.get("cite_key", "").strip()
-        dep_name  = c.get("dep_name") or None
-        location  = c.get("location", "").strip()
-        phrase    = c.get("phrase") or None
-
-        if location not in ("body", "note", "proof", "pre_context", "post_context"):
-            continue
-        if cite_key not in bib:
-            continue  # LLM hallucinated a key not in the bibliography
-
-        stmt_id = id_to_statement_id.get(src_label)
-        if not stmt_id:
-            continue
-
-        theorem_type, theorem_ref = _parse_dep_name(dep_name)
-        key = (stmt_id, cite_key, theorem_ref, location)
-        if key in seen:
-            continue
-        seen.add(key)
-
-        statement_cites[stmt_id].append((cite_key, theorem_type, theorem_ref, location, phrase))
+    statement_cites = parse_inter_llm_text(text, bib, id_to_statement_id)
+    if statement_cites is None:
+        tqdm.write(f"[interpaper llm] {arxiv_id}: failed to parse response")
+        return [], in_tokens, out_tokens
 
     return _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex), in_tokens, out_tokens
 
@@ -402,10 +401,11 @@ def _get_llm_deps(
 # ------------------------------------------------------------------ #
 
 def _merge(det_rows: list, llm_rows: list) -> list:
-    """Merge deterministic and LLM rows, assigning method to each.
+    """Merge deterministic/heuristic and LLM rows, assigning final method to each.
 
     Two rows are the same citation if they share (src_id, cite_key).
-    For deterministic+llm rows, the deterministic row is kept as-is.
+    Base method ("deterministic" or "heuristic") is preserved from det_rows;
+    "+llm" is appended when the LLM independently found the same citation.
     """
     llm_keys = {(r["src_id"], r["cite_key"]) for r in llm_rows}
 
@@ -414,7 +414,8 @@ def _merge(det_rows: list, llm_rows: list) -> list:
     for r in det_rows:
         key = (r["src_id"], r["cite_key"])
         det_keys.add(key)
-        method = "deterministic+llm" if key in llm_keys else "deterministic"
+        base = r.get("method", "deterministic")
+        method = f"{base}+llm" if key in llm_keys else base
         merged.append({**r, "method": method})
 
     for r in llm_rows:
@@ -437,8 +438,11 @@ def connect_interpaper_dependencies(
     batch_size: int,
     similarity_threshold: float,
     do_deterministic: bool,
-    do_llm: bool,
+    do_heuristic: bool = True,
+    do_llm: bool = False,
     model: Optional[str] = None,
+    max_chars: int = 128,
+    proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
 ):
@@ -465,14 +469,15 @@ def connect_interpaper_dependencies(
             },
             {
                 "if": not overwrite,
-                "condition": """
-                    NOT EXISTS (
-                        SELECT 1 FROM informal_dependency d
-                        INNER JOIN statement s ON s.statement_id = d.src_id
-                        WHERE s.paper_id = p.paper_id
-                          AND d.cite_key IS NOT NULL
-                    )
-                """
+                "condition": (
+                    "NOT EXISTS ("
+                    " SELECT 1 FROM informal_dependency d"
+                    " INNER JOIN statement s ON s.statement_id = d.src_id"
+                    " WHERE s.paper_id = p.paper_id"
+                    " AND d.cite_key IS NOT NULL"
+                    + _overwrite_method_clause(do_deterministic, do_heuristic, do_llm, intra=False)
+                    + ")"
+                ),
             },
             {
                 "if": True,
@@ -545,13 +550,15 @@ def connect_interpaper_dependencies(
                         continue
 
                     det_rows = _get_deterministic_deps(
-                        conn, arxiv_id, bib, statements, similarity_threshold, bibtex=bibtex,
-                    ) if do_deterministic else []
+                        conn, arxiv_id, bib, statements, similarity_threshold,
+                        bibtex=bibtex, run_pure=do_deterministic, run_heuristic=do_heuristic,
+                        proximity_threshold=proximity_threshold,
+                    ) if (do_deterministic or do_heuristic) else []
 
                     if do_llm:
                         llm_rows, in_tok, out_tok = _get_llm_deps(
                             conn, arxiv_id, bib, statements, similarity_threshold,
-                            llm_client, model, bibtex=bibtex,
+                            llm_client, model, max_chars=max_chars, bibtex=bibtex,
                         )
                         total_in_tokens  += in_tok
                         total_out_tokens += out_tok
@@ -570,15 +577,141 @@ def connect_interpaper_dependencies(
             if batch_rows:
                 source_ids = list({row["src_id"] for row in batch_rows})
                 with conn.cursor() as cur:
-                    cur.execute(
-                        """
-                        DELETE FROM informal_dependency
-                        WHERE cite_key IS NOT NULL
-                          AND src_id = ANY(%s::uuid[])
-                        """,
-                        (source_ids,)
-                    )
+                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, do_llm, intra=False)
                 upsert_rows(conn, table="informal_dependency", rows=batch_rows)
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        UPDATE informal_dependency d SET method = 'deterministic+llm'
+                        WHERE d.cite_key IS NOT NULL AND d.method = 'deterministic'
+                          AND d.src_id = ANY(%s::uuid[])
+                          AND EXISTS (
+                              SELECT 1 FROM informal_dependency
+                              WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
+                          )
+                    """, (source_ids,))
+                    cur.execute("""
+                        UPDATE informal_dependency d SET method = 'heuristic+llm'
+                        WHERE d.cite_key IS NOT NULL AND d.method = 'heuristic'
+                          AND d.src_id = ANY(%s::uuid[])
+                          AND EXISTS (
+                              SELECT 1 FROM informal_dependency
+                              WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
+                          )
+                    """, (source_ids,))
                 conn.commit()
 
             pbar.update(len(papers))
+
+
+# ------------------------------------------------------------------ #
+# Batch connect entry point (shared with batch/connect.py)            #
+# ------------------------------------------------------------------ #
+
+def connect_inter_llm_results(
+    conn: connection,
+    results: Iterable[Tuple[str, str]],
+    similarity_threshold: float,
+    batch_size: int = 256,
+) -> Dict[str, int]:
+    """Write pre-computed LLM inter-paper results (arxiv_id, text) into the DB.
+
+    Always overwrites existing LLM rows. Deterministic rows are never clobbered.
+    """
+    written = failed = 0
+    pending_rows: List[Dict] = []
+    pending_stmt_ids: List[str] = []
+    papers_buffered = 0
+
+    def _flush():
+        nonlocal pending_rows, pending_stmt_ids, papers_buffered
+        if not pending_stmt_ids:
+            return
+        src_ids = list(dict.fromkeys(pending_stmt_ids))
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM informal_dependency WHERE cite_key IS NOT NULL AND method = 'llm' AND src_id = ANY(%s::uuid[])",
+                (src_ids,),
+            )
+            cur.execute(
+                "UPDATE informal_dependency SET method = 'deterministic' WHERE cite_key IS NOT NULL AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])",
+                (src_ids,),
+            )
+            cur.execute(
+                "UPDATE informal_dependency SET method = 'heuristic' WHERE cite_key IS NOT NULL AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])",
+                (src_ids,),
+            )
+        if pending_rows:
+            upsert_rows(conn, "informal_dependency", pending_rows)
+        with conn.cursor() as cur:
+            cur.execute("""
+                UPDATE informal_dependency d SET method = 'deterministic+llm'
+                WHERE d.cite_key IS NOT NULL AND d.method = 'deterministic'
+                  AND d.src_id = ANY(%s::uuid[])
+                  AND EXISTS (
+                      SELECT 1 FROM informal_dependency
+                      WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
+                  )
+            """, (src_ids,))
+            cur.execute("""
+                UPDATE informal_dependency d SET method = 'heuristic+llm'
+                WHERE d.cite_key IS NOT NULL AND d.method = 'heuristic'
+                  AND d.src_id = ANY(%s::uuid[])
+                  AND EXISTS (
+                      SELECT 1 FROM informal_dependency
+                      WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
+                  )
+            """, (src_ids,))
+        conn.commit()
+        pending_rows.clear()
+        pending_stmt_ids.clear()
+        papers_buffered = 0
+
+    for arxiv_id, text in tqdm(results, unit=" papers", desc="Connecting inter", dynamic_ncols=True):
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT bibliography, bibtex FROM arxiv_paper_metadata WHERE arxiv_id = %s",
+                (arxiv_id,),
+            )
+            row = cur.fetchone()
+        if not row:
+            tqdm.write(f"  Warning: no metadata for {arxiv_id}, skipping.")
+            failed += 1
+            continue
+        bib, bibtex = row[0] or {}, bool(row[1])
+
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT s.statement_id, s.kind, im.ref
+                FROM statement s
+                INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
+                INNER JOIN paper p ON p.paper_id = s.paper_id
+                WHERE p.external_id = %s AND p.kind = 'paper'
+            """, (arxiv_id,))
+            statements = [
+                {"statement_id": r[0], "kind": r[1], "ref": r[2]}
+                for r in cur.fetchall()
+            ]
+
+        if not statements:
+            tqdm.write(f"  Warning: no statements for {arxiv_id}, skipping.")
+            failed += 1
+            continue
+
+        id_to_stmt = build_stmt_id_map(statements)
+        statement_cites = parse_inter_llm_text(text, bib, id_to_stmt)
+        if statement_cites is None:
+            tqdm.write(f"  Warning: failed to parse LLM response for {arxiv_id}.")
+            failed += 1
+            continue
+
+        rows = _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex)
+        pending_rows.extend({**r, "method": "llm"} for r in rows)
+        pending_stmt_ids.extend(s["statement_id"] for s in statements)
+        written += len(rows)
+        papers_buffered += 1
+
+        if papers_buffered >= batch_size:
+            _flush()
+
+    _flush()
+    return {"written": written, "failed": failed}

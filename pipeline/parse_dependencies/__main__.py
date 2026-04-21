@@ -4,6 +4,7 @@ from rds.utils.connect import get_rds_connection
 from ..printing import print_script_header
 from .intrapaper import connect_intrapaper_dependencies
 from .interpaper import connect_interpaper_dependencies
+from .combined import connect_combined_llm_dependencies
 
 
 if __name__ == "__main__":
@@ -47,38 +48,57 @@ if __name__ == "__main__":
         help="Total number of shards. Papers are split by hashtext(paper_id) %% n_shards",
     )
     arg_parser.add_argument(
-        "--intra",
-        action="store_true",
-        help="Parse only intra-paper dependencies (omit to do both)",
-    )
-    arg_parser.add_argument(
-        "--inter",
-        action="store_true",
-        help="Parse only inter-paper dependencies (omit to do both)",
-    )
-    arg_parser.add_argument(
-        "--deterministic",
-        action="store_true",
-        help="Run only deterministic (\\ref/\\cite) dependency extraction (omit to do both)",
-    )
-    arg_parser.add_argument(
-        "--llm",
-        action="store_true",
-        help="Run only LLM-inferred dependency extraction (omit to do both)",
+        "-m", "--method",
+        nargs="+",
+        choices=["deterministic", "heuristic", "llm"],
+        default=["deterministic", "heuristic", "llm"],
+        dest="methods",
+        metavar="METHOD",
+        help=(
+            "Methods to run: deterministic (\\ref/\\cite scanner), "
+            "heuristic (proximity-based pre/post-context), "
+            "llm (combined LLM pass). "
+            "Accepts multiple values. Default: all three."
+        ),
     )
     arg_parser.add_argument(
         "--model",
         type=str,
-        default="Qwen/Qwen3-235B-A22B-Instruct-2507",
-        help="LLM model name for dependency inference via Nebius (default: Qwen/Qwen2.5-72B-Instruct)",
+        default="moonshotai/Kimi-K2.5-fast",
+        help="LLM model name for dependency inference via Nebius (default: moonshotai/Kimi-K2.5-fast)",
+    )
+    arg_parser.add_argument(
+        "--max-chars",
+        type=int,
+        default=128,
+        dest="max_chars",
+        help="Max characters per statement field sent to the LLM (default: 128)",
+    )
+    arg_parser.add_argument(
+        "--thinking-budget",
+        type=int,
+        default=0,
+        dest="thinking_budget",
+        help="Thinking token budget for LLM (0 = disabled, default: 0)",
+    )
+    arg_parser.add_argument(
+        "--proximity-threshold",
+        type=float,
+        default=0.3,
+        dest="proximity_threshold",
+        help=(
+            "Threshold for the heuristic pre/post-context scanner: "
+            "accept a \\ref/\\cite (or adjacent-statement dep) when "
+            "max(anchor_strength / word_distance) >= threshold (default: 0.3)"
+        ),
     )
 
     args = arg_parser.parse_args()
 
-    do_intra = args.intra or not args.inter
-    do_inter = args.inter or not args.intra
-    do_deterministic = args.deterministic or not args.llm
-    do_llm = args.llm or not args.deterministic
+    methods          = set(args.methods)
+    do_deterministic = "deterministic" in methods
+    do_heuristic     = "heuristic"     in methods
+    do_llm           = "llm"           in methods
 
     if args.condition and len(args.condition) >= 2:
         condition, *condition_params = args.condition
@@ -94,18 +114,16 @@ if __name__ == "__main__":
             "overwrite":            args.overwrite,
             "batch size":           args.batch_size,
             "similarity threshold": args.similarity_threshold,
+            "proximity threshold":  args.proximity_threshold if do_heuristic else "n/a",
             "shard":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else "off",
-            "intra":                do_intra,
-            "inter":                do_inter,
-            "deterministic":        do_deterministic,
-            "llm":                  do_llm,
-            **({"model": args.model} if do_llm else {}),
+            "methods":              sorted(methods),
+            **({"model": args.model, "max chars": args.max_chars, "thinking budget": args.thinking_budget} if do_llm else {}),
         }
     )
 
     conn = get_rds_connection("v2")
 
-    if do_intra:
+    if do_deterministic or do_heuristic:
         connect_intrapaper_dependencies(
             conn=conn,
             condition=condition,
@@ -113,13 +131,12 @@ if __name__ == "__main__":
             batch_size=args.batch_size,
             overwrite=args.overwrite,
             do_deterministic=do_deterministic,
-            do_llm=do_llm,
-            model=args.model,
+            do_heuristic=do_heuristic,
+            do_llm=False,
+            proximity_threshold=args.proximity_threshold,
             shard=args.shard,
             n_shards=args.n_shards,
         )
-
-    if do_inter:
         connect_interpaper_dependencies(
             conn=conn,
             condition=condition,
@@ -128,8 +145,24 @@ if __name__ == "__main__":
             batch_size=args.batch_size,
             similarity_threshold=args.similarity_threshold,
             do_deterministic=do_deterministic,
-            do_llm=do_llm,
+            do_heuristic=do_heuristic,
+            do_llm=False,
+            proximity_threshold=args.proximity_threshold,
+            shard=args.shard,
+            n_shards=args.n_shards,
+        )
+
+    if do_llm:
+        connect_combined_llm_dependencies(
+            conn=conn,
+            condition=condition,
+            condition_params=condition_params,
+            overwrite=args.overwrite,
+            batch_size=args.batch_size,
+            similarity_threshold=args.similarity_threshold,
             model=args.model,
+            max_chars=args.max_chars,
+            thinking_budget=args.thinking_budget,
             shard=args.shard,
             n_shards=args.n_shards,
         )

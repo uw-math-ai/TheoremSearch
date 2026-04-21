@@ -1,8 +1,26 @@
 You are analyzing mathematical statements extracted from a single paper.
-Your task is to find non-obvious dependencies between statements that are expressed
-through natural language phrases — for example: "as above", "by the previous lemma",
-"applying the construction from Definition 2.1", "using the notation introduced earlier",
-"from the proof above", "which follows immediately from", "the following result extends", etc.
+Your task is to find non-obvious dependencies between statements — ones that a
+simple LaTeX cross-reference scanner would miss. Bare \ref/\eqref/\cref commands
+in a statement's body or proof are already captured elsewhere; do not repeat them.
+
+**What to look for:**
+
+In body, note, or proof — natural language only (no reference commands):
+  Dependencies expressed through logic or narrative without a \ref command, e.g.:
+  "which follows from the above", "by the same argument as in the previous lemma",
+  "combining with the bound established earlier", "the notation introduced above".
+  Skip any dependency that is solely expressed via a \ref/\eqref/\cref/\autoref/
+  \Cref/\hyperref command — those are handled separately.
+
+In pre_context or post_context — two kinds:
+  (1) Reference commands (\ref etc.) that appear together with explicit location-based
+      words ("above", "below", "preceding", "following", "previous", "next") or
+      logic-based words ("it follows", "as a consequence", "combining", "applying").
+      A lone \ref without such context does NOT qualify.
+  (2) Pure natural language: location- or logic-based references between adjacent
+      statements, even without any \ref command
+      (e.g. "As a direct consequence of the above theorem", "The following lemma
+      strengthens the preceding result").
 
 Each statement has an "id" field and may have the following text fields:
 - body: the statement itself
@@ -11,21 +29,29 @@ Each statement has an "id" field and may have the following text fields:
 - pre_context: text immediately before the statement in the source
 - post_context: text immediately after the statement in the source
 
-For pre_context and post_context, only report a dependency if the reference uses a
-location-based word that anchors it to a nearby statement — e.g. "above", "below",
-"previous", "preceding", "following", "next", "here", "this", "latter", "former".
-A bare theorem name in surrounding text without such an anchor does not qualify.
-
 For each dependency you find, output all four of the following fields — all are required:
 - "src": the id of the statement that references another
 - "dep": the id of the statement being referenced
 - "location": which field of src contains the reference — one of:
   body, note, proof, pre_context, post_context
-- "phrase": the shortest verbatim excerpt from that field that implies the dependency
-  (typically 2-6 words, e.g. "by the previous lemma", "as above", "from (i)";
-  do not paraphrase or include surrounding context)
+- "phrase": verbatim evidence from that field.
+  • For body, note, or proof: shortest verbatim excerpt, typically 3–8 words
+    (e.g. "by the same argument as above").
+  • For pre_context or post_context: a full clause of 6–15 words verbatim — never
+    a bare \ref or theorem name alone. Must include the location/logic anchor words.
+    BAD:  "\ref{thm:main}"
+    BAD:  "Theorem 1.1"
+    GOOD: "As a direct consequence of the above theorem, we obtain"
+    GOOD: "The following result follows from \Cref{thm:main} combined with"
+    If evidence is spread across disconnected fragments, join with " | ".
+  Never paraphrase — all text in "phrase" must appear verbatim in the source field.
 
-Respond with valid JSON only, in this exact format:
-{"dependencies": [{"src": "<id>", "dep": "<id>", "location": "<location>", "phrase": "<exact phrase>"}]}
+Respond with valid YAML only, in this exact format:
+dependencies:
+- src: "<id>"
+  dep: "<id>"
+  location: "<location>"
+  phrase: "<exact phrase>"
 
-If no dependencies are found, respond with: {"dependencies": []}
+If no dependencies are found, respond with:
+dependencies: []
