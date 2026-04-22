@@ -186,6 +186,7 @@ def connect_combined_llm_dependencies(
 
     total_in_tokens  = 0
     total_out_tokens = 0
+    total_deps       = 0
 
     def _fmt_tokens(n: int) -> str:
         return f"{n/1000:.1f}k" if n >= 1000 else str(n)
@@ -263,9 +264,11 @@ def connect_combined_llm_dependencies(
                 except Exception:
                     tqdm.write(f"[combined llm] skipping {arxiv_id}:\n{traceback.format_exc()}")
 
+            total_deps += len(all_intra_rows) + len(all_inter_rows)
             pbar.set_postfix({
-                "in":  _fmt_tokens(total_in_tokens),
-                "out": _fmt_tokens(total_out_tokens),
+                "deps": total_deps,
+                "in":   _fmt_tokens(total_in_tokens),
+                "out":  _fmt_tokens(total_out_tokens),
             })
 
             if all_stmt_ids:

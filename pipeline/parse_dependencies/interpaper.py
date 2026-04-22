@@ -14,7 +14,7 @@ from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..constants import STATEMENT_KINDS
 from .llm_utils import build_stmt_id_map, parse_inter_llm_text, proximity_score, proximity_keywords
-from .intrapaper import _overwrite_method_clause, _reset_methods
+from .intrapaper import _overwrite_method_clause, _reset_methods, _PROOF_START_RE
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
 _jinja_env = Environment(loader=FileSystemLoader(_PROMPTS_DIR), keep_trailing_newline=True)
@@ -291,6 +291,8 @@ def _get_deterministic_deps(
                         regular_cites[stmt["statement_id"]].append(quad)
 
         # ── pre_context / post_context: proximity-filtered → heuristic ────
+        # post_context that opens with a proof marker is treated as a proof:
+        # all \cite hits are captured without a proximity requirement.
         if run_heuristic:
             for location, field in [
                 ("pre_context",  stmt.get("pre_context")),
@@ -298,10 +300,11 @@ def _get_deterministic_deps(
             ]:
                 if not field or r'\cite' not in field:
                     continue
+                is_proof_context = (location == "post_context" and bool(_PROOF_START_RE.match(field)))
                 for cmd_start, verbatim, cite in _iter_cites(field):
-                    if proximity_score(field, cmd_start) < proximity_threshold:
+                    if not is_proof_context and proximity_score(field, cmd_start) < proximity_threshold:
                         continue
-                    kw = proximity_keywords(field, cmd_start, proximity_threshold)
+                    kw = "proof" if is_proof_context else proximity_keywords(field, cmd_start, proximity_threshold)
                     dep_key = f"{cite['key']}|{kw}" if kw else f"{cite['key']}|"
                     quad = (cite["key"], cite["type"], cite["ref"], location, dep_key)
                     if quad[:4] not in seen:
@@ -499,6 +502,7 @@ def connect_interpaper_dependencies(
 
     total_in_tokens  = 0
     total_out_tokens = 0
+    total_deps       = 0
 
     def _fmt_tokens(n: int) -> str:
         return f"{n/1000:.1f}k" if n >= 1000 else str(n)
@@ -573,6 +577,13 @@ def connect_interpaper_dependencies(
 
                 except Exception:
                     tqdm.write(f"[interpaper] skipping {arxiv_id}:\n{traceback.format_exc()}")
+
+            total_deps += len(batch_rows)
+            postfix = {"deps": total_deps}
+            if do_llm:
+                postfix["in"]  = _fmt_tokens(total_in_tokens)
+                postfix["out"] = _fmt_tokens(total_out_tokens)
+            pbar.set_postfix(postfix)
 
             if batch_rows:
                 source_ids = list({row["src_id"] for row in batch_rows})

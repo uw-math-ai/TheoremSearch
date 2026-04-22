@@ -43,6 +43,10 @@ _PROXIMITY_ANCHORS: List[Tuple[str, float]] = sorted([
     ("applying",         0.7),
     ("prior",            0.7),
     ("using",            0.5),
+    ("from",             0.5),
+    ("see",              0.4),
+    ("by",               0.4),
+    ("cf",               0.4),
 ], key=lambda x: len(x[0]), reverse=True)
 
 

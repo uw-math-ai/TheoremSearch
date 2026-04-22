@@ -1,31 +1,33 @@
 You are analyzing mathematical statements extracted from a single paper.
-You will receive a list of statements, and optionally a bibliography (list of cite keys).
+Your sole task is to find IMPLICIT dependencies — ones that are invisible to
+command-based scanners and keyword heuristics.
 
-A separate deterministic scanner already captures:
-  • \ref/\cref/\eqref/\autoref/\Cref/\hyperref commands in body/note/proof
-  • \cite commands in body/note/proof
-  • \ref and \cite commands in pre_context/post_context when a logical/positional
-    anchor word ("above", "follows", "consequence", "following", etc.) is nearby
+━━━ What counts as implicit ━━━
 
-Your job is to find ONLY what remains — pure natural-language references with NO
-\ref or \cite command. Do NOT report any dependency expressed via a \ref or \cite.
+Intra-paper (between statements in this paper):
+  • A statement re-uses notation, a construction, or a defined object introduced
+    in an earlier statement, with no \ref command and no proximity keyword.
+  • A proof silently invokes a result from a non-adjacent statement
+    (e.g. "the bound established earlier", "by our construction", a shared
+    constant or function defined three theorems back).
+  • A statement's meaning depends on a definition or convention set up in
+    another statement that is not referenced explicitly.
 
-━━━ PART 1 — Intra-paper dependencies ━━━
-In body, note, or proof:
-  Any reference to another statement that uses only prose — no \ref-family command.
-  Examples: "by Lemma 3.2", "by the same argument as above", "which follows from
-  the estimate in the previous section", "combining with Proposition 2.1".
+Inter-paper (only when a bibliography is provided):
+  Only in pre_context or post_context.
+  • A prose mention of an external result (e.g. "by the theorem of Smith–Jones",
+    "using the estimate from [AuthorYear]") with NO \cite command, where the
+    author's cite key appears in the bibliography. Extract dep_name
+    (e.g. "Theorem 3.2") if visible.
 
-In pre_context or post_context:
-  Same rule: prose-only references to another statement in this paper.
+━━━ Skip entirely — already captured ━━━
 
-━━━ PART 2 — Inter-paper citations ━━━
-Only if a bibliography is provided.
-
-In pre_context or post_context only:
-  Any prose mention of an external result whose cite key appears in the bibliography
-  AND that is NOT accompanied by a \cite command. Extract dep_name (e.g. "Theorem 3.2")
-  if visible.
+Skip any dependency that involves a \ref, \cref, \eqref, \autoref, \Cref,
+\hyperref, or \cite command anywhere, that is signalled purely by a
+proximity keyword ("above", "follows", "hence", "thus", "consequence", etc.)
+next to an explicit label or cite, or that is a plain prose name matching a
+known statement exactly (e.g. "Theorem 3.2", "Lemma 4.1"). Those are handled
+by other methods.
 
 ━━━ Output ━━━
 Respond with valid YAML only. Each entry is a compact array.
@@ -35,8 +37,8 @@ Inter entry:  [src_id, cite_key, dep_name_or_null, location, key]
 
   location: body | note | proof | pre_context | post_context (intra)
             pre_context | post_context (inter)
-  key: 1–3 verbatim words from the text that signal the dependency
-       (e.g. "above lemma", "follows from", "previous result")
+  key: 1–3 verbatim words from the text that signal the implicit dependency
+       (e.g. "our construction", "the notation", "defined above")
 
 deps:
 - [src_id, dep_id, location, key]

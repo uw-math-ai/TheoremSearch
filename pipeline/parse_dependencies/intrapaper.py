@@ -54,6 +54,17 @@ _REF_RE = re.compile(
     r'|\\hyperref\*?\s*\[([^\]]*)\]'
 )
 
+# Matches post_context that opens with an unparsed proof block.
+_PROOF_START_RE = re.compile(
+    r'^\s*(?:'
+    r'\{\\(?:bf|it|textbf|textit)\s+Proof[\s.!]*\}'   # {\bf Proof.} / {\bf Proof .}
+    r'|\\(?:textbf|textit)\{Proof[^}]*\}'              # \textbf{Proof...}
+    r'|\\begin\s*\{proof\}'                             # \begin{proof}
+    r'|Proof\s*[.:\[]'                                  # bare "Proof." / "Proof:"
+    r')',
+    re.IGNORECASE,
+)
+
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
 _jinja_env = Environment(loader=FileSystemLoader(_PROMPTS_DIR), keep_trailing_newline=True)
 
@@ -116,6 +127,8 @@ def _process_paper_deterministic(
                             })
 
     # ── Part 2: \ref in pre_context / post_context with proximity score ───
+    # For post_context that opens with a proof marker (proof wasn't parsed into
+    # the proof field), all \refs are captured without a proximity requirement.
     if run_heuristic and label_to_dep:
         for statement in statements:
             for location, text in [
@@ -124,14 +137,15 @@ def _process_paper_deterministic(
             ]:
                 if not text:
                     continue
+                is_proof_context = (location == "post_context" and bool(_PROOF_START_RE.match(text)))
                 seen = set()
                 for m in _REF_RE.finditer(text):
-                    if proximity_score(text, m.start()) < proximity_threshold:
+                    if not is_proof_context and proximity_score(text, m.start()) < proximity_threshold:
                         continue
                     content = m.group(1) or m.group(2)
                     if not content:
                         continue
-                    kw = proximity_keywords(text, m.start(), proximity_threshold)
+                    kw = "proof" if is_proof_context else proximity_keywords(text, m.start(), proximity_threshold)
                     for label in (lbl.strip() for lbl in content.split(',')):
                         if label in label_to_dep and label not in seen:
                             seen.add(label)
@@ -170,6 +184,46 @@ def _process_paper_deterministic(
                 "dep_name": None,
                 "method":   "heuristic",
             })
+
+    # ── Part 4: prose name matching ("Theorem 3.2" without any \ref) ─────
+    # Builds a lookup of "Kind Ref" → statement_id for every statement that
+    # has a ref, then scans all text fields for exact matches.
+    name_to_dep = {
+        f"{s['kind'].capitalize()} {s['ref']}": s["statement_id"]
+        for s in statements
+        if s.get("ref") and s.get("kind")
+    }
+    if name_to_dep:
+        _name_re = re.compile(
+            r'\b(' + '|'.join(re.escape(n) for n in sorted(name_to_dep, key=len, reverse=True)) + r')\b'
+        )
+        for statement in statements:
+            for location, text in [
+                ("body",         statement["body"]),
+                ("proof",        statement["proof"]),
+                ("note",         statement["note"]),
+                ("pre_context",  statement.get("pre_context")),
+                ("post_context", statement.get("post_context")),
+            ]:
+                if not text:
+                    continue
+                seen: set = set()
+                for m in _name_re.finditer(text):
+                    name = m.group(1)
+                    dep_id = name_to_dep[name]
+                    if dep_id == statement["statement_id"] or name in seen:
+                        continue
+                    seen.add(name)
+                    rows.append({
+                        "src_id":   statement["statement_id"],
+                        "location": location,
+                        "cite_id":  None,
+                        "cite_key": None,
+                        "dep_id":   dep_id,
+                        "dep_key":  name,
+                        "dep_name": name,
+                        "method":   "heuristic",
+                    })
 
     return rows
 
@@ -329,6 +383,7 @@ def connect_intrapaper_dependencies(
 
     total_in_tokens  = 0
     total_out_tokens = 0
+    total_deps       = 0
 
     def _fmt_tokens(n: int) -> str:
         return f"{n/1000:.1f}k" if n >= 1000 else str(n)
@@ -381,11 +436,12 @@ def connect_intrapaper_dependencies(
                     llm_rows = []
                 batch_rows.extend(_merge(det_rows, llm_rows))
 
+            total_deps += len(batch_rows)
+            postfix = {"deps": total_deps}
             if do_llm:
-                pbar.set_postfix({
-                    "in":  _fmt_tokens(total_in_tokens),
-                    "out": _fmt_tokens(total_out_tokens),
-                })
+                postfix["in"]  = _fmt_tokens(total_in_tokens)
+                postfix["out"] = _fmt_tokens(total_out_tokens)
+            pbar.set_postfix(postfix)
 
             if all_stmt_ids:
                 source_ids = list(dict.fromkeys(all_stmt_ids))
