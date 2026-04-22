@@ -13,14 +13,14 @@ from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from .llm_utils import build_stmt_id_map, parse_intra_llm_text, dedup_dep_rows, proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
 
-def _overwrite_method_clause(do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool) -> str:
+def _overwrite_method_clause(do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool, alias: str = "informal_dependency") -> str:
     """Build the AND method IN (...) fragment for the not-overwrite skip condition."""
     m = []
     if do_deterministic: m += ["'deterministic'", "'deterministic+llm'"]
     if do_heuristic:     m += ["'heuristic'",     "'heuristic+llm'"]
     if do_llm:           m += ["'llm'",           "'deterministic+llm'", "'heuristic+llm'"]
     unique = list(dict.fromkeys(m))
-    return f" AND informal_dependency.method IN ({', '.join(unique)})" if unique else ""
+    return f" AND {alias}.method IN ({', '.join(unique)})" if unique else ""
 
 
 def _reset_methods(cur, source_ids: list, do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool):

@@ -478,7 +478,7 @@ def connect_interpaper_dependencies(
                     " INNER JOIN statement s ON s.statement_id = d.src_id"
                     " WHERE s.paper_id = p.paper_id"
                     " AND d.cite_key IS NOT NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic, do_llm, intra=False)
+                    + _overwrite_method_clause(do_deterministic, do_heuristic, do_llm, intra=False, alias="d")
                     + ")"
                 ),
             },

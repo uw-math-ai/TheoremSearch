@@ -18,7 +18,7 @@ CREATE TABLE informal_dependency (
     dep_key     TEXT,       -- \label (deterministic intrapaper) or implied phrase (LLM-only deps of either kind); NULL otherwise
     dep_name    TEXT,       -- human-readable target name, e.g. "Theorem 3.2"
     method      TEXT NOT NULL DEFAULT 'deterministic'
-                    CHECK (method IN ('deterministic', 'llm', 'deterministic+llm'))
+                    CHECK (method IN ('deterministic', 'heuristic', 'llm', 'deterministic+llm', 'heuristic+llm'))
 );
 
 COMMENT ON TABLE informal_dependency IS
