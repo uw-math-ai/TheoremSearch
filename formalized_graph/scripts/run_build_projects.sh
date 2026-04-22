@@ -5,7 +5,7 @@
 #SBATCH --array=0-31%8
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=04:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=/gscratch/amath/simku22/logs/build_%A_%a.out
 #SBATCH --error=/gscratch/amath/simku22/logs/build_%A_%a.err
 #SBATCH --mail-type=END,FAIL
@@ -32,6 +32,10 @@ cd "$PROJECTS_DIR/$PROJECT"
 echo "--- git pull ---"
 git pull --ff-only 2>&1 || echo "WARNING: git pull failed, building from existing state"
 
+echo "--- fetching Mathlib cache ---"
+lake -R exe cache get 2>&1 || echo "WARNING: cache get failed, will build from source"
+
+echo "--- building ---"
 lake -R build 2>&1
 
 echo "=== $PROJECT done ==="
