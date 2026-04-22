@@ -32,10 +32,6 @@ cd "$PROJECTS_DIR/$PROJECT"
 echo "--- git pull ---"
 git pull --ff-only 2>&1 || echo "WARNING: git pull failed, building from existing state"
 
-echo "--- fetching Mathlib cache ---"
-lake -R exe cache get 2>&1 || echo "WARNING: cache get failed, will build from source"
-
-echo "--- building ---"
 lake -R build 2>&1
 
 echo "=== $PROJECT done ==="
