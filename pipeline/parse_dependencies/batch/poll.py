@@ -62,60 +62,89 @@ def _download_results(client, batch, output: str):
         )
 
 
-def poll_batches(api_key_env: str, base_url: str, download: bool):
+_ID_WIDTH = 46  # Nebius batch IDs are ~43 chars
+
+
+def poll_batches(api_key_env: str, base_url: str, download: bool, all_batches: bool, cancel: bool):
     state_path = _state_path()
-
-    if not state_path.exists():
-        print("No active batches found. Run 'python -m pipeline.parse_dependencies.batch.run' first.")
-        return
-
-    state = json.loads(state_path.read_text())
-    batches = state.get("batches", [])
-
-    if not batches:
-        print("No batches in state file.")
-        state_path.unlink(missing_ok=True)
-        return
+    state_batches = []
+    if state_path.exists():
+        state_batches = json.loads(state_path.read_text()).get("batches", [])
+    output_file_by_id = {b["batch_id"]: b["output_file"] for b in state_batches}
 
     client = _make_client(api_key_env, base_url)
 
-    col = f"{'Batch ID':<32}  {'Status':<12}  {'Done':>6}  {'Total':>6}  {'Failed':>6}  Output"
+    if all_batches:
+        batches = list(client.batches.list())
+    else:
+        if not state_batches:
+            print("No batches in state file. Run with --all to list all account batches.")
+            return
+        batches = [client.batches.retrieve(b["batch_id"]) for b in state_batches]
+
+    if not batches:
+        print("No batches found.")
+        return
+
+    col = f"{'Batch ID':<{_ID_WIDTH}}  {'Status':<12}  {'Done':>6}  {'Total':>6}  {'Failed':>6}  Output"
     print(col)
     print("-" * len(col))
 
     downloaded_ids = set()
-    for b in batches:
-        result = client.batches.retrieve(b["batch_id"])
-        b["status"] = result.status
-        c = result.request_counts
+    cancelled_ids  = set()
+    for batch in batches:
+        c      = batch.request_counts
+        done   = (c.completed if c else None) or 0
+        total  = (c.total     if c else None) or 0
+        failed = (c.failed    if c else None) or 0
+        out    = output_file_by_id.get(batch.id, "—")
 
-        print(
-            f"{b['batch_id']:<32}  {result.status:<12}  {c.completed:>6}  {c.total:>6}  {c.failed:>6}  {b['output_file']}"
-        )
+        print(f"{batch.id:<{_ID_WIDTH}}  {batch.status:<12}  {done:>6}  {total:>6}  {failed:>6}  {out}")
 
-        if result.status not in _TERMINAL_STATUSES:
-            continue
+        if cancel and batch.status not in _TERMINAL_STATUSES:
+            client.batches.cancel(batch.id)
+            print(f"  Cancelled.")
+            cancelled_ids.add(batch.id)
+        elif batch.status == "completed" and download:
+            if out == "—":
+                print(f"  Skipping: no output path in state file for {batch.id}")
+            else:
+                _download_results(client, batch, out)
+                downloaded_ids.add(batch.id)
+        elif batch.status in _TERMINAL_STATUSES and batch.status != "completed":
+            if batch.error_file_id:
+                errors = client.files.content(batch.error_file_id).text
+                for line in errors.strip().splitlines():
+                    print(f"  error: {line}")
+            else:
+                print(f"  Warning: batch ended with status '{batch.status}' — no error file available.")
 
-        if result.status == "completed":
-            if download:
-                _download_results(client, result, b["output_file"])
-                downloaded_ids.add(b["batch_id"])
+    removed_ids = downloaded_ids | cancelled_ids
+    if removed_ids:
+        remaining = [b for b in state_batches if b["batch_id"] not in removed_ids]
+        if remaining:
+            _save_state(state_path, {"batches": remaining})
         else:
-            print(f"  Warning: batch ended with status '{result.status}' — check dashboard.")
-
-    if download:
-        batches = [b for b in batches if b["batch_id"] not in downloaded_ids]
-
-    if batches:
-        _save_state(state_path, {"batches": batches})
-    else:
-        state_path.unlink(missing_ok=True)
-        print("\nAll batches downloaded. State file cleared.")
+            state_path.unlink(missing_ok=True)
+            print("\nState file cleared.")
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
         description="Poll submitted concept-extraction batches and show progress."
+    )
+    arg_parser.add_argument(
+        "--all",
+        action="store_true",
+        default=False,
+        dest="all_batches",
+        help="List all batches on the account instead of only those in the state file.",
+    )
+    arg_parser.add_argument(
+        "--cancel",
+        action="store_true",
+        default=False,
+        help="Cancel all non-terminal batches.",
     )
     arg_parser.add_argument(
         "--download",
@@ -143,6 +172,8 @@ if __name__ == "__main__":
     print_script_header(
         action="Polling concepts LLM batches",
         params={
+            "all":         args.all_batches,
+            "cancel":      args.cancel,
             "download":    args.download,
             "api-key-env": args.api_key_env,
             "base-url":    args.base_url,
@@ -153,4 +184,6 @@ if __name__ == "__main__":
         api_key_env=args.api_key_env,
         base_url=args.base_url,
         download=args.download,
+        all_batches=args.all_batches,
+        cancel=args.cancel,
     )
