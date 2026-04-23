@@ -1,12 +1,12 @@
 """
-Phase 3: Write LLM batch results into the database.
+Phase 3: Write concept-extraction batch results into the database.
 
 Run:
-    python -m pipeline.parse_dependencies.batch.connect --inter
-    python -m pipeline.parse_dependencies.batch.connect --intra
-    python -m pipeline.parse_dependencies.batch.connect --inter -i s3://bucket/custom_results.jsonl
+    python -m pipeline.parse_dependencies.batch.connect
+    python -m pipeline.parse_dependencies.batch.connect -i s3://bucket/concepts/output/results.jsonl
+    python -m pipeline.parse_dependencies.batch.connect -i results.jsonl
 
-Input file format: OpenAI Batch API output JSONL. Each line:
+Input file format: Nebius Batch API output JSONL. Each line:
     {"custom_id": "<arxiv_id>", "response": {"status_code": 200, "body": {"choices": [...]}}, "error": null}
 
 Errors from prior steps raise immediately with a clear message. Per-paper parse
@@ -22,23 +22,18 @@ from typing import Iterator, List, Tuple
 
 import boto3
 
-from .prepare import _parse_s3_uri, _list_s3_files, _S3_BUCKET, _S3_FOLDERS
+from .prepare import _parse_s3_uri, _list_s3_files, _S3_BUCKET, _S3_FOLDER
 from ...printing import print_script_header
-from ..interpaper import connect_inter_llm_results
 from ..intrapaper import connect_intra_llm_results
 from rds.utils.connect import get_rds_connection
 
 
-def _default_output_dir(dep_type: str) -> str:
-    return f"s3://{_S3_BUCKET}/{_S3_FOLDERS[dep_type]}/output/"
+def _default_output_dir() -> str:
+    return f"s3://{_S3_BUCKET}/{_S3_FOLDER}/output/"
 
 
 def _iter_results(paths: List[str]) -> Iterator[Tuple[str, str]]:
-    """Yield (arxiv_id, llm_text) from one or more batch results JSONL paths.
-
-    Skips failed/malformed entries with warnings. Raises if a file is
-    missing or if no valid results are found across all paths.
-    """
+    """Yield (arxiv_id, llm_text) from one or more batch result JSONL paths."""
     skipped = yielded = 0
 
     for path in paths:
@@ -98,25 +93,25 @@ def _iter_results(paths: List[str]) -> Iterator[Tuple[str, str]]:
 
                     response = obj.get("response") or {}
                     status   = response.get("status_code")
-                    if status != 200:
-                        print(
-                            f"  Warning: {arxiv_id} returned status {status}, skipping.",
-                            file=sys.stderr,
-                        )
-                        skipped += 1
-                        continue
+                    # OpenAI batch format wraps in {"status_code": 200, "body": {...}};
+                    # Nebius Token Factory returns the completion object directly.
+                    if status is not None:
+                        if status != 200:
+                            print(f"  Warning: {arxiv_id} returned status {status}, skipping.", file=sys.stderr)
+                            skipped += 1
+                            continue
+                        body = response.get("body") or {}
+                    else:
+                        body = response
 
                     try:
-                        text = response["body"]["choices"][0]["message"]["content"]
+                        text = body["choices"][0]["message"]["content"]
                     except (KeyError, IndexError, TypeError):
-                        print(
-                            f"  Warning: {arxiv_id} has malformed response body, skipping.",
-                            file=sys.stderr,
-                        )
+                        print(f"  Warning: {arxiv_id} has malformed response body, skipping.", file=sys.stderr)
                         skipped += 1
                         continue
 
-                    yield arxiv_id, text
+                    yield arxiv_id, text, body.get("usage") or {}
                     yielded += 1
 
         finally:
@@ -131,48 +126,9 @@ def _iter_results(paths: List[str]) -> Iterator[Tuple[str, str]]:
         print(f"  {skipped} failed/malformed entries skipped.", file=sys.stderr)
 
 
-def connect_batch(
-    dep_type: str,
-    input_paths: List[str],
-    similarity_threshold: float,
-    batch_size: int,
-):
-    conn    = get_rds_connection("v2")
-    results = _iter_results(input_paths)
-
-    if dep_type == "inter":
-        stats = connect_inter_llm_results(
-            conn=conn,
-            results=results,
-            similarity_threshold=similarity_threshold,
-            batch_size=batch_size,
-        )
-    else:
-        stats = connect_intra_llm_results(
-            conn=conn,
-            results=results,
-            batch_size=batch_size,
-        )
-
-    print(
-        f"\nDone. {stats['written']} dep rows written, "
-        f"{stats['failed']} papers failed to parse."
-    )
-
-
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
-        description="Write LLM batch results into the database."
-    )
-    arg_parser.add_argument(
-        "--inter",
-        action="store_true",
-        help="Connect inter-paper results.",
-    )
-    arg_parser.add_argument(
-        "--intra",
-        action="store_true",
-        help="Connect intra-paper results.",
+        description="Write concept-extraction batch results into the database."
     )
     arg_parser.add_argument(
         "-i", "--input",
@@ -180,14 +136,7 @@ if __name__ == "__main__":
         nargs="+",
         default=None,
         dest="input_paths",
-        help="Results JSONL file(s) or S3 directory (default: s3 output/ dir for the type).",
-    )
-    arg_parser.add_argument(
-        "-s", "--similarity-threshold",
-        type=float,
-        default=0.8,
-        dest="similarity_threshold",
-        help="pg_trgm title-match threshold for inter-paper resolution (default: 0.8). Ignored for intra.",
+        help=f"Results JSONL file(s) or S3 directory (default: {_default_output_dir()}).",
     )
     arg_parser.add_argument(
         "-b", "--batch-size",
@@ -197,36 +146,41 @@ if __name__ == "__main__":
         help="Papers flushed to DB per transaction (default: 256).",
     )
 
+
     args = arg_parser.parse_args()
 
-    dep_types = [t for t, flag in [("inter", args.inter), ("intra", args.intra)] if flag] or ["inter", "intra"]
+    if args.input_paths:
+        input_paths = args.input_paths
+    else:
+        output_dir  = _default_output_dir()
+        input_paths = _list_s3_files(output_dir)
+        if not input_paths:
+            print(f"No result files found in {output_dir}.")
+            sys.exit(1)
 
-    if args.input_paths and len(dep_types) > 1:
-        arg_parser.error("-i/--input cannot be used when connecting both types.")
+    print_script_header(
+        action="Connecting concept-extraction batch results",
+        params={
+            "input":      args.input_paths or _default_output_dir(),
+            "batch size": args.batch_size,
+        },
+    )
 
-    for dep_type in dep_types:
-        # Resolve input paths
-        if args.input_paths:
-            input_paths = args.input_paths
-        else:
-            output_dir = _default_output_dir(dep_type)
-            input_paths = _list_s3_files(output_dir)
-            if not input_paths:
-                print(f"No result files found in {output_dir}, skipping {dep_type}.")
-                continue
+    conn = get_rds_connection("v2")
 
-        print_script_header(
-            action=f"Connecting {dep_type}paper LLM batch results",
-            params={
-                "input":              args.input_paths or _default_output_dir(dep_type),
-                "batch size":         args.batch_size,
-                "*similarity-thresh": args.similarity_threshold if dep_type == "inter" else None,
-            },
-        )
+    token_totals = {"input": 0, "output": 0}
 
-        connect_batch(
-            dep_type=dep_type,
-            input_paths=input_paths,
-            similarity_threshold=args.similarity_threshold,
-            batch_size=args.batch_size,
-        )
+    def _results_with_tokens():
+        for arxiv_id, text, usage in _iter_results(input_paths):
+            token_totals["input"]  += usage.get("prompt_tokens", 0)
+            token_totals["output"] += usage.get("completion_tokens", 0)
+            yield arxiv_id, text
+
+    stats = connect_intra_llm_results(conn=conn, results=_results_with_tokens(), batch_size=args.batch_size)
+
+    print(
+        f"\nDone. {stats['written']} dep rows written, "
+        f"{stats['failed']} papers failed to parse."
+        f"\n  Input tokens:  {token_totals['input']:,}"
+        f"\n  Output tokens: {token_totals['output']:,}"
+    )

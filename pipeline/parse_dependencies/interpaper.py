@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 import traceback
 from collections import defaultdict
 from pathlib import Path
@@ -317,89 +318,6 @@ def _get_deterministic_deps(
 
 
 # ------------------------------------------------------------------ #
-# LLM path                                                            #
-# ------------------------------------------------------------------ #
-
-def _get_llm_deps(
-    conn: connection,
-    arxiv_id: str,
-    bib: Dict[str, Dict],
-    statements: List[Dict],
-    similarity_threshold: float,
-    client,
-    model: str,
-    max_chars: int = 128,
-    bibtex: bool = True,
-) -> Tuple[List[Dict], int, int]:
-    """Returns (rows, input_tokens, output_tokens)."""
-    if not statements or not bib:
-        return [], 0, 0
-
-    # Pre-filter bib to keys that appear somewhere in the statement text,
-    # so we don't send hundreds of irrelevant entries to the LLM.
-    all_text = " ".join(
-        (s.get(f) or "")
-        for s in statements
-        for f in ("body", "proof", "note", "pre_context", "post_context")
-    )
-    bib_for_llm = [k for k in bib if k in all_text]
-    if not bib_for_llm:
-        return [], 0, 0
-
-    id_to_statement_id: Dict[str, str] = {}
-    used_ids: Dict[str, int] = {}
-    stmt_items = []
-
-    for i, s in enumerate(statements):
-        base_id = s.get("ref") or f"{s['kind'].capitalize()} {i + 1}"
-        if base_id in used_ids:
-            used_ids[base_id] += 1
-            sid = f"{base_id} ({used_ids[base_id]})"
-        else:
-            used_ids[base_id] = 0
-            sid = base_id
-        id_to_statement_id[sid] = s["statement_id"]
-
-        item: dict = {"id": sid, "kind": s["kind"]}
-        for field in ("note", "body", "proof", "pre_context", "post_context"):
-            val = _truncate(s.get(field), max_chars, tail=(field == "pre_context"))
-            if val:
-                item[field] = val
-        stmt_items.append(item)
-
-    user_content = yaml.dump(
-        {"bibliography": bib_for_llm, "statements": stmt_items},
-        allow_unicode=True,
-        sort_keys=False,
-    )
-
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": _render("interpaper_llm_system.j2")},
-                {"role": "user",   "content": user_content},
-            ],
-            max_tokens=8192,
-            extra_body={"chat_template_kwargs": {"enable_thinking": True, "thinking_budget": 3000}},
-        )
-        usage = response.usage
-        in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
-        out_tokens = getattr(usage, "completion_tokens", 0) or 0
-        text = response.choices[0].message.content.strip()
-    except Exception as e:
-        tqdm.write(f"[interpaper llm] {arxiv_id}: {e}")
-        return [], 0, 0
-
-    statement_cites = parse_inter_llm_text(text, bib, id_to_statement_id)
-    if statement_cites is None:
-        tqdm.write(f"[interpaper llm] {arxiv_id}: failed to parse response")
-        return [], in_tokens, out_tokens
-
-    return _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex), in_tokens, out_tokens
-
-
-# ------------------------------------------------------------------ #
 # Merge                                                               #
 # ------------------------------------------------------------------ #
 
@@ -442,20 +360,10 @@ def connect_interpaper_dependencies(
     similarity_threshold: float,
     do_deterministic: bool,
     do_heuristic: bool = True,
-    do_llm: bool = False,
-    model: Optional[str] = None,
-    max_chars: int = 128,
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
 ):
-    llm_client = None
-    if do_llm:
-        from openai import OpenAI
-        llm_client = OpenAI(
-            api_key=os.environ["NEBIUS_API_KEY"],
-            base_url="https://api.studio.nebius.ai/v1/",
-        )
 
     query, params = build_query(
         base_query=(
@@ -478,7 +386,7 @@ def connect_interpaper_dependencies(
                     " INNER JOIN statement s ON s.statement_id = d.src_id"
                     " WHERE s.paper_id = p.paper_id"
                     " AND d.cite_key IS NOT NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic, do_llm, intra=False, alias="d")
+                    + _overwrite_method_clause(do_deterministic, do_heuristic, False, intra=False, alias="d")
                     + ")"
                 ),
             },
@@ -499,15 +407,9 @@ def connect_interpaper_dependencies(
     )
 
     count = get_query_count(conn, query, params)
+    total_deps = 0
 
-    total_in_tokens  = 0
-    total_out_tokens = 0
-    total_deps       = 0
-
-    def _fmt_tokens(n: int) -> str:
-        return f"{n/1000:.1f}k" if n >= 1000 else str(n)
-
-    with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Interpaper") as pbar:
+    with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Interpaper", file=sys.stdout) as pbar:
         for papers in paginate_query(
             conn,
             base_query=query,
@@ -559,36 +461,18 @@ def connect_interpaper_dependencies(
                         proximity_threshold=proximity_threshold,
                     ) if (do_deterministic or do_heuristic) else []
 
-                    if do_llm:
-                        llm_rows, in_tok, out_tok = _get_llm_deps(
-                            conn, arxiv_id, bib, statements, similarity_threshold,
-                            llm_client, model, max_chars=max_chars, bibtex=bibtex,
-                        )
-                        total_in_tokens  += in_tok
-                        total_out_tokens += out_tok
-                        pbar.set_postfix({
-                                "in":  _fmt_tokens(total_in_tokens),
-                                "out": _fmt_tokens(total_out_tokens),
-                            })
-                    else:
-                        llm_rows = []
-
-                    batch_rows.extend(_merge(det_rows, llm_rows))
+                    batch_rows.extend(det_rows)
 
                 except Exception:
                     tqdm.write(f"[interpaper] skipping {arxiv_id}:\n{traceback.format_exc()}")
 
             total_deps += len(batch_rows)
-            postfix = {"deps": total_deps}
-            if do_llm:
-                postfix["in"]  = _fmt_tokens(total_in_tokens)
-                postfix["out"] = _fmt_tokens(total_out_tokens)
-            pbar.set_postfix(postfix)
+            pbar.set_postfix({"deps": total_deps})
 
             if batch_rows:
                 source_ids = list({row["src_id"] for row in batch_rows})
                 with conn.cursor() as cur:
-                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, do_llm, intra=False)
+                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, False, intra=False)
                 upsert_rows(conn, table="informal_dependency", rows=batch_rows)
                 with conn.cursor() as cur:
                     cur.execute("""

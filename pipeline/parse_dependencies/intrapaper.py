@@ -1,17 +1,18 @@
+import json
 import re
 import os
+import sys
 from pathlib import Path
 from collections import defaultdict
 from typing import Iterable, List, Dict, Optional, Tuple
 from tqdm import tqdm
-import yaml
 from jinja2 import Environment, FileSystemLoader
 from psycopg2.extensions import connection
 
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
-from .llm_utils import build_stmt_id_map, parse_intra_llm_text, dedup_dep_rows, proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
+from .llm_utils import parse_concepts_json, dedup_dep_rows, proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
 
 def _overwrite_method_clause(do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool, alias: str = "informal_dependency") -> str:
     """Build the AND method IN (...) fragment for the not-overwrite skip condition."""
@@ -228,61 +229,109 @@ def _process_paper_deterministic(
     return rows
 
 
-def _process_paper_llm(statements: list, client, model: str, max_chars: int = 128) -> Tuple[list, int, int]:
-    """Returns (rows, input_tokens, output_tokens)."""
-    if len(statements) < 2:
-        return [], 0, 0
+# Statement kinds sent to the LLM when a paper exceeds --max-statements.
+_CONCEPT_KINDS = frozenset({
+    "definition", "theorem", "proposition", "corollary", "lemma", "notation",
+})
 
-    # Build a short human-readable id for each statement so the LLM can
-    # refer to them naturally. Use ref ("Theorem 3.2") when available.
-    id_to_statement_id: Dict[str, str] = {}
-    stmt_items = []
-    used_ids: Dict[str, int] = {}
+# Lower number = preferred when multiple statements define the same item.
+_DEFINITION_PRIORITY: Dict[str, int] = {
+    "definition": 0, "notation": 0, "convention": 0,
+    "axiom": 1, "postulate": 1,
+}
 
-    for i, s in enumerate(statements):
-        base_id = _make_stmt_id(s, i)
-        # Deduplicate in case two statements share the same ref
-        if base_id in used_ids:
-            used_ids[base_id] += 1
-            sid = f"{base_id} ({used_ids[base_id]})"
-        else:
-            used_ids[base_id] = 0
-            sid = base_id
 
-        id_to_statement_id[sid] = s["statement_id"]
+def _normalize_item(item: str) -> str:
+    return re.sub(r'\s+', ' ', item.strip())
 
-        item: dict = {"id": sid, "kind": s["kind"]}
-        for field in ("note", "body", "proof", "pre_context", "post_context"):
-            val = _truncate(s.get(field), max_chars, tail=(field == "pre_context"))
-            if val:
-                item[field] = val
-        stmt_items.append(item)
+
+def _extract_concepts_llm(
+    statements: list,
+    client,
+    model: str,
+) -> Tuple[Optional[List[Dict]], int, int]:
+    """One LLM call per paper: extract {defines, uses} per statement.
+
+    Returns (concept_data, in_tokens, out_tokens).
+    concept_data is a list of {statement_id, defines: [...], uses: [...]}.
+    """
+    stmt_items = [
+        {"id": s["statement_id"], "kind": s["kind"], **({"body": s["body"]} if s.get("body") else {})}
+        for s in statements
+    ]
 
     try:
         response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role": "system", "content": _render("intrapaper_llm_system.j2")},
-                {"role": "user",   "content": yaml.dump(stmt_items, allow_unicode=True, sort_keys=False)},
+                {"role": "user",   "content": json.dumps(stmt_items, ensure_ascii=False)},
             ],
             max_tokens=16384,
-            extra_body={"chat_template_kwargs": {"enable_thinking": True, "thinking_budget": 8000}},
         )
         usage = response.usage
         in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
         out_tokens = getattr(usage, "completion_tokens", 0) or 0
-        
         text = response.choices[0].message.content.strip()
     except Exception as e:
-        tqdm.write(f"[intrapaper llm] error: {e}")
-        return [], 0, 0
+        tqdm.write(f"[concepts llm] error: {e}")
+        return None, 0, 0
 
-    rows = parse_intra_llm_text(text, id_to_statement_id)
-    if rows is None:
-        tqdm.write(f"[intrapaper llm] failed to parse response:\n{text[:500]}")
-        return [], in_tokens, out_tokens
+    concept_data = parse_concepts_json(text)
+    if concept_data is None:
+        tqdm.write(f"[concepts llm] failed to parse response:\n{text[:300]}")
+        return None, in_tokens, out_tokens
 
-    return rows, in_tokens, out_tokens
+    return concept_data, in_tokens, out_tokens
+
+
+def _match_concepts(statements: list, concept_data: list) -> list:
+    """Deterministic matching: for each 'uses' item, link to the best prior defining statement.
+
+    'Best' means lowest _DEFINITION_PRIORITY, breaking ties by earliest ordinal.
+    Only definitions that appear before the using statement are considered.
+    """
+    stmt_meta = {s["statement_id"]: (i, s["kind"]) for i, s in enumerate(statements)}
+
+    # registry: normalized_item → list of (priority, ordinal, stmt_id, canonical_item)
+    registry: Dict[str, list] = defaultdict(list)
+    for entry in concept_data:
+        stmt_id = entry["statement_id"]
+        if stmt_id not in stmt_meta:
+            continue
+        ordinal, kind = stmt_meta[stmt_id]
+        priority = _DEFINITION_PRIORITY.get(kind, 2)
+        for item in (entry.get("defines") or []):
+            key = _normalize_item(item)
+            if key:
+                registry[key].append((priority, ordinal, stmt_id, item))
+
+    rows = []
+    seen: set = set()
+    for entry in concept_data:
+        stmt_id = entry["statement_id"]
+        if stmt_id not in stmt_meta:
+            continue
+        ordinal, _ = stmt_meta[stmt_id]
+        for item in (entry.get("uses") or []):
+            key = _normalize_item(item)
+            candidates = [t for t in registry.get(key, []) if t[1] < ordinal]
+            if not candidates:
+                continue
+            _, _, dep_id, canonical = min(candidates, key=lambda t: (t[0], t[1]))
+            pair = (stmt_id, dep_id)
+            if pair not in seen:
+                seen.add(pair)
+                rows.append({
+                    "src_id":   stmt_id,
+                    "location": "body",
+                    "cite_id":  None,
+                    "cite_key": None,
+                    "dep_id":   dep_id,
+                    "dep_key":  canonical,
+                    "dep_name": None,
+                })
+    return rows
 
 
 def _merge(det_rows: list, llm_rows: list) -> list:
@@ -325,7 +374,7 @@ def connect_intrapaper_dependencies(
     do_heuristic: bool = True,
     do_llm: bool = False,
     model: Optional[str] = None,
-    max_chars: int = 128,
+    max_statements: int = 100,
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
@@ -388,7 +437,7 @@ def connect_intrapaper_dependencies(
     def _fmt_tokens(n: int) -> str:
         return f"{n/1000:.1f}k" if n >= 1000 else str(n)
 
-    with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Intrapaper") as pbar:
+    with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Intrapaper", file=sys.stdout) as pbar:
         for papers in paginate_query(
             conn,
             base_query=query,
@@ -429,9 +478,11 @@ def connect_intrapaper_dependencies(
                 all_stmt_ids.extend(s["statement_id"] for s in stmts)
                 det_rows = _process_paper_deterministic(stmts, run_pure=do_deterministic, run_heuristic=do_heuristic, proximity_threshold=proximity_threshold) if (do_deterministic or do_heuristic) else []
                 if do_llm:
-                    llm_rows, in_tok, out_tok = _process_paper_llm(stmts, llm_client, model, max_chars)
+                    stmts_for_llm = stmts if len(stmts) <= max_statements else [s for s in stmts if s["kind"] in _CONCEPT_KINDS]
+                    concept_data, in_tok, out_tok = _extract_concepts_llm(stmts_for_llm, llm_client, model)
                     total_in_tokens  += in_tok
                     total_out_tokens += out_tok
+                    llm_rows = [{**r, "method": "llm"} for r in _match_concepts(stmts_for_llm, concept_data or [])]
                 else:
                     llm_rows = []
                 batch_rows.extend(_merge(det_rows, llm_rows))
@@ -619,6 +670,7 @@ def connect_intra_llm_results(
                 INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
                 INNER JOIN paper p ON p.paper_id = s.paper_id
                 WHERE p.external_id = %s AND p.kind = 'paper'
+                ORDER BY im.ordinal
             """, (arxiv_id,))
             statements = [
                 {"statement_id": r[0], "kind": r[1], "ref": r[2]}
@@ -630,13 +682,13 @@ def connect_intra_llm_results(
             failed += 1
             continue
 
-        id_to_stmt = build_stmt_id_map(statements)
-        rows = parse_intra_llm_text(text, id_to_stmt)
-        if rows is None:
+        concept_data = parse_concepts_json(text)
+        if concept_data is None:
             tqdm.write(f"  Warning: failed to parse LLM response for {arxiv_id}.")
             failed += 1
             continue
 
+        rows = _match_concepts(statements, concept_data)
         pending_rows.extend({**r, "method": "llm"} for r in rows)
         pending_stmt_ids.extend(s["statement_id"] for s in statements)
         written += len(rows)

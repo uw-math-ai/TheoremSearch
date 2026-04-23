@@ -6,6 +6,7 @@ and the batch connect path (batch/connect.py).
 """
 
 import bisect
+import json
 import re
 
 import yaml
@@ -21,32 +22,60 @@ _LOCATION_RANK = {"body": 1, "proof": 2, "note": 3, "pre_context": 4, "post_cont
 # Anchor phrases with strength scores for the word-proximity heuristic.
 # Sorted longest-first so multi-word phrases are matched before their sub-words.
 _PROXIMITY_ANCHORS: List[Tuple[str, float]] = sorted([
-    ("it follows",       1.0),
-    ("as a consequence", 1.0),
-    ("as a corollary",   1.0),
-    ("by the above",     1.0),
-    ("by the following", 1.0),
-    ("previous result",  0.9),
-    ("the following",    0.9),
-    ("the above",        0.9),
-    ("follows",          1.0),
-    ("consequence",      0.9),
-    ("therefore",        0.9),
-    ("hence",            0.9),
-    ("thus",             0.5),
-    ("preceding",        0.9),
-    ("previous",         0.8),
-    ("following",        0.8),
-    ("above",            0.7),
-    ("below",            0.7),
-    ("combining",        0.7),
-    ("applying",         0.7),
-    ("prior",            0.7),
-    ("using",            0.5),
-    ("from",             0.5),
-    ("see",              0.4),
-    ("by",               0.4),
-    ("cf",               0.4),
+    # Strong logical-consequence phrases
+    ("it follows",           1.0),
+    ("as a consequence",     1.0),
+    ("as a corollary",       1.0),
+    ("by the above",         1.0),
+    ("by the following",     1.0),
+    ("follows from",         1.0),
+    ("by the same argument", 0.9),
+    ("previous result",      0.9),
+    ("we conclude",          0.9),
+    ("we deduce",            0.9),
+    ("proved above",         0.9),
+    ("the following",        0.9),
+    ("the above",            0.9),
+    ("follows",              1.0),
+    ("consequence",          0.9),
+    ("therefore",            0.9),
+    ("whence",               0.9),
+    ("hence",                0.9),
+    ("preceding",            0.9),
+    # Proof-appeal patterns
+    ("appealing to",         0.8),
+    ("appeal to",            0.8),
+    ("as established",       0.8),
+    ("combined with",        0.8),
+    ("recall that",          0.8),
+    ("as before",            0.8),
+    ("in view of",           0.8),
+    ("in light of",          0.8),
+    ("invoking",             0.8),
+    ("invoke",               0.8),
+    ("previous",             0.8),
+    # Relative-position / similarity
+    ("together with",        0.7),
+    ("by analogy",           0.7),
+    ("analogously",          0.7),
+    ("thanks to",            0.7),
+    ("recall",               0.7),
+    ("following",            0.8),
+    ("above",                0.7),
+    ("below",                0.7),
+    ("combining",            0.7),
+    ("applying",             0.7),
+    ("prior",                0.7),
+    # Weaker / catch-all signals
+    ("similarly",            0.6),
+    ("immediately",          0.6),
+    ("due to",               0.6),
+    ("thus",                 0.5),
+    ("using",                0.5),
+    ("from",                 0.5),
+    ("see",                  0.4),
+    ("by",                   0.4),
+    ("cf",                   0.4),
 ], key=lambda x: len(x[0]), reverse=True)
 
 
@@ -163,6 +192,29 @@ def parse_dep_name(dep_name: Optional[str]) -> Tuple[Optional[str], Optional[str
     return (m.group(1).lower(), m.group(2)) if m else (None, None)
 
 
+def parse_concepts_json(text: str) -> Optional[List[Dict]]:
+    """Parse concept extraction JSON → list of {statement_id, defines, uses}. Returns None on error."""
+    try:
+        data = json.loads(strip_code_fence(text.strip()))
+        if not isinstance(data, list):
+            return None
+    except Exception:
+        return None
+
+    result = []
+    for entry in data:
+        if not isinstance(entry, dict):
+            continue
+        sid = str(entry.get("id", "")).strip()
+        if not sid:
+            continue
+        defines = [str(x).strip() for x in (entry.get("defines") or []) if x and str(x).strip()]
+        uses    = [str(x).strip() for x in (entry.get("uses")    or []) if x and str(x).strip()]
+        result.append({"statement_id": sid, "defines": defines, "uses": uses})
+
+    return result or None
+
+
 def parse_inter_llm_text(
     text: str,
     bib: Dict[str, Dict],
@@ -200,71 +252,6 @@ def parse_inter_llm_text(
 
     return statement_cites
 
-
-def parse_combined_llm_text(
-    text: str,
-    bib: Dict[str, Dict],
-    id_to_statement_id: Dict[str, str],
-) -> Optional[Tuple[List[dict], Dict[str, list]]]:
-    """Parse combined LLM response → (intra_rows, inter_statement_cites). Returns None on error."""
-    try:
-        data = yaml.safe_load(strip_code_fence(text.strip())) or {}
-    except Exception:
-        return None
-
-    # --- intra: each entry is [src_id, dep_id, location, key?] ---
-    rows = []
-    seen_intra: set = set()
-    for entry in (data.get("deps") or []):
-        if not isinstance(entry, (list, tuple)) or len(entry) < 3:
-            continue
-        src_label, dep_label, location = str(entry[0]).strip(), str(entry[1]).strip(), str(entry[2]).strip()
-        dep_key = str(entry[3]).strip() if len(entry) > 3 and entry[3] not in (None, "") else None
-        if location not in _VALID_LOCATIONS:
-            continue
-        src_id = id_to_statement_id.get(src_label)
-        dep_id = id_to_statement_id.get(dep_label)
-        if not src_id or not dep_id or src_id == dep_id:
-            continue
-        key = (src_id, dep_id, location)
-        if key in seen_intra:
-            continue
-        seen_intra.add(key)
-        rows.append({
-            "src_id":   src_id,
-            "location": location,
-            "cite_id":  None,
-            "cite_key": None,
-            "dep_id":   dep_id,
-            "dep_key":  dep_key,
-            "dep_name": None,
-        })
-    intra_rows = dedup_dep_rows(rows)
-
-    # --- inter: each entry is [src_id, cite_key, dep_name_or_null, location, key?] ---
-    statement_cites: Dict[str, list] = defaultdict(list)
-    seen_inter: set = set()
-    for entry in (data.get("cites") or []):
-        if not isinstance(entry, (list, tuple)) or len(entry) < 4:
-            continue
-        src_label = str(entry[0]).strip()
-        cite_key  = str(entry[1]).strip()
-        dep_name  = entry[2] if entry[2] not in (None, "null", "~", "") else None
-        location  = str(entry[3]).strip()
-        phrase    = str(entry[4]).strip() if len(entry) > 4 and entry[4] not in (None, "") else None
-        if location not in _INTER_LOCATIONS or cite_key not in bib:
-            continue
-        stmt_id = id_to_statement_id.get(src_label)
-        if not stmt_id:
-            continue
-        theorem_type, theorem_ref = parse_dep_name(dep_name)
-        key = (stmt_id, cite_key, theorem_ref, location)
-        if key in seen_inter:
-            continue
-        seen_inter.add(key)
-        statement_cites[stmt_id].append((cite_key, theorem_type, theorem_ref, location, phrase))
-
-    return intra_rows, statement_cites
 
 
 def parse_intra_llm_text(

@@ -4,7 +4,6 @@ from rds.utils.connect import get_rds_connection
 from ..printing import print_script_header
 from .intrapaper import connect_intrapaper_dependencies
 from .interpaper import connect_interpaper_dependencies
-from .combined import connect_combined_llm_dependencies
 
 
 if __name__ == "__main__":
@@ -57,29 +56,26 @@ if __name__ == "__main__":
         help=(
             "Methods to run: deterministic (\\ref/\\cite scanner), "
             "heuristic (proximity-based pre/post-context), "
-            "llm (combined LLM pass). "
+            "llm (concept extraction + matching). "
             "Accepts multiple values. Default: all three."
         ),
     )
     arg_parser.add_argument(
         "--model",
         type=str,
-        default="moonshotai/Kimi-K2.5-fast",
-        help="LLM model name for dependency inference via Nebius (default: moonshotai/Kimi-K2.5-fast)",
+        default="Qwen/Qwen3-235B-A22B-Instruct-2507",
+        help="LLM model name for concept extraction via Nebius (default: Qwen/Qwen3-235B-A22B-Instruct-2507)",
     )
     arg_parser.add_argument(
-        "--max-chars",
+        "--max-statements",
         type=int,
-        default=128,
-        dest="max_chars",
-        help="Max characters per statement field sent to the LLM (default: 128)",
-    )
-    arg_parser.add_argument(
-        "--thinking-budget",
-        type=int,
-        default=0,
-        dest="thinking_budget",
-        help="Thinking token budget for LLM (0 = disabled, default: 0)",
+        default=100,
+        dest="max_statements",
+        help=(
+            "When a paper exceeds this many statements, only the most important kinds "
+            "(definition, theorem, proposition, corollary, lemma, notation) are sent to the LLM "
+            "(default: 100)"
+        ),
     )
     arg_parser.add_argument(
         "--proximity-threshold",
@@ -109,15 +105,15 @@ if __name__ == "__main__":
     print_script_header(
         action="Parsing theorem dependencies",
         params={
-            "condition":            condition,
-            "condition params":     condition_params,
+            "condition?":            condition,
+            "condition params?":     condition_params,
             "overwrite":            args.overwrite,
             "batch size":           args.batch_size,
-            "similarity threshold": args.similarity_threshold,
-            "proximity threshold":  args.proximity_threshold if do_heuristic else "n/a",
-            "shard":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else "off",
+            "similarity threshold?": args.similarity_threshold if (do_deterministic or do_heuristic) else None,
+            "proximity threshold?":  args.proximity_threshold if do_heuristic else None,
+            "shard?":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
             "methods":              sorted(methods),
-            **({"model": args.model, "max chars": args.max_chars, "thinking budget": args.thinking_budget} if do_llm else {}),
+            **({"model": args.model, "max statements": args.max_statements} if do_llm else {}),
         }
     )
 
@@ -146,23 +142,23 @@ if __name__ == "__main__":
             similarity_threshold=args.similarity_threshold,
             do_deterministic=do_deterministic,
             do_heuristic=do_heuristic,
-            do_llm=False,
             proximity_threshold=args.proximity_threshold,
             shard=args.shard,
             n_shards=args.n_shards,
         )
 
     if do_llm:
-        connect_combined_llm_dependencies(
+        connect_intrapaper_dependencies(
             conn=conn,
             condition=condition,
             condition_params=condition_params,
-            overwrite=args.overwrite,
             batch_size=args.batch_size,
-            similarity_threshold=args.similarity_threshold,
+            overwrite=args.overwrite,
+            do_deterministic=False,
+            do_heuristic=False,
+            do_llm=True,
             model=args.model,
-            max_chars=args.max_chars,
-            thinking_budget=args.thinking_budget,
+            max_statements=args.max_statements,
             shard=args.shard,
             n_shards=args.n_shards,
         )

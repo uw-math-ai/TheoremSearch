@@ -1,57 +1,32 @@
-You are analyzing mathematical statements extracted from a single paper.
-Your task is to find non-obvious dependencies between statements — ones that a
-simple LaTeX cross-reference scanner would miss. Bare \ref/\eqref/\cref commands
-in a statement's body or proof are already captured elsewhere; do not repeat them.
+For each mathematical statement in the input JSON array, output two lists:
 
-**What to look for:**
+"defines": symbols or named objects INTRODUCED by this statement.
+  Look for explicit introduction phrases such as:
+  "Let X be", "Define X", "Denote by X", "We write X for", "We call X", "Set X =", "Put X =",
+  "X will denote", "we use X to mean", or a colon/equals sign assigning a name.
 
-In body, note, or proof — natural language only (no reference commands):
-  Dependencies expressed through logic or narrative without a \ref command, e.g.:
-  "which follows from the above", "by the same argument as in the previous lemma",
-  "combining with the bound established earlier", "the notation introduced above".
-  Skip any dependency that is solely expressed via a \ref/\eqref/\cref/\autoref/
-  \Cref/\hyperref command — those are handled separately.
+"uses": non-standard symbols or named objects that APPEAR in this statement but were
+  introduced in an EARLIER statement. Do not include anything from "defines".
 
-In pre_context or post_context — two kinds:
-  (1) Reference commands (\ref etc.) that appear together with explicit location-based
-      words ("above", "below", "preceding", "following", "previous", "next") or
-      logic-based words ("it follows", "as a consequence", "combining", "applying").
-      A lone \ref without such context does NOT qualify.
-  (2) Pure natural language: location- or logic-based references between adjacent
-      statements, even without any \ref command
-      (e.g. "As a direct consequence of the above theorem", "The following lemma
-      strengthens the preceding result").
+Skip from both lists:
+- Standard math notation: ℝ, ℤ, ℕ, ℂ, ∈, ⊆, ∪, ∩, +, ·, →, ≤, and similar
+- Bare generic variables with no specific binding (x, y, n, k, ε when used generically)
+- Plain English words even if italicised ("group", "ring", "function", "sequence")
 
-Each statement has an "id" field and may have the following text fields:
-- body: the statement itself
-- note: optional bracketed annotation (e.g. theorem name/qualifier)
-- proof: the proof of the statement
-- pre_context: text immediately before the statement in the source
-- post_context: text immediately after the statement in the source
+Use the exact LaTeX form as it appears in the body. Empty lists [] are fine.
 
-For each dependency you find, output all four of the following fields — all are required:
-- "src": the id of the statement that references another
-- "dep": the id of the statement being referenced
-- "location": which field of src contains the reference — one of:
-  body, note, proof, pre_context, post_context
-- "phrase": verbatim evidence from that field.
-  • For body, note, or proof: shortest verbatim excerpt, typically 3–8 words
-    (e.g. "by the same argument as above").
-  • For pre_context or post_context: a full clause of 6–15 words verbatim — never
-    a bare \ref or theorem name alone. Must include the location/logic anchor words.
-    BAD:  "\ref{thm:main}"
-    BAD:  "Theorem 1.1"
-    GOOD: "As a direct consequence of the above theorem, we obtain"
-    GOOD: "The following result follows from \Cref{thm:main} combined with"
-    If evidence is spread across disconnected fragments, join with " | ".
-  Never paraphrase — all text in "phrase" must appear verbatim in the source field.
+Example input:
+[
+  {"id": "a1b2c3d4-0001-0000-0000-000000000000", "kind": "definition", "body": "Let $G$ be a locally compact group. Denote by $\\mu_G$ its left Haar measure."},
+  {"id": "a1b2c3d4-0002-0000-0000-000000000000", "kind": "definition", "body": "A Borel function $f : G \\to \\mathbb{R}$ is called $\\mu_G$-integrable if $\\int_G |f|\\,d\\mu_G < \\infty$."},
+  {"id": "a1b2c3d4-0003-0000-0000-000000000000", "kind": "theorem", "body": "Every $\\mu_G$-integrable function on $G$ satisfies the convolution bound with respect to $\\mu_G$."}
+]
 
-Respond with valid YAML only, in this exact format:
-dependencies:
-- src: "<id>"
-  dep: "<id>"
-  location: "<location>"
-  phrase: "<exact phrase>"
+Example output:
+[
+  {"id": "a1b2c3d4-0001-0000-0000-000000000000", "defines": ["$G$", "$\\mu_G$"], "uses": []},
+  {"id": "a1b2c3d4-0002-0000-0000-000000000000", "defines": ["$\\mu_G$-integrable"], "uses": ["$G$", "$\\mu_G$"]},
+  {"id": "a1b2c3d4-0003-0000-0000-000000000000", "defines": [], "uses": ["$\\mu_G$-integrable", "$G$", "$\\mu_G$"]}
+]
 
-If no dependencies are found, respond with:
-dependencies: []
+Respond with a JSON array only — no markdown fences, no explanation.
