@@ -58,8 +58,8 @@ class SearchResponse(BaseModel):
 
 class StatementNode(BaseModel):
     statement_id: str
-    kind: str
-    ref: Optional[str] = None          # display label, e.g. "3.2"
+    name: str                          # e.g. "Theorem 3.2"
+    depth: Optional[int] = None        # BFS depth from traversal origin; None for non-traversal endpoints
 
 
 class DependencyEdge(BaseModel):
@@ -77,6 +77,11 @@ class GraphResponse(BaseModel):
     paper_id: str
     statements: List[StatementNode]
     dependencies: List[DependencyEdge]
+
+
+class SubgraphResponse(BaseModel):
+    nodes: List[StatementNode]
+    edges: List[DependencyEdge]
 
 
 # Hydration models

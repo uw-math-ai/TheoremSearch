@@ -1,9 +1,9 @@
-from typing import List
-from fastapi import APIRouter, HTTPException
+from typing import List, Literal
+from fastapi import APIRouter, HTTPException, Query
 
 from db import rds_conn
 from models import (
-    StatementNode, DependencyEdge, GraphResponse,
+    StatementNode, DependencyEdge, GraphResponse, SubgraphResponse,
     IdsRequest, StatementDetail, PaperDetail,
 )
 
@@ -51,7 +51,10 @@ async def graph(external_id: str):
         dep_rows = cur.fetchall()
 
     statements = [
-        StatementNode(statement_id=str(sid), kind=kind, ref=ref)
+        StatementNode(
+            statement_id=str(sid),
+            name=kind.capitalize() + (f" {ref}" if ref else ""),
+        )
         for sid, kind, ref in stmt_rows
     ]
 
@@ -74,6 +77,138 @@ async def graph(external_id: str):
         statements=statements,
         dependencies=dependencies,
     )
+
+
+# ------------------------------------------------------------------ #
+# Graph traversal                                                     #
+# ------------------------------------------------------------------ #
+
+def _traverse(cur, start_ids: list, depth: int, direction: str) -> list:
+    """Return all statement UUIDs reachable from start_ids within depth hops."""
+    if direction == "dependency":
+        recursive_sql = (
+            "SELECT d.dep_id, t.depth + 1 "
+            "FROM traversal t "
+            "JOIN informal_dependency d ON d.src_id = t.statement_id "
+            "WHERE t.depth < %s AND d.dep_id IS NOT NULL"
+        )
+        params = (start_ids, depth)
+    elif direction == "dependent":
+        recursive_sql = (
+            "SELECT d.src_id, t.depth + 1 "
+            "FROM traversal t "
+            "JOIN informal_dependency d ON d.dep_id = t.statement_id "
+            "WHERE t.depth < %s"
+        )
+        params = (start_ids, depth)
+    else:  # both
+        recursive_sql = (
+            "SELECT d.dep_id, t.depth + 1 "
+            "FROM traversal t "
+            "JOIN informal_dependency d ON d.src_id = t.statement_id "
+            "WHERE t.depth < %s AND d.dep_id IS NOT NULL "
+            "UNION "
+            "SELECT d.src_id, t.depth + 1 "
+            "FROM traversal t "
+            "JOIN informal_dependency d ON d.dep_id = t.statement_id "
+            "WHERE t.depth < %s"
+        )
+        params = (start_ids, depth, depth)
+
+    cur.execute(
+        f"""
+        WITH RECURSIVE traversal(statement_id, depth) AS (
+            SELECT s.statement_id, 0
+            FROM statement s
+            WHERE s.statement_id = ANY(%s::uuid[])
+            UNION
+            {recursive_sql}
+        )
+        SELECT statement_id, MIN(depth) FROM traversal GROUP BY statement_id
+        """,
+        params,
+    )
+    return {row[0]: row[1] for row in cur.fetchall()}
+
+
+def _build_subgraph(cur, node_depth: dict) -> SubgraphResponse:
+    node_ids = list(node_depth.keys())
+    cur.execute(
+        """
+        SELECT s.statement_id, s.kind, im.ref
+        FROM statement s
+        LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+        WHERE s.statement_id = ANY(%s::uuid[])
+        """,
+        (node_ids,),
+    )
+    nodes = [
+        StatementNode(
+            statement_id=str(r[0]),
+            name=r[1].capitalize() + (f" {r[2]}" if r[2] else ""),
+            depth=node_depth[r[0]],
+        )
+        for r in cur.fetchall()
+    ]
+
+    cur.execute(
+        """
+        SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
+               d.dep_name, d.dep_key, d.location, d.method
+        FROM informal_dependency d
+        WHERE d.src_id = ANY(%s::uuid[])
+          AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+        """,
+        (node_ids,),
+    )
+    edges = [
+        DependencyEdge(
+            src_id=str(r[0]),
+            dep_id=str(r[1]) if r[1] else None,
+            cite_id=str(r[2]) if r[2] else None,
+            cite_key=r[3],
+            dep_name=r[4],
+            dep_key=r[5],
+            location=r[6],
+            method=r[7],
+        )
+        for r in cur.fetchall()
+    ]
+
+    return SubgraphResponse(nodes=nodes, edges=edges)
+
+
+@router.get("/graph/statement/{statement_id}", response_model=SubgraphResponse)
+async def graph_statement(
+    statement_id: str,
+    depth: int = Query(default=1, ge=1, le=10),
+    direction: Literal["dependency", "dependent", "both"] = "dependency",
+):
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM statement WHERE statement_id = %s", (statement_id,))
+        if cur.fetchone() is None:
+            raise HTTPException(status_code=404, detail=f"No statement with id '{statement_id}'")
+        node_depth = _traverse(cur, [statement_id], depth, direction)
+        return _build_subgraph(cur, node_depth)
+
+
+@router.get("/graph/paper/{paper_id}", response_model=SubgraphResponse)
+async def graph_paper(
+    paper_id: str,
+    depth: int = Query(default=1, ge=1, le=10),
+    direction: Literal["dependency", "dependent", "both"] = "dependency",
+):
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        cur.execute(
+            "SELECT statement_id FROM statement WHERE paper_id = %s",
+            (paper_id,),
+        )
+        rows = cur.fetchall()
+        if not rows:
+            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}' or paper has no statements")
+        start_ids = [str(r[0]) for r in rows]
+        node_depth = _traverse(cur, start_ids, depth, direction)
+        return _build_subgraph(cur, node_depth)
 
 
 # ------------------------------------------------------------------ #
@@ -206,30 +341,6 @@ async def batch_papers(body: IdsRequest):
         )
         for r in rows
     ]
-
-
-# ------------------------------------------------------------------ #
-# Paper-level utilities                                               #
-# ------------------------------------------------------------------ #
-
-@router.get("/paper-links")
-async def paper_links():
-    """Return all directed citation edges among the galaxy papers (ag_papers_100)."""
-    with rds_conn("v2") as conn, conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT DISTINCT sp.paper_id AS src, d.cite_id AS tgt
-            FROM informal_dependency d
-            JOIN statement s  ON s.statement_id = d.src_id
-            JOIN paper sp     ON sp.paper_id     = s.paper_id
-            WHERE d.cite_key IS NOT NULL
-              AND d.cite_id IS NOT NULL
-              AND sp.paper_id IN (SELECT paper_id FROM ag_papers_100)
-              AND d.cite_id   IN (SELECT paper_id FROM ag_papers_100)
-            """
-        )
-        rows = cur.fetchall()
-    return {"links": [{"source": str(r[0]), "target": str(r[1])} for r in rows]}
 
 
 @router.get("/papers")
