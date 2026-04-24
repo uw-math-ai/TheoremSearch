@@ -164,8 +164,9 @@ def _resolve_bib_keys(
                     (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
                 )
             else:
-                # title field is raw bibitem text; check if the paper's clean
-                # title appears as a substring inside it
+                # title field is raw bibitem text; the paper's clean title is a
+                # substring of it, so use word_similarity (best-matching substring)
+                # rather than full-string similarity or exact LIKE.
                 cur.execute(
                     """
                     SELECT bib_key, p.paper_id
@@ -175,11 +176,12 @@ def _resolve_bib_keys(
                         WHERE kind = 'paper'
                           AND external_id = ANY(%s)
                           AND title IS NOT NULL
-                          AND LOWER(q.query_title) LIKE '%%' || LOWER(title) || '%%'
+                          AND word_similarity(LOWER(title), LOWER(q.query_title)) >= %s
+                        ORDER BY word_similarity(LOWER(title), LOWER(q.query_title)) DESC
                         LIMIT 1
                     ) p ON TRUE
                     """,
-                    (keys_arr, titles_arr, all_arxiv_ids),
+                    (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
                 )
             for bib_key, paper_id in cur.fetchall():
                 if bib_key not in resolved:
