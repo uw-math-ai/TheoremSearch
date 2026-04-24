@@ -99,6 +99,7 @@ def _resolve_bib_keys(
     needed_bib: Dict[str, Dict],
     similarity_threshold: float,
     bibtex: bool = True,
+    reference_ids: Optional[List[str]] = None,
 ) -> Dict[str, str]:
     """Resolve bib_key → paper_id (UUID) via arXiv ID match then title match.
 
@@ -131,9 +132,18 @@ def _resolve_bib_keys(
         if key not in resolved and meta.get("title")
     }
     if unresolved_with_title:
-        keys_arr      = list(unresolved_with_title)
-        titles_arr    = [unresolved_with_title[k]["title"] for k in keys_arr]
-        all_arxiv_ids = [meta["arxiv_id"] for meta in needed_bib.values() if meta.get("arxiv_id")]
+        keys_arr   = list(unresolved_with_title)
+        titles_arr = [unresolved_with_title[k]["title"] for k in keys_arr]
+        # Use Semantic Scholar reference_ids as the candidate pool when available;
+        # they cover all references regardless of whether the bib entry has an arXiv ID.
+        # Strip the "ARXIV:" prefix to match paper.external_id format.
+        if reference_ids:
+            all_arxiv_ids = [
+                rid[len("ARXIV:"):] for rid in reference_ids
+                if rid.upper().startswith("ARXIV:")
+            ]
+        else:
+            all_arxiv_ids = [meta["arxiv_id"] for meta in needed_bib.values() if meta.get("arxiv_id")]
 
         with conn.cursor() as cur:
             if bibtex:
@@ -221,6 +231,7 @@ def _build_rows(
     statement_cites: Dict[str, List[Tuple]],
     similarity_threshold: float,
     bibtex: bool = True,
+    reference_ids: Optional[List[str]] = None,
 ) -> List[Dict]:
     """Resolve bib keys and dep IDs, then build dependency rows."""
     needed_keys = {t[0] for cites in statement_cites.values() for t in cites}
@@ -228,7 +239,7 @@ def _build_rows(
     if not needed_bib:
         return []
 
-    resolved = _resolve_bib_keys(conn, needed_bib, similarity_threshold, bibtex=bibtex)
+    resolved = _resolve_bib_keys(conn, needed_bib, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)
 
     lookups = list(dict.fromkeys(
         (resolved[key], ttype, tref)
@@ -269,6 +280,7 @@ def _get_deterministic_deps(
     run_pure: bool = True,
     run_heuristic: bool = True,
     proximity_threshold: float = 0.5,
+    reference_ids: Optional[List[str]] = None,
 ) -> List[Dict]:
     regular_cites:   Dict[str, list] = defaultdict(list)
     heuristic_cites: Dict[str, list] = defaultdict(list)
@@ -312,8 +324,8 @@ def _get_deterministic_deps(
                         seen.add(quad[:4])
                         heuristic_cites[stmt["statement_id"]].append(quad)
 
-    regular_rows   = [{**r, "method": "deterministic"} for r in _build_rows(conn, bib, regular_cites,   similarity_threshold, bibtex=bibtex)] if run_pure      else []
-    heuristic_rows = [{**r, "method": "heuristic"}     for r in _build_rows(conn, bib, heuristic_cites, similarity_threshold, bibtex=bibtex)] if run_heuristic  else []
+    regular_rows   = [{**r, "method": "deterministic"} for r in _build_rows(conn, bib, regular_cites,   similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_pure      else []
+    heuristic_rows = [{**r, "method": "heuristic"}     for r in _build_rows(conn, bib, heuristic_cites, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_heuristic  else []
     return regular_rows + heuristic_rows
 
 
@@ -425,12 +437,13 @@ def connect_interpaper_dependencies(
                     # Fetch shared data once per paper
                     with conn.cursor() as cur:
                         cur.execute(
-                            "SELECT bibliography, bibtex FROM arxiv_paper_metadata WHERE arxiv_id = %s",
+                            "SELECT bibliography, bibtex, reference_ids FROM arxiv_paper_metadata WHERE arxiv_id = %s",
                             (arxiv_id,),
                         )
                         row = cur.fetchone()
                     bib: Dict[str, Dict] = (row[0] or {}) if row else {}
                     bibtex: bool = bool(row[1]) if row else True
+                    reference_ids: Optional[List[str]] = row[2] if row else None
 
                     with conn.cursor() as cur:
                         cur.execute(
@@ -459,6 +472,7 @@ def connect_interpaper_dependencies(
                         conn, arxiv_id, bib, statements, similarity_threshold,
                         bibtex=bibtex, run_pure=do_deterministic, run_heuristic=do_heuristic,
                         proximity_threshold=proximity_threshold,
+                        reference_ids=reference_ids,
                     ) if (do_deterministic or do_heuristic) else []
 
                     batch_rows.extend(det_rows)
@@ -617,7 +631,7 @@ def connect_inter_llm_results(
     for arxiv_id, text in tqdm(results, unit=" papers", desc="Connecting inter", dynamic_ncols=True):
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT bibliography, bibtex FROM arxiv_paper_metadata WHERE arxiv_id = %s",
+                "SELECT bibliography, bibtex, reference_ids FROM arxiv_paper_metadata WHERE arxiv_id = %s",
                 (arxiv_id,),
             )
             row = cur.fetchone()
@@ -625,7 +639,7 @@ def connect_inter_llm_results(
             tqdm.write(f"  Warning: no metadata for {arxiv_id}, skipping.")
             failed += 1
             continue
-        bib, bibtex = row[0] or {}, bool(row[1])
+        bib, bibtex, reference_ids = row[0] or {}, bool(row[1]), row[2]
 
         with conn.cursor() as cur:
             cur.execute("""
@@ -652,7 +666,7 @@ def connect_inter_llm_results(
             failed += 1
             continue
 
-        rows = _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex)
+        rows = _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)
         pending_rows.extend({**r, "method": "llm"} for r in rows)
         pending_stmt_ids.extend(s["statement_id"] for s in statements)
         written += len(rows)
