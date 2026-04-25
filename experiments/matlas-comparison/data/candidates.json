@@ -1,0 +1,5238 @@
+{
+ "1912.09561": {
+  "title": "Reflexive sheaves, Hermitian-Yang-Mills connections, and tangent cones",
+  "jr": "Invent. Math. 225,73-129 (2021)",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Invent. Math."
+ },
+ "1805.09283": {
+  "title": "Categorical smooth compactifications and generalized Hodge-to-de Rham degeneration",
+  "jr": "Invent. Math., 222:2 (2020), 667-694",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1805.00030": {
+  "title": "Cluster exchange groupoids and framed quadratic differentials",
+  "jr": "Invent. Math. 2020",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1710.00013": {
+  "title": "Maximally writhed real algebraic links",
+  "jr": "Invent. math. 216, 125-152 (2019)",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1706.07762": {
+  "title": "Tropical refined curve counting from higher genera and lambda classes",
+  "jr": "Invent. math. (2019) 215: 1",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1705.02300": {
+  "title": "Perfectoid multiplier/test ideals in regular rings and bounds on symbolic powers",
+  "jr": "Invent. Math. 214 (2018), no. 2, 913-955",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1611.08466": {
+  "title": "Algebraic K-theory and descent for blow-ups",
+  "jr": "Invent. Math. 211 (2018), no. 2, 523-577",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1611.03697": {
+  "title": "Riemann-Hilbert problems from Donaldson-Thomas theory",
+  "jr": "Invent. Math. 216 (2019), no. 1, 69-124",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1610.08121": {
+  "title": "Kirwan surjectivity for quiver varieties",
+  "jr": "Invent. Math. 212 (2018), no. 1, 161-187",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1510.08343": {
+  "title": "Koszul Duality for Quasi-split Real Groups",
+  "jr": "Invent. Math. 226 (2021), no.1, 139--193",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Invent. Math."
+ },
+ "1510.04904": {
+  "title": "Ideals of bounded rank symmetric tensors are generated in bounded degree",
+  "jr": "Invent. Math. 207 (2017), no. 1, 1-21",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1404.0762": {
+  "title": "Terminal valuations and the Nash problem",
+  "jr": "Invent. Math. 203 (2016), no. 1, 303-331",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Invent. Math."
+ },
+ "1312.2122": {
+  "title": "Unirational threefolds with no universal codimension 2 cycle",
+  "jr": "Invent. Math. 201 (2015), 207-237",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1304.5623": {
+  "title": "Supersingular K3 Surfaces are Unirational",
+  "jr": "Invent. Math. 200, 979-1014 (2015) and Invent. Math. 223 (2021), 1407-1409",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1304.5216": {
+  "title": "K\u00e4hler currents and null loci",
+  "jr": "Invent. Math. 202 (2015), no.3, 1167-1198",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1301.6968": {
+  "title": "MMP for moduli of sheaves on K3s via wall-crossing: nef and movable cones, Lagrangian fibrations",
+  "jr": "Invent. math. 198, 505-590 (2014)",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Invent. Math."
+ },
+ "1211.4018": {
+  "title": "Generators for the hyperelliptic Torelli group and the kernel of the Burau representation at t=-1",
+  "jr": "Invent. Math. 200 (2015), no. 1, 263-310",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1210.5761": {
+  "title": "The Gorenstein conjecture fails for the tautological ring of $\\mathcal{\\bar M}_{2,n}$",
+  "jr": "Invent. Math. 196 (2014), no. 1, 139--161",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Invent. Math."
+ },
+ "1210.5617": {
+  "title": "Null curves and directed immersions of open Riemann surfaces",
+  "jr": "Invent. Math. 196 (2014), no. 3, 733-771",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Invent. Math."
+ },
+ "1209.2828": {
+  "title": "The index of an algebraic variety",
+  "jr": "Invent. Math., 192 (2013), 567-626",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "1201.5444": {
+  "title": "On the structure of homogeneous symplectic varieties of complete intersection",
+  "jr": "Invent. Math. vol. 193, no.1 (2013) 159-185",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "1201.2930": {
+  "title": "Positivity of relative canonical bundles and applications",
+  "jr": "Invent. Math. 190, No. 1, 1-56 (2012) and Invent. Math. 192, No. 1, 253-255 (2013)",
+  "cat": "math.AG",
+  "year": 2012,
+  "journal": "Invent. Math."
+ },
+ "1911.04281": {
+  "title": "Conjectures and results about parabolic induction of representations of $GL_n(F)$",
+  "jr": "Invent. Math. 222 (2020) 695-747",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1612.05354": {
+  "title": "Strong Limit Multiplicity for arithmetic hyperbolic surfaces and $3$-manifolds",
+  "jr": "Fr\u0105czyk, M. Strong limit multiplicity for arithmetic hyperbolic surfaces and 3-manifolds. Invent. math. (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1510.06292": {
+  "title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "jr": "Invent. Math. 210 (2017) 531-558",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1410.1440": {
+  "title": "The Circular Unitary Ensemble and the Riemann zeta function: the microscopic landscape and a new approach to ratios",
+  "jr": "Invent. math. (2017) 207: 23",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1407.2294": {
+  "title": "Counting and effective rigidity in algebra and geometry",
+  "jr": "Invent. Math. 213 (2018), 697-758",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1302.5792": {
+  "title": "Equidistribution from Fractals",
+  "jr": "Invent. Math. 202 (2015), no. 1, 427--479",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1202.6382": {
+  "title": "Intersection theory on Shimura surfaces II",
+  "jr": "Invent. Math. 183, No. 1 (2011), 1-77",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Invent. Math."
+ },
+ "1005.1713": {
+  "title": "The classification of irreducible admissible mod p representations of a p-adic GL_n",
+  "jr": "Invent. Math. 186 (2011), no. 2, 373-434",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Invent. Math."
+ },
+ "0902.3557": {
+  "title": "The asymptotic distribution of Frobenius numbers",
+  "jr": "Invent Math 181 (2010) 179-207",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Invent. Math."
+ },
+ "0803.1950": {
+  "title": "Growth of balls of holomorphic sections and energy at equilibrium",
+  "jr": "Invent. Math. 181 (2010), no. 2, 337-394",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Invent. Math."
+ },
+ "0512115": {
+  "title": "Fake projective planes",
+  "jr": "Invent. Math. 168(2007), 321-370; 182(2010), 213-227",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Invent. Math."
+ },
+ "1801.03822": {
+  "title": "W-algebras as coset vertex algebras",
+  "jr": "Invent. Math. 218 (2019), no. 1, 145-195",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1606.09532": {
+  "title": "An application of TQFT to modular representation theory",
+  "jr": "Invent. math. (2017) 210:501--530",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1508.02032": {
+  "title": "Gan-Gross-Prasad Conjecture for U(p,q)",
+  "jr": "Invent Math.209 (2017)",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1410.1403": {
+  "title": "Quivers with relations for symmetrizable Cartan matrices I : Foundations",
+  "jr": "Invent. Math. 209 (2017), 61-158",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1304.0323": {
+  "title": "Symmetric quiver Hecke algebras and R-matrices of quantum affine algebras",
+  "jr": "Invent. math. 211, 591--685 (2018)",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1210.5126": {
+  "title": "Geometric RSK correspondence, Whittaker functions and symmetrized random polymers",
+  "jr": "Invent. math. 197, 361-416 (2014)",
+  "cat": "math.RT",
+  "year": 2014,
+  "journal": "Invent. Math."
+ },
+ "1201.4876": {
+  "title": "Stability in the homology of congruence subgroups",
+  "jr": "Invent. Math. 202 (2015), no. 3, 987-1027",
+  "cat": "math.RT",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1105.2341": {
+  "title": "Feigin-Frenkel center in types B, C and D",
+  "jr": "Invent. Math. 191 (2013), 1-34",
+  "cat": "math.RT",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "1102.4677": {
+  "title": "Categorification of Highest Weight Modules via Khovanov-Lauda-Rouquier Algebras",
+  "jr": "Invent. Math. 190 (2012), no. 3, 699--742",
+  "cat": "math.RT",
+  "year": 2012,
+  "journal": "Invent. Math."
+ },
+ "0907.3002": {
+  "title": "Simple tensor products",
+  "jr": "Invent. Math. 181 (2010), no. 3, 649--675",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "Invent. Math."
+ },
+ "1809.00528": {
+  "title": "Positive scalar curvature and $10/8$-type inequalities on $4$-manifolds with periodic ends",
+  "jr": "Invent. math. (2020)",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1802.07049": {
+  "title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "jr": "Invent. Math. 219 (2020), no. 3, 1009-1068",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Invent. Math."
+ },
+ "1705.06644": {
+  "title": "Group actions, corks and exotic smoothings of R^4",
+  "jr": "Invent. Math. 214(3) (2018), 1131--1168",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1509.06724": {
+  "title": "Minimal hypersurfaces with bounded index",
+  "jr": "Invent. Math., Vol. 209, No. 3, pp. 617--664 (2017)",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1503.05473": {
+  "title": "The holomorphic couch theorem",
+  "jr": "Invent. Math. 212 (2018), 319-406",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1411.7408": {
+  "title": "Infinite loop spaces and positive scalar curvature",
+  "jr": "Invent. Math. 209 (2017), no. 3, 749-835",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1411.5035": {
+  "title": "The homology of the Higman-Thompson groups",
+  "jr": "Invent. Math. 216 (2019) 445-518",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1404.5884": {
+  "title": "On the connectedness of the space of codimension one foliations on a closed 3-manifold",
+  "jr": "Invent. Math. 204 (2016), no. 2, 605-670",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "Invent. Math."
+ },
+ "1311.3937": {
+  "title": "Deciding Isomorphy using Dehn fillings, the splitting case",
+  "jr": "Invent. math. 215, 81-169 (2019)",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "0906.3487": {
+  "title": "Tightness in contact metric 3-manifolds",
+  "jr": "Invent. Math. 188 (2012), no. 3, 621-657",
+  "cat": "math.GT",
+  "year": 2012,
+  "journal": "Invent. Math."
+ },
+ "0806.4598": {
+  "title": "Rational Symplectic Field Theory for Legendrian knots",
+  "jr": "Invent. Math. 182 (2010), no. 3, 451--512",
+  "cat": "math.GT",
+  "year": 2010,
+  "journal": "Invent. Math."
+ },
+ "2005.12202": {
+  "title": "Supercritical deformed Hermitian-Yang-Mills equation",
+  "jr": "Merged into The J-equation and the supercritical deformed Hermitian-Yang-Mills equation, Invent. math. 225, 529--602 (2021)",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Invent. Math."
+ },
+ "1908.09958": {
+  "title": "New Curvature Conditions for the Bochner Technique",
+  "jr": "Invent. Math. 224, 33-54 (2021)",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Invent. Math."
+ },
+ "1905.10222": {
+  "title": "On J-equation",
+  "jr": "Merged into The J-equation and the supercritical deformed Hermitian-Yang-Mills equation, Invent. math. 225, 529--602 (2021)",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Invent. Math."
+ },
+ "1610.03424": {
+  "title": "Long-time existence for Yang-Mills flow",
+  "jr": "Invent. math. 217(3), 1069-1147 (2019)",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "Invent. Math."
+ },
+ "1504.05258": {
+  "title": "Sharp systolic inequalities for Reeb flows on the three-sphere",
+  "jr": "Invent. Math. 211 (2018), 687-778",
+  "cat": "math.DG",
+  "year": 2018,
+  "journal": "Invent. Math."
+ },
+ "1502.06465": {
+  "title": "Sharp and rigid isoperimetric inequalities in metric-measure spaces with lower Ricci curvature bounds",
+  "jr": "Invent. Math., Vol. 208 (2017), no. 3, 803-849",
+  "cat": "math.DG",
+  "year": 2017,
+  "journal": "Invent. Math."
+ },
+ "1402.1954": {
+  "title": "On the $\\partial\\overline{\\partial}$-Lemma and Bott-Chern cohomology",
+  "jr": "Invent. Math. 192 (2013), no. 1, 71-81",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "1309.1459": {
+  "title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "jr": "Invent. Math. 202, 217-237 (2015)",
+  "cat": "math.DG",
+  "year": 2015,
+  "journal": "Invent. Math."
+ },
+ "1209.3789": {
+  "title": "Sharp eigenvalue bounds and minimal surfaces in the ball",
+  "jr": "Invent. Math. 203 (2016), no. 3, 823-890",
+  "cat": "math.DG",
+  "year": 2016,
+  "journal": "Invent. Math."
+ },
+ "1107.4644": {
+  "title": "Topological Change in Mean Convex Mean Curvature Flow",
+  "jr": "Invent. Math. 191 (2013), 501--525",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "1105.4872": {
+  "title": "Period Integrals of CY and General Type Complete Intersections",
+  "jr": "Invent. Math. Vol. 191, 1 (2013) 35-89",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Invent. Math."
+ },
+ "0805.4309": {
+  "title": "A proof of the uniform boundedness of solutions to the wave equation on slowly rotating Kerr backgrounds",
+  "jr": "Invent. Math. 185 (2011), 467-559",
+  "cat": "math.DG",
+  "year": 2011,
+  "journal": "Invent. Math."
+ },
+ "1911.07252": {
+  "title": "Addendum to \"The Noether inequality for algebraic threefolds\"",
+  "jr": "Duke Math. J. Volume 169, Number 11 (2020), 2199-2204",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1908.11772": {
+  "title": "Mapping class group and global Torelli theorem for hyperkahler manifolds: an erratum",
+  "jr": "Duke Math. J. 162, no. 15 (2013), 2929-2986",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Duke Math. J."
+ },
+ "1905.11495": {
+  "title": "Integral $p$-adic \u00e9tale cohomology of Drinfeld symmetric spaces",
+  "jr": "Duke Math. J. 170, no. 3 (2021), 575-613",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1905.04741": {
+  "title": "On the Hitchin morphism for higher dimensional varieties",
+  "jr": "Duke Math. J. 169, no. 10 (2020), 1971-2004",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1809.08464": {
+  "title": "Smoothness of Schubert varieties in twisted affine Grassmannians",
+  "jr": "Duke Math. J. 169, no. 17 (2020), 3223-3260",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1809.07714": {
+  "title": "A Linear independence result for $p$-adic $L$-values",
+  "jr": "Duke Math. J. 169, no. 18 (2020), 3439-3476",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1809.06905": {
+  "title": "Codimension one foliations with numerically trivial canonical class on singular spaces",
+  "jr": "Duke Math. J. 170, no. 1 (2021), 95-203",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1809.05452": {
+  "title": "BCOV invariants of Calabi--Yau manifolds and degenerations of Hodge structures",
+  "jr": "Duke Math. J. 170, no. 3 (2021), 379-454",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1809.03344": {
+  "title": "Algebraic approximations of compact K\u00e4hler manifolds of algebraic codimension 1",
+  "jr": "Duke Math. J. 169, no. 14 (2020), 2767-2826",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1809.00848": {
+  "title": "The geometric Bogomolov conjecture",
+  "jr": "Duke Math. J. 170, no. 2 (2021), 247-277",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1808.09358": {
+  "title": "Functorial transfer between relative trace formulas in rank one",
+  "jr": "Duke Math. J. 170, no. 2 (2021), 279-364",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1807.09452": {
+  "title": "Minimum positive entropy of complex Enriques surface automorphisms",
+  "jr": "Duke Math. J. 169, no. 18 (2020), 3565-3606",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1807.00025": {
+  "title": "Models of curves over DVRs",
+  "jr": "Duke Math. J. 170, no. 11 (2021), 2519-2574",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1805.04999": {
+  "title": "Durfee-type inequality for complete intersection surface singularities",
+  "jr": "Duke Math. J. 170, no. 1 (2021), 1-21",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1803.05553": {
+  "title": "The Noether inequality for algebraic threefolds (With an Appendix by J\u00e1nos Koll\u00e1r)",
+  "jr": "Duke Math. J., Volume 169, Number 9 (2020), 1603-1645",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1802.08389": {
+  "title": "Birational superrigidity and K-stability of Fano complete intersections of index one (with an appendix written jointly with Charlie Stibitz)",
+  "jr": "Duke Math. J. 169, no. 12 (2020), 2205-2229",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1802.06333": {
+  "title": "Explicit equations of a fake projective plane",
+  "jr": "Duke Math. J. 169, no. 6 (2020), 1135-1162",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1802.03661": {
+  "title": "Irrationality of motivic zeta functions",
+  "jr": "Duke Math. J. 169, no. 1 (2020), 1-30",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1801.03192": {
+  "title": "Nonvanishing for threefolds in characteristic $p>5$",
+  "jr": "Duke Math. J. 168, no. 7 (2019), 1269-1301",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1801.00422": {
+  "title": "Espaces de Banach-Colmez et faisceaux coh\u00e9rents sur la courbe de Fargues-Fontaine",
+  "jr": "Duke Math. J. 167, no. 18 (2018), 3455-3532",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1712.10216": {
+  "title": "Duality and nearby cycles over general bases",
+  "jr": "Duke Math. J. 168, no. 16 (2019), 3135-3213",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1712.07594": {
+  "title": "On the Hasse principle for quartic hypersurfaces",
+  "jr": "Duke Math. J. 168, no. 14 (2019), 2727-2799",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1908.06626": {
+  "title": "On the remainder term of the Weyl law for congruence subgroups of Chevalley groups",
+  "jr": "Duke Math. J. 170, no. 4 (2021), 653-695",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1907.08691": {
+  "title": "Minimal modularity lifting for non-regular symplectic representations",
+  "jr": "Duke Math. J. 169, no. 5 (2020), 801-896",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1905.08779": {
+  "title": "Higher Hida theory and p-adic L-functions for GSp(4)",
+  "jr": "Duke Math. J. 170 (2021), no. 18, 4033-4121",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1805.10715": {
+  "title": "Density of rational points on a quadric bundle in $\\mathbb{P}^3\\times \\mathbb{P}^3$",
+  "jr": "Duke Math. J. 169, no. 16 (2020), 3099-3165",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1804.06975": {
+  "title": "The Fourier expansion of modular forms on quaternionic exceptional groups",
+  "jr": "Duke Math. J. 169, no. 7 (2020), 1209-1280",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1804.03654": {
+  "title": "Weak subconvexity without a Ramanujan hypothesis",
+  "jr": "Duke Math. J. 168, no. 7 (2019), 1231-1268",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1802.05066": {
+  "title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "jr": "Duke Math. J. 169, no. 6 (2020), 1039-1075",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1802.02200": {
+  "title": "On the polynomial Szemer\u00e9di theorem in finite fields",
+  "jr": "Duke Math. J. 168, no. 5 (2019), 749-774",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1801.06572": {
+  "title": "A Local Trace Formula for the Generalized Shalika Model",
+  "jr": "Duke Math. J. 168, no. 7 (2019), 1303-1385",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1711.06456": {
+  "title": "Purity for the Brauer group",
+  "jr": "Duke Math. J. 168, no. 8 (2019), 1461-1486",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1711.01390": {
+  "title": "The density of rational points near hypersurfaces",
+  "jr": "Duke Math. J. 169, no. 11 (2020), 2045-2077",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1710.05165": {
+  "title": "Irreducible polynomials of bounded height",
+  "jr": "Duke Math. J. 169, no. 4 (2020), 579-598",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1709.09790": {
+  "title": "Three-isogeny Selmer groups and ranks of abelian varieties in quadratic twist families over a number field",
+  "jr": "Duke Math. J. 168, no. 15 (2019), 2951-2989",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1708.02610": {
+  "title": "The structure of logarithmically averaged correlations of multiplicative functions, with applications to the Chowla and Elliott conjectures",
+  "jr": "Duke Math. J. 168, no. 11 (2019), 1977-2027",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1911.02119": {
+  "title": "Limits of Blaschke metrics",
+  "jr": "Duke Math. J. 170 no. 8 (2021), pp. 1683-1722",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1909.12283": {
+  "title": "On the minimal diameter of closed hyperbolic surfaces",
+  "jr": "Duke Math. J. 170, no. 2 (2021), 365-377",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1901.11127": {
+  "title": "Smoothing finite group actions on three-manifolds",
+  "jr": "Duke Math. J. 170 (2021), no. 6, 1043--1084",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1810.08176": {
+  "title": "Chern-Simons Functional and the Homology Cobordism Group",
+  "jr": "Duke Math. J. 169, no. 15 (2020), 2827-2886",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1809.07211": {
+  "title": "Nearly Fuchsian surface subgroups of finite covolume Kleinian groups",
+  "jr": "Duke Math. J. 170, no. 3 (2021), 503-573",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Duke Math. J."
+ },
+ "1804.03132": {
+  "title": "Proper affine actions for right-angled Coxeter groups",
+  "jr": "Duke Math. J. 169, no. 12 (2020), 2231-2280",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1708.06567": {
+  "title": "Minimal two-spheres in three-spheres",
+  "jr": "Duke Math. J. 168, no. 10 (2019), 1929-1975",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1708.06486": {
+  "title": "Simple closed curves, finite covers of surfaces, and power subgroups of Out(F_n)",
+  "jr": "Duke Math. J. 168, no. 14 (2019), 2701-2726",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1704.06021": {
+  "title": "Schwarzian derivatives, projective structures, and the Weil-Petersson gradient flow for renormalized volume",
+  "jr": "Duke Math. J. 168, no. 5 (2019), 867-896",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1703.04190": {
+  "title": "On finiteness properties of the Johnson filtrations",
+  "jr": "Duke Math. J. 167, no. 9 (2018), 1713-1759",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1702.08799": {
+  "title": "The geometry of maximal representations of surface groups into SO(2,n)",
+  "jr": "Duke Math. J. 168, no. 15 (2019), 2873-2949",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1610.06977": {
+  "title": "Legendrian Fronts for Affine Varieties",
+  "jr": "Duke Math. J. 168, no. 2 (2019), 225-323",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1608.04816": {
+  "title": "NonLERFness of arithmetic hyperbolic manifold groups and mixed 3-manifold groups",
+  "jr": "Duke Math. J. 168, no. 4 (2019), 655-696",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1605.08530": {
+  "title": "Integer homology 3-spheres admit irreducible representations in SL(2,C)",
+  "jr": "Duke Math. J. 167, no. 9 (2018), 1643-1712",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1604.08834": {
+  "title": "Compactification of strata of abelian differentials",
+  "jr": "Duke Math. J. 167, no. 12 (2018), 2347-2416",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1604.08502": {
+  "title": "The colored HOMFLYPT function is $q$-holonomic",
+  "jr": "Duke Math. J. 167, no. 3 (2018), 397-447",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1601.00946": {
+  "title": "Groups quasi-isometric to RAAG's",
+  "jr": "Duke Math. J. 167, no. 3 (2018), 537-602",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1512.08942": {
+  "title": "Cluster varieties from Legendrian knots",
+  "jr": "Duke Math. J. 168, no. 15 (2019), 2801-2871",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1511.06329": {
+  "title": "Alternating links and definite surfaces",
+  "jr": "Duke Math. J. 166, no. 11 (2017), 2133-2151",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "1509.05945": {
+  "title": "On the classification of Heegaard splittings",
+  "jr": "Duke Math. J. 167, no. 15 (2018), 2833-2856",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1509.01711": {
+  "title": "Rank, combinatorial cost and homology torsion growth in higher rank lattices",
+  "jr": "Duke Math. J. 166, no. 15 (2017), 2925-2964",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "1508.05438": {
+  "title": "GL(2,R) Orbit Closures in Hyperelliptic Components of Strata",
+  "jr": "Duke Math. J. 167, no. 4 (2018), 679-742",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1507.00383": {
+  "title": "Involutive Heegaard Floer homology",
+  "jr": "Duke Math. J. 166, no. 7 (2017), 1211-1299",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "1506.04640": {
+  "title": "Entropy of Hilbert metrics and length spectrum of Hitchin representations in $\\mathrm{PSL}(3,\\mathbb{R})$",
+  "jr": "Duke Math. J. 166, no. 7 (2017), 1377-1403",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "1506.03233": {
+  "title": "Recognizing a relatively hyperbolic group by its Dehn fillings",
+  "jr": "Duke Math. J. 167, no. 12 (2018), 2189-2241",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1908.07672": {
+  "title": "Nonnegativity of the CR Paneitz operator for embeddable CR manifolds",
+  "jr": "Duke Math. J. 169, no. 18 (2020), 3417-3438",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1808.00199": {
+  "title": "Analytic Bergman operators in the semiclassical limit",
+  "jr": "Duke Math. J. 169, no. 16 (2020), 3033-3097",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1807.04205": {
+  "title": "A proof of the multiplicity one conjecture for min-max minimal surfaces in arbitrary codimension",
+  "jr": "Duke Math. J. 169, no. 11 (2020), 2005-2044",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1806.06252": {
+  "title": "Regularity of optimal transport between planar convex domains",
+  "jr": "Duke Math. J. 169, no. 7 (2020), 1305-1327",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1806.00545": {
+  "title": "Extreme Superposition: Rogue Waves of Infinite Order and the Painlev\u00e9-III Hierarchy",
+  "jr": "Duke Math. J. 169, no. 4 (2020), 671-760",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1805.08278": {
+  "title": "The limit shape of convex hull peeling",
+  "jr": "Duke Math. J. 169, no. 11 (2020), 2079-2124",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1803.08345": {
+  "title": "Mean Field Limit for Coulomb-Type Flows",
+  "jr": "Duke Math. J. 169, no. 15 (2020), 2887-2935",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1803.02706": {
+  "title": "On stability of blow up solutions for the critical co-rotational Wave Maps problem",
+  "jr": "Duke Math. J. 169, no. 3 (2020), 435-532",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1802.07973": {
+  "title": "On higher dimensional singularities for the fractional Yamabe problem: a non-local Mazzeo-Pacard program",
+  "jr": "Duke Math. J. 168, no. 17 (2019), 3297-3411",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1801.09276": {
+  "title": "Uniqueness of the blow-up at isolated singularities for the Alt-Caffarelli functional",
+  "jr": "Duke Math. J. 169, no. 8 (2020), 1541-1601",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Duke Math. J."
+ },
+ "1711.11489": {
+  "title": "Estimates of solutions of elliptic equations with a source reaction term involving the product of the function and its gradient",
+  "jr": "Duke Math. J. 168, no. 8 (2019), 1487-1537",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1711.08232": {
+  "title": "A gradient estimate for nonlocal minimal graphs",
+  "jr": "Duke Math. J. 168, no. 5 (2019), 775-848",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1711.00932": {
+  "title": "Interior C2 regularity of convex solutions to prescribing scalar curvature equations",
+  "jr": "Duke Math. J. 168, no. 9 (2019), 1641-1663",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1710.07972": {
+  "title": "On the growth of eigenfunction averages: microlocalization and geometry",
+  "jr": "Duke Math. J. 168, no. 16 (2019), 2991-3055",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1710.03782": {
+  "title": "Approximation theorems for parabolic equations and movement of local hot spots",
+  "jr": "Duke Math. J. 168, no. 5 (2019), 897-939",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Duke Math. J."
+ },
+ "1706.09501": {
+  "title": "High-frequency backreaction for the Einstein equations under polarized $\\mathbb U(1)$ symmetry",
+  "jr": "Duke Math. J. 167, no. 18 (2018), 3315-3402",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1611.06083": {
+  "title": "Universal dynamics for the defocusing logarithmic Schrodinger equation",
+  "jr": "Duke Math. J. 167, no. 9 (2018), 1761-1801",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1611.00264": {
+  "title": "Uniform rectifiability from Carleson measure estimates and $\\varepsilon$-approximability of bounded harmonic functions",
+  "jr": "Duke Math. J. 167, no. 8 (2018), 1473-1524",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1608.07689": {
+  "title": "A minimization problem with free boundary related to a cooperative system",
+  "jr": "Duke Math. J. 167, no. 10 (2018), 1825-1882",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1607.06434": {
+  "title": "Gevrey Stability of Prandtl Expansions for 2D Navier-Stokes",
+  "jr": "Duke Math. J. 167, no. 13 (2018), 2531-2631",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1607.02534": {
+  "title": "Conserved energies for the cubic NLS in 1-d",
+  "jr": "Duke Math. J. 167, no. 17 (2018), 3207-3313",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1606.08004": {
+  "title": "Energy Quantization of Willmore surfaces at the boundary of the Moduli Space",
+  "jr": "Duke Math. J. 167, no. 11 (2018), 2073-2124",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1512.04165": {
+  "title": "Comparable upper and lower bounds for boundary values of Neumann eigenfunctions and tight inclusion of eigenvalues",
+  "jr": "Duke Math. J. 167, no. 16 (2018), 3059-3114",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1509.07373": {
+  "title": "Almost Periodicity in Time of Solutions of the KdV Equation",
+  "jr": "Duke Math. J. 167, no. 14 (2018), 2633-2678",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Duke Math. J."
+ },
+ "1509.06069": {
+  "title": "Sobolev-Trace inequalities of order four",
+  "jr": "Duke Math. J. 166, no. 14 (2017), 2719-2748",
+  "cat": "math.AP",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "1509.02041": {
+  "title": "Strichartz estimates in similarity coordinates and stable blowup for the critical wave equation",
+  "jr": "Duke Math. J. 166, no. 9 (2017), 1627-1683",
+  "cat": "math.AP",
+  "year": 2017,
+  "journal": "Duke Math. J."
+ },
+ "2410.01184": {
+  "title": "Symmetry and parity in Frobenius action on cohomology",
+  "jr": "Compos. Math. 148 (2012), no. 1, 295--303",
+  "cat": "math.AG",
+  "year": 2012,
+  "journal": "Compos. Math."
+ },
+ "2410.01182": {
+  "title": "Ordinary primes in Hilbert modular varieties",
+  "jr": "Compos. Math., 156(4), 2020, pp. 647--678",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Compos. Math."
+ },
+ "1805.00102": {
+  "title": "Locality in the Fukaya category of a hyperk\u00e4hler manifold",
+  "jr": "Compos. Math. 155 (2019), no. 10, 1924-1958",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Compos. Math."
+ },
+ "1608.02997": {
+  "title": "Birational boundedness of low dimensional elliptic Calabi-Yau varieties with a section",
+  "jr": "Compos. Math. 157 (2021), no. 8, 1766--1806",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Compos. Math."
+ },
+ "1208.0132": {
+  "title": "The $p$-cyclic McKay correspondence via motivic integration",
+  "jr": "Compos. Math. 150 (2014), no. 7, 1125-1168",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Compos. Math."
+ },
+ "1111.3869": {
+  "title": "Rational morphisms between quasilinear hypersurfaces",
+  "jr": "Compos. Math. 149 (2013), no. 3, 333-355",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Compos. Math."
+ },
+ "1109.2612": {
+  "title": "Normal crossing properties of complex hypersurfaces via logarithmic residues",
+  "jr": "Compos. Math. 148 (2012), 799-806",
+  "cat": "math.AG",
+  "year": 2012,
+  "journal": "Compos. Math."
+ },
+ "1002.2651": {
+  "title": "Z[1/p]-motivic resolution of singularities",
+  "jr": "Compos. Math. 147 (2011), no. 5, 1434-1446",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "Compos. Math."
+ },
+ "0705.2160": {
+  "title": "Quantum cohomology of [C^N/\u03bc_r]",
+  "jr": "Compos. Math., 2010, 146, 1291-1322",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Compos. Math."
+ },
+ "1102.0195": {
+  "title": "The $L^2$ restriction norm of a $GL_3$ Maass form",
+  "jr": "Compos. Math. 148 (2012), no. 3, 675-717",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "Compos. Math."
+ },
+ "0904.3938": {
+  "title": "Iwasawa Theory for Modular Forms at Supersingular Primes",
+  "jr": "Compos. Math. 147 (2011), no.3, 803-838",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Compos. Math."
+ },
+ "1710.02275": {
+  "title": "Universal two-parameter $\\mathcal{W}_{\\infty}$-algebra and vertex algebras of type $\\mathcal{W}(2,3,\\dots, N)$",
+  "jr": "Compos. Math. 157, no. 1 (2021), 12-82",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Compos. Math."
+ },
+ "1209.3760": {
+  "title": "Modular Koszul duality",
+  "jr": "Compos. Math. 150 (2014), no. 2, 273-332",
+  "cat": "math.RT",
+  "year": 2014,
+  "journal": "Compos. Math."
+ },
+ "1103.3519": {
+  "title": "Buildings, spiders, and geometric Satake",
+  "jr": "Compos. Math. 149 (2013), 1871-1912",
+  "cat": "math.RT",
+  "year": 2013,
+  "journal": "Compos. Math."
+ },
+ "1805.10186": {
+  "title": "Tropical curves, graph complexes, and top weight cohomology of M_g",
+  "jr": "J. Amer. Math. Soc. 34 (2021), 565-594",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1801.05397": {
+  "title": "Stably irrational hypersurfaces of small slopes",
+  "jr": "J. Amer. Math. Soc. 32 (2019), 1171-1199",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1604.07123": {
+  "title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "jr": "J. Amer. Math. Soc. 33 (2020), no. 1, 135-222",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1601.02030": {
+  "title": "Combinatorial constructions of derived equivalences",
+  "jr": "J. Amer. Math. Soc. 33 (2020), 735-773",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1505.03665": {
+  "title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "jr": "J. Amer. Math. Soc. 30 (2017), no. 4, 1133--1163",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1311.4960": {
+  "title": "Bertini irreducibility theorems over finite fields",
+  "jr": "J. Amer. Math. Soc. 29 (2016), no. 1, 81-94",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1307.0361": {
+  "title": "Dynamical degrees of birational transformations of projective surfaces",
+  "jr": "J. Amer. Math. Soc. 29 (2016), no. 2, 415-471",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1103.4322": {
+  "title": "Homological mirror symmetry for punctured spheres",
+  "jr": "J. Amer. Math. Soc. 26 (2013), 1051-1083",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1009.0287": {
+  "title": "Random maximal isotropic subspaces and Selmer groups",
+  "jr": "J. Amer. Math. Soc. 25 (2012), no. 1, 245-269",
+  "cat": "math.AG",
+  "year": 2012,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1001.5008": {
+  "title": "Rational points of universal curves",
+  "jr": "J. Amer. Math. Soc. 24 (2011), 709-769",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0908.4187": {
+  "title": "Uniqueness of enhancement for triangulated categories",
+  "jr": "J. Amer. Math. Soc. 23 (2010), 3, 853--908",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0805.0157": {
+  "title": "Integral Transforms and Drinfeld Centers in Derived Algebraic Geometry",
+  "jr": "J. Amer. Math. Soc. 23 (2010), no. 4, 909-966",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0711.0871": {
+  "title": "Sheaves on affine Schubert varieties, modular representations and Lusztig's conjecture",
+  "jr": "J. Amer. Math. Soc. 24 (2011), 133-181",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1412.5029": {
+  "title": "Long gaps between primes",
+  "jr": "J. Amer. Math. Soc., 31 (2018), no. 1, 65-105",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1412.4548": {
+  "title": "On fewnomials, integral points and a toric version of Bertini's theorem",
+  "jr": "J. Amer. Math. Soc. 31 (2018), 107-134",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1412.0737": {
+  "title": "A classification of irreducible admissible mod p representations of p-adic reductive groups",
+  "jr": "J. Amer. Math. Soc. 30 (2017), no. 2, 495-559",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1208.6280": {
+  "title": "Automorphic period and the central value of Rankin--Selberg L-function",
+  "jr": "J. Amer. Math. Soc. 27 (2014), 541-612",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1005.5120": {
+  "title": "Algebraic independence of periods and logarithms of Drinfeld modules (with an appendix by Brian Conrad)",
+  "jr": "J. Amer. Math. Soc. 25 (2012), 123-150",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1001.2096": {
+  "title": "Equidistribution and Counting for orbits of geometrically finite hyperbolic groups",
+  "jr": "J. Amer. Math. Soc. 26 (2013), 511-562",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0804.1424": {
+  "title": "Expanding translates of curves and Dirichlet-Minkowski theorem on linear forms",
+  "jr": "J. Amer. Math. Soc. 23 (2010), 563-589",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1809.09386": {
+  "title": "Residually finite rationally solvable groups and virtual fibring",
+  "jr": "J. Amer. Math. Soc. 33 (2020), no. 2, 451-486",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1610.04888": {
+  "title": "Quantitative null-cobordism",
+  "jr": "J. Amer. Math. Soc. 31 (2018), 1165-1203",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1403.2334": {
+  "title": "Homological stability for moduli spaces of high dimensional manifolds. I",
+  "jr": "J. Amer. Math. Soc. 31 (2018), 215-264",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1112.3932": {
+  "title": "A Khovanov stable homotopy type",
+  "jr": "J. Amer. Math. Soc. 27 (2014), no. 4, 983-1042",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1112.2324": {
+  "title": "The Hilbert--Smith conjecture for three-manifolds",
+  "jr": "J. Amer. Math. Soc. 26 (2013), no. 3, 879--899",
+  "cat": "math.GT",
+  "year": 2013,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1010.6043": {
+  "title": "The fundamental group of random 2-complexes",
+  "jr": "J. Amer. Math. Soc. 24 (2011), 1-28",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0711.2704": {
+  "title": "The fundamental group of random 2-complexes",
+  "jr": "J. Amer. Math. Soc. 24 (2011), 1-28",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1807.07541": {
+  "title": "Plancherel theory for real spherical spaces: Construction of the Bernstein morphisms",
+  "jr": "J. Amer. Math. Soc. 34 (2021), no. 3, 815-908",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1409.1670": {
+  "title": "Gr\u00f6bner methods for representations of combinatorial categories",
+  "jr": "J. Amer. Math. Soc. 30 (2017), 159-203",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1004.2781": {
+  "title": "Generic bases for cluster algebras and the Chamber Ansatz",
+  "jr": "J. Amer. Math. Soc. 25 (2012), 21-76",
+  "cat": "math.RT",
+  "year": 2012,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "1002.4256": {
+  "title": "Automorphisms of multiplicity free Hamiltonian manifolds",
+  "jr": "J. Amer. Math. Soc. 24 (2011), 567-601",
+  "cat": "math.RT",
+  "year": 2011,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0904.0676": {
+  "title": "Quivers with potentials and their representations II: Applications to cluster algebras",
+  "jr": "J. Amer. Math. Soc. 23 (2010), No. 3, 749-790.",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "0707.3108": {
+  "title": "Quantized symplectic actions and W-algebras",
+  "jr": "J. Amer. Math. Soc. 23(2010), 35-59",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "J. Amer. Math. Soc."
+ },
+ "2103.05195": {
+  "title": "An efficient algorithm for deciding vanishing of Schubert polynomial coefficients",
+  "jr": "Adv. Math. 383 (2021), Paper No. 107669, 38 pp",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "2006.14206": {
+  "title": "Cameron-Liebler Line Classes with parameter $x=\\frac{(q+1)^2}{3}$",
+  "jr": "Adv. Math. 385 (2021)",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "2003.07713": {
+  "title": "Irreducible projective representations of the alternating group which remain irreducible in characteristic 2",
+  "jr": "Adv. Math. 347 (2020) 107340",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "2003.01435": {
+  "title": "Accurate Arrangements",
+  "jr": "Adv. Math. 383, Article ID 107702, 30 p. (2021)",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "2001.00743": {
+  "title": "Restriction of Global Bases and Rhoades's Theorem",
+  "jr": "Adv. Math. 384 (2021), 107725",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "2001.00654": {
+  "title": "Plethystic formulas for permutation enumeration",
+  "jr": "Adv. Math. 375: Article #107370, 55 pp., 2020",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1912.11320": {
+  "title": "The incidence comodule bialgebra of the Baez-Dolan construction",
+  "jr": "Adv. Math. 383 (2021), 107693",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1911.11172": {
+  "title": "Separable elements and splittings of Weyl groups",
+  "jr": "Adv. Math. 374 (2020)",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1909.01418": {
+  "title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "jr": "Adv. Math. 383 (2021), 107675",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1907.06985": {
+  "title": "Positive specializations of symmetric Grothendieck polynomials",
+  "jr": "Adv. Math. Vol. 363 (2020)",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1906.00907": {
+  "title": "K-theory formulas for orthogonal and symplectic orbit closures",
+  "jr": "Adv. Math. 372 (2020), 107299",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1904.11462": {
+  "title": "Exponential improvements for superball packing upper bounds",
+  "jr": "Adv. Math. 365 (2020), 107056",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "2004.14343": {
+  "title": "Homotopy Coherent Mapping Class Group Actions and Excision for Hochschild Complexes of Modular Categories",
+  "jr": "Adv. Math. 386, 107814, 2021",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1912.05938": {
+  "title": "Stability conditions, cluster varieties, and Riemann-Hilbert problems from surfaces",
+  "jr": "Adv. Math. 380 (2021)",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1902.05321": {
+  "title": "Characterisation of homotopy ribbon discs",
+  "jr": "Adv. Math. 391 (2021)",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1805.07860": {
+  "title": "Obstructions to smooth group actions on 4-manifolds from families Seiberg-Witten theory",
+  "jr": "Adv. Math. 354 (2019), 106730",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1801.06308": {
+  "title": "An odd Khovanov homotopy type",
+  "jr": "Adv. Math. 367 (2020), 107112, 51 pp",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1711.07737": {
+  "title": "Superrigidity of actions on finite rank median spaces",
+  "jr": "Adv. Math. 352 (2019), 1206-1252",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1711.02399": {
+  "title": "An equivariant Quillen theorem",
+  "jr": "Adv. Math. 340 (2018), 48-75",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "1704.04449": {
+  "title": "Central stability for the homology of congruence subgroups and the second homology of Torelli groups",
+  "jr": "Adv. Math. 354 (2019), 106740, 45 pp",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1612.08690": {
+  "title": "Nilpotency in instanton homology, and the framed instanton homology of a surface times a circle",
+  "jr": "Adv. Math. 336 (2018), 377-408",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "1609.08033": {
+  "title": "Minimal Lagrangian connections on compact surfaces",
+  "jr": "Adv. Math. 354 (2019), Article ID 106747",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1609.01974": {
+  "title": "Real hyperbolic hyperplane complements in the complex hyperbolic plane",
+  "jr": "Adv. Math., 338 (2018), 1038-1076",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "1607.01763": {
+  "title": "The infinitesimal multiplicities and orientations of the blow-up set of the Seiberg-Witten equation with multiple spinors",
+  "jr": "Adv. Math. 343 (2019), 193-218",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1509.01567": {
+  "title": "A duality map for quantum cluster varieties from surfaces",
+  "jr": "Adv. Math. 306 (2017), 1164-1208",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "1505.02841": {
+  "title": "A homological representation formula of colored Alexander invariants",
+  "jr": "Adv. Math. 289 (2016) 142--160",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "Adv. Math."
+ },
+ "1504.03674": {
+  "title": "Algebraic K-theory of group rings and the cyclotomic trace map",
+  "jr": "Adv. Math. 304 (2017) 930-1020",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "1504.01774": {
+  "title": "Dimension rigidity in conformal structures",
+  "jr": "Adv. Math. 308 (2017), 1127-1186",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "1504.00661": {
+  "title": "Embeddedness of the solutions to the H-Plateau Problem",
+  "jr": "Adv. Math. 317 (2017) 553-574",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "1502.06011": {
+  "title": "Categorified skew Howe duality and comparison of knot homologies",
+  "jr": "Adv. Math. 330 (2018), 876-945",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "1502.01141": {
+  "title": "Orientability for gauge theories on Calabi-Yau manifolds",
+  "jr": "Adv. Math. 314 (2017), 48-70",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "1409.3541": {
+  "title": "Homological stability for automorphism groups",
+  "jr": "Adv. Math. 318 (2017) 534-626",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Adv. Math."
+ },
+ "2111.05406": {
+  "title": "The second moment of $GL(4) \\times GL(2)$ $L$-functions at special points",
+  "jr": "Adv. Math. 365 (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "2007.16033": {
+  "title": "Weyl invariant Jacobi forms: a new approach",
+  "jr": "Adv. Math. 384 (2021), 107752",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "2004.11501": {
+  "title": "Beurling integers with RH and large oscillation",
+  "jr": "Adv. Math. 370 (2020), Article Numbers 107240",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "2003.05374": {
+  "title": "On some free algebras of orthogonal modular forms",
+  "jr": "Adv. Math. 373 (2020), 107332",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "2003.04648": {
+  "title": "Query complexity and the polynomial Freiman-Ruzsa conjecture",
+  "jr": "Adv. Math., v. 392, 108043 (2021)",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1906.07717": {
+  "title": "An unconditional $\\mathrm{GL}(n)$ large sieve",
+  "jr": "Adv. Math. 378 (2021), 107529, 24 pp",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1811.02207": {
+  "title": "Decoupling for moment manifolds associated to Arkhipov--Chubarikov--Karatsuba systems",
+  "jr": "Adv. Math. 360 (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1810.00779": {
+  "title": "Petersson norms of not necessarily cuspidal Jacobi modular forms and applications",
+  "jr": "Adv. Math., 336, (2018), 336-375",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "1808.02262": {
+  "title": "Lifting problem for universal quadratic forms",
+  "jr": "Adv. Math. 377 (2021), 107497, 24 pp",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1807.07210": {
+  "title": "Higher Width Moonshine",
+  "jr": "Adv. Math. 360 (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Adv. Math."
+ },
+ "1804.06400": {
+  "title": "The Eisenstein ideal with squarefree level",
+  "jr": "Adv. Math. 380 (2021), Paper No. 107543, 62 pp",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1802.04384": {
+  "title": "Inhomogeneous Diophantine approximation in the coprime setting",
+  "jr": "Adv. Math. 355 (2019), 106773",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1711.05281": {
+  "title": "Birational geometry of compactifications of Drinfeld half-spaces over a finite field",
+  "jr": "Adv. Math. 345 (2019), 861-908",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1707.01576": {
+  "title": "Subconvexity for modular form L-functions in the t aspect",
+  "jr": "Adv. Math. 341 (2019), 299--335",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1706.07019": {
+  "title": "Index of fibrations and Brauer classes that never obstruct the Hasse principle",
+  "jr": "Adv. Math., 348 (2019), 512-522",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Adv. Math."
+ },
+ "1705.01663": {
+  "title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "jr": "Adv. Math. 393 (2021) Article 108058",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Adv. Math."
+ },
+ "1611.04754": {
+  "title": "Manin's conjecture for certain spherical threefolds",
+  "jr": "Adv. Math. 337 (2018), 39-82",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Adv. Math."
+ },
+ "2005.07176": {
+  "title": "Ergodic theorems for laminations and foliations: recent results and perspectives",
+  "jr": "Acta Math. Vietnam.(2020)",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Acta Math."
+ },
+ "1803.08961": {
+  "title": "Cohen-Macaulay criteria for projective monomial curves via Gr\u00f6bner bases",
+  "jr": "Acta Math Vietnam 44 (2019), 51--64",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Acta Math."
+ },
+ "1705.07276": {
+  "title": "Pencilled regular parallelisms",
+  "jr": "Acta Math. Hungar. 153 (2017), 249-264",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1602.05534": {
+  "title": "A hyper-K\u00e4hler compactification of the Intermediate Jacobian fibration associated to a cubic fourfold",
+  "jr": "Acta Math. 218 (2017), no. 1, 55-135",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1411.5724": {
+  "title": "Tate Resolutions for Products of Projective Spaces",
+  "jr": "Acta Math Vietnam (2015) 40: 5",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Acta Math."
+ },
+ "1406.5310": {
+  "title": "A c-holomorphic effective Nullstellensatz with parameter",
+  "jr": "Univ. Iagel. Acta Math. 54 (2017)",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1211.2462": {
+  "title": "Non-degeneracy of the discriminant",
+  "jr": "Acta Math. Hungar. Volume 147, Issue 1 (2015), 220-246",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Acta Math."
+ },
+ "1209.3663": {
+  "title": "The convergence Newton polygon of a p-adic differential equation II: Continuity and finiteness on Berkovich curves",
+  "jr": "Acta Math., Volume 214, Number 2 (2015), 357-393",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Acta Math."
+ },
+ "1207.0610": {
+  "title": "Torsion functors with monomial support",
+  "jr": "Acta Math. Vietnam 38 (2013) 293-301",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "1105.3327": {
+  "title": "The thick-thin decomposition and the bilipschitz classification of normal surface singularities",
+  "jr": "Acta Math. Volume 212 (2014), 199-256",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Acta Math."
+ },
+ "1009.3506": {
+  "title": "The Coherent-Constructible Correspondence and Fourier-Mukai Transforms",
+  "jr": "Acta Math. Sin. (Engl. Ser.) 27 (2011), no.2, 275-308",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "Acta Math."
+ },
+ "1006.3125": {
+  "title": "The big de Rham-Witt complex",
+  "jr": "Acta Math. 214 (2015), 135-207",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Acta Math."
+ },
+ "0707.3404": {
+  "title": "Kouchnirenko type formulas for local invariants of plane analytic curves",
+  "jr": "Generalized Noether's formulas for plane curves singularities, Univ. Iagell. Acta Math. 48 (2010) 71-78",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Acta Math."
+ },
+ "2007.13830": {
+  "title": "Multiplicity of solutions for a class of critical Schr\u00f6dinger-Poisson system with two parameters",
+  "jr": "Acta Math. Sci. Ser. A (Chin. Ed.) 41, no.6, 1750-1767,2021",
+  "cat": "math.AP",
+  "year": 2021,
+  "journal": "Acta Math."
+ },
+ "1908.02536": {
+  "title": "The existence of a nontrivial weak solution to a double critical problem involving fractional Laplacian in ${\\R}^n$ with a Hardy term",
+  "jr": "Acta Math Sci ,2020",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Acta Math."
+ },
+ "1905.04306": {
+  "title": "Accretivity and form boundedness of second order differential operators",
+  "jr": "Acta Math. Sin. (Engl. Ser.) 35 (2019), no. 6, 832-852",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Acta Math."
+ },
+ "1903.11930": {
+  "title": "Unique continuation property with partial information for two-dimensional anisotropic elasticity systems",
+  "jr": "Acta Math. Appl. Sin. Eng. Ser., 36 (2020) 3-17",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Acta Math."
+ },
+ "1805.07750": {
+  "title": "The orbit method and analysis of automorphic forms",
+  "jr": "Acta Math. 226 (2021), no. 1, 1-209",
+  "cat": "math.AP",
+  "year": 2021,
+  "journal": "Acta Math."
+ },
+ "1804.01056": {
+  "title": "Strong Comparison Principles for Some Nonlinear Degenerate Elliptic Equations",
+  "jr": "Acta Math. Sci. Ser. B (Engl. Ed. ) 38 (2018), no. 5, pp. 1583--1590",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1712.00551": {
+  "title": "On Vortex Alignment and Boundedness of $L^q$ Norm of Vorticity",
+  "jr": "Acta Math. Sci. Ser. B (Engl. Ed.) 40 (2020), no. 6, 1700--1708",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Acta Math."
+ },
+ "1709.04124": {
+  "title": "On a conformally invariant integral equation involving Poisson kernel",
+  "jr": "Acta Math. Sin. (Engl. Ser.) 34 (2018), no. 4, 681-690",
+  "cat": "math.AP",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1610.04928": {
+  "title": "A Dirichlet type problem for complex polyharmonic functions",
+  "jr": "Acta Math. Hungar. 153 (2017), 216-229",
+  "cat": "math.AP",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1601.06467": {
+  "title": "The linear stability of the Schwarzschild solution to gravitational perturbations",
+  "jr": "Acta Math., 222 (2019), 1-214",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Acta Math."
+ },
+ "1601.05685": {
+  "title": "Global solutions of the gravity-capillary water-wave system in three dimensions",
+  "jr": "Acta Math. 219 (2017), no. 2, 213-402",
+  "cat": "math.AP",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1503.04491": {
+  "title": "Gauduchon metrics with prescribed volume form",
+  "jr": "Acta Math. 219 (2017), no.1, 181-211",
+  "cat": "math.AP",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1009.4042": {
+  "title": "Uniqueness and Nondegeneracy of Ground States for $(-\u0394)^s Q + Q - Q^{\u03b1+1} = 0$ in $\\mathbb{R}$",
+  "jr": "Acta Math. 210 (2013), no. 2, 261-318",
+  "cat": "math.AP",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "1006.5177": {
+  "title": "Some extensions of the mean curvature flow in Riemannian manifolds",
+  "jr": "Acta Math. Sci. Ser. B (Engl. Ed.), 33 (2013), 171-186",
+  "cat": "math.AP",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "0805.4711": {
+  "title": "Astala's Conjecture on Distortion of Hausdorff Measures under Quasiconformal Maps in the Plane",
+  "jr": "Acta Math. 204 (2010), no. 2, 273-292",
+  "cat": "math.AP",
+  "year": 2010,
+  "journal": "Acta Math."
+ },
+ "2111.08341": {
+  "title": "A generalization of simplest number fields and their integral basis",
+  "jr": "Acta Math. Hungar. 163 (2) (2021), 437-461",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Acta Math."
+ },
+ "2006.04500": {
+  "title": "On the number of $k$-compositions of $n$ satisfying certain coprimality conditions",
+  "jr": "Acta Math. Hungar. 164 (1) (2021), 135-156",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Acta Math."
+ },
+ "2001.07017": {
+  "title": "The Thue-Morse and Rudin-Shapiro sequences at primes in principal number fields",
+  "jr": "Acta Math. Hung. 162, No. 1, 130-186 (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Acta Math."
+ },
+ "1912.00853": {
+  "title": "Oscillations of the error term in the prime number theorem",
+  "jr": "Acta Math. Hungar. 156 (2018), 303-308",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1810.13360": {
+  "title": "Irreducibility of random polynomials of large degree",
+  "jr": "Acta Math. 223(2): 195-249 (December 2019)",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Acta Math."
+ },
+ "1807.04916": {
+  "title": "A note on asymptotic class number upper bounds in $p$-adic Lie extensions",
+  "jr": "Acta. Math. Sin.-English Ser. (2019) Vol. 35 Issue 9, 1481-1490",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Acta Math."
+ },
+ "1705.07932": {
+  "title": "Metric Mahler measures over number fields",
+  "jr": "Acta Math. Hungar. 154 (2018), no. 1, 105--123",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1703.10947": {
+  "title": "Geometric counting on wavefront real spherical spaces",
+  "jr": "Acta Math. Sinica 34(3) (2018), 488-531",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1609.08578": {
+  "title": "Arithmetic properties for cubic partition pairs modulo powers of 3",
+  "jr": "Acta Math. Sin. (Engl. Ser.) 33 (2017), no. 11, 1504--1512",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1607.06366": {
+  "title": "On the equation $ \\boldsymbol{n_1n_2=n_3n_4}$ restricted to factor closed sets",
+  "jr": "Acta Math. Sinica , 2018 , vol. 34 No. 10, pp. 1517--1530",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1602.06173": {
+  "title": "On small univoque bases of real numbers",
+  "jr": "Acta Math Hungar 150 (1) (2016) 194--208",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Acta Math."
+ },
+ "1601.02810": {
+  "title": "Rational approximation to surfaces defined by polynomials in one variable",
+  "jr": "Acta Math. Hungar. 155 (2018), no. 2, 362-375",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1512.08753": {
+  "title": "On the continuity of the geometric side of the trace formula",
+  "jr": "Acta Math. Vietnam. 41 (2016) #3 425-455",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Acta Math."
+ },
+ "1511.03743": {
+  "title": "Sums of sets of lattice points and unimodular coverings of polytopes",
+  "jr": "Acta Math. Hungar. 149 (2016), 233--237",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Acta Math."
+ },
+ "1408.4166": {
+  "title": "The $t$-metric Mahler measures of surds and rational numbers",
+  "jr": "Acta Math. Hungar. 134 (2012), no. 4, 481--498",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "Acta Math."
+ },
+ "1305.7172": {
+  "title": "Growth polynomials for additive quadruples and $(h,k)$-tuples",
+  "jr": "Acta Math. Hungarica 143 (3) (2014), 44-57",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "Acta Math."
+ },
+ "1205.4414": {
+  "title": "Existence and Optimality of $w$-Non-adjacent Forms with an Algebraic Integer Base",
+  "jr": "Acta Math. Hungar. 140 (2013), no. 1--2, 90--104",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "1108.0162": {
+  "title": "The least common multiple of a sequence of products of linear polynomials",
+  "jr": "Acta Math. Hungari. 135 (2012), 160-167",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "Acta Math."
+ },
+ "1010.5427": {
+  "title": "On common values of phi(n) and sigma(n), I",
+  "jr": "Acta Math. Hungarica 133 (2011), 251-271",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Acta Math."
+ },
+ "1709.02530": {
+  "title": "On compact Hermitian manifolds with flat Gauduchon connections",
+  "jr": "Acta. Math. Sinica (English Series), 34 (2018), no.8, 1259-1268",
+  "cat": "math.DG",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1706.01219": {
+  "title": "Minimal complex surfaces with Levi-Civita Ricci-flat metrics",
+  "jr": "Acta Math. Sinica. 34(2018), 1195-1207",
+  "cat": "math.DG",
+  "year": 2018,
+  "journal": "Acta Math."
+ },
+ "1602.04597": {
+  "title": "Eigenvalues under the Ricci flow of model geometries",
+  "jr": "Acta Math. Sinica (Chin. Ser.) 60 (2017), no. 4, 583-594",
+  "cat": "math.DG",
+  "year": 2017,
+  "journal": "Acta Math."
+ },
+ "1505.01790": {
+  "title": "Gravitational instantons with faster than quadratic curvature decay (I)",
+  "jr": "Acta Math., 227 (2021), 263--307",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Acta Math."
+ },
+ "1309.3810": {
+  "title": "The degenerate J-flow and the Mabuchi energy on minimal surfaces of general type",
+  "jr": "Univ. Iagel. Acta Math. No. 50, [2012 on articles] (2013), 89-106",
+  "cat": "math.DG",
+  "year": 2012,
+  "journal": "Acta Math."
+ },
+ "1304.5861": {
+  "title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "jr": "Acta Math. 216 (2016), no. 2, 217-323",
+  "cat": "math.DG",
+  "year": 2016,
+  "journal": "Acta Math."
+ },
+ "1302.4626": {
+  "title": "Degenerate Monge-Type Hypersurfaces",
+  "jr": "acta math. univ. comenianae, vol. 83 (2014) no. 1, pp. 67-80",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Acta Math."
+ },
+ "1212.6763": {
+  "title": "Blowup behavior of the Kahler-Ricci flow on Fano manifolds",
+  "jr": "Univ. Iagel. Acta Math. 50 (2013), 117-126",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "1208.2297": {
+  "title": "Rigidity around Poisson Submanifolds",
+  "jr": "Acta Math. 213 (2014), no. 1, 137--198",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Acta Math."
+ },
+ "1103.0866": {
+  "title": "On Double Vector Bundles",
+  "jr": "Acta. Math. Sinica, 30 (10), (2014), 1655-1673",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Acta Math."
+ },
+ "1102.5240": {
+  "title": "Weakly Z symmetric manifolds",
+  "jr": "Acta Math. Hungar. 135 (2012) 80 - 96",
+  "cat": "math.DG",
+  "year": 2012,
+  "journal": "Acta Math."
+ },
+ "1006.5707": {
+  "title": "Smooth structures on pseudomanifolds with isolated conical singularities",
+  "jr": "Acta Math Vietnam (2013) 38:33-54",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Acta Math."
+ },
+ "0908.0046": {
+  "title": "The index of a geodesic in a Randers space and some remarks about the lack of regularity of the energy functional of a Finsler metric",
+  "jr": "Acta Math. Acad. Paedagog. Nyiregyhasiensis, 26 (2010) 265--274",
+  "cat": "math.DG",
+  "year": 2010,
+  "journal": "Acta Math."
+ },
+ "0907.5456": {
+  "title": "Equivariant heat invariants of the Laplacian and nonmininmal operators on differential forms",
+  "jr": "Acta Math Sci, 2011, 805-814",
+  "cat": "math.DG",
+  "year": 2011,
+  "journal": "Acta Math."
+ },
+ "1904.09642": {
+  "title": "A gap theorem for minimal log discrepancies of non-canonical singularities in dimension three",
+  "jr": "J. Algebraic Geom. 30 (2021), 759-800",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Algebraic Geom."
+ },
+ "1805.09709": {
+  "title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "jr": "J. Algebraic Geom. 29 (2020), no. 4, 691--728",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1801.04905": {
+  "title": "Corrigendum to the paper \"A flexible affine $M$-sextic which is algebraically unrealizable\"",
+  "jr": "J. Algebraic Geom. 29 (2020), 109-121",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1709.01705": {
+  "title": "Moduli of formal torsors",
+  "jr": "J. Algebraic Geom. 29 (2020), no. 4, 753-801",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1704.03109": {
+  "title": "On rigid varieties with projective reduction",
+  "jr": "J. Algebraic Geom. 29 (2020), 669-690",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1702.08487": {
+  "title": "Vafa-Witten invariants for projective surfaces I: stable case",
+  "jr": "J. Algebraic Geom. 29 (2020), 603-668",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1612.07663": {
+  "title": "Diagonalisable p-groups cannot fix exactly one point on projective varieties",
+  "jr": "J. Algebraic Geom. 29 (2020), 373--402",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1602.06231": {
+  "title": "Generic vanishing and minimal cohomology classes on abelian fivefolds",
+  "jr": "J. Algebraic Geom. 27 (2018), 553-581",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "J. Algebraic Geom."
+ },
+ "1511.01393": {
+  "title": "Generic Base Change, Artin's Comparison Theorem, and the Decomposition Theorem for Complex Artin stacks",
+  "jr": "J. Algebraic Geom. 26 (2017), 513-555",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Algebraic Geom."
+ },
+ "1509.04608": {
+  "title": "Bridgeland Stability on Threefolds -- Some Wall Crossings",
+  "jr": "J. Algebraic Geom. 29 (2020), 247-283",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Algebraic Geom."
+ },
+ "1508.07277": {
+  "title": "Which quartic double solids are rational?",
+  "jr": "J. Algebraic Geom., 28:2 (2019), 201--243",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Algebraic Geom."
+ },
+ "1501.04410": {
+  "title": "Special birational transformations of type (2,1)",
+  "jr": "J. Algebraic Geom. 27 (2018), 55-89",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "J. Algebraic Geom."
+ },
+ "1309.1803": {
+  "title": "Perverse Curves and Mirror Symmetry",
+  "jr": "J. Algebraic Geom. 26 (2017) 17-42",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Algebraic Geom."
+ },
+ "1305.6032": {
+  "title": "The two-dimensional Contou-Carr\u00e8re symbol and reciprocity laws",
+  "jr": "J. Algebraic Geom., 25 (2016), 703--774",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Algebraic Geom."
+ },
+ "1305.0365": {
+  "title": "Quotient stacks and equivariant \u00e9tale cohomology algebras: Quillen's theory revisited",
+  "jr": "J. Algebraic Geom. (2016), no. 2, pp. 289-400",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Algebraic Geom."
+ },
+ "2308.12920": {
+  "title": "Minimal algebraic complexes over $D_{4n}$",
+  "jr": "Algebr. Geom. Topol. 13 (2013), Issue 6, pp. 3287-3304",
+  "cat": "math.AT",
+  "year": 2013,
+  "journal": "Geom. Topol."
+ },
+ "2005.13761": {
+  "title": "Pushforwards of klt pairs under morphisms to abelian varieties",
+  "jr": "Math. Ann. 380 (2021), no. 3, 1655-1685",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "2003.07413": {
+  "title": "An arithmetic enrichment of B\u00e9zout's Theorem",
+  "jr": "Math. Ann. 379, 633--660 (2021)",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "2003.01255": {
+  "title": "Height Gap Conjectures, $D$-Finiteness, and Weak Dynamical Mordell-Lang",
+  "jr": "Math. Ann. 378 (2020), no. 3-4, 971--992",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "2001.03694": {
+  "title": "Mapping class groups, multiple Kodaira fibrations, and CAT(0) spaces",
+  "jr": "Math. Ann. 380 (2021), no. 1-2, 449-485",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1904.10848": {
+  "title": "The geometry of the Coble cubic and orbital degeneracy loci",
+  "jr": "Math. Ann., 379:415-440, 2021",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1805.08997": {
+  "title": "Lower bounds and asymptotics of real double Hurwitz numbers",
+  "jr": "Math. Ann. 375.1-2 (2019), pp. 895-915",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Math. Ann."
+ },
+ "1804.01266": {
+  "title": "Harmonic metrics on Higgs sheaves and uniformization of varieties of general type",
+  "jr": "Math. Ann. 378, 1061-1094 (2020)",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1802.02377": {
+  "title": "Equivariant motivic integration and proof of the integral identity conjecture for regular functions",
+  "jr": "Math. Ann. 376 (2020), 1195-1223",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1801.06849": {
+  "title": "Multiplicity of singularities is not a bi-Lipschitz invariant",
+  "jr": "Math. Ann. 377, 115-121 (2020)",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1801.06555": {
+  "title": "A theorem of Tits type for automorphism groups of projective varieties in arbitrary characteristic (with an appendix by Tomohide Terasoma)",
+  "jr": "Math. Ann. 377 (2020), no. 3-4, 1573--1602",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1706.06431": {
+  "title": "Extensions of arc-analytic functions",
+  "jr": "Math. Ann. (2018)",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1705.00605": {
+  "title": "Reduction of manifolds with semi-negative holomorphic sectional curvature",
+  "jr": "Math. Ann. 372 (2018), no.3-4, 951-062",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "2004.13468": {
+  "title": "Asymptotic behavior of solutions to elliptic and parabolic equations with unbounded coefficients of the second orderin unbounded domains",
+  "jr": "Math. Ann. 380 (2021), 1105--1117",
+  "cat": "math.AP",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "2003.13262": {
+  "title": "Additive kinematic formulas for flag area measures",
+  "jr": "Math. Ann. 381(2021), 1615-1652",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1903.02497": {
+  "title": "Energy of sections of the Deligne-Hitchin twistor space",
+  "jr": "Math. Ann. 380 (2021), no. 3-4, 1169-1214",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1812.04271": {
+  "title": "Lagrangian configurations and symplectic cross-ratios",
+  "jr": "Math. Ann. 375 (2019) 1105-1145",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "Math. Ann."
+ },
+ "1807.00276": {
+  "title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "jr": "Math. Ann. 379 (2021), no. 1-2, 95-132",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "2003.04929": {
+  "title": "An asymptotic version of the prime power conjecture for perfect difference sets",
+  "jr": "Math. Ann. 380 (2021), no. 3-4, 1387-1425",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "2001.09640": {
+  "title": "Applications of analytic newvectors for $\\mathrm{GL}(n)$",
+  "jr": "Math. Ann. 380(3), 915-952 (2021)",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1811.04834": {
+  "title": "Correlation of arithmetic functions over $\\mathbb{F}_q[T]$",
+  "jr": "Math. Ann. 376 (2020), no. 3-4, 1059-1106",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1801.08593": {
+  "title": "Subconvex bounds on GL(3) via degeneration to frequency zero",
+  "jr": "Math. Ann. 372 (2018), no. 1-2, 299-319",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1704.06158": {
+  "title": "Extreme values of the Riemann zeta function and its argument",
+  "jr": "Math. Ann. 372 (2018), 999--1015",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1608.06854": {
+  "title": "A generalized cubic moment and the Petersson formula for newforms",
+  "jr": "Math. Ann. 373 Issue 1-2, (2019) p. 287-353",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Math. Ann."
+ },
+ "1606.07014": {
+  "title": "Covariants of binary sextics and vector-valued Siegel modular forms of genus two",
+  "jr": "Math. Ann. 369 (2017), no. 3--4, 1649--1669",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Math. Ann."
+ },
+ "1605.03427": {
+  "title": "On the representation of integers by binary forms",
+  "jr": "Math. Ann. 375 (2019), 133-163",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Math. Ann."
+ },
+ "1604.06337": {
+  "title": "Bergman kernels on punctured Riemann surfaces",
+  "jr": "Math. Ann. 379 (2021), 951-1002",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1603.04693": {
+  "title": "Affinoids in the Lubin-Tate perfectoid space and simple supercuspidal representations II: wild case",
+  "jr": "Math. Ann. 380 (2021), no. 1-2, 751-788",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Ann."
+ },
+ "1510.05935": {
+  "title": "Sums of Euler products and statistics of elliptic curves",
+  "jr": "Math. Ann. 368 (2017), no. 1-2, 685-752",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Math. Ann."
+ },
+ "1501.05629": {
+  "title": "Algebraic families of Galois representations and potentially semi-stable pseudodeformation rings",
+  "jr": "Math. Ann. 371 (2018), no. 3-4, 1615-1681",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1410.4741": {
+  "title": "Topological polylogarithms and $p$-adic interpolation of $L$-values of totally real fields",
+  "jr": "Math. Ann., 371, p. 1449--1495, 2018",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1409.6398": {
+  "title": "$\\mathbb{A}^1$-connected varieties over non-closed fields",
+  "jr": "Math. Ann. 364, (2016), no.3, 1505-1515",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Math. Ann."
+ },
+ "1409.3524": {
+  "title": "A Twisted Motohashi Formula and Weyl-Subconvexity for $L$-functions of Weight Two Cusp Forms",
+  "jr": "Math. Ann. (2015) 363: 175",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "Math. Ann."
+ },
+ "1803.05281": {
+  "title": "The enough $g$-pairs property and denominator vectors of cluster algebras",
+  "jr": "Math. Ann. 377, 1547--1572 (2020)",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Math. Ann."
+ },
+ "1608.06507": {
+  "title": "Representation stability for filtrations of Torelli groups",
+  "jr": "Math. Ann. 372 (2018), no. 1-2, 257-298",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1605.04953": {
+  "title": "Demazure character formula for semi-infinite flag varieties",
+  "jr": "Math. Ann. 371 (2018) 1769--1801",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1603.06105": {
+  "title": "A characterization of nilpotent orbit closures among symplectic singularities",
+  "jr": "Math. Ann. (2018) vol. 370, 811-818",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Math. Ann."
+ },
+ "1507.00401": {
+  "title": "Modular generalized Springer correspondence III: exceptional groups",
+  "jr": "Math. Ann. 369 (2017), no. 1-2, 247-300",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Math. Ann."
+ },
+ "1501.00350": {
+  "title": "On the definition of Kac-Moody 2-category",
+  "jr": "Math. Ann. 364 (2016), 353-372",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Math. Ann."
+ },
+ "1407.0806": {
+  "title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "jr": "Math. Ann. 365(2016), pp 595-633",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Math. Ann."
+ },
+ "1405.6616": {
+  "title": "Rational representations and permutation representations of finite groups",
+  "jr": "Math. Ann. 364 no. 1 (2016), 539-558",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Math. Ann."
+ },
+ "1401.5302": {
+  "title": "Quivers with loops and perverse sheaves",
+  "jr": "Math. Ann., 362(3-4): 773-797, 2015",
+  "cat": "math.RT",
+  "year": 2015,
+  "journal": "Math. Ann."
+ },
+ "1203.1583": {
+  "title": "Weyl modules and q-Whittaker functions",
+  "jr": "Math. Ann. 359 (2014), no.1-2, 45--59",
+  "cat": "math.RT",
+  "year": 2014,
+  "journal": "Math. Ann."
+ },
+ "0905.1231": {
+  "title": "Tilting on non-commutative rational projective curves",
+  "jr": "Math. Ann. 351 (2011), 665-709",
+  "cat": "math.RT",
+  "year": 2011,
+  "journal": "Math. Ann."
+ },
+ "0809.4453": {
+  "title": "Langlands duality for representations of quantum groups",
+  "jr": "Math. Ann. 349 (2011), no. 3, 705--746",
+  "cat": "math.RT",
+  "year": 2011,
+  "journal": "Math. Ann."
+ },
+ "0804.3530": {
+  "title": "Khinchin theorem for integral points on quadratic varieties",
+  "jr": "Math. Ann. (2011) 350(2): 357-380",
+  "cat": "math.RT",
+  "year": 2011,
+  "journal": "Math. Ann."
+ },
+ "0705.3779": {
+  "title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "jr": "Math. Ann. (2010) 348, 211-236",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "Math. Ann."
+ },
+ "2009.02271": {
+  "title": "On toric geometry and K-stability of Fano varieties",
+  "jr": "Trans. Amer. Math. Soc. Ser. B 8 (2021), 548-577",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1909.04014": {
+  "title": "Structure of geometrically non-reduced varieties",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 8333-8363",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1903.03042": {
+  "title": "Theta bases and log Gromov-Witten invariants of cluster varieties",
+  "jr": "Trans. Amer. Math. Soc., vol. 374 (2021) no. 8",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1902.06771": {
+  "title": "The Cohen-Macaulay property in derived commutative algebra",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 6095-6138",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1810.03503": {
+  "title": "An arithmetic count of the lines meeting four lines in P^3",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 3427-3451",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1808.06345": {
+  "title": "Pseudolattices, del Pezzo surfaces, and Lefschetz fibrations",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 3, 2071-2104",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1807.10329": {
+  "title": "Holomorphic string algebroids",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 10, 7347-7382",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1807.08413": {
+  "title": "Stable log surfaces, admissible covers, and canonical curves of genus 4",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 589-641",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2006.07927": {
+  "title": "On the smallest base in which a number has a unique expansion",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), no. 9, 6201-6249",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2002.11627": {
+  "title": "Fourier interpolation from spheres",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 8045-8079",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1911.06265": {
+  "title": "Multiplicative functions that are close to their mean",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 7967-7990",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1909.03903": {
+  "title": "Divisibility of the central binomial coefficient $\\binom{2n}{n}$",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 923-953",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1909.03666": {
+  "title": "Traces of powers of matrices over finite fields",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 4579-4638",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1906.03705": {
+  "title": "Representation of integers by sparse binary forms",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 1687-1709",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1901.05730": {
+  "title": "Restrictions on endomorphism rings of jacobians and their minimal fields of definition",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), no. 7, 4639-4654",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1901.04075": {
+  "title": "C*-algebras from actions of congruence monoids on rings of algebraic integers",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 1, 699--726",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1810.09437": {
+  "title": "Deducing Selberg trace formula via Rankin-Selberg method for $\\mathrm{GL}_2$",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), 8507-8551",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1810.06201": {
+  "title": "Chebotarev density theorem in short intervals for extensions of $\\mathbb{F}_q(T)$",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 597-628",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1810.00990": {
+  "title": "Finite index theorems for iterated Galois groups of unicritical polynomials",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021) 733-752",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2004.01033": {
+  "title": "H-Space structures on spaces of metrics of positive scalar curvature",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 8989-9006",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1902.10129": {
+  "title": "Spectra of Cayley graphs of the lamplighter group and random Schrodinger operators",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), no. 4",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1812.04237": {
+  "title": "Bowditch's Q-conditions and Minsky's primitive stability",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 1265-1305",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1809.10334": {
+  "title": "NP-hard problems naturally arising in knot theory",
+  "jr": "Trans. Amer. Math., Soc. Ser. B 8 (2021), 420-441",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1808.06957": {
+  "title": "The Fukaya category of the pillowcase, traceless character varieties, and Khovanov Cohomology",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 8391-8437",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1808.05681": {
+  "title": "Counting cusped hyperbolic 3-manifolds that bound geometrically",
+  "jr": "Trans. Amer. Math. Soc. 373:1 (2020), 229-247",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1807.11931": {
+  "title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), no. 11, 7805-7829",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1802.02505": {
+  "title": "The monodromy of meromorphic projective structures",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 6321-6367",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1801.05342": {
+  "title": "Effective distance between nested Margulis tubes",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), Issue 6, 4211-4237",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1711.05043": {
+  "title": "Contractible 3-manifolds and the double 3-space property",
+  "jr": "Trans. Amer. Math. Soc. 370:3 (2018), 2039-2055",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1706.06557": {
+  "title": "Involutive bordered Floer homology",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), no. 1, 389-424",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2104.12989": {
+  "title": "Characterizations of monadic NIP",
+  "jr": "Trans. Amer. Math. Soc. Ser. B 8 (2021), 948-970; Trans. Amer. Math. Soc. Ser. B 11 (2024), 1226-1232",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2006.08886": {
+  "title": "Distinct distances in the complex plane",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 6691-6725",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2005.09012": {
+  "title": "Newell-Littlewood numbers",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 6331-6366",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2004.00788": {
+  "title": "Ordered set partitions, Garsia-Procesi modules, and rank varieties",
+  "jr": "Trans. Amer. Math. Soc., 374 (2021), pp. 2609-2660",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1806.08931": {
+  "title": "The second term for two-neighbour bootstrap percolation in two dimensions",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), 6465-6505",
+  "cat": "math.CO",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1806.02195": {
+  "title": "Orlik-Solomon-type presentations for the cohomology algebra of toric arrangements",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 3, 1909-1940",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1804.03271": {
+  "title": "Better bounds for poset dimension and boxicity",
+  "jr": "Trans. Amer. Math. Soc. 373.3:2157-2172, 2020",
+  "cat": "math.CO",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1801.01945": {
+  "title": "Quadrilaterals inscribed in convex curves",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), no. 8, 5719-5738",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1710.06920": {
+  "title": "Computing reflection length in an affine Coxeter group",
+  "jr": "Trans. Amer. Math. Soc. 371 (2019), no. 6, 4097-4127",
+  "cat": "math.CO",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1708.09378": {
+  "title": "Euler characteristics of Brill-Noether varieties",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 1513-1533",
+  "cat": "math.CO",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1707.07776": {
+  "title": "Renewal sequences and record chains related to multiple zeta sums",
+  "jr": "Trans. Amer. Math. Soc. 2019, Vol.371, No.8, 5731-5755",
+  "cat": "math.CO",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1706.09851": {
+  "title": "Pinned distance problem, slicing measures and local smoothing estimates",
+  "jr": "Trans. Amer. Math. Soc. 371 (2019), no. 6, 4459-4474",
+  "cat": "math.CO",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2002.04848": {
+  "title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "jr": "Trans. Amer. Math. Soc. Ser. B 8 (2021), 249-276",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1910.05690": {
+  "title": "Periodicity in the cohomology of finite general linear groups via q-divided powers",
+  "jr": "Trans. Amer. Math. Soc. 374 (2021), 5677-5696",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1905.06346": {
+  "title": "Temperley-Lieb, Brauer and Racah algebras and other centralizers of su(2)",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 7, 4907--4932",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1809.00173": {
+  "title": "Lusztig Induction, Unipotent Supports, and Character Bounds",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 12, 8637--8676",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1806.08622": {
+  "title": "The Bruhat order on abelian ideals of Borel subalgebras",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 10, 6999-7018",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1804.04234": {
+  "title": "The basis problem revisited",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), 4523-4559",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1707.08485": {
+  "title": "Zeta functions associated to admissible representations of compact p-adic Lie groups",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), 7677-7733",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1703.07337": {
+  "title": "Point-to-line polymers and orthogonal Whittaker functions",
+  "jr": "Trans. Amer. Math. Soc., 371(12): 8339-8379 (2019)",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1701.02932": {
+  "title": "Webs and $q$-Howe dualities in types $\\mathbf{B}\\mathbf{C}\\mathbf{D}$",
+  "jr": "Trans. Amer. Math. Soc. 371 (2019), no. 10, 7387-7431",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1610.07055": {
+  "title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "jr": "Trans. Amer. Math. Soc. 373 (2020), no. 4, 2331-2347",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1606.05604": {
+  "title": "Compare triangular bases of acyclic quantum cluster algebras",
+  "jr": "Trans. Amer. Math. Soc. 372 (2019), 485-501",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1602.06614": {
+  "title": "Fourier Coefficients for Theta Representations on Covers of General Linear Groups",
+  "jr": "Trans. Amer. Math. Soc., 371 (2019), pp. 7585-7626",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1512.03160": {
+  "title": "On principal realization of modules for the affine Lie algebra $A_1 ^{(1)}$ at the critical level",
+  "jr": "Trans. Amer. Math. Soc. 369 (2017), no.7, 5113-5136",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "1511.01961": {
+  "title": "Topology of two-row Springer fibers for the even orthogonal and symplectic group",
+  "jr": "Trans. Amer. Math. Soc. 370 (2018), 2707-2737",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Trans. Amer. Math. Soc."
+ },
+ "2101.08245": {
+  "title": "Local-global principles for homogeneous spaces over some two-dimensional geometric global fields",
+  "jr": "J. Reine Angew. Math. 781 (2021), 165-186",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "2009.02013": {
+  "title": "Quasiexcellence implies strong generation",
+  "jr": "J. Reine Angew. Math. 780 (2021), 133--138",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "2006.09295": {
+  "title": "Aspherical manifolds, Mellin transformation and a question of Bobadilla-Koll\u00e1r",
+  "jr": "J. Reine Angew. Math. (Crelle's Journal) 781 (2021), 1-18",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1906.00934": {
+  "title": "Deligne-Lusztig duality on the stack of local systems",
+  "jr": "J. reine angew. Math. 778 (2021), 31-63",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1811.02860": {
+  "title": "Characteristic cycle and wild ramification for nearby cycles of \u00e9tale sheaves",
+  "jr": "J. reine angew. Math. 776 (2021), 27-62",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1810.07682": {
+  "title": "Single-valued integration and double copy",
+  "jr": "J. reine angew. Math. (Crelle's Journal) 775 (2021), 145-196",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1803.04448": {
+  "title": "Deformations of rational curves in positive characteristic",
+  "jr": "J. Reine Angew. Math. 769 (2020), 55-86",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1605.05049": {
+  "title": "Relative dynamical degrees of correspondences over a field of arbitrary characteristic",
+  "jr": "J. Reine Angew. Math. 2017",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1510.01076": {
+  "title": "Schottky groups acting on homogeneous rational manifolds",
+  "jr": "J. reine angew. Math. 753 (2019), 23-56",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1509.03791": {
+  "title": "Enhanced perversities",
+  "jr": "J. Reine Angew. Math. (Crelle's Journal), 751 (2019), 185-241",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1507.02595": {
+  "title": "Mukai flops and P-twists",
+  "jr": "J. reine angew. Math. 748:227-240, 2019",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1406.1073": {
+  "title": "On the motive of some hyperKaehler varieties",
+  "jr": "J. reine angew. Math. 725 (2017), 235--247",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1405.5346": {
+  "title": "Cuspidal curves, minimal models and Zaidenberg's finiteness conjecture",
+  "jr": "J. Reine Angew. Math. (Crelle's Journal), 747 (2019), 147-174",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1404.5657": {
+  "title": "On the symplectic eightfold associated to a Pfaffian cubic fourfold",
+  "jr": "J. reine angew. Math. 731:129-137, 2017",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1403.7383": {
+  "title": "On the normal sheaf of determinantal varieties",
+  "jr": "J. Reine Angew. Math. (online 18.06.2014)",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1903.07302": {
+  "title": "Special Functions and Gauss-Thakur Sums in Higher Rank and Dimension",
+  "jr": "J. Reine Angew. Math., 773:231-261, 2021",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1512.03678": {
+  "title": "Iwasawa theory for the symmetric square of a modular form",
+  "jr": "J. Reine angew. Math. 752 (2019), 179--210",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1309.5893": {
+  "title": "Tropical mirror symmetry for elliptic curves",
+  "jr": "J. Reine Angew. Math. (Crelles Journal), Vol. 2017, Issue 732, 211-246",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1309.0443": {
+  "title": "The asymptotic formula in Waring's problem: higher order expansions",
+  "jr": "J. Reine Angew. Math. 742 (2018), 17--46",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1307.5734": {
+  "title": "Distribution of algebraic numbers",
+  "jr": "J. reine angew. Math. 657 (2011), 57-80",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1305.3405": {
+  "title": "On the distribution of Jacobi sums",
+  "jr": "J. Reine Angew. Math. 2018, no. 741, pp. 67-86",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1208.2176": {
+  "title": "Subconvexity for additive equations: pairs of undenary cubic forms",
+  "jr": "J. Reine Angew. Math. 696 (2014), 31-67",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1108.1062": {
+  "title": "Integrality of Stickelberger elements and the equivariant Tamagawa number conjecture",
+  "jr": "J. Reine Angew. Math. 719 (2016), 101-132",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1106.3692": {
+  "title": "A p-adic Eisenstein measure for unitary groups",
+  "jr": "J. Reine Angew. Math. 699 (2015), 111-142",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1102.3236": {
+  "title": "On the number of integers in a generalized multiplication table",
+  "jr": "J. Reine Angew. Math. 689 (2014), 33-99",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1101.1594": {
+  "title": "Multiple Dedekind Zeta Functions",
+  "jr": "J. Reine Angew. Math. 722 (2017), 65-104",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1012.0175": {
+  "title": "Wach modules and critical slope p-adic L-functions",
+  "jr": "J. Reine Angew. Math. 679 (2013), 181-206",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1011.5486": {
+  "title": "The Prime Geodesic Theorem",
+  "jr": "J. Reine Angew. Math. 676 (2013), 105-120",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1011.2826": {
+  "title": "Comparison of Dualizing Complexes",
+  "jr": "J. Reine Angew. Math. 695 (2014), 1-39",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "J. Reine Angew. Math."
+ },
+ "0912.3776": {
+  "title": "Crit\u00e8re pour l'int\u00e9gralit\u00e9 des coefficients de Taylor des applications miroir",
+  "jr": "J. Reine Angew. Math., 662 (2012), pp. 205-252",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "J. Reine Angew. Math."
+ },
+ "0904.2416": {
+  "title": "On Brauer-Kuroda type relations of S-class numbers in dihedral extensions",
+  "jr": "J. reine angew. Math. 668 (2012), 211-244",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "J. Reine Angew. Math."
+ },
+ "0812.1525": {
+  "title": "Conjecture de type de Serre et formes compagnons pour GSp_4",
+  "jr": "J. Reine Angew. Math. (Crelle) 676 (2013), 1-32",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "J. Reine Angew. Math."
+ },
+ "0804.2828": {
+  "title": "On the equivariant and the non-equivariant main conjecture for imaginary quadratic fields",
+  "jr": "J. Reine Angew. Math., 653 2011, 75-114",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "J. Reine Angew. Math."
+ },
+ "2009.14319": {
+  "title": "Estimation and Vanishing Results for Hodge numbers",
+  "jr": "J. Reine Angew. Math. 780 (2021), 197-219",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "2006.13066": {
+  "title": "Four-dimensional complete gradient shrinking Ricci solitons",
+  "jr": "J. Reine Angew. Math. 778 (2021), 127-144",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1909.00839": {
+  "title": "The metric geometry of singularity types",
+  "jr": "J. Reine Angew. Math. 771 (2021), 137-170",
+  "cat": "math.DG",
+  "year": 2021,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1802.01423": {
+  "title": "Remarks on the self-shrinking Clifford torus",
+  "jr": "J. Reine Angew. Math. 2020 (2020), 139-170",
+  "cat": "math.DG",
+  "year": 2020,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1703.08143": {
+  "title": "A Proof of Milnor conjecture in dimension 3",
+  "jr": "J. Reine Angew. Math. 758 (2020) 253-260",
+  "cat": "math.DG",
+  "year": 2020,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1703.07493": {
+  "title": "Harnack inequalities for curvature flows in Riemannian and Lorentzian manifolds",
+  "jr": "J. Reine Angew. Math. 764 (2020), 71-109",
+  "cat": "math.DG",
+  "year": 2020,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1703.04411": {
+  "title": "On local integration of Lie brackets",
+  "jr": "J. Reine Angew. Math. (Crelle's journal), Volume 2020, Issue 760, Pages 267--293",
+  "cat": "math.DG",
+  "year": 2020,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1701.05442": {
+  "title": "Conformally related Riemannian metrics with non-generic holonomy",
+  "jr": "J. Reine Angew. Math. 755, 279-292 (2019)",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1611.02605": {
+  "title": "Curvature estimates for stable free boundary minimal hypersurfaces",
+  "jr": "J. Reine Angew. Math. (Crelle) 2018",
+  "cat": "math.DG",
+  "year": 2018,
+  "journal": "J. Reine Angew. Math."
+ },
+ "1802.09658": {
+  "title": "The normalized volume of a singularity is lower semicontinuous",
+  "jr": "J. Eur. Math. Soc. (JEMS) 23 (2021), no. 4, 1225-1256",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1610.03768": {
+  "title": "The high-dimensional cohomology of the moduli space of curves with level structures",
+  "jr": "J. Eur. Math. Soc. 22 (2020), no. 4, 1261-1287",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1507.05509": {
+  "title": "Uniqueness of dg enhancements for the derived category of a Grothendieck category",
+  "jr": "J. Eur. Math. Soc. 20 (2018), 2607-2641",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1412.5260": {
+  "title": "The wild McKay correspondence and $p$-adic measures",
+  "jr": "J. Eur. Math. Soc. (JEMS)19(2017), no.12, 3709-3734",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1403.1938": {
+  "title": "Extending the Prym map to toroidal compactifications of the moduli space of abelian varieties",
+  "jr": "J. Eur. Math. Soc 19 (2017), no. 3, 659-723",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1312.2775": {
+  "title": "Top tautological group of $\\mathcal M_{g,n}$",
+  "jr": "J. Eur. Math. Soc. (JEMS) 18 (2016), no. 12, 2925-2951",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1308.0135": {
+  "title": "Homotopy finiteness of some DG categories from algebraic geometry",
+  "jr": "J. Eur. Math. Soc. (JEMS), 22:9 (2020), 2879-2942",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1307.0830": {
+  "title": "Segre classes as integrals over polytopes",
+  "jr": "J. Eur. Math. Soc. (JEMS) 18 (2016), no. 12, 2849-2863",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1303.2648": {
+  "title": "Affine cones over smooth cubic surfaces",
+  "jr": "J. Eur. Math. Soc. 18 (2016), no. 7, 1537-1564",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1303.0744": {
+  "title": "A cluster algebra approach to q-characters of Kirillov-Reshetikhin modules",
+  "jr": "J. Eur. Math. Soc. 18 (2016), 1113-1159",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1211.6684": {
+  "title": "Overconvergent subanalytic subsets in the framework of Berkovich spaces",
+  "jr": "J. Eur. Math. Soc. 18 (2016), 2405-2457",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1210.0343": {
+  "title": "Determinantal Barlow surfaces and phantom categories",
+  "jr": "J. Eur. Math. Soc. (2015) 17, 1569-1592",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1209.1183": {
+  "title": "Representation stability for syzygies of line bundles on Segre--Veronese varieties",
+  "jr": "J. Eur. Math. Soc. 18 (2016), no. 6, 1201-1231",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1207.1282": {
+  "title": "Finiteness results for Abelian tree models",
+  "jr": "J. Eur. Math. Soc. 17 (2015), 711-738",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1611.05567": {
+  "title": "Refined global Gross-Prasad conjecture on special Bessel periods and Boecherer's conjecture",
+  "jr": "J. Eur. Math. Soc. 23 (2021), no. 4, pp. 1295--1331",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1605.09360": {
+  "title": "The sup-norm problem for GL(2) over number fields",
+  "jr": "J. Eur. Math. Soc. 22 (2020), 1-53",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1509.02527": {
+  "title": "General Serre weight conjectures",
+  "jr": "J. Eur. Math. Soc. 20 (2018), no. 12, 2859-2949",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1507.07465": {
+  "title": "Arithmetic harmonic analysis for smooth quartic Weyl sums: three additive equations",
+  "jr": "J. Eur. Math. Soc. 20 (2018), no. 10, 2333--2356",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1504.02819": {
+  "title": "Towards the Jacquet Conjecture on the Local Converse Problem for $p$-adic $\\mathrm{GL}_n$",
+  "jr": "J. Eur. Math. Soc. 17 (2015), 991-1007",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1411.0124": {
+  "title": "An effective criterion for Eulerian multizeta values in positive characteristic",
+  "jr": "J. Eur. Math. Soc. 21 (2019), no. 2, 405-440",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1410.8189": {
+  "title": "The frequency and the structure of large character sums",
+  "jr": "J. Eur. Math. Soc. (JEMS) 20 (2018), no. 7, 1759-1818",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1410.4538": {
+  "title": "Kloosterman sums in residue classes",
+  "jr": "J. Eur. Math. Soc. (JEMS) 17 (2015) 51-69",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1405.0043": {
+  "title": "Adequate subgroups and indecomposable modules",
+  "jr": "J. Eur. Math. Soc. 19 (2017), no. 4, 1231-1291",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1307.1393": {
+  "title": "Cubic moments of Fourier coefficients and pairs of diagonal quartic forms",
+  "jr": "J. Eur. Math. Soc. 17 (2015), no. 11, 2887--2901",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1106.0534": {
+  "title": "$L^p$ norms of higher rank eigenfunctions and bounds for spherical functions",
+  "jr": "J. Eur. Math. Soc. Volume 18, Issue 7, 2016, pp. 1437-1493",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "0907.4747": {
+  "title": "The second moment of quadratic twists of modular $L$-functions",
+  "jr": "J. Eur. Math. Soc. (JEMS) 12 (2010), no. 5, 1097-1116",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1802.04619": {
+  "title": "Finiteness of Maximal Geodesic Submanifolds in Hyperbolic Hybrids",
+  "jr": "J. Eur. Math. Soc. (JEMS) 23 (2021), pgs. 3591-3623",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1711.10542": {
+  "title": "Exceptional directions for the Teichm\u00fcller geodesic flow and Hausdorff dimension",
+  "jr": "J. Eur. Math. Soc. 23 (2021), no. 5, pp. 1423-1476",
+  "cat": "math.GT",
+  "year": 2021,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1503.06369": {
+  "title": "Barycentric straightening and bounded cohomology",
+  "jr": "J. Eur. Math. Soc. 21 (2019), 381--403",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1407.1516": {
+  "title": "Flip-graph moduli spaces of filling surfaces",
+  "jr": "J. Eur. Math. Soc. 19(9), 2697-2737 (2017)",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1307.6935": {
+  "title": "Symplectic fillings of lens spaces as Lefschetz fibrations",
+  "jr": "J. Eur. Math. Soc. (JEMS) 18 (2016), no. 7, 1515--1535",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1203.3721": {
+  "title": "Strong density for higher order Sobolev spaces into compact manifolds",
+  "jr": "J. Eur. Math. Soc. (JEMS) 17 (2015), 763--817",
+  "cat": "math.GT",
+  "year": 2015,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1203.2963": {
+  "title": "Noncommutative Hodge-to-de Rham spectral sequence and the Heegaard Floer homology of double covers",
+  "jr": "J. Eur. Math. Soc. (JEMS) 18 (2016), no. 2, 281-325",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1108.5614": {
+  "title": "Adiabatic limits of Seifert fibrations, Dedekind sums, and the diffeomorphism type of certain 7-manifolds",
+  "jr": "J. Eur. Math. Soc. 16 (2014), 2499-2555",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1002.2400": {
+  "title": "Legendrian and transverse twist knots",
+  "jr": "J. Eur. Math. Soc. (JEMS) 15 (2013), no. 3, 451-512",
+  "cat": "math.GT",
+  "year": 2013,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "0909.1247": {
+  "title": "Non-slice linear combinations of algebraic knots",
+  "jr": "J. Eur. Math. Soc. 14 (2012), 1181-1208",
+  "cat": "math.GT",
+  "year": 2012,
+  "journal": "J. Eur. Math. Soc."
+ },
+ "1810.05227": {
+  "title": "Large Genus Asymptotics for Siegel-Veech Constants",
+  "jr": "Geom. Funct. Anal. 29, 1295-1324, 2019",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1706.02001": {
+  "title": "Bounded Cohomology of Finitely Generated Kleinian Groups",
+  "jr": "Geom. Funct. Anal. (2018)",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1611.03513": {
+  "title": "Quantitative nullhomotopy and rational homotopy type",
+  "jr": "Geom. Funct. Anal. 28 (2018) 563-588",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1311.2667": {
+  "title": "Geometric complexity of embeddings in ${\\mathbb R}^d$",
+  "jr": "Geom. Funct. Anal. 24 (2014), no. 5, 1406-1430",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1304.6032": {
+  "title": "Lagrangian Cobordism and Fukaya Categories",
+  "jr": "Geom. Funct. Anal. Vol. 24 (2014) 1731-1830",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1011.3167": {
+  "title": "Conformal dimension and random groups",
+  "jr": "Geom. Funct. Anal. Volume 22, Number 1 (2012), 213-239",
+  "cat": "math.GT",
+  "year": 2012,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1009.3262": {
+  "title": "Algebraic Torsion in Contact Manifolds",
+  "jr": "Geom. Funct. Anal. 21 (2011), no. 5, 1144-1195",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "Geom. Funct. Anal."
+ },
+ "0810.5091": {
+  "title": "Legendrian links, causality, and the Low conjecture",
+  "jr": "Geom. Funct. Anal. 19 (2010), 1320-1333",
+  "cat": "math.GT",
+  "year": 2010,
+  "journal": "Geom. Funct. Anal."
+ },
+ "0711.4337": {
+  "title": "Intersection form, laminations and currents on free groups",
+  "jr": "Geom. Funct. Anal. vol. 19 (2010), no. 5, pp. 1426-1467",
+  "cat": "math.GT",
+  "year": 2010,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1901.01938": {
+  "title": "Conformal actions of higher rank lattices on compact pseudo-Riemannian manifolds",
+  "jr": "Geom. Funct. Anal. 30 pp 955-987(2020)",
+  "cat": "math.DG",
+  "year": 2020,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1807.04373": {
+  "title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "jr": "Geom. Funct. Anal. (2019), pp. 1-84",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1805.01072": {
+  "title": "Noncompact complete Riemannian manifolds with dense eigenvalues embedded in the essential spectrum of the Laplacian",
+  "jr": "Geom. Funct. Anal. 2019",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1711.09423": {
+  "title": "Bipolar comparison",
+  "jr": "Geom. Funct. Anal. 29 (2019), no. 1, 258--282",
+  "cat": "math.DG",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1612.01625": {
+  "title": "Crofton Formulas and Indefinite Signature",
+  "jr": "Geom. Funct. Anal. 27 (2017) no. 3, 489 - 540",
+  "cat": "math.DG",
+  "year": 2017,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1611.00925": {
+  "title": "On the analytic systole of Riemannian surfaces of finite type",
+  "jr": "Geom. Funct. Anal. 27 (2017), no. 5, 1070-1105",
+  "cat": "math.DG",
+  "year": 2017,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1505.00964": {
+  "title": "Modular curvature and Morita equivalence",
+  "jr": "Geom. Funct. Anal. 26 (2016), no. 3, 818-873",
+  "cat": "math.DG",
+  "year": 2016,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1504.07367": {
+  "title": "Laplacian flow for closed G_2 structures: Shi-type estimates, uniqueness and compactness",
+  "jr": "Geom. Funct. Anal. 27 (2017), 165-233",
+  "cat": "math.DG",
+  "year": 2017,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1301.6660": {
+  "title": "Curvature of the space of positive Lagrangians",
+  "jr": "Geom. Funct. Anal. 24 (2014), no. 2, 670-689",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1210.4001": {
+  "title": "A reverse isoperimetric inequality for J-holomorphic curves",
+  "jr": "Geom. Funct. Anal. 24 (2014), no. 5, 1448-1515",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1204.0604": {
+  "title": "Integral geometry of complex space forms",
+  "jr": "Geom. Funct. Anal. 24 (2014), 403-492",
+  "cat": "math.DG",
+  "year": 2014,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1201.3548": {
+  "title": "Modulus and Poincar\u00e9 inequalities on non-self-similar Sierpinski carpets",
+  "jr": "Geom. Funct. Anal. Volume 23, Number 3 (2013), 985-1034",
+  "cat": "math.DG",
+  "year": 2013,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1008.3768": {
+  "title": "Harmonic analysis of translation invariant valuations",
+  "jr": "Geom. Funct. Anal. 21 (2011), 751-773",
+  "cat": "math.DG",
+  "year": 2011,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1005.3255": {
+  "title": "A compactness theorem for complete Ricci shrinkers",
+  "jr": "Geom. Funct. Anal. (GAFA). 21 (2011), 1091--1116",
+  "cat": "math.DG",
+  "year": 2011,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1001.1611": {
+  "title": "Local symmetry of harmonic spaces as determined by the spectra of small geodesic spheres",
+  "jr": "Geom. Funct. Anal. 22 (2012), no. 1, 1 - 21",
+  "cat": "math.DG",
+  "year": 2012,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1909.05172": {
+  "title": "Regularity of area minimizing currents mod $p$",
+  "jr": "Geom. Funct. Anal. 30(5), 1224-1336 (2020)",
+  "cat": "math.AP",
+  "year": 2020,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1807.02932": {
+  "title": "Long-time existence for multi-dimensional periodic water waves",
+  "jr": "Geom. Funct. Anal. Vol. 29 (2019) 811-870",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1802.00350": {
+  "title": "An $L^2$-identity and pinned distance problem",
+  "jr": "Geom. Funct. Anal. 29 (2019), no. 1, 283-294",
+  "cat": "math.AP",
+  "year": 2019,
+  "journal": "Geom. Funct. Anal."
+ },
+ "1509.06294": {
+  "title": "Rectifiability of harmonic measure",
+  "jr": "Geom. Funct. Anal. 26 (2016), no. 3, 703--728",
+  "cat": "math.AP",
+  "year": 2016,
+  "journal": "Geom. Funct. Anal."
+ },
+ "2004.05971": {
+  "title": "High rank torus actions on contact manifolds",
+  "jr": "Selecta Math., 27(10), 2021",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "2003.09874": {
+  "title": "Hodge ideals for the determinant hypersurface",
+  "jr": "Selecta Math. (N.S.) 27 no. 1 (2021)",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "2003.02593": {
+  "title": "Tate motives on Witt vector affine flag varieties",
+  "jr": "Selecta Math. (2021)",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1908.01276": {
+  "title": "Enhanced specialization and microlocalization",
+  "jr": "Selecta Math., 27, 1 (2021), Paper No. 7, 32 pp",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1903.04884": {
+  "title": "Contraction centers in families of hyperkahler manifolds",
+  "jr": "Selecta Math. (N.S.) 27 (2021), no. 4, Paper No. 60, 26 pp",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1902.05393": {
+  "title": "Donaldson-Thomas invariants from tropical disks",
+  "jr": "Selecta Math. (N.S.) vol. 26 (2020), no. 57",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Selecta Math."
+ },
+ "1901.01896": {
+  "title": "Hodge theory of degenerations, (I): Consequences of the decomposition theorem",
+  "jr": "Selecta Math. 27 (2021), No. 4",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1901.00078": {
+  "title": "Birational superrigidity is not a locally closed property",
+  "jr": "Selecta Math. (N.S.) 26 (2020), no. 1, Art. 11",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Selecta Math."
+ },
+ "1810.11873": {
+  "title": "Hilbert squares: derived categories and deformations",
+  "jr": "Selecta Math. (N.S.) 25 (2019), no. 3, 37",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1807.07135": {
+  "title": "Basis log canonical thresholds, local intersection estimates, and asymptotically log del Pezzo surfaces",
+  "jr": "Selecta Math. 25 (2019), 1-36",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1801.02920": {
+  "title": "On singularity properties of convolutions of algebraic morphisms",
+  "jr": "Selecta Math. (N.S.) 25 (2019), no. 1, Art. 15, 41 pp",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1707.08997": {
+  "title": "Some remarks on L-equivalence of algebraic varieties",
+  "jr": "Selecta Math. (N.S.), 24:4 (2018), 3753-3762",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1704.03201": {
+  "title": "Derived coisotropic structures II: stacks and quantization",
+  "jr": "Selecta Math. 24 (2018), pp. 3119-3173",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1612.07193": {
+  "title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "jr": "Selecta Math, V. 24 (2018), No. 4, pp. 3475--3500",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1608.01482": {
+  "title": "Derived coisotropic structures I: affine case",
+  "jr": "Selecta Math. 24 (2018), pp. 3061-3118",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1603.09641": {
+  "title": "Spectral sequences for Hochschild cohomology and graded centers of derived categories",
+  "jr": "Selecta Math. 23 (2017) 1997-2018",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1603.05271": {
+  "title": "Trace Identities for the Topological Vertex",
+  "jr": "Selecta Math. 24 (2018) 1527-1548",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1602.03113": {
+  "title": "Rank 2 wall-crossing and the Serre correspondence",
+  "jr": "Selecta Math. 23 (2017) 1599-1617",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1511.07072": {
+  "title": "The derived functors of unramified cohomology",
+  "jr": "Selecta Math. (N.S.) 24 (2018), no. 2, 1121-1146",
+  "cat": "math.AG",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1506.05205": {
+  "title": "Intersection cohomology of the Uhlenbeck compactification of the Calogero-Moser space",
+  "jr": "Selecta Math., vol. 22 (2016), no. 4, pp 2491-2534",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Selecta Math."
+ },
+ "1505.02169": {
+  "title": "The Schwartz space of a smooth semi-algebraic stack",
+  "jr": "Selecta Math.(N.S.), 22(4):2401-2490, 2016",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Selecta Math."
+ },
+ "1504.07859": {
+  "title": "Geometric approach to parabolic induction",
+  "jr": "Selecta Math (N.S.) 22 (2016), no.4, 2243-2269",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Selecta Math."
+ },
+ "1504.00700": {
+  "title": "Coherent rings, fp-injective modules, dualizing complexes, and covariant Serre-Grothendieck duality",
+  "jr": "Selecta Math. New Ser. 23 (2017), #2, p.1279-1307",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1501.06925": {
+  "title": "Noetherianity of some degree two twisted commutative algebras",
+  "jr": "Selecta Math. (N.S.) 22 (2016), no. 2, 913-937",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Selecta Math."
+ },
+ "1411.1799": {
+  "title": "Derived categories of cyclic covers and their branch divisors",
+  "jr": "Selecta Math, V. 23 (2017), N. 1, pp. 389--423",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1908.06517": {
+  "title": "On the quantum affine vertex algebra associated with trigonometric $R$-matrix",
+  "jr": "Selecta Math. (N.S.) 27 (2021) 45 (49 pages)",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1907.08050": {
+  "title": "The fundamental theorem of finite semidistributive lattices",
+  "jr": "Selecta Math. (N.S.) 27(2021), no.4, Paper No. 59",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1902.08281": {
+  "title": "Serre duality for Khovanov-Rozansky homology",
+  "jr": "Selecta Math. (N.S.) 25 (2019), no. 5, Art. 79, 33 pp",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1808.09536": {
+  "title": "PBWD bases and shuffle algebra realizations for $U_v(L\\mathfrak{sl}_n), U_{v_1,v_2}(L\\mathfrak{sl}_n), U_v(L\\mathfrak{sl}(m|n))$ and their integral forms",
+  "jr": "Selecta Math. New Series 27 (2021), no. 3, Paper No. 35, 48pp",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Selecta Math."
+ },
+ "1712.06248": {
+  "title": "Tensor ideals, Deligne categories and invariant theory",
+  "jr": "Selecta Math. (N.S.) 24 (2018), no. 5, 4659-4710",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1703.08945": {
+  "title": "Uniform description of the rigged configuration bijection",
+  "jr": "Selecta Math. (N.S.) 26(3) (2020), article 42",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Selecta Math."
+ },
+ "1703.04365": {
+  "title": "Stable conjugacy and epipelagic L-packets for Brylinski-Deligne covers of Sp(2n)",
+  "jr": "Selecta Math. (N.S.) 26 (2020), no. 1",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Selecta Math."
+ },
+ "1702.07570": {
+  "title": "Quivers with relations for symmetrizable Cartan matrices IV: Crystal graphs and semicanonical functions",
+  "jr": "Selecta Math. (N.S.) 24 (2018), no. 4, 3283-3348",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1610.01078": {
+  "title": "Noetherianity of some degree two twisted skew-commutative algebras",
+  "jr": "Selecta Math. (N.S.) 25 (2019), no. 1, Art. 4, 26pp",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1607.06033": {
+  "title": "Canonical bases of quantum Schubert cells and their symmetries",
+  "jr": "Selecta Math. (N.S.), 23 (2017), no. 4, 2755--2799",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1604.01701": {
+  "title": "Cohomology of automorphism groups of free groups with twisted coefficients",
+  "jr": "Selecta Math. (N.S.) 24 (2018), no. 2, 1453-1478",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1511.09143": {
+  "title": "Cosets of Bershadsky-Polyakov algebras and rational $\\mathcal{W}$-algebras of type $A$",
+  "jr": "Selecta Math. (N.S.) 23 (2017), no. 4, 2369-2395",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1511.04111": {
+  "title": "Diagrammatic description for the categories of perverse sheaves on isotropic Grassmannians",
+  "jr": "Selecta math.22 (2016), no. 3, 1455-1536",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Selecta Math."
+ },
+ "1507.06581": {
+  "title": "Constructible sheaves on nilpotent cones in rather good characteristic",
+  "jr": "Selecta Math. (N.S.) 23 (2017), no. 1, 203-243",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1810.08168": {
+  "title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "jr": "Selecta Math. (N.S.) (2019), no. 25:76",
+  "cat": "math.QA",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1603.09068": {
+  "title": "Higher level vertex operators for $U_q (\\hat{\\mathfrak{sl}}_2)$",
+  "jr": "Selecta Math. (N.S.) 23 (2017), 2397-2436",
+  "cat": "math.QA",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1503.00665": {
+  "title": "Computing cobordism maps in link Floer homology and the reduced Khovanov TQFT",
+  "jr": "Selecta Math. (N.S.) 24 (2018), no. 2, 1315-1390",
+  "cat": "math.QA",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1303.1448": {
+  "title": "Minimal models, GT-action and formality of the little disk operad",
+  "jr": "Selecta Math. (N.S.) 20 (2014), no. 3, 817-822",
+  "cat": "math.QA",
+  "year": 2014,
+  "journal": "Selecta Math."
+ },
+ "1208.4114": {
+  "title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "jr": "Selecta Math. 20 (2014), no.4, 1213--1245",
+  "cat": "math.QA",
+  "year": 2014,
+  "journal": "Selecta Math."
+ },
+ "1109.5558": {
+  "title": "On the structure of the Witt group of braided fusion categories",
+  "jr": "Selecta Math 19 (2013), no. 1, 237-269",
+  "cat": "math.QA",
+  "year": 2013,
+  "journal": "Selecta Math."
+ },
+ "1103.5803": {
+  "title": "Chiral Koszul duality",
+  "jr": "Selecta Math. (N.S.) 18 (2012), no. 1, 27-87",
+  "cat": "math.QA",
+  "year": 2012,
+  "journal": "Selecta Math."
+ },
+ "0909.4905": {
+  "title": "Representations of twisted q-Yangians",
+  "jr": "Selecta Math. 16 (2010), 439-499",
+  "cat": "math.QA",
+  "year": 2010,
+  "journal": "Selecta Math."
+ },
+ "1703.02583": {
+  "title": "Newton Polytopes in Algebraic Combinatorics",
+  "jr": "Selecta Math. (N.S.) 25 (2019), no. 5, Art. 66, 37 pp",
+  "cat": "math.CO",
+  "year": 2019,
+  "journal": "Selecta Math."
+ },
+ "1612.07538": {
+  "title": "Interlacing Ehrhart Polynomials of Reflexive Polytopes",
+  "jr": "Selecta Math. , 23(4), 2977-2998, 2017",
+  "cat": "math.CO",
+  "year": 2017,
+  "journal": "Selecta Math."
+ },
+ "1612.05387": {
+  "title": "Weak Separation, Pure Domains and Cluster Distance",
+  "jr": "Selecta Math. (N.S.), 24(3):2093--2127, 2018",
+  "cat": "math.CO",
+  "year": 2018,
+  "journal": "Selecta Math."
+ },
+ "1308.2632": {
+  "title": "Polynomials for GL_p x GL_q orbit closures in the flag variety",
+  "jr": "Selecta Math., Volume 20, Issue 4 (2014), 1083-1110",
+  "cat": "math.CO",
+  "year": 2014,
+  "journal": "Selecta Math."
+ },
+ "1209.3509": {
+  "title": "Homology of Littlewood complexes",
+  "jr": "Selecta Math. (N.S.) 19 (2013), no. 3, 655-698",
+  "cat": "math.CO",
+  "year": 2013,
+  "journal": "Selecta Math."
+ },
+ "1002.4607": {
+  "title": "Generalized Jack polynomials and the representation theory of rational Cherednik algebras",
+  "jr": "Selecta Math. (N.S.) 16 (2010), 791-818",
+  "cat": "math.CO",
+  "year": 2010,
+  "journal": "Selecta Math."
+ },
+ "2102.05962": {
+  "title": "Closed orbits of Reeb fields on Sasakian manifolds and elliptic curves on Vaisman manifolds",
+  "jr": "Math. Z. 299, 2287-2296 (2021)",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "2009.05980": {
+  "title": "On a Rankin-Selberg integral of the L-function for $\\widetilde{SL}_2\\times GL_2$",
+  "jr": "Math. Z., 298(2021), 307-326",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "2007.11334": {
+  "title": "Parabolic eigenvarieties via overconvergent cohomology",
+  "jr": "Math. Z., 299 (2021), no.1, pp.961-995",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "1909.11517": {
+  "title": "The fourth moment of individual Dirichlet L-functions on the critical line",
+  "jr": "Math. Z. 298 (2021), 577-624",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "1908.10298": {
+  "title": "Twisted doubling integrals for classical groups",
+  "jr": "Math. Z. 297 (2021), pp. 1075-1104",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "1908.06174": {
+  "title": "On the modularity of 2-adic potentially semi-stable deformation rings",
+  "jr": "Math. Z. (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Math. Z."
+ },
+ "1906.04008": {
+  "title": "A geometric Jacquet-Langlands correspondence for paramodular Siegel threefolds",
+  "jr": "Math. Z. 299, 2029-2061 (2021)",
+  "cat": "math.NT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "1810.03057": {
+  "title": "Virtual Betti numbers of mapping tori of 3-manifolds",
+  "jr": "Math. Z. 296 (2020), 1691--1700",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Math. Z."
+ },
+ "1611.09828": {
+  "title": "Two-block Springer fibers of types C and D: a diagrammatic approach to Springer theory",
+  "jr": "Math. Z. 292 (2019), no. 3-4, 1387-1430",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Math. Z."
+ },
+ "1610.04143": {
+  "title": "Property $P_{naive}$ for acylindrically hyperbolic groups",
+  "jr": "Math. Z. 291, 555-568 (2019)",
+  "cat": "math.GT",
+  "year": 2019,
+  "journal": "Math. Z."
+ },
+ "1605.08297": {
+  "title": "Fock-Goncharov coordinates for rank two Lie groups",
+  "jr": "Math. Z. 294 (2020), 251-286",
+  "cat": "math.GT",
+  "year": 2020,
+  "journal": "Math. Z."
+ },
+ "1508.06817": {
+  "title": "Dual braid monoids, Mikado braids and positivity in Hecke algebras",
+  "jr": "Math. Z. 285 (2017) 215--238",
+  "cat": "math.GT",
+  "year": 2017,
+  "journal": "Math. Z."
+ },
+ "1507.03238": {
+  "title": "Triangulation Independent Ptolemy Varieties",
+  "jr": "Math. Z. 289 (2018), 663-693",
+  "cat": "math.GT",
+  "year": 2018,
+  "journal": "Math. Z."
+ },
+ "1501.06389": {
+  "title": "An isomorphism Theorem for Yokonuma--Hecke algebras and applications to link invariants",
+  "jr": "Math. Z. 283 (2016), no. 1, 301--338",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "Math. Z."
+ },
+ "1405.0025": {
+  "title": "Ptolemy coordinates, Dehn invariant, and the A-polynomial",
+  "jr": "Math. Z. 283 (2016) 515-537",
+  "cat": "math.GT",
+  "year": 2016,
+  "journal": "Math. Z."
+ },
+ "1402.2028": {
+  "title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "jr": "Math. Z. 280 (2015) 347--353",
+  "cat": "math.GT",
+  "year": 2015,
+  "journal": "Math. Z."
+ },
+ "1305.5057": {
+  "title": "On lower bounds for cohomology growth in p-adic analytic towers",
+  "jr": "Math. Z., Vol. 277 (3), (2014), 709--723",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Math. Z."
+ },
+ "1303.6132": {
+  "title": "Torsion homology of arithmetic lattices and K2 of imaginary fields",
+  "jr": "Math. Z. (2014) 277:1155-1164",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Math. Z."
+ },
+ "1206.2118": {
+  "title": "The sl_3 web algebra",
+  "jr": "Math. Z. 277:1-2 (2014), 401-479",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Math. Z."
+ },
+ "1110.1168": {
+  "title": "Exotic torus manifolds and equivariant smooth structures on quasitoric manifolds",
+  "jr": "Math. Z., 273 (2013), No. 3, 1063-1084",
+  "cat": "math.GT",
+  "year": 2013,
+  "journal": "Math. Z."
+ },
+ "0906.5057": {
+  "title": "Conjugation spaces and 4-manifolds",
+  "jr": "Math. Z. 269 (2011), no. 1-2, 521--541",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "Math. Z."
+ },
+ "2004.01441": {
+  "title": "Genus of vertex algebras and mass formula",
+  "jr": "Math Z (2021)",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "2002.11551": {
+  "title": "Birational sheets in reductive groups",
+  "jr": "Math. Z. 298, 23-47 (2021)",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "2002.06741": {
+  "title": "Representations with minimal support for quantized Gieseker varieties",
+  "jr": "Math. Z. vol. 297 (2021) 1-29",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "2002.00435": {
+  "title": "Parafermionic bases of standard modules for affine Lie algebras",
+  "jr": "Math. Z. 298 (2021), 1003-1032",
+  "cat": "math.RT",
+  "year": 2021,
+  "journal": "Math. Z."
+ },
+ "1508.05329": {
+  "title": "Discrete Fourier restriction via efficient congruencing: basic principles",
+  "jr": "Internat. Math. Res. Notices 2017 (2017), no. 5, 1342--1389",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1503.00294": {
+  "title": "Perturbations of Weyl sums",
+  "jr": "Internat. Math. Res. Notices 2016 (2016), no. 9, 2632--2646",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1302.1454": {
+  "title": "On Linnik's conjecture: sums of squares and microsquares",
+  "jr": "Internat. Math. Res. Notices 2014 (2014), no. 20, 5713--5736",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1209.2740": {
+  "title": "Exceptional sets for Diophantine inequalities",
+  "jr": "Internat. Math. Res. Notices (2014), no. 14, 3919-3974",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1108.1815": {
+  "title": "A problem of Ramanujan, Erdos and Katai on the iterated divisor function",
+  "jr": "Internat. Math. Res. Notices 2012 (2012), 4051-4061",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "0910.1383": {
+  "title": "Support varieties and representation type of small quantum groups",
+  "jr": "Internat. Math. Res. Notices 2010, no. 7, 1346-1362",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "0904.0398": {
+  "title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "jr": "Internat. Math. Res. Notices 2010, No. 6 (2010) 1062-1101",
+  "cat": "math.RT",
+  "year": 2010,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1711.05624": {
+  "title": "Gaussian width bounds with applications to arithmetic progressions in random settings",
+  "jr": "Internat. Math. Res. Notices (2018)",
+  "cat": "math.CO",
+  "year": 2018,
+  "journal": "Internat. Math. Res. Notices"
+ },
+ "1902.03160": {
+  "title": "Buryak-Okounkov formula for the $n$-point function and a new proof of the Witten conjecture",
+  "jr": "Int. Math. Res. Not. IMRN 2021, no. 18, 14296-14315",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Int. Math. Res. Not."
+ },
+ "1805.07265": {
+  "title": "Symplectic geometry of a moduli space of framed Higgs bundles",
+  "jr": "Int. Math. Res. Notices (2019)",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Int. Math. Res. Not."
+ },
+ "2002.11445": {
+  "title": "On faces of quasi-arithmetic Coxeter polytopes",
+  "jr": "Int. Math. Res. Notices (2020)",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Int. Math. Res. Not."
+ },
+ "1603.04808": {
+  "title": "Effective cones of cycles on blow-ups of projective space",
+  "jr": "Algebra Number Theory 10 (2016) 1983-2014",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Algebra Number Theory"
+ },
+ "1603.00640": {
+  "title": "Canonical Heights on Genus Two Jacobians",
+  "jr": "Algebra Number Theory 10 (2016) 2153-2234",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1602.01596": {
+  "title": "The local lifting problem for A_4",
+  "jr": "Algebra Number Theory 10 (2016) 1683-1693",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1601.07046": {
+  "title": "Constructible isocrystals",
+  "jr": "Algebra Number Theory 10 (2016) 2121-2152",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1512.06384": {
+  "title": "A vanishing theorem for weight one syzygies",
+  "jr": "Algebra Number Theory 10 (2016) 1965-1981",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1511.08468": {
+  "title": "$\\overline{\\mathcal{R}}_{15}$ is of general type",
+  "jr": "Algebra Number Theory 10 (2016) 1949-1964",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1511.04480": {
+  "title": "Interpolation for Restricted Tangent Bundles of General Curves",
+  "jr": "Algebra Number Theory 10 (2016) 931-938",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1511.03259": {
+  "title": "A non-archimedean Ax-Lindemann theorem",
+  "jr": "Algebra & Number Theory 11, 1967-1999 (2017)",
+  "cat": "math.AG",
+  "year": 2017,
+  "journal": "Algebra Number Theory"
+ },
+ "1510.08061": {
+  "title": "Extremality of loci of hyperelliptic curves with marked Weierstrass points",
+  "jr": "Algebra Number Theory 10 (2016) 1935-1948",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1510.00998": {
+  "title": "Algebraicity of normal analytic compactifications of C^2 with one irreducible curve at infinity",
+  "jr": "Algebra Number Theory 10 (2016) 1641-1682",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1509.04722": {
+  "title": "Nef cones of Hilbert schemes of points on surfaces",
+  "jr": "Algebra Number Theory 10 (2016) 907-930",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1508.07112": {
+  "title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "jr": "Algebra Number Theory 10 (2016) 1277-1300",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1508.06031": {
+  "title": "On the local Tamagawa number conjecture for Tate motives over tamely ramified fields",
+  "jr": "Algebra Number Theory 10 (2016) 1221-1275",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1507.08547": {
+  "title": "K3 surfaces over finite fields with given L-function",
+  "jr": "Algebra Number Theory 10 (2016) 1133-1146",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1506.07513": {
+  "title": "A fibered power theorem for pairs of log general type",
+  "jr": "Algebra Number Theory 10 (2016) 1581-1600",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1506.04379": {
+  "title": "Anabelian geometry and descent obstructions on moduli spaces",
+  "jr": "Algebra Number Theory 10 (2016) 1191-1219",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1505.05460": {
+  "title": "Tropical independence II: The maximal rank conjecture for quadrics",
+  "jr": "Algebra Number Theory 10 (2016) 1601-1640",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1505.04172": {
+  "title": "Hochschild cohomology commutes with adic completion",
+  "jr": "Algebra Number Theory 10 (2016) 1001-1029",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1502.03736": {
+  "title": "Furstenberg sets and Furstenberg schemes over finite fields",
+  "jr": "Algebra Number Theory 10 (2016) 1415-1436",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1501.07511": {
+  "title": "The Prym map of degree-7 cyclic coverings",
+  "jr": "Algebra Number Theory 10 (2016) 771-801",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1501.07299": {
+  "title": "Effective Matsusaka's Theorem for surfaces in characteristic p",
+  "jr": "Algebra Number Theory 9 (2015) 1453-1475",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1412.8733": {
+  "title": "Conjugacy classes of special automorphisms of the affine spaces",
+  "jr": "Algebra Number Theory 10 (2016) 939-967",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1412.3252": {
+  "title": "Linear relations in families of powers of elliptic curves",
+  "jr": "Algebra Number Theory 10 (2016) 195-214",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1409.8533": {
+  "title": "Semiample invertible sheaves with semipositive continuous hermitian metrics",
+  "jr": "Algebra Number Theory 9 (2015) 503-509",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1409.8229": {
+  "title": "Geometry and stability of tautological bundles on Hilbert schemes of points",
+  "jr": "Algebra Number Theory 10 (2016) 1173-1190",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1408.0037": {
+  "title": "Moduli of morphisms of logarithmic schemes",
+  "jr": "Algebra Number Theory 10 (2016) 695-735",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1407.8464": {
+  "title": "Horrocks Correspondence on ACM Varieties",
+  "jr": "Algebra Number Theory 9 (2015) 981-1003",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1407.5181": {
+  "title": "Bounded negativity of self-intersection numbers of Shimura curves on Shimura surfaces",
+  "jr": "Algebra Number Theory 9 (2015) 897-912",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1407.5146": {
+  "title": "On base point free theorem for log canonical threefolds over the algebraic closure of a finite field",
+  "jr": "Algebra Number Theory 9 (2015) 725-747",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1407.1941": {
+  "title": "Generalized Kuga-Satake theory and rigid local systems, II: rigid Hecke eigensheaves",
+  "jr": "Algebra Number Theory 10 (2016) 1477-1526",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "2102.09945": {
+  "title": "Monogenity in totally complex sextic fields, revisited",
+  "jr": "JP Journal of Algebra, Number Theory and Applications, 47(2020), 87-98",
+  "cat": "math.NT",
+  "year": 2020,
+  "journal": "Algebra Number Theory"
+ },
+ "2004.05393": {
+  "title": "Calculating relative power integral bases in totally complex quartic extensions of totally real fields",
+  "jr": "JP Journal of Algebra, Number Theory and Applications, 44(2019), No. 2, 129--157",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Algebra Number Theory"
+ },
+ "1810.00062": {
+  "title": "Relative power integral bases in infinite families of quartic extensions of quadratic fields",
+  "jr": "JP J. Algebra Number Theory Appl. 29, No. 1, 31-43 (2013)",
+  "cat": "math.NT",
+  "year": 2013,
+  "journal": "Algebra Number Theory"
+ },
+ "1810.00063": {
+  "title": "Binomial Thue equations and power integral bases in pure quartic fields",
+  "jr": "JP J. Algebra Number Theory Appl. 32, No. 1, 49-61 (2014)",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "Algebra Number Theory"
+ },
+ "1810.01819": {
+  "title": "Solving binomial Thue equations",
+  "jr": "JP J. Algebra Number Theory Appl. 36, No. 1, 29-42 (2015)",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1711.06671": {
+  "title": "Value Distribution of L-functions",
+  "jr": "Geometry, Algebra, Number Theory and their Information Technology Applications, Springer (2018) 163-182",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Algebra Number Theory"
+ },
+ "1607.03097": {
+  "title": "On a Kind of Nonlinear Diophantine Equation",
+  "jr": "JP Journal of Algebra, Number Theory and Applications Volume 40, Issue 5, 2018",
+  "cat": "math.NT",
+  "year": 2018,
+  "journal": "Algebra Number Theory"
+ },
+ "1605.03988": {
+  "title": "Modular curves of prime-power level with infinitely many rational points",
+  "jr": "Algebra Number Theory 11 (2017), 1199-1229",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Algebra Number Theory"
+ },
+ "1602.04063": {
+  "title": "Combinatorial degenerations of surfaces and Calabi--Yau threefolds",
+  "jr": "Algebra Number Theory 10 (2016) 2235-2266",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1601.00842": {
+  "title": "Some notes on the regular graph defined by Schmidt and Summerer and uniform approximation",
+  "jr": "JP J. Algebra Number Theory Appl. 39 (2017), no. 2, 115-150",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Algebra Number Theory"
+ },
+ "1512.07814": {
+  "title": "On twists of modules over non-commutative Iwasawa algebras",
+  "jr": "Algebra Number Theory 10 (2016) 685-694",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1512.06225": {
+  "title": "Multiple period integrals and cohomology",
+  "jr": "Algebra Number Theory 10 (2016) 645-664",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1512.05032": {
+  "title": "Generalized Heegner cycles at Eisenstein primes and the Katz $p$-adic $L$-function",
+  "jr": "Algebra Number Theory 10 (2016) 309-374",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1512.04030": {
+  "title": "Nonvanishing of Dirichlet L-functions",
+  "jr": "Algebra Number Theory 10 (2016) 2081-2091",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1509.00332": {
+  "title": "On 2-dimensional 2-adic Galois representations of local and global fields",
+  "jr": "Algebra Number Theory 10 (2016) 1301-1358",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1508.01985": {
+  "title": "The Voronoi formula and double Dirichlet series",
+  "jr": "Algebra Number Theory 10 (2016) 2267-2286",
+  "cat": "math.NT",
+  "year": 2016,
+  "journal": "Algebra Number Theory"
+ },
+ "1507.02269": {
+  "title": "Wild ramification in a family of low-degree extensions arising from iteration",
+  "jr": "JP J. Algebra Number Theory Appl. 37(1) (2015), 69-104",
+  "cat": "math.NT",
+  "year": 2015,
+  "journal": "Algebra Number Theory"
+ },
+ "1506.05716": {
+  "title": "On the density of zeros of linear combinations of Euler products for $\u03c3>1$",
+  "jr": "Algebra & Number Theory 11-9 (2017), 2131--2163",
+  "cat": "math.NT",
+  "year": 2017,
+  "journal": "Algebra Number Theory"
+ },
+ "2009.11096": {
+  "title": "The controlling $L_\\infty$-algebra, cohomology and homotopy of embedding tensors and Lie-Leibniz triples",
+  "jr": "Comm. Math. Phys. 386 (2021), 269-304",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "2008.11496": {
+  "title": "Bargmann-Fock sheaves on K\u00e4hler manifolds",
+  "jr": "Comm. Math. Phys. 388 (2021), no. 3, 1297-1322",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "2008.06714": {
+  "title": "Deformations and homotopy theory of relative Rota-Baxter Lie algebras",
+  "jr": "Comm. Math. Phys. 383 (2021), 595-631",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "2007.12735": {
+  "title": "On ribbon categories for singlet vertex algebras",
+  "jr": "Comm. Math. Phys., Vol. 387 (2021), no. 2, 865-925",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "1912.13168": {
+  "title": "Pointed Drinfeld center functor",
+  "jr": "Comm. Math. Phys. 381 (2021), no.3, 1409--1443",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "1910.13226": {
+  "title": "Twisted modules and $G$-equivariantization in logarithmic conformal field theory",
+  "jr": "Comm. Math. Phys., Vol. 383 (2021), no. 3, 1939-2019",
+  "cat": "math.QA",
+  "year": 2019,
+  "journal": "Comm. Math. Phys."
+ },
+ "1812.11474": {
+  "title": "Bigalois extensions and the graph isomorphism game",
+  "jr": "Comm. Math. Phys. 375 (2020), no. 3, 1777-1809",
+  "cat": "math.QA",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1812.04470": {
+  "title": "Categorical extensions of conformal nets",
+  "jr": "Comm. Math. Phys. 383, 763-839 (2021)",
+  "cat": "math.QA",
+  "year": 2021,
+  "journal": "Comm. Math. Phys."
+ },
+ "1809.10965": {
+  "title": "Extending Landau-Ginzburg models to the point",
+  "jr": "Comm. Math. Phys. 379 (2020), 955-977",
+  "cat": "math.QA",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1804.09821": {
+  "title": "S-duality for the large $N=4$ superconformal algebra",
+  "jr": "Comm. Math. Phys. 374 (2020), no. 3, 1787-1808",
+  "cat": "math.QA",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1803.11348": {
+  "title": "Quantum symmetries of the twisted tensor products of C*-algebras",
+  "jr": "Comm. Math. Phys. 368 (2019), no. 3, 1051-1085",
+  "cat": "math.QA",
+  "year": 2019,
+  "journal": "Comm. Math. Phys."
+ },
+ "1803.09287": {
+  "title": "Deformations and their controlling cohomologies of $\\mathcal{O}$-operators",
+  "jr": "Comm Math Phys 368, 665-700 (2019)",
+  "cat": "math.QA",
+  "year": 2019,
+  "journal": "Comm. Math. Phys."
+ },
+ "1911.08645": {
+  "title": "Classical $\\mathcal{W}$-algebras for centralizers",
+  "jr": "Comm. Math. Phys. 378 (2020), 691-703",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1810.01264": {
+  "title": "Polology of Superconformal Blocks",
+  "jr": "Comm. Math. Phys. 374, 785-821 (2020)",
+  "cat": "math.RT",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1802.09253": {
+  "title": "Categorical relations between Langlands dual quantum affine algebras: Exceptional cases",
+  "jr": "Comm. Math. Phys., 368(1) (2019), pp. 295-367",
+  "cat": "math.RT",
+  "year": 2019,
+  "journal": "Comm. Math. Phys."
+ },
+ "1705.10103": {
+  "title": "Classical affine W-algebras and the associated integrable Hamiltonian hierarchies for classical Lie algebras",
+  "jr": "Comm. Math. Phys. 360 (2018), no. 3, 851-918",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Comm. Math. Phys."
+ },
+ "1705.08155": {
+  "title": "Isomorphism between the $R$-matrix and Drinfeld presentations of Yangian in types $B$, $C$ and $D$",
+  "jr": "Comm. Math. Phys. 361 (2018), 827--872",
+  "cat": "math.RT",
+  "year": 2018,
+  "journal": "Comm. Math. Phys."
+ },
+ "1610.09348": {
+  "title": "Orbifolds and cosets of minimal $\\mathcal{W}$-algebras",
+  "jr": "Comm. Math. Phys. 355 (2017), no. 1, 339-372",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Comm. Math. Phys."
+ },
+ "1608.06255": {
+  "title": "The $\\mathbb{Z}_2$-orbifold of the $\\mathcal{W}_3$-algebra",
+  "jr": "Comm. Math. Phys. 353 (2017), no. 3, 1129-1150",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Comm. Math. Phys."
+ },
+ "1603.05928": {
+  "title": "Monoidal supercategories",
+  "jr": "Comm. Math. Phys. 351 (2017), 1045-1089",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Comm. Math. Phys."
+ },
+ "1511.08737": {
+  "title": "Spencer cohomology and eleven-dimensional supergravity",
+  "jr": "Comm. Math. Phys. 349 (2017), 627-660",
+  "cat": "math.RT",
+  "year": 2017,
+  "journal": "Comm. Math. Phys."
+ },
+ "1510.00787": {
+  "title": "The primitive spectrum of basic classical Lie superalgebras",
+  "jr": "Comm. Math. Phys. 348 (2016), no. 2, 579-602",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1508.02549": {
+  "title": "A new scheme of integrability for (bi)Hamiltonian PDE",
+  "jr": "Comm. Math. Phys. 347 (2016), n. 2, 449-488",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1506.02476": {
+  "title": "Pure partition functions of multiple SLEs",
+  "jr": "Comm. Math. Phys., 346(1):237-292, 2016",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1506.00113": {
+  "title": "Non-negative integral level affine Lie algebra tensor categories and their associativity isomorphisms",
+  "jr": "Comm. Math. Phys., Vol. 346 (2016), 349-395",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1411.4725": {
+  "title": "Vertex operators arising from Jacobi-Trudi identities",
+  "jr": "Comm. Math. Phys. 346 (2016), 679-701",
+  "cat": "math.RT",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1407.8534": {
+  "title": "Spectral theory for interacting particle systems solvable by coordinate Bethe ansatz",
+  "jr": "Comm. Math. Phys. 339 (2015), no. 3, 1167--1245",
+  "cat": "math.RT",
+  "year": 2015,
+  "journal": "Comm. Math. Phys."
+ },
+ "1406.3008": {
+  "title": "Bilinear equations on Painleve tau functions from CFT",
+  "jr": "Comm. Math. Phys. 339 3, pp 1021-1061 (2015)",
+  "cat": "math.RT",
+  "year": 2015,
+  "journal": "Comm. Math. Phys."
+ },
+ "1403.1700": {
+  "title": "Classical W-algebras in types A, B, C, D and G",
+  "jr": "Comm. Math. Phys. 336 (2015), 1053-1084",
+  "cat": "math.RT",
+  "year": 2015,
+  "journal": "Comm. Math. Phys."
+ },
+ "1307.7056": {
+  "title": "Quantum Supergroups III. Twistors",
+  "jr": "Comm. Math. Phys. 332 (2014), 415--436",
+  "cat": "math.RT",
+  "year": 2014,
+  "journal": "Comm. Math. Phys."
+ },
+ "1810.11172": {
+  "title": "Pairings in mirror symmetry between a symplectic manifold and a Landau-Ginzburg $B$-model",
+  "jr": "Comm. Math. Phys. (2020), 375(1), 345-390",
+  "cat": "math.SG",
+  "year": 2020,
+  "journal": "Comm. Math. Phys."
+ },
+ "1807.11789": {
+  "title": "The first Pontryagin class of a quadratic Lie 2-algebroid",
+  "jr": "Comm. Math. Phys. 362 (2) (2018), 689-716",
+  "cat": "math.SG",
+  "year": 2018,
+  "journal": "Comm. Math. Phys."
+ },
+ "1601.05041": {
+  "title": "Cotangent models for integrable systems",
+  "jr": "Comm. Math. Phys. 350 (2017), no. 3, 1123-1145",
+  "cat": "math.SG",
+  "year": 2017,
+  "journal": "Comm. Math. Phys."
+ },
+ "1305.0968": {
+  "title": "Lagrangian torus fibrations and homological mirror symmetry for the conifold",
+  "jr": "Comm. Math. Phys. 341 (2016), no. 1, 135-178",
+  "cat": "math.SG",
+  "year": 2016,
+  "journal": "Comm. Math. Phys."
+ },
+ "1208.5282": {
+  "title": "Lagrangian Floer superpotentials and crepant resolutions for toric orbifolds",
+  "jr": "Comm. Math. Phys. 328 (2014), no. 1, 83-130",
+  "cat": "math.SG",
+  "year": 2014,
+  "journal": "Comm. Math. Phys."
+ },
+ "1008.5007": {
+  "title": "Torus fibrations and localization of index III",
+  "jr": "Comm. Math Phys. 327 (2014), no. 3, 665-689",
+  "cat": "math.SG",
+  "year": 2014,
+  "journal": "Comm. Math. Phys."
+ },
+ "0910.0358": {
+  "title": "Torus fibrations and localization of index II",
+  "jr": "Comm. Math. Phys. 326 (2014), no. 3, 585-633",
+  "cat": "math.SG",
+  "year": 2014,
+  "journal": "Comm. Math. Phys."
+ },
+ "0712.1978": {
+  "title": "The Symplectic Penrose Kite",
+  "jr": "Comm. Math. Phys., Volume 299 (2010), Number 3, 577-601",
+  "cat": "math.SG",
+  "year": 2010,
+  "journal": "Comm. Math. Phys."
+ },
+ "1912.12961": {
+  "title": "On positivity of the CM line bundle on K-moduli spaces",
+  "jr": "Ann. of Math. (2) 192 (2020), no. 3, 1005-1068",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Ann. of Math."
+ },
+ "1808.05559": {
+  "title": "On the K-theory of pullbacks",
+  "jr": "Ann. of Math. (2) 190 (2019), no. 3, 877-930",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Ann. of Math."
+ },
+ "1712.08026": {
+  "title": "Shtukas and the Taylor expansion of $L$-functions (II)",
+  "jr": "Ann. of Math. (2) 189 (2019), no. 2, 393--526",
+  "cat": "math.AG",
+  "year": 2019,
+  "journal": "Ann. of Math."
+ },
+ "1703.04484": {
+  "title": "Strong generators in $D^{perf}(X)$ and $D^b_{coh}(X)$",
+  "jr": "Ann. of Math. (2) 193 (2021), no. 3, 689-732",
+  "cat": "math.AG",
+  "year": 2021,
+  "journal": "Ann. of Math."
+ },
+ "1504.06467": {
+  "title": "A Luna \u00e9tale slice theorem for algebraic stacks",
+  "jr": "Ann. of Math. 191(3) (2020), 675-738",
+  "cat": "math.AG",
+  "year": 2020,
+  "journal": "Ann. of Math."
+ },
+ "1311.2350": {
+  "title": "Splitting mixed Hodge structures over affine invariant manifolds",
+  "jr": "Ann. of Math. (2) 183 (2016), no. 2, 681-713",
+  "cat": "math.AG",
+  "year": 2016,
+  "journal": "Ann. of Math."
+ },
+ "1305.1219": {
+  "title": "Unique decomposition for a polynomial of low rank",
+  "jr": "Ann. Polon. Math. 108 (2013), 219--224",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Ann. of Math."
+ },
+ "1303.3853": {
+  "title": "Reduction Theorems for the Strong Real Jacobian Conjecture",
+  "jr": "Ann. Polon. Math. Volume 110, no. 1, p. 1--11, 2014",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Ann. of Math."
+ },
+ "1210.6960": {
+  "title": "Topologies and structures of the Cremona groups",
+  "jr": "Ann. of Math. 178 (2013), no. 3, 1173-1198",
+  "cat": "math.AG",
+  "year": 2013,
+  "journal": "Ann. of Math."
+ },
+ "1203.5057": {
+  "title": "Cyclic Extensions and the Local Lifting Problem",
+  "jr": "Ann. of Math., 180 (2014), pp. 233-284",
+  "cat": "math.AG",
+  "year": 2014,
+  "journal": "Ann. of Math."
+ },
+ "1102.2813": {
+  "title": "Spaces of polynomial functions of bounded degrees on an embedded manifold and their duals",
+  "jr": "Ann. Polon. Math. 113 (2015), 1-42",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Ann. of Math."
+ },
+ "1005.3866": {
+  "title": "A note on the plane Jacobian conjecture",
+  "jr": "Ann. Pol. Math., Vol. 105 (2012), No. 1, 13-19",
+  "cat": "math.AG",
+  "year": 2012,
+  "journal": "Ann. of Math."
+ },
+ "1003.5857": {
+  "title": "On moduli spaces of semistable sheaves on Enriques surfaces",
+  "jr": "Ann. Polon. Math. 99 (2010), no. 3, 305-321",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0909.4345": {
+  "title": "The period-index problem for fields of transcendence degree 2",
+  "jr": "Ann. of Math. (2) 182 (2015), no. 2, 391-427",
+  "cat": "math.AG",
+  "year": 2015,
+  "journal": "Ann. of Math."
+ },
+ "0905.3939": {
+  "title": "Pencil of irreducible rational curves and Plane Jacobian conjecture",
+  "jr": "Ann. Pol. Math., Vol. 101, (2011), No. 1, 47-53",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0806.1312": {
+  "title": "Insufficiency of the Brauer-Manin obstruction applied to etale covers",
+  "jr": "Ann. of Math. (2) 171 (2010), no. 3, 2157-2169",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0705.0949": {
+  "title": "The moduli space of cubic fourfolds via the period map",
+  "jr": "Ann. of Math. 172 (2010), no. 1, 673-711",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0703822": {
+  "title": "From real affine geometry to complex geometry",
+  "jr": "Ann. of Math. 174 (2011), 1301-1428",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0612263": {
+  "title": "The Brauer-Manin obstruction for subvarieties of abelian varieties over function fields",
+  "jr": "Ann. of Math. (2) 171 (2010), no. 1, 511-532",
+  "cat": "math.AG",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0611672": {
+  "title": "Boundedness of families of canonically polarized manifolds: A higher dimensional analogue of Shafarevich's conjecture",
+  "jr": "Ann. of Math. (2) 173 (2011), no. 1, 585-617",
+  "cat": "math.AG",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "1609.07802": {
+  "title": "On Furstenberg's intersection conjecture, self-similar measures, and the $L^q$ norms of convolutions",
+  "jr": "Ann. of Math. (2) 189 (2019), no. 2, 319--391",
+  "cat": "math.NT",
+  "year": 2019,
+  "journal": "Ann. of Math."
+ },
+ "1505.01544": {
+  "title": "New asymptotic formulas for sums over zeros of functions from the Selberg class",
+  "jr": "Ann. Sci. Math. Qu\u00e9bec 34 (2010), no 1, 85-108",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "1212.4056": {
+  "title": "Euler systems for Rankin--Selberg convolutions of modular forms",
+  "jr": "Ann. of Math. 180 (2014), no. 2, 653-771",
+  "cat": "math.NT",
+  "year": 2014,
+  "journal": "Ann. of Math."
+ },
+ "1205.0037": {
+  "title": "On Mordell-Tornheim sums and multiple zeta values",
+  "jr": "Ann. Sci. Math. Qu\u00e9bec, Vol. 34, No. 1, 2010, pp. 15--23. [MR 2744193] (2011k:11118)",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "1011.0104": {
+  "title": "On Roth's theorem on progressions",
+  "jr": "Ann. of Math. (2) 174 (2011), no. 1, 619-636",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "1004.4304": {
+  "title": "Special L-values of Drinfeld modules",
+  "jr": "Ann. of Math. 175 (2012), 369--391",
+  "cat": "math.NT",
+  "year": 2012,
+  "journal": "Ann. of Math."
+ },
+ "1001.1766": {
+  "title": "Approximation diophantienne et approximants de Hermite-Pad\u00e9 de type I de fonctions exponentielles",
+  "jr": "Ann. Sci. Math. Qu\u00e9bec 35 (2011), no 1, 85-116",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0804.1391": {
+  "title": "A Height Gap Theorem For Finite Subsets Of GL_d(\\bar{Q}) and Non Amenable Subgroups",
+  "jr": "Ann. of Math. Vol 174-2, Pages 1057-1110, 2011",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0709.3591": {
+  "title": "A reciprocity map and the two variable p-adic L-function",
+  "jr": "Ann. of Math. 173 (2011) 251-300",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0708.3128": {
+  "title": "The u-invariant of the function fields of p-adic curves",
+  "jr": "Ann. of Math. (2) 172 (2010), no. 2, 1391-1405",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0708.1113": {
+  "title": "Distribution of periodic torus orbits and Duke's theorem for cubic fields",
+  "jr": "Ann. of Math. Volume 173 (2011), Issue 2, Pages 815-885",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0610335": {
+  "title": "The fourth moment of Dirichlet L-functions",
+  "jr": "Ann. of Math. (2) 173 (2011), no. 1, 1-50",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0510079": {
+  "title": "Arithmetic Quantum Unique Ergodicity for Symplectic Linear Maps of the Multidimensional Torus",
+  "jr": "Ann. of Math. 171 (2), 815--879 (2010)",
+  "cat": "math.NT",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0410536": {
+  "title": "Cyclic algebras, Schur indices, norms, and Galois modules",
+  "jr": "Ann. Sci. Math. Quebec 35 (2011), no. 1, 123--136",
+  "cat": "math.NT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "1102.0428": {
+  "title": "Higher finiteness properties of reductive arithmetic groups in positive characteristic: the rank theorem",
+  "jr": "Ann. of Math. (2) 177 (2013), no. 1, 311-366",
+  "cat": "math.GT",
+  "year": 2013,
+  "journal": "Ann. of Math."
+ },
+ "1010.1972": {
+  "title": "On the distortion of knots on embedded surfaces",
+  "jr": "Ann. of Math. (2) 174 (2011), no. 1, 637--646",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0805.1234": {
+  "title": "Twisted Alexander polynomials detect fibered 3-manifolds",
+  "jr": "Ann. of Math. (2) 173 (2011), no. 3, 1587-1643",
+  "cat": "math.GT",
+  "year": 2011,
+  "journal": "Ann. of Math."
+ },
+ "0607600": {
+  "title": "Measure equivalence rigidity of the mapping class group",
+  "jr": "Ann. of Math. (2) 171 (2010) 1851-1901",
+  "cat": "math.GT",
+  "year": 2010,
+  "journal": "Ann. of Math."
+ },
+ "0607509": {
+  "title": "Cannon-Thurston Maps for Surface Groups",
+  "jr": "Ann. of Math. 179 (1), pages 1-80, 2014",
+  "cat": "math.GT",
+  "year": 2014,
+  "journal": "Ann. of Math."
+ }
+}

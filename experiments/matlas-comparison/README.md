@@ -114,14 +114,15 @@ Manual inspection of the 39 TS-only-hits and 89 MATLAS-only-hits at paper level 
 
 ## Reproducibility
 
-Pipeline scripts and intermediate JSON files were kept at `/tmp/cmp2/` during this run (not checked in here). The end-to-end pipeline is:
+The pipeline lives at `scripts/` and runs end-to-end in ~30 min wall time:
 
-1. `gather.py` — pull arXiv candidates by `journal-ref` (~5 min wall, rate-limited by arXiv).
-2. `verify.py` — bi-engine verification (~5 min, 6 threads).
-3. `download_extract.py` — pull arXiv source, extract theorem envs (~5 min).
-4. Sample papers/theorems → `picks.json`.
-5. Codex paraphrase batches → `queries.json`.
-6. `rerun_ts.py` + `rerun_matlas.py` — sequential search runs with retries (~10 min each).
-7. `grade_theorem.py` — paper-level + theorem-level grading.
+1. `01_gather_candidates.py` — pull arXiv candidates by `journal-ref` (~5 min, arXiv API rate-limited).
+2. `02_verify_overlap.py` — bi-engine presence verification by metadata (~5 min, 6 threads).
+3. `03_sample_and_extract.py` — random-sample 60 papers (seed=42), pull e-prints, extract theorem envs, pick 4 non-main per paper (~5 min).
+4. `04_paraphrase.py` — Codex/OpenAI batch paraphrasing into `precise` + `vague` queries.
+5. `05_run_searches.py` — both engines, k=10, sequential with retries (~10 min).
+6. `06_grade.py` — paper-level + theorem-level retrieval@k.
 
-400 graded query results, with full top-10 captures from both engines, are in `graded_full.json` (~3 MB).
+Intermediate state lives in `data/` (~500 KB total). Full top-10 captures and graded
+ranks live in `results/graded_full.json` (~5 MB) plus `results/results.csv` for
+inspection.
