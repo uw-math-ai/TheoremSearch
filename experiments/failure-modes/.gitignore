@@ -1,0 +1,4 @@
+data/*.jsonl
+results/*.jsonl
+__pycache__/
+queries.csv
