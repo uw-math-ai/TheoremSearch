@@ -3,19 +3,19 @@
 **Date:** 2026‑04‑27
 **API:** `https://api.theoremsearch.com/search` (Qwen3‑Embedding‑8B + HNSW + cosine rerank)
 **Total queries probed:** 946 (batches A/B/C) + 80 follow-up probes (batch D) = **1,026**
-**Judge:** GPT‑4o‑mini scoring top-5 retrieved slogans against the query intent into `{good, partial, bad}` (and a separate −2..+2 pass; see below).
+**Judge:** GPT‑5.4‑mini scoring top-5 retrieved slogans against the query intent on a −2..+2 scale (see below). Original triage with GPT‑4o‑mini into `{good, partial, bad}` is preserved in §1.
 
-The full per-query CSV (with score, judgement, and top‑3 slogans) is at `failure_modes.csv`. Raw retrievals and judged JSONL live under `results/` and are gitignored — regenerate with `run_search.py` then `judge.py` / `judge_csv.py`. The query bank is in `data/` (A/B/C/D, also gitignored).
+The full per-query CSV (score, judgement, top‑3 slogans) is at `failure_modes.csv`. Raw retrievals and judged JSONL live under `results/` and are gitignored — regenerate with `run_search.py` then `judge.py` / `judge_csv.py`. The query bank is in `data/` (A/B/C/D, also gitignored).
 
-### Score distribution (−2..+2 pass via `judge_csv.py`, n = 1,026)
+### Score distribution (−2..+2 pass via `judge_csv.py`, gpt‑5.4‑mini, n = 1,026)
 
 | Score | Meaning | Count | Share |
 |------:|---------|------:|------:|
-|  +2 | top‑1 is a clear, on-target match | 606 | 59.1 % |
-|  +1 | clear match in top‑3 (not at rank 1) | 287 | 28.0 % |
-|   0 | tangentially related; nothing in top‑3 directly answers | 49 | 4.8 % |
-|  −1 | top‑3 off-topic / wrong-named | 68 | 6.6 % |
-|  −2 | meta/corrupted slogans or empty | 16 | 1.6 % |
+|  +2 | top‑1 is a clear, on-target match | 792 | 77.2 % |
+|  +1 | clear match in top‑3 (not at rank 1) | 113 | 11.0 % |
+|   0 | tangentially related; nothing in top‑3 directly answers | 80 | 7.8 % |
+|  −1 | top‑3 off-topic / wrong-named | 15 | 1.5 % |
+|  −2 | meta/corrupted slogans or empty | 26 | 2.5 % |
 
 ---
 

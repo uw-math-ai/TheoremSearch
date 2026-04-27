@@ -25,8 +25,8 @@ RAW_FILES = [ROOT / "results" / "raw_all.jsonl", ROOT / "results" / "raw_d.jsonl
 JSONL_OUT = ROOT / "results" / "judged_scored.jsonl"
 CSV_OUT = ROOT / "failure_modes.csv"
 TOP_K = 5
-MODEL = "gpt-4o-mini"
-WORKERS = 8
+MODEL = "gpt-5.4-mini"
+WORKERS = 16
 
 
 def load_key():
