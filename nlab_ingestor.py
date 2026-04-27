@@ -41,7 +41,7 @@ except ImportError:
 
 # Use lxml if available - significantly faster HTML parsing
 try:
-    import lxml  # noqa: F401
+    import lxml  # type: ignore[import]  # noqa: F401
     HTML_PARSER = 'lxml'
 except ImportError:
     HTML_PARSER = 'html.parser'
@@ -76,6 +76,9 @@ def clean_text(element):
 
     text = el.get_text(separator=" ", strip=True)
     text = re.sub(r"\s+", " ", text).strip()
+    # Strip C1 control characters (U+0080–U+009F) — encoding artifacts from
+    # Windows-1252 content mis-decoded as Latin-1/Unicode (e.g. U+0096 → "–")
+    text = re.sub(r'[\x80-\x9f]', '', text)
     return text
 
 
@@ -367,7 +370,8 @@ class NLabIngestor:
                 candidate = body_match.group(1)
                 if _looks_like_note(_mask_latex(candidate)):
                     note = candidate.strip()
-                    body = body[body_match.end():].strip()
+                    # Don't strip note from body: the regex stops at the first ")"
+                    # which may land inside a LaTeX expression, leaving a garbled fragment.
 
         proof_text = self._find_following_proof(div)
 

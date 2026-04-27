@@ -3,7 +3,7 @@
 pdf_textbook_ingestor.py
 
 Drop PDF textbooks into the input/ folder, run this script, and get
-structured JSON entries for MathCopilot.
+structured JSON entries for MathCopilot — same format as proofwiki.json.
 
 Workflow:
     1. Put your PDF(s) in the input/ folder
@@ -16,19 +16,18 @@ Dependencies:
     pip install marker-pdf
 
 Options:
-    python pdf_textbook_ingestor.py                     # process all PDFs in input/
-    python pdf_textbook_ingestor.py --pages 0-20        # only these pages (for testing)
-    python pdf_textbook_ingestor.py --nougat-only       # just OCR, skip JSON parsing
-    python pdf_textbook_ingestor.py --from-mmd SLUG     # skip OCR, re-parse existing .md
+    python pdf_textbook_ingestor.py                  # process all PDFs in input/
+    python pdf_textbook_ingestor.py --pages 0-20     # only these pages (for testing)
+    python pdf_textbook_ingestor.py --reparse SLUG   # skip OCR, re-parse cached .md
+    python pdf_textbook_ingestor.py --source "Artin Algebra, 2nd ed."
+    python pdf_textbook_ingestor.py --slug artin-algebra
 """
 
 import argparse
 import json
 import os
 import re
-import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import Optional
 
@@ -43,255 +42,401 @@ DATA_SOURCES_DIR = REPO_ROOT / "data" / "sources"
 
 
 # ---------------------------------------------------------------------------
-# Marker OCR
+# Marker OCR  (lazy import so the script fails fast with a clear message)
 # ---------------------------------------------------------------------------
 
-def run_marker(pdf_path: Path, output_dir: Path, pages: Optional[str] = None) -> Path:
-    """
-    Run marker-pdf on a PDF. Returns path to the output .md file.
-    marker outputs Markdown with LaTeX math in $ and $$ delimiters.
-    """
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # marker_single [OPTIONS] FPATH
-    cmd = [
-        "marker_single",
-        "--output_format", "markdown",
-        "--output_dir", str(output_dir),
-        str(pdf_path),
-    ]
-
-    if pages:
-        # marker uses --page_range
-        cmd.insert(-1, "--page_range")
-        cmd.insert(-1, pages)
-
-    print(f"  [marker] Running OCR...")
-    print(f"  [marker] Command: {' '.join(cmd)}")
-    start = time.time()
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    elapsed = time.time() - start
-    print(f"  [marker] Done in {elapsed:.1f}s")
-
-    if result.returncode != 0:
-        print(f"  [marker] stderr: {result.stderr[:500]}", file=sys.stderr)
-
-    # Find the .md file marker produced
-    md_file = find_md_output(output_dir, pdf_path.stem)
-
-    if md_file is None:
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"marker failed (exit code {result.returncode}).\n"
-                f"  stderr: {result.stderr[:300]}\n"
-                f"  Try running manually: marker_single --output_dir \"{output_dir}\" \"{pdf_path}\""
-            )
-        raise FileNotFoundError(
-            f"No .md file found in {output_dir} after marker ran.\n"
-            f"  Check: dir \"{output_dir}\" /s"
-        )
-
-    print(f"  [marker] Output: {md_file.name} ({md_file.stat().st_size / 1024:.1f} KB)")
-    return md_file
-
-
-def find_md_output(output_dir: Path, stem: str) -> Optional[Path]:
-    """Find the markdown file marker produced, checking multiple possible locations."""
-    # Check output_dir/{stem}/{stem}.md
-    candidate = output_dir / stem / f"{stem}.md"
-    if candidate.exists() and candidate.stat().st_size > 0:
-        return candidate
-
-    # Check output_dir/{stem}.md
-    candidate = output_dir / f"{stem}.md"
-    if candidate.exists() and candidate.stat().st_size > 0:
-        return candidate
-
-    # Glob for any .md file
-    for md in output_dir.rglob("*.md"):
-        if md.stat().st_size > 0:
-            return md
-
-    return None
-
-
-# ---------------------------------------------------------------------------
-# Markdown parsing
-# ---------------------------------------------------------------------------
-
-ENV_PATTERN = re.compile(
-    r"^\*\*("
-    r"Theorem|Definition|Lemma|Proposition|Corollary|Example|Remark|Conjecture|Axiom|Property"
-    r")\s*([\d.]+)?\*\*"
-    r"(?:\s*\(([^)]+)\))?"
-    r"\.?\s*",
-    re.IGNORECASE
+# Matches actual theorem headers: "Theorem 1.2.3" or "Lemma 2.4" at the start
+# of a line — NOT in-text references like "by Theorem 1.2".
+THEOREM_HEADER = re.compile(
+    r"^(Theorem|Lemma|Proposition|Corollary|Definition|Remark|Example|Conjecture|Axiom)"
+    r"\s+\d+[\d.]*",
+    re.IGNORECASE | re.MULTILINE,
 )
 
-# Also match non-bold variants: "Theorem 3.4.14." or "Definition 2.1.1 (Name)."
-ENV_PATTERN_ALT = re.compile(
+# How many pages before/after a theorem page to also include (catches proofs
+# that spill onto the next page)
+PAGE_BUFFER = 1
+
+
+def find_theorem_pages(pdf_path: Path) -> list[int]:
+    """
+    Fast pymupdf scan: returns 0-indexed page numbers that contain theorem
+    keywords (plus a buffer of surrounding pages).  Takes < 1 second.
+    """
+    try:
+        import fitz
+    except ImportError:
+        print("[!] pymupdf is required for fast scanning.  Install: pip install pymupdf")
+        sys.exit(1)
+
+    doc = fitz.open(str(pdf_path))
+    total = len(doc)
+    hit_pages: set[int] = set()
+
+    for i in range(total):
+        text = doc[i].get_text("text")
+        if THEOREM_HEADER.search(text):
+            # add the page and its neighbours
+            for offset in range(-PAGE_BUFFER, PAGE_BUFFER + 1):
+                p = i + offset
+                if 0 <= p < total:
+                    hit_pages.add(p)
+
+    doc.close()
+    return sorted(hit_pages)
+
+
+def pages_to_ranges(pages: list[int]) -> list[str]:
+    """
+    Collapse a sorted list of page numbers into compact ranges.
+    e.g. [1,2,3,7,8,10] -> ["1-3", "7-8", "10-10"]
+    """
+    if not pages:
+        return []
+    ranges: list[str] = []
+    start = end = pages[0]
+    for p in pages[1:]:
+        if p == end + 1:
+            end = p
+        else:
+            ranges.append(f"{start}-{end}")
+            start = end = p
+    ranges.append(f"{start}-{end}")
+    return ranges
+
+
+def _find_nougat() -> str:
+    """Locate the nougat executable (handles conda envs on Windows)."""
+    import shutil
+    exe = shutil.which("nougat")
+    if exe:
+        return exe
+    # Derive from the current Python interpreter path (works inside conda env)
+    python_dir = Path(sys.executable).parent
+    for candidate in [
+        python_dir / "nougat",
+        python_dir / "nougat.exe",
+        python_dir / "Scripts" / "nougat",
+        python_dir / "Scripts" / "nougat.exe",
+    ]:
+        if candidate.exists():
+            return str(candidate)
+    return "nougat"  # fall back and let subprocess raise a clear error
+
+
+def _nougat_normalize(mmd: str) -> str:
+    """Convert nougat's \\(...\\) and \\[...\\] delimiters to $...$ and $$...$$ ."""
+    mmd = re.sub(r"\\\[([\s\S]*?)\\\]", lambda m: f"$${m.group(1)}$$", mmd)
+    mmd = re.sub(r"\\\(([\s\S]*?)\\\)", lambda m: f"${m.group(1)}$", mmd)
+    return mmd
+
+
+def run_nougat(pdf_path: Path, pages: Optional[str] = None) -> str:
+    """Run nougat on a PDF and return the normalized MMD string."""
+    import subprocess, tempfile
+
+    nougat_exe = _find_nougat()
+    cmd = [nougat_exe, str(pdf_path), "--no-skipping"]
+    if pages:
+        cmd += ["--pages", pages]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        cmd += ["-o", tmpdir]
+        page_info = f" (pages {pages})" if pages else ""
+        print(f"  [nougat] Running on {pdf_path.name}{page_info}...")
+        proc = subprocess.run(cmd)  # no capture — lets nougat's progress bar through
+
+        mmd_file = Path(tmpdir) / f"{pdf_path.stem}.mmd"
+        if not mmd_file.exists():
+            print(f"[!] nougat produced no output (exit code {proc.returncode})")
+            sys.exit(1)
+
+        mmd = mmd_file.read_text(encoding="utf-8")
+
+    print(f"  [nougat] Done — {len(mmd):,} characters")
+    return _nougat_normalize(mmd)
+
+
+def run_nougat_smart(pdf_path: Path) -> str:
+    """
+    Two-pass approach:
+      1. Fast pymupdf scan to find which pages contain theorems.
+      2. Extract those pages into a temp PDF (avoids complex --pages arg).
+      3. Run nougat on the temp PDF for full LaTeX output.
+    Typically reduces pages processed by 60-80%.
+    """
+    try:
+        import fitz
+    except ImportError:
+        print("[!] pymupdf required for smart scan.  Install: pip install pymupdf")
+        sys.exit(1)
+
+    import tempfile
+
+    doc = fitz.open(str(pdf_path))
+    total = len(doc)
+
+    print(f"  [scan]   Scanning {total} pages for theorem keywords...")
+    theorem_pages = find_theorem_pages(pdf_path)
+    pct = 100 * len(theorem_pages) // total
+    print(f"  [scan]   {len(theorem_pages)}/{total} pages contain theorems ({pct}%) — skipping the rest")
+
+    if not theorem_pages:
+        print("  [scan]   No theorem pages found — falling back to full OCR")
+        doc.close()
+        return run_nougat(pdf_path)
+
+    # Extract theorem pages into a temp PDF — one clean file for nougat, no
+    # complex --pages argument that can cause hangs with many discontiguous ranges.
+    tmp_fd, tmp_name = tempfile.mkstemp(suffix=".pdf")
+    os.close(tmp_fd)
+    tmp_path = Path(tmp_name)
+
+    print(f"  [scan]   Extracting {len(theorem_pages)} pages to temp PDF...")
+    out_doc = fitz.open()
+    for page_num in theorem_pages:
+        out_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
+    out_doc.save(str(tmp_path))
+    out_doc.close()
+    doc.close()
+
+    print(f"  [nougat] Running OCR on theorem pages only...")
+    try:
+        return run_nougat(tmp_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# Markdown → theorem dicts
+# ---------------------------------------------------------------------------
+
+# Matches marker's bold-header style:  **Theorem 1.2 Name.**
+_BOLD_ENV = re.compile(
+    r"^\*\*("
+    r"Theorem|Definition|Lemma|Proposition|Corollary|Example|Remark|Conjecture|Axiom|Property"
+    r")\s*([\d.]+)?"
+    r"(?:\s+([^*.(][^*.]*?))?"   # optional title before the closing ** or .
+    r"[\s.]*\*\*\.?\s*",
+    re.IGNORECASE,
+)
+
+# Matches plain style:  Lemma 1.2.6 Elementary matrices are...
+_PLAIN_ENV = re.compile(
     r"^("
     r"Theorem|Definition|Lemma|Proposition|Corollary|Example|Remark|Conjecture|Axiom|Property"
     r")\s+([\d.]+)"
-    r"(?:\s*\(([^)]+)\))?"
-    r"\.?\s*",
-    re.IGNORECASE
+    r"(?:\s+([^(\n][^\n]*?))?"   # optional inline title
+    r"\s*$",
+    re.IGNORECASE,
 )
 
-CHAPTER_PATTERN = re.compile(
-    r"^#{1,2}\s*(?:Chapter\s+)?(\d+)\s*[.:]?\s*(.*)",
-    re.IGNORECASE
-)
+_PROOF_START = re.compile(r"^[_*]?Proof[_*]?\.?[_*]?[:,.]?\s*", re.IGNORECASE)
+_PROOF_END = re.compile(r"[□∎]|\\(blacksquare|square)\b|Q\.E\.D\.|\\qed\b")
 
-SECTION_PATTERN = re.compile(
-    r"^#{2,4}\s*(\d+\.\d+)\s*[.:]?\s*(.*)"
-)
-
-PROOF_START = re.compile(r"^\*?\*?Proof\.?\*?\*?\.?\s*", re.IGNORECASE)
-PROOF_END_MARKERS = ["∎", "□", "Q.E.D.", "qed", "\\blacksquare", "\\square"]
+_SECTION_HDR = re.compile(r"^#{1,4}\s+")   # any markdown heading — not a theorem
 
 
-def parse_markdown(md_path: Path, source: str) -> list[dict]:
-    """Parse a marker-pdf markdown file into ProofWiki-format theorem dicts."""
-    with open(md_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+def _build_theorem_name(env_type: str, number: Optional[str], title: Optional[str]) -> str:
+    """Assemble a clean theorem_name string."""
+    name = env_type.capitalize()
+    if number:
+        name += f" {number}"
+    if title:
+        # strip trailing punctuation from the inline title
+        title = title.strip().rstrip(".")
+        if title:
+            name += f" ({title})"
+    return name
 
-    theorems: list[dict] = []
-    current_chapter = None
-    current_chapter_title = None
-    current_section = None
-    current_section_title = None
 
-    current_entry: Optional[dict] = None
-    collecting_proof = False
-    proof_lines: list[str] = []
+def parse_markdown(md: str, source: str) -> list[dict]:
+    """
+    Parse a marker-pdf markdown document into ProofWiki-format theorem dicts.
+
+    Each dict has:
+        theorem_name  str
+        type          str  (theorem | lemma | definition | …)
+        body          str  (LaTeX-preserving)
+        proof         str  (optional)
+        number        str  (optional, e.g. "1.2.6")
+        note          str  (optional, inline title)
+    """
+    lines = md.splitlines()
+    results: list[dict] = []
+
+    current: Optional[dict] = None
     body_lines: list[str] = []
+    proof_lines: list[str] = []
+    in_proof = False
 
-    def flush_entry():
-        nonlocal current_entry, body_lines, proof_lines, collecting_proof
-        if current_entry is None:
+    def flush():
+        nonlocal current, body_lines, proof_lines, in_proof
+        if current is None:
             return
-        current_entry["body"] = clean_body("\n".join(body_lines))
-        if proof_lines:
-            current_entry["proof"] = clean_body("\n".join(proof_lines))
-        if len(current_entry["body"].strip()) > 20:
-            theorems.append(current_entry)
-        current_entry = None
+        body = _clean(body_lines)
+        if len(body.strip()) > 15:
+            current["body"] = body
+            if proof_lines:
+                proof = _clean(proof_lines)
+                if proof.strip():
+                    current["proof"] = proof
+            results.append(current)
+        current = None
         body_lines = []
         proof_lines = []
-        collecting_proof = False
+        in_proof = False
 
-    for i, line in enumerate(lines):
+    for line in lines:
         stripped = line.rstrip()
 
-        # Section header (check BEFORE chapter)
-        sec_match = SECTION_PATTERN.match(stripped)
-        if sec_match:
-            flush_entry()
-            current_section = sec_match.group(1)
-            current_section_title = sec_match.group(2).strip() or None
+        # ── skip markdown section headings (not theorems) ──────────────────
+        if _SECTION_HDR.match(stripped):
+            flush()
             continue
 
-        # Chapter header
-        ch_match = CHAPTER_PATTERN.match(stripped)
-        if ch_match and not stripped.startswith("###"):
-            flush_entry()
-            current_chapter = int(ch_match.group(1))
-            current_chapter_title = ch_match.group(2).strip() or None
-            current_section = None
-            current_section_title = None
-            continue
-
-        # Theorem-like environment (bold)
-        env_match = ENV_PATTERN.match(stripped)
-        # Fallback: non-bold variant
-        if not env_match:
-            env_match = ENV_PATTERN_ALT.match(stripped)
-
-        if env_match:
-            flush_entry()
-            env_type = env_match.group(1).lower()
-            env_number = env_match.group(2)
-            env_name = env_match.group(3)
-
-            label = env_match.group(1)
-            if env_number:
-                label += f" {env_number}"
-            theorem_name = label
-            if env_name:
-                theorem_name += f" ({env_name})"
-
-            context_parts = []
-            if current_chapter_title:
-                context_parts.append(f"Ch{current_chapter} {current_chapter_title}")
-            if current_section_title:
-                context_parts.append(f"{current_section} {current_section_title}")
-            context_parts.append(theorem_name)
-
-            current_entry = {
-                "theorem_name": " > ".join(context_parts),
-                "type": env_type,
-                "body": "",
-                "url": None,
-                "proof": None,
-            }
-
-            remainder = stripped[env_match.end():]
-            if remainder.strip():
-                body_lines.append(remainder)
-            continue
-
-        # Proof start
-        if PROOF_START.match(stripped):
-            if current_entry is not None:
-                collecting_proof = True
-                remainder = PROOF_START.sub("", stripped)
-                if remainder.strip():
+        # ── proof start (checked BEFORE proof end so "Proof...□" single-liners work)
+        if current is not None and not in_proof and _PROOF_START.match(stripped):
+            in_proof = True
+            remainder = _PROOF_START.sub("", stripped).strip()
+            # check if proof ends on the same line
+            if _PROOF_END.search(remainder):
+                remainder = _PROOF_END.sub("", remainder).strip()
+                if remainder:
                     proof_lines.append(remainder)
-                continue
-
-        # Proof end
-        if collecting_proof and any(m in stripped for m in PROOF_END_MARKERS):
-            proof_lines.append(stripped)
-            collecting_proof = False
+                in_proof = False
+            elif remainder:
+                proof_lines.append(remainder)
             continue
 
-        # Accumulate content
-        if current_entry is not None:
-            if collecting_proof:
+        # ── proof end marker ────────────────────────────────────────────────
+        if current is not None and _PROOF_END.search(stripped):
+            content = _PROOF_END.sub("", stripped).strip()
+            if in_proof:
+                if content:
+                    proof_lines.append(content)
+                in_proof = False
+            else:
+                # □ in body (not preceded by "Proof") — body ends here, flush
+                if content:
+                    body_lines.append(content)
+                flush()
+            continue
+
+        # ── theorem environment header ───────────────────────────────────────
+        m = _BOLD_ENV.match(stripped) or _PLAIN_ENV.match(stripped)
+        if m:
+            flush()
+            env_type  = m.group(1).lower()
+            number    = m.group(2) if m.lastindex >= 2 else None
+            raw_title = m.group(3).strip() if (m.lastindex >= 3 and m.group(3)) else None
+
+            # for PLAIN_ENV the "title" includes the start of the body — split on sentence end
+            # heuristic: title ends at first period followed by space+capital, or is short
+            title = _extract_title(raw_title) if raw_title else None
+            body_seed = _body_remainder(raw_title, title) if raw_title else None
+
+            current = {"theorem_name": _build_theorem_name(env_type, number, title),
+                       "type": env_type}
+            if number:
+                current["number"] = number
+            if title:
+                current["note"] = title
+
+            # remainder of the header line is the start of the body
+            after_match = stripped[m.end():].strip()
+            if body_seed:
+                body_lines.append(body_seed)
+            if after_match:
+                body_lines.append(after_match)
+            continue
+
+        # ── accumulate body / proof ─────────────────────────────────────────
+        if current is not None:
+            if in_proof:
                 proof_lines.append(stripped)
             else:
                 body_lines.append(stripped)
 
-    flush_entry()
-    return theorems
+    flush()
+    return results
 
 
-def clean_body(text: str) -> str:
-    text = text.replace("\\(", "$").replace("\\)", "$")
-    text = text.replace("\\[", "$$").replace("\\]", "$$")
+def _extract_title(text: str) -> Optional[str]:
+    """
+    Heuristically decide if 'text' (the words after the number) is a named title
+    vs. the start of the theorem body.  Short all-word phrases are titles.
+    """
+    if not text:
+        return None
+    text = text.strip().rstrip(".")
+    # If it contains a LaTeX dollar sign it's body, not a title
+    if "$" in text:
+        return None
+    words = text.split()
+    # Up to ~6 title words and no lowercase function words that signal body prose
+    body_starters = {"let", "suppose", "assume", "given", "if", "for", "every",
+                     "the", "a", "an", "consider", "there"}
+    if len(words) <= 6 and words[0].lower() not in body_starters:
+        return text
+    return None
+
+
+def _body_remainder(raw: str, title: Optional[str]) -> Optional[str]:
+    """Return the part of raw that comes after the extracted title."""
+    if title is None:
+        return raw.strip() if raw else None
+    rest = raw[len(title):].strip().lstrip(".")
+    return rest if rest else None
+
+
+
+def _strip_markdown(text: str) -> str:
+    """Remove markdown formatting but preserve LaTeX ($...$  and $$...$$)."""
+    # Temporarily mask LaTeX spans so we don't touch math
+    placeholders: list[str] = []
+
+    def mask(m: re.Match) -> str:
+        placeholders.append(m.group(0))
+        return f"\x00{len(placeholders) - 1}\x00"
+
+    text = re.sub(r"\$\$[\s\S]*?\$\$", mask, text)
+    text = re.sub(r"\$[^$\n]+?\$", mask, text)
+
+    # Strip bold (**text** or __text__)
+    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+    text = re.sub(r"__(.+?)__", r"\1", text)
+    # Strip italic (*text* or _text_) — single char boundary to avoid touching math
+    text = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", text)
+    text = re.sub(r"(?<!_)_(?!_)(.+?)(?<!_)_(?!_)", r"\1", text)
+    # Strip inline code
+    text = re.sub(r"`(.+?)`", r"\1", text)
+    # Restore LaTeX
+    text = re.sub(r"\x00(\d+)\x00", lambda m: placeholders[int(m.group(1))], text)
+    return text
+
+
+def _clean(lines: list[str]) -> str:
+    text = "\n".join(lines)
+    text = _strip_markdown(text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     text = text.strip()
-    if len(text) > 3000:
-        text = text[:3000] + "..."
+    if len(text) > 4000:
+        text = text[:4000] + "..."
     return text
 
 
 # ---------------------------------------------------------------------------
-# Save output
+# Save output  (ProofWiki-compatible format)
 # ---------------------------------------------------------------------------
 
 def save_output(theorems: list[dict], source: str, output_path: Path):
-    data = {
-        "source": source,
-        "theorems": theorems,
-    }
+    data = {"source": source, "theorems": theorems}
     tmp = str(output_path) + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     os.replace(tmp, str(output_path))
+    print(f"  [save] {output_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -303,68 +448,93 @@ def process_pdf(
     source: Optional[str] = None,
     slug: Optional[str] = None,
     pages: Optional[str] = None,
-    ocr_only: bool = False,
 ):
-    slug = slug or re.sub(r"[^a-z0-9]+", "-", pdf_path.stem.lower()).strip("-")
+    slug   = slug   or re.sub(r"[^a-z0-9]+", "-", pdf_path.stem.lower()).strip("-")
     source = source or pdf_path.stem.replace("_", " ").replace("-", " ")
 
     output_dir = DATA_SOURCES_DIR / slug
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    marker_out = output_dir / "marker_output"
-    json_path = output_dir / f"{slug}.json"
+    # Full-run cache uses the plain name; partial runs get a suffix so they
+    # never shadow the full-book cache.
+    if pages:
+        safe_pages = pages.replace("-", "_")
+        md_cache = output_dir / f"{slug}_p{safe_pages}.mmd"
+        json_path = output_dir / f"{slug}_p{safe_pages}.json"
+    else:
+        md_cache  = output_dir / f"{slug}.mmd"
+        json_path = output_dir / f"{slug}.json"
 
     print(f"\n{'='*60}")
     print(f"Processing: {pdf_path.name}")
-    print(f"Output:     data/sources/{slug}/")
+    print(f"Slug:       {slug}")
+    if pages:
+        print(f"Pages:      {pages}")
     print(f"{'='*60}")
 
-    # Step 1: OCR
-    md_path = run_marker(pdf_path, marker_out, pages=pages)
+    # Step 1 — OCR (or load cache)
+    if md_cache.exists():
+        print(f"  [nougat] Using cached MMD: {md_cache.name}")
+        md = _nougat_normalize(md_cache.read_text(encoding="utf-8"))
+    elif pages:
+        # Explicit page range — run nougat directly on those pages (1-indexed)
+        md = run_nougat(pdf_path, pages=pages)
+        md_cache.write_text(md, encoding="utf-8")
+        print(f"  [nougat] Cached to {md_cache.name}")
+    else:
+        # Smart mode: pymupdf scan first, then nougat on theorem pages only
+        md = run_nougat_smart(pdf_path)
+        md_cache.write_text(md, encoding="utf-8")
+        print(f"  [nougat] Cached to {md_cache.name}")
 
-    if ocr_only:
-        print(f"  [done] OCR-only mode. Markdown at: {md_path}")
-        return
+    # Step 2 — Parse
+    print(f"  [parse]  Extracting theorems...")
+    theorems = parse_markdown(md, source)
 
-    # Step 2: Parse
-    print(f"  [parse] Extracting theorems...")
-    theorems = parse_markdown(md_path, source)
-
-    # Step 3: Save
+    # Step 3 — Save
     save_output(theorems, source, json_path)
 
     # Summary
-    type_counts: dict[str, int] = {}
+    counts: dict[str, int] = {}
     for t in theorems:
-        entry_type = t.get("type", "other")
-        type_counts[entry_type] = type_counts.get(entry_type, 0) + 1
-
-    print(f"  [done] {len(theorems)} entries:")
-    for t, c in sorted(type_counts.items()):
-        print(f"         {t}: {c}")
-    print(f"  [done] Saved to: {json_path}")
+        counts[t["type"]] = counts.get(t["type"], 0) + 1
+    print(f"  [done]  {len(theorems)} entries extracted:")
+    for tp, c in sorted(counts.items()):
+        print(f"          {tp}: {c}")
 
 
 # ---------------------------------------------------------------------------
-# Re-parse existing markdown
+# Re-parse an existing cached markdown without re-running OCR
 # ---------------------------------------------------------------------------
 
-def reparse_md(slug: str, source: Optional[str] = None):
+def reparse(slug: str, source: Optional[str] = None, pages: Optional[str] = None):
     output_dir = DATA_SOURCES_DIR / slug
-    marker_dir = output_dir / "marker_output"
+    if pages:
+        safe_pages = pages.replace("-", "_")
+        md_cache  = output_dir / f"{slug}_p{safe_pages}.mmd"
+        json_path = output_dir / f"{slug}_p{safe_pages}.json"
+    else:
+        md_cache  = output_dir / f"{slug}.mmd"
+        json_path = output_dir / f"{slug}.json"
 
-    md_file = find_md_output(marker_dir, slug) if marker_dir.exists() else None
-    if md_file is None:
-        print(f"[error] No .md files found in data/sources/{slug}/marker_output/")
+    if not md_cache.exists():
+        # Show all available caches to help the user
+        available = sorted(output_dir.glob(f"{slug}*.mmd")) if output_dir.exists() else []
+        print(f"[error] No cached MMD at {md_cache.name}")
+        if available:
+            print(f"        Available caches:")
+            for f in available:
+                print(f"          {f.name}")
+        else:
+            print(f"        Run without --reparse first to generate it.")
         sys.exit(1)
 
     source = source or slug.replace("-", " ")
-    json_path = output_dir / f"{slug}.json"
-
-    print(f"Re-parsing: {md_file.name}")
-    theorems = parse_markdown(md_file, source)
+    print(f"Re-parsing cached MMD for: {slug}")
+    md = _nougat_normalize(md_cache.read_text(encoding="utf-8"))
+    theorems = parse_markdown(md, source)
     save_output(theorems, source, json_path)
-    print(f"  [done] {len(theorems)} entries -> {json_path}")
+    print(f"  [done]  {len(theorems)} entries -> {json_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -373,7 +543,7 @@ def reparse_md(slug: str, source: Optional[str] = None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Drop PDFs in input/, run this script, get structured JSON.",
+        description="Drop PDFs in input/, get structured JSON in ProofWiki format.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Workflow:
@@ -381,52 +551,42 @@ Workflow:
   2. python pdf_textbook_ingestor.py
   3. Output in data/sources/{book-name}/
 
-Options:
-  --pages 0-20       Only process these pages (for testing)
-  --ocr-only         Just run marker, skip JSON parsing
-  --from-md SLUG     Re-parse existing markdown without re-running OCR
-  --source "..."     Override source citation
-  --slug NAME        Override output folder name
+The first run OCR's the PDF with marker and caches the markdown.
+Subsequent re-runs re-use the cache automatically.
+
+To tweak parsing without re-running OCR:
+  python pdf_textbook_ingestor.py --reparse artin-algebra
         """
     )
-
-    parser.add_argument("--pages", default=None, help="Page range (e.g. '0-20')")
-    parser.add_argument("--ocr-only", action="store_true", help="Only run OCR")
-    parser.add_argument("--from-md", default=None, metavar="SLUG",
-                        help="Re-parse existing markdown for this slug")
-    parser.add_argument("--source", default=None, help="Source citation override")
-    parser.add_argument("--slug", default=None, help="Output folder name override")
+    parser.add_argument("--pages",   default=None, help="Page range for OCR, e.g. '0-20'")
+    parser.add_argument("--source",  default=None, help="Source string override")
+    parser.add_argument("--slug",    default=None, help="Output folder name override")
+    parser.add_argument("--reparse", default=None, metavar="SLUG",
+                        help="Re-parse cached markdown for SLUG without re-running OCR")
 
     args = parser.parse_args()
 
-    # Re-parse mode
-    if args.from_md:
-        reparse_md(args.from_md, source=args.source)
+    if args.reparse:
+        reparse(args.reparse, source=args.source, pages=args.pages)
         return
 
-    # Create input/ if it doesn't exist
     INPUT_DIR.mkdir(exist_ok=True)
-
-    # Find PDFs
     pdfs = sorted(INPUT_DIR.glob("*.pdf"))
     if not pdfs:
-        print(f"No PDFs found in input/")
-        print(f"  Put your PDF files in: {INPUT_DIR}")
-        print(f"  Then run this script again.")
+        print(f"No PDFs found in {INPUT_DIR}")
+        print(f"  Drop your PDF files there, then run again.")
         sys.exit(0)
 
     print(f"Found {len(pdfs)} PDF(s) in input/:")
     for p in pdfs:
         print(f"  - {p.name}")
 
-    # Process each
     for pdf_path in pdfs:
         process_pdf(
             pdf_path=pdf_path,
             source=args.source,
             slug=args.slug if len(pdfs) == 1 else None,
             pages=args.pages,
-            ocr_only=args.ocr_only,
         )
 
     print(f"\nAll done!")
