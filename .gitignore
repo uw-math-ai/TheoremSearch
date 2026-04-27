@@ -19,6 +19,9 @@ parsed_papers/
 !experiments/matlas-comparison/data/*.json
 !experiments/matlas-comparison/results/*.csv
 !experiments/matlas-comparison/results/*.json.gz
+
+# Allow failure-modes experiment summary CSV
+!experiments/failure-modes/failure_modes.csv
 data/sources/
 DEBUG/
 external/stacks-project/
