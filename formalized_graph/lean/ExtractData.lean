@@ -42,7 +42,7 @@ structure PremiseTrace where
   defPos: Option Position     -- Where the premise is defined.
   defEndPos: Option Position
   modName: String             -- In which module the premise is defined.
-  defPath: String             -- The path of the file where the premise is defined.
+  defPath: String             -- Canonical path: "{ModuleName}/{path}.lean", e.g. "Mathlib/Algebra/Basic.lean".
   pos: Option Position        -- Where the premise is used.
   endPos: Option Position
   isDirect: Bool              -- True if the constant is syntactically present in the file.
@@ -50,12 +50,25 @@ deriving ToJson
 
 
 /--
+The trace of a declaration defined in this file.
+-/
+structure DeclarationTrace where
+  fullName: String
+  kind: String             -- "theorem", "def", "instance", "axiom", etc.
+  defPos: Option Position  -- Name selection range start (for display/search).
+  defEndPos: Option Position  -- Full declaration body end.
+deriving ToJson
+
+
+/--
 The trace of a Lean file.
 -/
 structure Trace where
-  commandASTs : Array Syntax    -- The ASTs of the commands in the file.
-  tactics: Array TacticTrace    -- All tactics in the file.
-  premises: Array PremiseTrace  -- All premises in the file.
+  commandASTs : Array Syntax            -- The ASTs of the commands in the file.
+  tactics: Array TacticTrace            -- All tactics in the file.
+  premises: Array PremiseTrace          -- All premises in the file.
+  declarations: Array DeclarationTrace  -- All declarations *defined* in this file.
+  mainModule: String                    -- Canonical path of this file, e.g. "Mathlib/Algebra/Basic.lean".
 deriving ToJson
 
 
@@ -323,11 +336,10 @@ private def visitTermInfo (ti : TermInfo) (env : Environment) : TraceM Unit := d
   else
     env.header.mainModule
 
-  let mut defPath := toString $ ← Path.findLean modName
-  while defPath.startsWith "./" do
-    defPath := defPath.drop 2 |>.toString
-  if defPath.startsWith "/lake/" then
-    defPath := ".lake/" ++ (defPath.drop 6)
+  -- Canonical path: replace module name dots with slashes and append ".lean".
+  -- e.g. Mathlib.Algebra.Algebra.Basic → "Mathlib/Algebra/Algebra/Basic.lean"
+  -- This is machine-independent and valid for any Lean project.
+  let defPath := (toString modName).replace "." "/" ++ ".lean"
 
   let mut isDirect := false
   -- RESILIENT CHECK: If usage 'pos' is in the current file, it is direct syntactic use.
@@ -380,11 +392,51 @@ private def traverseTopLevelTree (tree : InfoTree) (env : Environment) : TraceM 
 
 
 /--
+Collect all declarations *defined* in the current file.
+Filters using `const2ModIdx`: imported constants have an entry; current-file
+constants do not. This ensures `findDeclarationRanges?` is only called for the
+~150 declarations in the current file, not the ~200k imported constants.
+-/
+def collectDeclarations (env : Environment) : TraceM Unit := do
+  let mainMod := env.header.mainModule
+  for (name, constInfo) in env.constants.map₂.toList do
+    if name.isAnonymous then continue
+    if name.isInternal then continue
+    -- Skip constants imported from OTHER modules.
+    -- With the new `module` / `public import` syntax, current-file constants
+    -- also appear in const2ModIdx, so we compare module names rather than
+    -- just checking membership.
+    if let some modIdx := env.const2ModIdx.get? name then
+      if env.header.moduleNames[modIdx.toNat]! != mainMod then continue
+    -- Use findDeclarationRanges? as a proxy for "user-visible" — macro-generated
+    -- auxiliary declarations typically have no source range.
+    let some decRanges ← withEnv env $ findDeclarationRanges? name | continue
+    let kind : String := match constInfo with
+      | .defnInfo _   => "def"
+      | .thmInfo _    => "theorem"
+      | .axiomInfo _  => "axiom"
+      | .opaqueInfo _ => "opaque"
+      | .inductInfo _ => "inductive"
+      | .ctorInfo _   => "constructor"
+      | .recInfo _    => "recursor"
+      | .quotInfo _   => "quot"
+    modify fun trace => {
+      trace with declarations := trace.declarations.push {
+        fullName  := toString name,
+        kind      := kind,
+        defPos    := decRanges.selectionRange.pos,
+        defEndPos := decRanges.range.endPos,
+      }
+    }
+
+
+/--
 Process an array of `InfoTree` (one for each top-level command in the file).
 -/
 def traverseForest (trees : Array InfoTree) (env : Environment) : TraceM Trace := do
   for t in trees do
     traverseTopLevelTree t env
+  collectDeclarations env
   get
 
 
@@ -411,13 +463,20 @@ unsafe def processFile (path : FilePath) : IO Unit := do
     throw $ IO.userError "Errors during import; aborting"
 
   let env := env.setMainModule (← moduleNameOfFileName path none)
-  let commandState := { Command.mkState env messages {} with infoState.enabled := true }
+  -- Pass maxHeartbeats 0 (unlimited) into the elaboration of the target file.
+  -- The top-level `set_option maxHeartbeats` only covers the script itself;
+  -- commandState uses its own options and defaults to 400k, causing ~40% of
+  -- Mathlib files to fail with heartbeat exhaustion during re-elaboration.
+  let opts := Options.empty |>.set `maxHeartbeats (0 : Nat)
+  let commandState := { Command.mkState env messages opts with infoState.enabled := true }
   let s ← IO.processCommands inputCtx parserState commandState
   let env' := s.commandState.env
   let commands := s.commands.pop -- Remove EOI command.
   let trees := s.commandState.infoState.trees.toArray
 
-  let traceM := (traverseForest trees env').run' ⟨#[header] ++ commands, #[], #[]⟩
+  let mainMod := env'.header.mainModule
+  let mainModPath := (toString mainMod).replace "." "/" ++ ".lean"
+  let traceM := (traverseForest trees env').run' ⟨#[header] ++ commands, #[], #[], #[], mainModPath⟩
   let (trace, _) ← traceM.run'.toIO {fileName := s!"{path}", fileMap := FileMap.ofString input} {env := env}
 
   let cwd ← IO.currentDir

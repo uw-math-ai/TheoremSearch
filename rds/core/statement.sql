@@ -25,9 +25,12 @@ COMMENT ON TABLE formal_metadata IS
 
 CREATE TABLE informal_metadata (
     statement_id UUID PRIMARY KEY REFERENCES statement(statement_id) ON DELETE CASCADE,
-    ref TEXT, -- e.g. "Theorem 3.2"
+    ordinal      INT NOT NULL,  -- 0-based position of this statement in document order
+    ref TEXT, -- e.g. "3.2"
     label TEXT, -- LaTeX \label value
-    note TEXT -- env optional [] argument
+    note TEXT, -- env optional [] argument
+    pre_context TEXT,
+    post_context TEXT
 );
 
 COMMENT ON TABLE informal_metadata IS

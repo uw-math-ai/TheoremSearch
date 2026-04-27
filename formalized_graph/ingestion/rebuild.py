@@ -9,19 +9,52 @@ from tqdm import tqdm
 from loguru import logger
 
 def clean_path(p: str) -> str:
+    """Normalize any Lean filesystem path to canonical 'Project/Path/File.lean' form.
+
+    New-format ASTs already have canonical paths in defPath/mainModule fields,
+    so this is only needed as a fallback for old ASTs or for resolving raw
+    AST file paths to their module-relative form.
+
+    Examples:
+      /gscratch/.../mathlib4/.lake/build/ir/Mathlib/Algebra/Basic.ast.json
+        → Mathlib/Algebra/Basic.lean
+      .lake/packages/mathlib/Mathlib/Algebra/Basic.lean
+        → Mathlib/Algebra/Basic.lean
+    """
     if not p: return ""
-    # Strip absolute workspace path if present
-    workspace_prefix = "/Users/simon/Desktop/math lab/TheoremSearch/formalized_graph/"
-    if p.startswith(workspace_prefix):
-        p = p[len(workspace_prefix):]
-        
-    p = p.replace(".lake/packages/mathlib/", "formalized_graph/data/mathlib/mathlib4/")
-    p = p.replace(".lake/packages/aesop/", "")
-    p = p.replace(".lake/packages/std/", "")
-    p = p.replace(".lake/build/ir/", "")
-    p = p.replace(".lake/build/lib/lean/", "")
-    p = p.replace("build/lib/lean/", "")
     p = p.replace(".ast.json", ".lean")
+
+    # Strip .lake/build/ output directories — everything before this is
+    # a machine/repo-specific prefix and everything after is the module path.
+    for build_marker in (".lake/build/ir/", ".lake/build/lib/lean/", "build/lib/lean/"):
+        if build_marker in p:
+            p = p.split(build_marker, 1)[1]
+            break
+    else:
+        # No build directory found — strip .lake/packages/{pkg}/ to get project-relative path.
+        # Handles: .lake/packages/mathlib/Mathlib/... → Mathlib/...
+        import re
+        p = re.sub(r'\.lake/packages/[^/]+/', '', p)
+
+    # At this point p may still have an absolute machine prefix (e.g. old defPath
+    # format: /Users/simon/.elan/.../Init/Prelude.lean or
+    # /Users/simon/Desktop/math lab/.../Mathlib/Algebra/Basic.lean).
+    # Lean module paths have ALL directory components starting with uppercase.
+    # Find the leftmost index where this holds for the rest of the path, then
+    # strip everything before it.
+    if p.startswith("/"):
+        parts = p.lstrip("/").split("/")
+        for i, part in enumerate(parts):
+            if part and part[0].isupper() and part[0].isalpha():
+                tail = parts[i:]
+                # Every directory in a Lean module tree starts uppercase.
+                if all(
+                    c and (c[0].isupper() and c[0].isalpha() or c.endswith(".lean"))
+                    for c in tail
+                ):
+                    p = "/".join(tail)
+                    break
+
     if p.startswith("./"): p = p[2:]
     return p
 
@@ -90,39 +123,54 @@ def rebuild_database():
 
     logger.info(f"Found {len(ast_files)} AST files. Starting Phase 1: Nodes.")
 
-    # Phase 1: Populate Nodes Correctly
+    # Phase 1: Populate Nodes
+    # Preferred: use the 'declarations' field (new AST format) — authoritative list of
+    # everything defined in this file, with kind and correct canonical file_path.
+    # Fallback: derive nodes from premises' defPath (old AST format).
     nodes_batch = []
-    seen_nodes = set()
+    seen_nodes: set[str] = set()
+
+    def assign_project(file_path: str) -> int:
+        # Match on the first path component (the module root, e.g. "Mathlib", "FLT", "Std").
+        root = file_path.split("/")[0].lower() if file_path else ""
+        for proj_name, pid in project_ids.items():
+            if proj_name != "Mathlib" and proj_name.lower() == root:
+                return pid
+        return mathlib_id
 
     for ast_path in tqdm(ast_files, desc="Extracting Nodes"):
         try:
             with open(ast_path) as f:
                 data = json.load(f)
-            
-            for p in data.get("premises", []):
-                name = p["fullName"]
-                if name in seen_nodes:
-                    continue
-                
-                raw_def_path = p.get("defPath", "")
-                c_path = clean_path(raw_def_path)
-                
-                # Assign project by matching path against known project directories
-                proj_id = mathlib_id
-                for proj_name, pid in project_ids.items():
-                    if proj_name != "Mathlib" and f"formalization_projects/{proj_name}" in c_path:
-                        proj_id = pid
-                        break
-                
-                nodes_batch.append((proj_id, name, "unknown", c_path, "", ""))
-                seen_nodes.add(name)
 
-                if len(nodes_batch) >= 10000:
-                    cursor.executemany("""
-                        INSERT OR IGNORE INTO nodes (project_id, full_name, kind, file_path, docstring, statement)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, nodes_batch)
-                    nodes_batch = []
+            declarations = data.get("declarations", [])
+            if declarations:
+                # New format: mainModule gives the canonical file_path for this file.
+                file_path = data.get("mainModule") or clean_path(str(ast_path))
+                proj_id = assign_project(file_path)
+                for d in declarations:
+                    name = d["fullName"]
+                    if name in seen_nodes:
+                        continue
+                    nodes_batch.append((proj_id, name, d.get("kind", "unknown"), file_path, "", ""))
+                    seen_nodes.add(name)
+            else:
+                # Old format: derive nodes from premises' defPath.
+                for p in data.get("premises", []):
+                    name = p["fullName"]
+                    if name in seen_nodes:
+                        continue
+                    c_path = clean_path(p.get("defPath", ""))
+                    proj_id = assign_project(c_path)
+                    nodes_batch.append((proj_id, name, "unknown", c_path, "", ""))
+                    seen_nodes.add(name)
+
+            if len(nodes_batch) >= 10000:
+                cursor.executemany("""
+                    INSERT OR IGNORE INTO nodes (project_id, full_name, kind, file_path, docstring, statement)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, nodes_batch)
+                nodes_batch = []
         except Exception:
             pass
 
@@ -148,21 +196,40 @@ def rebuild_database():
         try:
             with open(ast_path) as f:
                 data = json.load(f)
-            for p in data.get("premises", []):
-                def_path = clean_path(p.get("defPath", ""))
-                def_pos = p.get("defPos")
-                def_end_pos = p.get("defEndPos")
-                if not def_path or not def_pos or not def_end_pos:
-                    continue
-                name = p["fullName"]
-                start = def_pos["line"]
-                end = def_end_pos["line"]
-                if def_path not in global_intervals:
-                    global_intervals[def_path] = {}
-                # Keep the entry with the largest end line (most complete range seen)
-                existing = global_intervals[def_path].get(name)
-                if existing is None or end > existing[1]:
-                    global_intervals[def_path][name] = (start, end)
+
+            declarations = data.get("declarations", [])
+            if declarations:
+                # New format: declarations give authoritative intervals for this file.
+                file_path = data.get("mainModule") or clean_path(str(ast_path))
+                if file_path not in global_intervals:
+                    global_intervals[file_path] = {}
+                for d in declarations:
+                    def_pos = d.get("defPos")
+                    def_end_pos = d.get("defEndPos")
+                    if not def_pos or not def_end_pos:
+                        continue
+                    name = d["fullName"]
+                    start = def_pos["line"]
+                    end = def_end_pos["line"]
+                    existing = global_intervals[file_path].get(name)
+                    if existing is None or end > existing[1]:
+                        global_intervals[file_path][name] = (start, end)
+            else:
+                # Old format: derive intervals from premises' defPath.
+                for p in data.get("premises", []):
+                    def_path = clean_path(p.get("defPath", ""))
+                    def_pos = p.get("defPos")
+                    def_end_pos = p.get("defEndPos")
+                    if not def_path or not def_pos or not def_end_pos:
+                        continue
+                    name = p["fullName"]
+                    start = def_pos["line"]
+                    end = def_end_pos["line"]
+                    if def_path not in global_intervals:
+                        global_intervals[def_path] = {}
+                    existing = global_intervals[def_path].get(name)
+                    if existing is None or end > existing[1]:
+                        global_intervals[def_path][name] = (start, end)
         except Exception as e:
             logger.error(f"Error pre-scanning {ast_path}: {e}")
 
@@ -177,7 +244,8 @@ def rebuild_database():
                 data = json.load(f)
 
             premises = data.get("premises", [])
-            rel_path = clean_path(str(ast_path))
+            # Use mainModule when available (new format), else fall back to clean_path.
+            rel_path = data.get("mainModule") or clean_path(str(ast_path))
 
             file_def_map = global_intervals.get(rel_path, {})
             if not file_def_map:
@@ -188,7 +256,9 @@ def rebuild_database():
                 nid = name_to_id.get(name)
                 if nid:
                     intervals.append((start, end, nid))
-            intervals.sort(key=lambda x: x[0])
+            # Sort by start line descending so we match the *innermost* enclosing
+            # definition first (handles where-clauses and nested declarations).
+            intervals.sort(key=lambda x: x[0], reverse=True)
 
             file_edges = {}
 
@@ -228,15 +298,8 @@ def rebuild_database():
         cursor.executemany("INSERT OR IGNORE INTO edges (source_id, target_id, is_implicit, tactic_context) VALUES (?, ?, ?, ?)", all_edges)
         conn.commit()
 
-    # Recalculate Degrees
-    logger.info("Recalculating node degrees...")
-    cursor.execute("UPDATE nodes SET in_degree = 0, out_degree = 0")
-    cursor.execute("""
-        UPDATE nodes SET 
-        in_degree = (SELECT COUNT(*) FROM edges WHERE target_id = nodes.id AND is_implicit = 0),
-        out_degree = (SELECT COUNT(*) FROM edges WHERE source_id = nodes.id AND is_implicit = 0)
-    """)
-    conn.commit()
+    # Note: in_degree/out_degree columns are skipped — query the edges table directly.
+    # The correlated subquery over 1.4M edges × 292k nodes is too slow for SQLite.
 
     # Verify State Final
     log_db_state(db_path, cursor, "FINAL VERIFIED REBUILD")

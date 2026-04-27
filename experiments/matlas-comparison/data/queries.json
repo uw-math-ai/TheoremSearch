@@ -1,0 +1,3202 @@
+[
+ {
+  "paper": "0705.3779",
+  "label": "decomposition over polydisc",
+  "type": "proposition",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "precise",
+  "query": "Every irreducible component of the pulled-back Calabi-Yau type variation on a polydisc is a tensor product of pullbacks of L with exponents 0 or 1 and a unitary factor."
+ },
+ {
+  "paper": "0705.3779",
+  "label": "decomposition over polydisc",
+  "type": "proposition",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "vague",
+  "query": "decomposition of Calabi-Yau Hodge variations on polydiscs"
+ },
+ {
+  "paper": "0705.3779",
+  "label": "identification",
+  "type": "theorem",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "precise",
+  "query": "For the canonical Calabi-Yau type variation on an irreducible bounded symmetric domain, each characteristic subvariety agrees with the corresponding characteristic bundle."
+ },
+ {
+  "paper": "0705.3779",
+  "label": "identification",
+  "type": "theorem",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "vague",
+  "query": "characteristic subvarieties on bounded symmetric domains"
+ },
+ {
+  "paper": "0705.3779",
+  "label": "formula C",
+  "type": "lemma",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "precise",
+  "query": "On the type III domain, symmetric powers of the tangent bundle decompose into even Schur functors, and the k-fold Higgs field selects the component indexed by (2,...,2)."
+ },
+ {
+  "paper": "0705.3779",
+  "label": "formula C",
+  "type": "lemma",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "vague",
+  "query": "iterated Higgs fields on type III domains"
+ },
+ {
+  "paper": "0705.3779",
+  "label": "generating property",
+  "type": "theorem",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "precise",
+  "query": "The ideal cut out by kernels of iterated Higgs maps is generated in degree two, so all higher relations come from quadratic ones."
+ },
+ {
+  "paper": "0705.3779",
+  "label": "generating property",
+  "type": "theorem",
+  "target_title": "Polarized Variation of Hodge Structures of Calabi-Yau Type and Characteristic Subvarieties Over Bounded Symmetric Domains",
+  "mode": "vague",
+  "query": "quadratic generation of Higgs-field relations"
+ },
+ {
+  "paper": "0806.4598",
+  "label": "prop:commdiff",
+  "type": "proposition",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "precise",
+  "query": "In the commutative LSFT algebra, the string differential kills t and sends each p or q generator to a signed sum over interlaced generators."
+ },
+ {
+  "paper": "0806.4598",
+  "label": "prop:commdiff",
+  "type": "proposition",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "vague",
+  "query": "LSFT differential for Legendrian knots"
+ },
+ {
+  "paper": "0806.4598",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "precise",
+  "query": "For a Legendrian knot, the cyclic and commutative LSFT complexes remain invariant up to filtered chain homotopy under restricted Legendrian isotopy."
+ },
+ {
+  "paper": "0806.4598",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "vague",
+  "query": "Legendrian isotopy invariance of LSFT complexes"
+ },
+ {
+  "paper": "0806.4598",
+  "label": "prop:front",
+  "type": "proposition",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "precise",
+  "query": "If two Legendrian knots are isotopic, their resolved front diagrams can be connected through restricted Reidemeister moves."
+ },
+ {
+  "paper": "0806.4598",
+  "label": "prop:front",
+  "type": "proposition",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "vague",
+  "query": "front diagram moves for Legendrian isotopy"
+ },
+ {
+  "paper": "0806.4598",
+  "label": "lem:stokes",
+  "type": "lemma",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "precise",
+  "query": "Whenever the region Delta(s1,...,sk) is nonempty, the sum of the heights h(sj) is necessarily positive."
+ },
+ {
+  "paper": "0806.4598",
+  "label": "lem:stokes",
+  "type": "lemma",
+  "target_title": "Rational Symplectic Field Theory for Legendrian knots",
+  "mode": "vague",
+  "query": "positivity condition for nonempty Delta regions"
+ },
+ {
+  "paper": "0902.3557",
+  "label": "lemSta",
+  "type": "lem",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "precise",
+  "query": "A simplex radius R reaches V(A) exactly when some translate has no interior lattice points but every translated facet interior still contains one."
+ },
+ {
+  "paper": "0902.3557",
+  "label": "lemSta",
+  "type": "lem",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "vague",
+  "query": "lattice-point criterion for simplex covering radius"
+ },
+ {
+  "paper": "0902.3557",
+  "label": null,
+  "type": "thm",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "precise",
+  "query": "For the simplex Delta relative to the lattice Z^(d-1)A, the covering radius rho(A) is exactly the quantity V(A)."
+ },
+ {
+  "paper": "0902.3557",
+  "label": null,
+  "type": "thm",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "vague",
+  "query": "covering radius of a simplex and Frobenius"
+ },
+ {
+  "paper": "0902.3557",
+  "label": "lamel",
+  "type": "lem",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "precise",
+  "query": "The normalized Frobenius number is approximated by the normalized function W_delta on the associated lattice orbit, with error bounded by a constant times T^(-1/(d-1))."
+ },
+ {
+  "paper": "0902.3557",
+  "label": "lamel",
+  "type": "lem",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "vague",
+  "query": "asymptotic formula for normalized Frobenius numbers"
+ },
+ {
+  "paper": "0902.3557",
+  "label": "WThm",
+  "type": "thm",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "precise",
+  "query": "Under the bound a_d at most e^((d-1)t), the Frobenius number equals e^t times W_delta on a horospherical flow, minus the coordinate sum."
+ },
+ {
+  "paper": "0902.3557",
+  "label": "WThm",
+  "type": "thm",
+  "target_title": "The asymptotic distribution of Frobenius numbers",
+  "mode": "vague",
+  "query": "dynamical formula for the Frobenius number"
+ },
+ {
+  "paper": "0904.0398",
+  "label": null,
+  "type": "cor",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "precise",
+  "query": "Every maximal subalgebra of the finitary classical Lie algebras is either parabolic or a direct sum of simple subalgebras."
+ },
+ {
+  "paper": "0904.0398",
+  "label": null,
+  "type": "cor",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "vague",
+  "query": "classification of maximal subalgebras in finitary Lie algebras"
+ },
+ {
+  "paper": "0904.0398",
+  "label": null,
+  "type": "prop",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "precise",
+  "query": "For k equal to the negative part of St_F intersect St_G, the closed k-stable subspaces of V are totally ordered by inclusion."
+ },
+ {
+  "paper": "0904.0398",
+  "label": null,
+  "type": "prop",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "vague",
+  "query": "when invariant subspaces form a chain"
+ },
+ {
+  "paper": "0904.0398",
+  "label": "locsemisimple",
+  "type": "thm",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "precise",
+  "query": "Any locally semisimple subalgebra of gl_infinity splits as finite-dimensional simple pieces together with copies of sl_infinity, so_infinity, and sp_infinity."
+ },
+ {
+  "paper": "0904.0398",
+  "label": "locsemisimple",
+  "type": "thm",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "vague",
+  "query": "structure of locally semisimple subalgebras of gl infinity"
+ },
+ {
+  "paper": "0904.0398",
+  "label": "irreducible",
+  "type": "thm",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "precise",
+  "query": "An irreducible subalgebra of gl(V,V*) must be one of the standard classical types: gl(V,W), sl(V,W), so(V), or sp(V)."
+ },
+ {
+  "paper": "0904.0398",
+  "label": "irreducible",
+  "type": "thm",
+  "target_title": "Parabolic and Levi subalgebras of finitary Lie algebras",
+  "mode": "vague",
+  "query": "irreducible subalgebras of infinite matrix algebras"
+ },
+ {
+  "paper": "0906.3487",
+  "label": "thm:weak-compatible",
+  "type": "theorem",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "precise",
+  "query": "For a contact 3-manifold weakly compatible with g, the tightness radius is at least the minimum of the curvature-convexity scale and the injectivity radius."
+ },
+ {
+  "paper": "0906.3487",
+  "label": "thm:weak-compatible",
+  "type": "theorem",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "vague",
+  "query": "lower bounds for tightness radius in contact geometry"
+ },
+ {
+  "paper": "0906.3487",
+  "label": "prop:charac_wc",
+  "type": "proposition",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "precise",
+  "query": "For a contact form and metric on a 3-manifold, Reeb orthogonality, the equation star d alpha equals theta-prime alpha, and an adapted contact metric are equivalent."
+ },
+ {
+  "paper": "0906.3487",
+  "label": "prop:charac_wc",
+  "type": "proposition",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "vague",
+  "query": "equivalent definitions of a contact metric structure"
+ },
+ {
+  "paper": "0906.3487",
+  "label": "lem:covariant-n_n-H",
+  "type": "lemma",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "precise",
+  "query": "In a weakly compatible contact metric, normalized Reeb acceleration is minus the contact-plane gradient of log rho, and constant rho makes Reeb orbits geodesics."
+ },
+ {
+  "paper": "0906.3487",
+  "label": "lem:covariant-n_n-H",
+  "type": "lemma",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "vague",
+  "query": "when Reeb flow lines are geodesics"
+ },
+ {
+  "paper": "0906.3487",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "precise",
+  "query": "In the symplectization of a weakly compatible contact 3-manifold, R_+ times a metric ball has strictly pseudoconvex boundary below the curvature or injectivity threshold."
+ },
+ {
+  "paper": "0906.3487",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Tightness in contact metric 3-manifolds",
+  "mode": "vague",
+  "query": "when metric balls in symplectizations are pseudoconvex"
+ },
+ {
+  "paper": "0906.5057",
+  "label": "brcov2invo",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "precise",
+  "query": "A smooth branched double cover along a codimension-two submanifold carries an involution whose fixed set is the branch locus and whose quotient is the base manifold."
+ },
+ {
+  "paper": "0906.5057",
+  "label": "brcov2invo",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "vague",
+  "query": "involutions arising from branched double covers"
+ },
+ {
+  "paper": "0906.5057",
+  "label": "P.WuSW",
+  "type": "proposition",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "precise",
+  "query": "For a smooth conjugation manifold, the cohomology isomorphism kappa sends even Wu and Stiefel-Whitney classes of X to the corresponding classes of the fixed set."
+ },
+ {
+  "paper": "0906.5057",
+  "label": "P.WuSW",
+  "type": "proposition",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "vague",
+  "query": "characteristic classes of conjugation manifolds"
+ },
+ {
+  "paper": "0906.5057",
+  "label": "smoothquoUNI",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "precise",
+  "query": "Equivariantly diffeomorphic smooth G-manifolds with codimension-two fixed sets induce diffeomorphic smooth structures on their orbit spaces."
+ },
+ {
+  "paper": "0906.5057",
+  "label": "smoothquoUNI",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "vague",
+  "query": "smooth structure on quotients of involutive manifolds"
+ },
+ {
+  "paper": "0906.5057",
+  "label": "con2knot",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "precise",
+  "query": "For any connected oriented four-dimensional conjugation manifold, the quotient together with its fixed surface forms a Z2-knot pair."
+ },
+ {
+  "paper": "0906.5057",
+  "label": "con2knot",
+  "type": "lemma",
+  "target_title": "Conjugation spaces and 4-manifolds",
+  "mode": "vague",
+  "query": "quotients of conjugation 4-manifolds as knots"
+ },
+ {
+  "paper": "1006.3125",
+  "label": "variousmapsdescend",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "precise",
+  "query": "On the big de Rham-Witt complexes, derivation, restriction, and Frobenius are well defined; restriction and Frobenius are graded ring maps and dF_n equals nF_nd."
+ },
+ {
+  "paper": "1006.3125",
+  "label": "variousmapsdescend",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "vague",
+  "query": "Frobenius and differential in de Rham-Witt complexes"
+ },
+ {
+  "paper": "1006.3125",
+  "label": "adjunctionlemma1",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "precise",
+  "query": "For any ring A, the functors F and G with unit and counit give an adjoint equivalence between abelian group objects over A and the category M(A)."
+ },
+ {
+  "paper": "1006.3125",
+  "label": "adjunctionlemma1",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "vague",
+  "query": "equivalence of categories over a ring"
+ },
+ {
+  "paper": "1006.3125",
+  "label": "wittcomplexrelations",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "precise",
+  "query": "In any Witt complex, Frobenius, Verschiebung, the differential, and the logarithmic class of minus one satisfy the standard commutation, decomposition, and nilpotence identities."
+ },
+ {
+  "paper": "1006.3125",
+  "label": "wittcomplexrelations",
+  "type": "lemma",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "vague",
+  "query": "Frobenius and Verschiebung identities in Witt complexes"
+ },
+ {
+  "paper": "1006.3125",
+  "label": "derivationslemma",
+  "type": "prop",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "precise",
+  "query": "For a lambda-ring A and lambda-module M, derivations from A to M are in bijection with lambda-ring morphisms splitting the projection from the semidirect product A semidirect M to A."
+ },
+ {
+  "paper": "1006.3125",
+  "label": "derivationslemma",
+  "type": "prop",
+  "target_title": "The big de Rham-Witt complex",
+  "mode": "vague",
+  "query": "derivations and square-zero extensions of lambda-rings"
+ },
+ {
+  "paper": "1008.5007",
+  "label": "local model",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "precise",
+  "query": "A neighborhood of the zero level of the moment map is G x K equivariantly symplectomorphic to the local cotangent model, and the prequantum line bundle matches as well."
+ },
+ {
+  "paper": "1008.5007",
+  "label": "local model",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "vague",
+  "query": "equivariant local normal form for Hamiltonian actions"
+ },
+ {
+  "paper": "1008.5007",
+  "label": "local model-acyclic system",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "precise",
+  "query": "The local symplectomorphism from the zero-level model induces an isomorphism between the corresponding G x K equivariant acyclic compatible systems."
+ },
+ {
+  "paper": "1008.5007",
+  "label": "local model-acyclic system",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "vague",
+  "query": "acyclic compatible systems under local symplectomorphism"
+ },
+ {
+  "paper": "1008.5007",
+  "label": "rem good open covering",
+  "type": "proposition",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "precise",
+  "query": "The good open cover by the sets V_H admits a G x K equivariant compatible fibration structure for the localization argument."
+ },
+ {
+  "paper": "1008.5007",
+  "label": "rem good open covering",
+  "type": "proposition",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "vague",
+  "query": "equivariant compatible fibrations on good open covers"
+ },
+ {
+  "paper": "1008.5007",
+  "label": "localization",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "precise",
+  "query": "The equivariant local index of M with line bundle L equals the relative local index computed on a neighborhood of the zero level set of the moment map."
+ },
+ {
+  "paper": "1008.5007",
+  "label": "localization",
+  "type": "lemma",
+  "target_title": "Torus fibrations and localization of index III",
+  "mode": "vague",
+  "query": "localization of equivariant Riemann-Roch index"
+ },
+ {
+  "paper": "1010.1972",
+  "label": "spherefamily",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "precise",
+  "query": "Along such a sphere-surgery family, if all transverse intersection curves with F are inessential, a genus-g component inside S_0 persists inside S_1."
+ },
+ {
+  "paper": "1010.1972",
+  "label": "spherefamily",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "vague",
+  "query": "genus persistence under sphere surgeries"
+ },
+ {
+  "paper": "1010.1972",
+  "label": "doublebubble",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "precise",
+  "query": "If a double bubble meets beta fewer times than the geometric intersection threshold, any genus-g component inside the whole bubble already lies inside one half."
+ },
+ {
+  "paper": "1010.1972",
+  "label": "doublebubble",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "vague",
+  "query": "double bubbles and genus splitting on surfaces"
+ },
+ {
+  "paper": "1010.1972",
+  "label": "mustbeinessential",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "precise",
+  "query": "A sphere intersecting beta fewer times than the geometric intersection number can meet the surface F only in curves inessential in F."
+ },
+ {
+  "paper": "1010.1972",
+  "label": "mustbeinessential",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "vague",
+  "query": "inessential intersection curves from low sphere crossings"
+ },
+ {
+  "paper": "1010.1972",
+  "label": "doublebubble2",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "precise",
+  "query": "Under the same intersection bound, a genus-g component inside a double bubble remains inside every epsilon-neighborhood of one of its halves."
+ },
+ {
+  "paper": "1010.1972",
+  "label": "doublebubble2",
+  "type": "lemma",
+  "target_title": "On the distortion of knots on embedded surfaces",
+  "mode": "vague",
+  "query": "double bubble neighborhoods preserving genus"
+ },
+ {
+  "paper": "1101.1594",
+  "label": "thm homotopy invariance",
+  "type": "theorem",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "precise",
+  "query": "Iterated integrals on membranes are unchanged under homotopies that keep the entire membrane boundary fixed."
+ },
+ {
+  "paper": "1101.1594",
+  "label": "thm homotopy invariance",
+  "type": "theorem",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "vague",
+  "query": "homotopy invariance of membrane iterated integrals"
+ },
+ {
+  "paper": "1101.1594",
+  "label": "lemma f0 convergence",
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "precise",
+  "query": "For a unimodular simple cone, the function f_0 converges uniformly on every compact subset of its dual cone."
+ },
+ {
+  "paper": "1101.1594",
+  "label": "lemma f0 convergence",
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "vague",
+  "query": "uniform convergence on dual cones"
+ },
+ {
+  "paper": "1101.1594",
+  "label": "lemma positive cone",
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "precise",
+  "query": "Every unimodular simple cone can be rescaled by some algebraic integer so that it becomes a positive unimodular simple cone."
+ },
+ {
+  "paper": "1101.1594",
+  "label": "lemma positive cone",
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "vague",
+  "query": "rescaling unimodular simple cones to positive ones"
+ },
+ {
+  "paper": "1101.1594",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "precise",
+  "query": "The function f_1,1 for a cone equals a double sum over alpha and beta in the cone with exponential weights divided by two norm factors."
+ },
+ {
+  "paper": "1101.1594",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Multiple Dedekind Zeta Functions",
+  "mode": "vague",
+  "query": "double-sum formula for cone zeta kernels"
+ },
+ {
+  "paper": "1208.2297",
+  "label": "proposition_rigidity_of_spheres",
+  "type": "proposition",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "precise",
+  "query": "For a compact semisimple Lie algebra, the linear Poisson structure near the unit sphere is C^p-C^1 rigid and determined up to isomorphism by its first jet."
+ },
+ {
+  "paper": "1208.2297",
+  "label": "proposition_rigidity_of_spheres",
+  "type": "proposition",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "vague",
+  "query": "rigidity of linear Poisson structures near spheres"
+ },
+ {
+  "paper": "1208.2297",
+  "label": "Tame_Vanishing_Lemma",
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "precise",
+  "query": "If a Hausdorff Lie groupoid has compact s-fibers with vanishing degree-p de Rham cohomology, then H^p of the Lie algebroid vanishes and tame local homotopy operators exist."
+ },
+ {
+  "paper": "1208.2297",
+  "label": "Tame_Vanishing_Lemma",
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "vague",
+  "query": "vanishing Lie algebroid cohomology from compact groupoids"
+ },
+ {
+  "paper": "1208.2297",
+  "label": "L_trivial_foliation",
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "precise",
+  "query": "For compact S, integrability by a compact principal bundle with vanishing H^2, vanishing H^2 of A_S, and specific variation-map conditions are all equivalent."
+ },
+ {
+  "paper": "1208.2297",
+  "label": "L_trivial_foliation",
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "vague",
+  "query": "equivalent cohomological criteria for Poisson integrability"
+ },
+ {
+  "paper": "1208.2297",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "precise",
+  "query": "The base of any proper Lie groupoid admits an adapted Riemannian metric whose geodesics starting orthogonally to one orbit stay orthogonal to every orbit they meet."
+ },
+ {
+  "paper": "1208.2297",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Rigidity around Poisson Submanifolds",
+  "mode": "vague",
+  "query": "adapted metrics for proper Lie groupoids"
+ },
+ {
+  "paper": "1208.4114",
+  "label": "lem:affine-Hecke-rel",
+  "type": "lem",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "precise",
+  "query": "In the formal Hecke setting, T_i commutes with multiplication by psi up to the formal Demazure difference term, so the commutator preserves the completed coefficient ring."
+ },
+ {
+  "paper": "1208.4114",
+  "label": "lem:affine-Hecke-rel",
+  "type": "lem",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "vague",
+  "query": "commutation relations in formal Hecke algebras"
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:Hecke-alg-embedding",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "precise",
+  "query": "When a_11 is invertible, the natural action of the formal Hecke algebra on the completed formal group algebra is faithful."
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:Hecke-alg-embedding",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "vague",
+  "query": "faithful action of a formal Hecke algebra"
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:FDA-add-mult",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "precise",
+  "query": "For additive formal groups, the formal Demazure algebras recover completed nil Hecke rings, while for the multiplicative formal group with beta equal to one they recover the completed 0-Hecke algebra."
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:FDA-add-mult",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "vague",
+  "query": "Demazure algebras versus nil and 0-Hecke algebras"
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:push-pull-ops",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "precise",
+  "query": "Pull-push along p sends the formal characteristic class of chi to the characteristic class obtained by applying the Demazure operator C_alpha to chi."
+ },
+ {
+  "paper": "1208.4114",
+  "label": "prop:push-pull-ops",
+  "type": "prop",
+  "target_title": "Formal Hecke algebras and algebraic oriented cohomology theories",
+  "mode": "vague",
+  "query": "push-pull formula for formal characteristic classes"
+ },
+ {
+  "paper": "1304.5861",
+  "label": "R3limits2",
+  "type": "theorem",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "precise",
+  "query": "As the sphere radius tends to infinity, the genus-g helicoidal surfaces subconverge to properly embedded minimal surfaces in R^3 asymptotic to a helicoid, with controlled genus and sign."
+ },
+ {
+  "paper": "1304.5861",
+  "label": "R3limits2",
+  "type": "theorem",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "vague",
+  "query": "helicoidal minimal surface limits in Euclidean space"
+ },
+ {
+  "paper": "1304.5861",
+  "label": "stable-spheres-corollary",
+  "type": "corollary",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "precise",
+  "query": "Any connected stable properly embedded minimal surface in S^2 x R must be a horizontal sphere."
+ },
+ {
+  "paper": "1304.5861",
+  "label": "stable-spheres-corollary",
+  "type": "corollary",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "vague",
+  "query": "classification of stable minimal surfaces in S2 x R"
+ },
+ {
+  "paper": "1304.5861",
+  "label": "second-compactness-theorem",
+  "type": "theorem",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "precise",
+  "query": "A sequence of rotated helicoidal minimal surfaces with vanishing pitch and unbounded screw angle, graphical in some open cylinder, converges smoothly with multiplicity one to the horizontal plane."
+ },
+ {
+  "paper": "1304.5861",
+  "label": "second-compactness-theorem",
+  "type": "theorem",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "vague",
+  "query": "degeneration of helicoidal minimal surfaces"
+ },
+ {
+  "paper": "1304.5861",
+  "label": "parity-sign-lemma",
+  "type": "lemma",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "precise",
+  "query": "For a Y-surface with boundary Gamma, the signs at O and O-star coincide exactly when the number of Y-intersection points is even."
+ },
+ {
+  "paper": "1304.5861",
+  "label": "parity-sign-lemma",
+  "type": "lemma",
+  "target_title": "Helicoidal minimal surfaces of prescribed genus, I",
+  "mode": "vague",
+  "query": "parity of intersections on Y-surfaces"
+ },
+ {
+  "paper": "1309.1459",
+  "label": "Lp.bound",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "precise",
+  "query": "Under mean curvature flow, the positive part of the auxiliary function f sigma satisfies an Lp differential inequality when p is large and sigma is sufficiently small."
+ },
+ {
+  "paper": "1309.1459",
+  "label": "Lp.bound",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "vague",
+  "query": "integral inequalities under mean curvature flow"
+ },
+ {
+  "paper": "1309.1459",
+  "label": "regularity.2",
+  "type": "corollary",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "precise",
+  "query": "Away from a measure-zero exceptional set, the inscribed-radius function mu has a second-order Taylor expansion wherever it strictly exceeds the largest principal curvature."
+ },
+ {
+  "paper": "1309.1459",
+  "label": "regularity.2",
+  "type": "corollary",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "vague",
+  "query": "regularity of inscribed radius function"
+ },
+ {
+  "paper": "1309.1459",
+  "label": "aux.2",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "precise",
+  "query": "Any smooth upper barrier touching the outer-radius quantity rho at a point satisfies the corresponding viscosity differential inequality under mean curvature flow."
+ },
+ {
+  "paper": "1309.1459",
+  "label": "aux.2",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "vague",
+  "query": "viscosity inequality for outer radius flow"
+ },
+ {
+  "paper": "1309.1459",
+  "label": "aux",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "precise",
+  "query": "A smooth upper support for the inscribed-radius function mu satisfies an elliptic differential inequality at any point where mu exceeds the top principal curvature."
+ },
+ {
+  "paper": "1309.1459",
+  "label": "aux",
+  "type": "proposition",
+  "target_title": "A sharp bound for the inscribed radius under mean curvature flow",
+  "mode": "vague",
+  "query": "elliptic estimates for inscribed radius"
+ },
+ {
+  "paper": "1309.1803",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "precise",
+  "query": "Any curve of genus at least two can be cut along 3g minus 3 disjoint circles into 2g minus 2 pairs of pants."
+ },
+ {
+  "paper": "1309.1803",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "vague",
+  "query": "pants decomposition of higher genus curves"
+ },
+ {
+  "paper": "1309.1803",
+  "label": "mainthm-2",
+  "type": "theorem",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "precise",
+  "query": "For a perverse curve, the Hodge numbers are determined by triple points, component genera, and the vertices and edges of the dual intersection complex."
+ },
+ {
+  "paper": "1309.1803",
+  "label": "mainthm-2",
+  "type": "theorem",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "vague",
+  "query": "Hodge numbers of perverse curves"
+ },
+ {
+  "paper": "1309.1803",
+  "label": null,
+  "type": "theorem",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "precise",
+  "query": "The perverse curve construction does not depend on the chosen resolution of the degeneration or on the auxiliary variety X2."
+ },
+ {
+  "paper": "1309.1803",
+  "label": null,
+  "type": "theorem",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "vague",
+  "query": "invariance of perverse curve construction"
+ },
+ {
+  "paper": "1309.1803",
+  "label": "countZdata",
+  "type": "lemma",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "precise",
+  "query": "For MPCP triangulations of dual reflexive polytopes, simplex counts on two-faces are triangulation-independent and give explicit formulas for edges, triple points, and vertices."
+ },
+ {
+  "paper": "1309.1803",
+  "label": "countZdata",
+  "type": "lemma",
+  "target_title": "Perverse Curves and Mirror Symmetry",
+  "mode": "vague",
+  "query": "combinatorics of MPCP triangulations and dual polytopes"
+ },
+ {
+  "paper": "1311.4960",
+  "label": "L:vanishing on X",
+  "type": "lemma",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "precise",
+  "query": "Among homogeneous polynomials, those that vanish identically on a positive-dimensional subscheme of projective space have density zero."
+ },
+ {
+  "paper": "1311.4960",
+  "label": "L:vanishing on X",
+  "type": "lemma",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "vague",
+  "query": "density of hypersurfaces containing a subscheme"
+ },
+ {
+  "paper": "1311.4960",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "precise",
+  "query": "Under the inverse-image hypotheses, the density of hypersurfaces preserving irreducible components of X is an explicit Euler product over codimension-one fibers."
+ },
+ {
+  "paper": "1311.4960",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "vague",
+  "query": "density formulas for Bertini irreducibility"
+ },
+ {
+  "paper": "1311.4960",
+  "label": "T:inverse image bijection",
+  "type": "theorem",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "precise",
+  "query": "If every irreducible component maps to dimension at least two in projective space, a density-one set of hypersurfaces preserves horizontal irreducible components under intersection."
+ },
+ {
+  "paper": "1311.4960",
+  "label": "T:inverse image bijection",
+  "type": "theorem",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "vague",
+  "query": "Bertini irreducibility for horizontal components"
+ },
+ {
+  "paper": "1311.4960",
+  "label": "L:intersects X",
+  "type": "lemma",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "precise",
+  "query": "For a positive-dimensional subscheme of projective space over a finite field, almost all hypersurfaces meet the subscheme."
+ },
+ {
+  "paper": "1311.4960",
+  "label": "L:intersects X",
+  "type": "lemma",
+  "target_title": "Bertini irreducibility theorems over finite fields",
+  "mode": "vague",
+  "query": "generic hypersurface intersections over finite fields"
+ },
+ {
+  "paper": "1402.2028",
+  "label": "theorem:i",
+  "type": "theorem",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "precise",
+  "query": "Large Dehornoy order on a braid forces its closure knot to have large genus, full braid index, and in the pseudo-Anosov case be hyperbolic."
+ },
+ {
+  "paper": "1402.2028",
+  "label": "theorem:i",
+  "type": "theorem",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "vague",
+  "query": "Dehornoy ordering and knot properties"
+ },
+ {
+  "paper": "1402.2028",
+  "label": "cor:trivial2",
+  "type": "corollary",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "precise",
+  "query": "If a family of quantum braid group representations is nonfaithful, every knot shares those quantum invariants with infinitely many distinct hyperbolic knots."
+ },
+ {
+  "paper": "1402.2028",
+  "label": "cor:trivial2",
+  "type": "corollary",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "vague",
+  "query": "nonfaithful quantum representations and knot invariants"
+ },
+ {
+  "paper": "1402.2028",
+  "label": null,
+  "type": "corollary",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "precise",
+  "query": "If the four-strand Burau representation is not faithful, then the Jones polynomial does not detect the unknot."
+ },
+ {
+  "paper": "1402.2028",
+  "label": null,
+  "type": "corollary",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "vague",
+  "query": "Burau representation and unknot detection"
+ },
+ {
+  "paper": "1402.2028",
+  "label": "proposition:D-order",
+  "type": "proposition",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "precise",
+  "query": "Alternating decomposition of a positive braid determines its Dehornoy order, bounds it between nearby powers of Delta, and gives a special form in the low-order case."
+ },
+ {
+  "paper": "1402.2028",
+  "label": "proposition:D-order",
+  "type": "proposition",
+  "target_title": "A kernel of a braid group representation yields a knot with trivial knot polynomials",
+  "mode": "vague",
+  "query": "alternating decomposition and Dehornoy order"
+ },
+ {
+  "paper": "1403.7383",
+  "label": "equivconj",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "precise",
+  "query": "Under suitable depth conditions for determinantal modules, Ext groups between symmetric powers reduce to Ext groups from the base ring A."
+ },
+ {
+  "paper": "1403.7383",
+  "label": "equivconj",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "vague",
+  "query": "Ext groups for determinantal modules"
+ },
+ {
+  "paper": "1403.7383",
+  "label": "res",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "precise",
+  "query": "The first Ext module of M with a symmetric power has an explicit free resolution built from standard resolutions, yielding lower bounds on its depth."
+ },
+ {
+  "paper": "1403.7383",
+  "label": "res",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "vague",
+  "query": "free resolutions for Ext modules"
+ },
+ {
+  "paper": "1403.7383",
+  "label": "vaniss",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "precise",
+  "query": "For a determinantal ring with depth at least four along J, the first Ext group of the conormal module into Hom(M,A) vanishes."
+ },
+ {
+  "paper": "1403.7383",
+  "label": "vaniss",
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "vague",
+  "query": "vanishing Ext for determinantal conormal modules"
+ },
+ {
+  "paper": "1403.7383",
+  "label": null,
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "precise",
+  "query": "Certain codimension two ACM and codimension three arithmetically Gorenstein subschemes have simple normal sheaf under depth and degree-separation hypotheses."
+ },
+ {
+  "paper": "1403.7383",
+  "label": null,
+  "type": "corollary",
+  "target_title": "On the normal sheaf of determinantal varieties",
+  "mode": "vague",
+  "query": "simplicity of normal sheaves for ACM subschemes"
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:iota",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "precise",
+  "query": "There is a canonical homomorphism from the braid twist group of the decorated triangulation to the spherical twist group, matching the standard generators."
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:iota",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "vague",
+  "query": "braid twists versus spherical twists"
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:trivial",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "precise",
+  "query": "For a decorated marked surface that is neither a polygon nor an annulus, the subgroup denoted Z0BT is trivial."
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:trivial",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "vague",
+  "query": "triviality results for braid twist groups"
+ },
+ {
+  "paper": "1407.0806",
+  "label": "lem:Hom",
+  "type": "lemma",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "precise",
+  "query": "For the complex attached to a closed arc, graded Hom dimensions from the basic objects equal the geometric intersection numbers with that arc."
+ },
+ {
+  "paper": "1407.0806",
+  "label": "lem:Hom",
+  "type": "lemma",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "vague",
+  "query": "intersection numbers and Hom dimensions"
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:ses2",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "precise",
+  "query": "Three closed arcs forming a clockwise contractible triangle on the surface yield representatives whose associated objects fit into a nontrivial distinguished triangle."
+ },
+ {
+  "paper": "1407.0806",
+  "label": "pp:ses2",
+  "type": "proposition",
+  "target_title": "Decorated marked surfaces: spherical twists versus braid twists",
+  "mode": "vague",
+  "query": "distinguished triangles from arcs on marked surfaces"
+ },
+ {
+  "paper": "1409.3541",
+  "label": "lem:TwistedModule",
+  "type": "lem",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "precise",
+  "query": "The two stabilization maps give equivariant homomorphisms between successive coefficient modules over the group ring of the stable abelianized automorphism group."
+ },
+ {
+  "paper": "1409.3541",
+  "label": "lem:TwistedModule",
+  "type": "lem",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "vague",
+  "query": "equivariant stabilization maps in automorphism groups"
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "thm",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "precise",
+  "query": "For orientable surfaces, adding a torus with one boundary gives homological stability for mapping class groups, with surjectivity and isomorphism ranges determined by genus and coefficient degree."
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "thm",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "vague",
+  "query": "mapping class group homological stability by genus"
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "lem",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "precise",
+  "query": "When one stabilizes by a torus with one boundary and the base surface is orientable, the associated simplicial complex is (n minus 3 over 2)-connected."
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "lem",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "vague",
+  "query": "connectivity of surface stabilization complexes"
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "thm",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "precise",
+  "query": "Adding a boundary cylinder yields homological stability for surface mapping class groups, and also for configuration-space braid groups when the surface has one boundary component."
+ },
+ {
+  "paper": "1409.3541",
+  "label": null,
+  "type": "thm",
+  "target_title": "Homological stability for automorphism groups",
+  "mode": "vague",
+  "query": "homological stability for surface braid and mapping class groups"
+ },
+ {
+  "paper": "1505.03665",
+  "label": "lem:bertini3",
+  "type": "lemma",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "precise",
+  "query": "General choices of r hyperplanes cut an irreducible codimension-r section, keep the regular locus regular, and preserve complement codimension at least two."
+ },
+ {
+  "paper": "1505.03665",
+  "label": "lem:bertini3",
+  "type": "lemma",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "vague",
+  "query": "Bertini theorem for regular hyperplane sections"
+ },
+ {
+  "paper": "1505.03665",
+  "label": "thm:curvecase",
+  "type": "theorem",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "precise",
+  "query": "A one-dimensional closed subvariety of an abelian variety with dense small points must be a special subvariety."
+ },
+ {
+  "paper": "1505.03665",
+  "label": "thm:curvecase",
+  "type": "theorem",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "vague",
+  "query": "Bogomolov conjecture for curves in abelian varieties"
+ },
+ {
+  "paper": "1505.03665",
+  "label": "thm:BCFC",
+  "type": "theorem",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "precise",
+  "query": "For a non-isotrivial curve, every point of its Jacobian has a sufficiently small neighborhood containing only finitely many curve points."
+ },
+ {
+  "paper": "1505.03665",
+  "label": "thm:BCFC",
+  "type": "theorem",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "vague",
+  "query": "small points on non-isotrivial Jacobians"
+ },
+ {
+  "paper": "1505.03665",
+  "label": "lem:cl:prop:bertini2",
+  "type": "lemma",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "precise",
+  "query": "Through every point in a dense open subset of X, there passes an admissible r-fold hyperplane section coming from the chosen dense open family."
+ },
+ {
+  "paper": "1505.03665",
+  "label": "lem:cl:prop:bertini2",
+  "type": "lemma",
+  "target_title": "Non-density of small points on divisors on abelian varieties and the Bogomolov conjecture",
+  "mode": "vague",
+  "query": "hyperplane sections through general points"
+ },
+ {
+  "paper": "1505.04172",
+  "label": "cor:Answer-To_BF",
+  "type": "cor",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "precise",
+  "query": "For complete modules over a flat local map of complete noetherian local rings with the same residue field, completed Hochschild cohomology equals ordinary Hochschild cohomology."
+ },
+ {
+  "paper": "1505.04172",
+  "label": "cor:Answer-To_BF",
+  "type": "cor",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "vague",
+  "query": "adic completion and Hochschild cohomology"
+ },
+ {
+  "paper": "1505.04172",
+  "label": "thm:wide-rgamma",
+  "type": "thm",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "precise",
+  "query": "For a weakly proregular finitely generated ideal, derived completed torsion is computed by the completed ring tensored with the infinite dual Koszul complex."
+ },
+ {
+  "paper": "1505.04172",
+  "label": "thm:wide-rgamma",
+  "type": "thm",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "vague",
+  "query": "derived torsion via completed Koszul complexes"
+ },
+ {
+  "paper": "1505.04172",
+  "label": "cor:derived-fiber-of-formal",
+  "type": "cor",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "precise",
+  "query": "Under flatness and completeness hypotheses, the derived fiber product of two formal schemes over k is the formal spectrum of a suitably completed tensor product."
+ },
+ {
+  "paper": "1505.04172",
+  "label": "cor:derived-fiber-of-formal",
+  "type": "cor",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "vague",
+  "query": "derived fiber products of formal schemes"
+ },
+ {
+  "paper": "1505.04172",
+  "label": "thm:LLambda-Of-Hochscild",
+  "type": "thm",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "precise",
+  "query": "Under standard finiteness or proregularity assumptions, completed Hochschild cohomology functors can be computed equivalently over the ordinary or completed enveloping algebra."
+ },
+ {
+  "paper": "1505.04172",
+  "label": "thm:LLambda-Of-Hochscild",
+  "type": "thm",
+  "target_title": "Hochschild cohomology commutes with adic completion",
+  "mode": "vague",
+  "query": "completed Hochschild cohomology functor comparison"
+ },
+ {
+  "paper": "1507.00383",
+  "label": "prop:reversal",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "precise",
+  "query": "Under orientation reversal, the lower involutive correction term of a three-manifold equals the negative of the upper correction term of the reversed manifold."
+ },
+ {
+  "paper": "1507.00383",
+  "label": "prop:reversal",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "vague",
+  "query": "orientation reversal in involutive Heegaard Floer theory"
+ },
+ {
+  "paper": "1507.00383",
+  "label": "propn:exact",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "precise",
+  "query": "For a spin three-manifold, involutive Heegaard Floer homology sits in an exact triangle with ordinary Heegaard Floer homology and a shifted Q-twisted copy."
+ },
+ {
+  "paper": "1507.00383",
+  "label": "propn:exact",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "vague",
+  "query": "exact triangle in involutive Heegaard Floer homology"
+ },
+ {
+  "paper": "1507.00383",
+  "label": "propn:thin",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "precise",
+  "query": "A thin knot has a unique grading-preserving automorphism of its knot Floer complex that swaps the two filtrations and squares to Sarkar's involution."
+ },
+ {
+  "paper": "1507.00383",
+  "label": "propn:thin",
+  "type": "proposition",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "vague",
+  "query": "involutions on thin knot Floer complexes"
+ },
+ {
+  "paper": "1507.00383",
+  "label": "lemma:identities",
+  "type": "lemma",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "precise",
+  "query": "The involutive pairing is compatible with both the involutive differential and multiplication by U, allowing either operation to move between the two inputs."
+ },
+ {
+  "paper": "1507.00383",
+  "label": "lemma:identities",
+  "type": "lemma",
+  "target_title": "Involutive Heegaard Floer homology",
+  "mode": "vague",
+  "query": "duality pairing in involutive Floer complexes"
+ },
+ {
+  "paper": "1508.07112",
+  "label": "thm:trex",
+  "type": "theorem",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "precise",
+  "query": "If F satisfies the required growth and vanishing conditions, its trace generating series is a weakly holomorphic weight 3/2 modular form with explicit coefficients."
+ },
+ {
+  "paper": "1508.07112",
+  "label": "thm:trex",
+  "type": "theorem",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "vague",
+  "query": "traces of singular moduli and weight 3/2 forms"
+ },
+ {
+  "paper": "1508.07112",
+  "label": "prop:modcrit",
+  "type": "proposition",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "precise",
+  "query": "A formal Laurent series is a weakly holomorphic modular form exactly when it satisfies the coefficient conditions and pairs trivially with every dual modular form."
+ },
+ {
+  "paper": "1508.07112",
+  "label": "prop:modcrit",
+  "type": "proposition",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "vague",
+  "query": "criterion for weakly holomorphic modular forms"
+ },
+ {
+  "paper": "1508.07112",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "precise",
+  "query": "The generating series of traces of singular moduli is a weakly holomorphic weight 3/2 modular form in the plus space for level 4."
+ },
+ {
+  "paper": "1508.07112",
+  "label": null,
+  "type": "corollary",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "vague",
+  "query": "generating series for traces of singular moduli"
+ },
+ {
+  "paper": "1508.07112",
+  "label": null,
+  "type": "proposition",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "precise",
+  "query": "If the negative coefficients and constant term vanish suitably, summing F over divisor support defines a linear trace map on the generalized Jacobian."
+ },
+ {
+  "paper": "1508.07112",
+  "label": null,
+  "type": "proposition",
+  "target_title": "Heegner divisors in generalized Jacobians and traces of singular moduli",
+  "mode": "vague",
+  "query": "trace maps on generalized Jacobians"
+ },
+ {
+  "paper": "1510.06292",
+  "label": "thm:KM",
+  "type": "theorem",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "precise",
+  "query": "For any cohomology class on a closed oriented irreducible three-manifold, four pi times its Thurston norm is the least product of scalar-curvature norm and class norm over all metrics."
+ },
+ {
+  "paper": "1510.06292",
+  "label": "thm:KM",
+  "type": "theorem",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "vague",
+  "query": "scalar curvature and Thurston norm"
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:stable",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "precise",
+  "query": "Any stable closed minimal surface in a hyperbolic three-manifold has area between pi times and two pi times the absolute value of its Euler characteristic."
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:stable",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "vague",
+  "query": "area bounds for minimal surfaces in hyperbolic 3-manifolds"
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:alggengrows",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "precise",
+  "query": "The first cohomology of M_n is infinite cyclic, generated by a combination of two basis classes whose coefficients grow exponentially at rate (3+sqrt 5)/2."
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:alggengrows",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "vague",
+  "query": "cohomology growth in a hyperbolic 3-manifold tower"
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:normsplitting",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "precise",
+  "query": "If an incompressible surface splits a closed irreducible three-manifold into A and B, the Thurston norm of any class dominates the sum on both sides."
+ },
+ {
+  "paper": "1510.06292",
+  "label": "lem:normsplitting",
+  "type": "lemma",
+  "target_title": "Norms on the cohomology of hyperbolic 3-manifolds",
+  "mode": "vague",
+  "query": "Thurston norm under splitting along incompressible surfaces"
+ },
+ {
+  "paper": "1603.05928",
+  "label": "uniprop2",
+  "type": "lemma",
+  "target_title": "Monoidal supercategories",
+  "mode": "precise",
+  "query": "Any graded 2-superfunctor into a Pi-2-supercategory extends canonically to the Pi-envelope, and any 2-natural transformation between such functors extends uniquely."
+ },
+ {
+  "paper": "1603.05928",
+  "label": "uniprop2",
+  "type": "lemma",
+  "target_title": "Monoidal supercategories",
+  "mode": "vague",
+  "query": "canonical extension of superfunctors to Pi-envelope"
+ },
+ {
+  "paper": "1603.05928",
+  "label": "pi",
+  "type": "corollary",
+  "target_title": "Monoidal supercategories",
+  "mode": "precise",
+  "query": "In Pi-supercategories, the parity data satisfy coherence identities, and each superfunctor carries a canonical even isomorphism beta_F compatible with natural transformations and composition."
+ },
+ {
+  "paper": "1603.05928",
+  "label": "pi",
+  "type": "corollary",
+  "target_title": "Monoidal supercategories",
+  "mode": "vague",
+  "query": "coherence of parity functors in Pi-supercategories"
+ },
+ {
+  "paper": "1603.05928",
+  "label": "shot",
+  "type": "lemma",
+  "target_title": "Monoidal supercategories",
+  "mode": "precise",
+  "query": "The defined horizontal and vertical compositions in the 2-supercategory obey the usual super interchange law."
+ },
+ {
+  "paper": "1603.05928",
+  "label": "shot",
+  "type": "lemma",
+  "target_title": "Monoidal supercategories",
+  "mode": "vague",
+  "query": "super interchange law in 2-supercategories"
+ },
+ {
+  "paper": "1603.05928",
+  "label": "th",
+  "type": "theorem",
+  "target_title": "Monoidal supercategories",
+  "mode": "precise",
+  "query": "The constructed 2-functor E gives a genuine equivalence between the two 2-categories that it connects."
+ },
+ {
+  "paper": "1603.05928",
+  "label": "th",
+  "type": "theorem",
+  "target_title": "Monoidal supercategories",
+  "mode": "vague",
+  "query": "2-equivalence of a constructed 2-functor"
+ },
+ {
+  "paper": "1604.07123",
+  "label": "prop:b-canonical",
+  "type": "proposition",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "precise",
+  "query": "If V_sigma(tau) expands in a cohomology basis with coefficients A, B, C, then theta_sigma^0 equals the corresponding combination of second derivatives and differentials of the potential Phi."
+ },
+ {
+  "paper": "1604.07123",
+  "label": "prop:b-canonical",
+  "type": "proposition",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "vague",
+  "query": "mirror symmetry formula for theta differentials"
+ },
+ {
+  "paper": "1604.07123",
+  "label": "prop:untwisted-limit",
+  "type": "proposition",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "precise",
+  "query": "For each relevant parameter index a, the differential q_a partial Phi partial q_a on the mirror curve has a limit as q goes to zero, given explicitly on each component."
+ },
+ {
+  "paper": "1604.07123",
+  "label": "prop:untwisted-limit",
+  "type": "proposition",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "vague",
+  "query": "degeneration of mirror-curve differentials near large complex structure"
+ },
+ {
+  "paper": "1604.07123",
+  "label": "main",
+  "type": "theorem",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "precise",
+  "query": "Under open and closed mirror maps, B-model n-point differentials equal sign-twisted A-model open Gromov-Witten potentials, proving the BKMP remodeling conjecture for toric Calabi-Yau 3-orbifolds."
+ },
+ {
+  "paper": "1604.07123",
+  "label": "main",
+  "type": "theorem",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "vague",
+  "query": "BKMP remodeling conjecture for toric Calabi-Yau orbifolds"
+ },
+ {
+  "paper": "1604.07123",
+  "label": "lemm:C",
+  "type": "lemma",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "precise",
+  "query": "The bidifferential C(p1,p2) is one half the sum over sectors of products of the corresponding theta-zero forms at p1 and p2."
+ },
+ {
+  "paper": "1604.07123",
+  "label": "lemm:C",
+  "type": "lemma",
+  "target_title": "On the Remodeling Conjecture for Toric Calabi-Yau 3-Orbifolds",
+  "mode": "vague",
+  "query": "theta basis expansion of a bidifferential kernel"
+ },
+ {
+  "paper": "1610.07055",
+  "label": "cexWall",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "precise",
+  "query": "There is a positive delta such that infinitely many finite groups have more than group size to the power one plus delta maximal subgroups."
+ },
+ {
+  "paper": "1610.07055",
+  "label": "cexWall",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "vague",
+  "query": "many maximal subgroups in finite groups"
+ },
+ {
+  "paper": "1610.07055",
+  "label": "maxdimH",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "precise",
+  "query": "Assuming Lusztig's character formula and sufficiently large characteristic, the maximal first cohomology dimension for p-restricted modules of small-rank finite groups of Lie type is given by an explicit table."
+ },
+ {
+  "paper": "1610.07055",
+  "label": "maxdimH",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "vague",
+  "query": "large first cohomology dimensions for finite Chevalley groups"
+ },
+ {
+  "paper": "1610.07055",
+  "label": "ComplClasses",
+  "type": "lemma",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "precise",
+  "query": "For a semidirect product G equals M semidirect H, the cohomology set H^1(H,M) classifies conjugacy classes of complements to M in G."
+ },
+ {
+  "paper": "1610.07055",
+  "label": "ComplClasses",
+  "type": "lemma",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "vague",
+  "query": "group cohomology and complements in semidirect products"
+ },
+ {
+  "paper": "1610.07055",
+  "label": "GTbound",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "precise",
+  "query": "For a finite simple Chevalley group in cross characteristic, only boundedly many irreducible modules have nonzero first cohomology, and each such cohomology dimension is at most Weyl-group-size plus rank."
+ },
+ {
+  "paper": "1610.07055",
+  "label": "GTbound",
+  "type": "theorem",
+  "target_title": "Computation of Kazhdan-Lusztig polynomials and some applications to finite groups",
+  "mode": "vague",
+  "query": "bounds on first cohomology for Chevalley groups"
+ },
+ {
+  "paper": "1612.01625",
+  "label": null,
+  "type": "theorem",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "precise",
+  "query": "For each signature a,b with a+b=N, there is a meromorphic generalized function on symmetric matrices extending absolute determinant to the s power on that signature stratum, with poles exactly at half-integers at most minus one."
+ },
+ {
+  "paper": "1612.01625",
+  "label": null,
+  "type": "theorem",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "vague",
+  "query": "meromorphic distributions on symmetric matrices by signature"
+ },
+ {
+  "paper": "1612.01625",
+  "label": "prop:mixed_signs",
+  "type": "proposition",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "precise",
+  "query": "For half-integer parameters e with a prescribed parity pattern, f_n(e) has an explicit product formula involving delta_n(m), reciprocal factors, and pairwise ratio terms within each parity class."
+ },
+ {
+  "paper": "1612.01625",
+  "label": "prop:mixed_signs",
+  "type": "proposition",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "vague",
+  "query": "explicit product formula for half-integer parameters"
+ },
+ {
+  "paper": "1612.01625",
+  "label": "prop:Crofton_projection",
+  "type": "proposition",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "precise",
+  "query": "If a dual Crofton distribution mu represents phi and has wavefront in Gamma, then the pushforward valuation equals the Crofton transform of pushforward mu."
+ },
+ {
+  "paper": "1612.01625",
+  "label": "prop:Crofton_projection",
+  "type": "proposition",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "vague",
+  "query": "pushforward compatibility for Crofton distributions"
+ },
+ {
+  "paper": "1612.01625",
+  "label": "lem:odd_p_residue",
+  "type": "lemma",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "precise",
+  "query": "For distinct strict half-integers a and b at least minus one half, the residue of u(s,a,b) at s equals minus a minus b minus three is nonzero."
+ },
+ {
+  "paper": "1612.01625",
+  "label": "lem:odd_p_residue",
+  "type": "lemma",
+  "target_title": "Crofton Formulas and Indefinite Signature",
+  "mode": "vague",
+  "query": "nonvanishing residue for a special meromorphic function"
+ },
+ {
+  "paper": "1612.05387",
+  "label": "thm:chord",
+  "type": "thm",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "precise",
+  "query": "Every inclusion-maximal chord separated collection of subsets of [n] already has the largest possible size, namely the sum of binomial coefficients through size three."
+ },
+ {
+  "paper": "1612.05387",
+  "label": "thm:chord",
+  "type": "thm",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "vague",
+  "query": "size of maximal chord separated collections"
+ },
+ {
+  "paper": "1612.05387",
+  "label": "prop:geometricdef",
+  "type": "prop",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "precise",
+  "query": "For a simple cyclic pattern, the associated curve is non-self-intersecting and cuts the zonogon so that the inner and outer domains are exactly the intersections with the two regions."
+ },
+ {
+  "paper": "1612.05387",
+  "label": "prop:geometricdef",
+  "type": "prop",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "vague",
+  "query": "simple cyclic patterns and zonogon subdivisions"
+ },
+ {
+  "paper": "1612.05387",
+  "label": "lemma:geometry",
+  "type": "lemma",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "precise",
+  "query": "If each edge of a closed polygonal chain has a supporting vector from one half-plane placing v beyond both endpoints, then v lies on the chain or outside the region."
+ },
+ {
+  "paper": "1612.05387",
+  "label": "lemma:geometry",
+  "type": "lemma",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "vague",
+  "query": "supporting vector criterion for polygon containment"
+ },
+ {
+  "paper": "1612.05387",
+  "label": "lemma:chord",
+  "type": "lemma",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "precise",
+  "query": "In a maximal chord separated collection, presence of U, V, and their boundary augmentations forces a nested chain from U to V whose intermediate sets keep the same augmentations."
+ },
+ {
+  "paper": "1612.05387",
+  "label": "lemma:chord",
+  "type": "lemma",
+  "target_title": "Weak Separation, Pure Domains and Cluster Distance",
+  "mode": "vague",
+  "query": "nested chains inside maximal chord separated collections"
+ },
+ {
+  "paper": "1612.07193",
+  "label": "lemma:q-x",
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "precise",
+  "query": "In the Grothendieck ring, the class of Q equals the class of P^{n+1} times P^{m-1} plus the class of X times the mth Lefschetz power."
+ },
+ {
+  "paper": "1612.07193",
+  "label": "lemma:q-x",
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "vague",
+  "query": "Grothendieck ring class of a quadric fibration"
+ },
+ {
+  "paper": "1612.07193",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "precise",
+  "query": "In the situations covered by the two corollaries, Y is actually isomorphic to X, so their Grothendieck classes are equal."
+ },
+ {
+  "paper": "1612.07193",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "vague",
+  "query": "when related quadric varieties become isomorphic"
+ },
+ {
+  "paper": "1612.07193",
+  "label": "lemma:smoothness-criterion",
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "precise",
+  "query": "A complete intersection of quadrics is smooth iff the family is regular, and the discriminant divisor and double cover are smooth iff the family is regular and contains no corank-two members."
+ },
+ {
+  "paper": "1612.07193",
+  "label": "lemma:smoothness-criterion",
+  "type": "lemma",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "vague",
+  "query": "smoothness criteria for families of quadrics"
+ },
+ {
+  "paper": "1612.07193",
+  "label": "thm:reduction-dim2",
+  "type": "theorem",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "precise",
+  "query": "For a quadric surface fibration with no corank-two fibers and the section condition, the Grothendieck class splits into base and double-cover contributions weighted by the Lefschetz motive."
+ },
+ {
+  "paper": "1612.07193",
+  "label": "thm:reduction-dim2",
+  "type": "theorem",
+  "target_title": "Grothendieck ring of varieties, D- and L-equivalence, and families of quadrics",
+  "mode": "vague",
+  "query": "Grothendieck class of quadric surface fibrations"
+ },
+ {
+  "paper": "1703.02583",
+  "label": "lemma:maceval",
+  "type": "lemma",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "precise",
+  "query": "A specialization of a Macdonald polynomial has saturated Newton polytope exactly when every coefficient below lambda in dominance order is nonzero."
+ },
+ {
+  "paper": "1703.02583",
+  "label": "lemma:maceval",
+  "type": "lemma",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "vague",
+  "query": "Macdonald polynomials and saturated Newton polytopes"
+ },
+ {
+  "paper": "1703.02583",
+  "label": "prop:higher",
+  "type": "lemma",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "precise",
+  "query": "If the coefficient family a for the staircase partition delta_n fails the SNP property, then the corresponding family for delta_{n+1} also fails it."
+ },
+ {
+  "paper": "1703.02583",
+  "label": "prop:higher",
+  "type": "lemma",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "vague",
+  "query": "SNP property for staircase partitions"
+ },
+ {
+  "paper": "1703.02583",
+  "label": null,
+  "type": "proposition",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "precise",
+  "query": "For partitions lambda and mu of n, dominance order between them is equivalent to dominance order between the associated permutations built from their maximal length."
+ },
+ {
+  "paper": "1703.02583",
+  "label": null,
+  "type": "proposition",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "vague",
+  "query": "dominance order and permutations of partitions"
+ },
+ {
+  "paper": "1703.02583",
+  "label": "thm:stan84",
+  "type": "theorem",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "precise",
+  "query": "In the Schur expansion of F_w, all coefficients are nonnegative and the partitions that appear form a dominance interval with endpoints determined by w."
+ },
+ {
+  "paper": "1703.02583",
+  "label": "thm:stan84",
+  "type": "theorem",
+  "target_title": "Newton Polytopes in Algebraic Combinatorics",
+  "mode": "vague",
+  "query": "Schur expansion support in dominance order"
+ },
+ {
+  "paper": "1705.01663",
+  "label": "thm:3",
+  "type": "theorem",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "precise",
+  "query": "For the fourteen symmetric parameter multisets, each next truncated hypergeometric value is congruent to the current value times the first one modulo p cubed."
+ },
+ {
+  "paper": "1705.01663",
+  "label": "thm:3",
+  "type": "theorem",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "vague",
+  "query": "p-adic congruences for truncated hypergeometric values"
+ },
+ {
+  "paper": "1705.01663",
+  "label": "prop:Dwork",
+  "type": "proposition",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "precise",
+  "query": "For dash-invariant parameter multisets, truncated hypergeometric values satisfy cross-congruences modulo powers of p, yielding a unique p-adic unit governing all successive ratios."
+ },
+ {
+  "paper": "1705.01663",
+  "label": "prop:Dwork",
+  "type": "proposition",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "vague",
+  "query": "p-adic ratios of truncated hypergeometric series"
+ },
+ {
+  "paper": "1705.01663",
+  "label": "Dw-lemma",
+  "type": "lemma",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "precise",
+  "query": "A rising-factorial ratio factors into p-adic gamma terms, a smaller-digit quotient, and a correction determined by the base-p digit of k."
+ },
+ {
+  "paper": "1705.01663",
+  "label": "Dw-lemma",
+  "type": "lemma",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "vague",
+  "query": "p-adic gamma formulas for Pochhammer symbols"
+ },
+ {
+  "paper": "1705.01663",
+  "label": "gp-poch",
+  "type": "lemma",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "precise",
+  "query": "The first and second derivatives of a truncated rising factorial have explicit formulas in terms of the first two logarithmic derivatives of the p-adic gamma function."
+ },
+ {
+  "paper": "1705.01663",
+  "label": "gp-poch",
+  "type": "lemma",
+  "target_title": "Supercongruences for rigid hypergeometric Calabi--Yau threefolds",
+  "mode": "vague",
+  "query": "derivatives of p-adic rising factorials"
+ },
+ {
+  "paper": "1706.06557",
+  "label": "lem:MCG-rigid",
+  "type": "lemma",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "precise",
+  "query": "Any standard bordered Floer mapping-class module that is homotopy equivalent to a homogeneous module is uniquely equivalent via the maximal-grading homotopy class."
+ },
+ {
+  "paper": "1706.06557",
+  "label": "lem:MCG-rigid",
+  "type": "lemma",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "vague",
+  "query": "uniqueness of bordered Floer mapping class modules"
+ },
+ {
+  "paper": "1706.06557",
+  "label": "thm:I-tri",
+  "type": "theorem",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "precise",
+  "query": "Involutive Heegaard Floer homology fits into a surgery exact triangle relating Y, minus-one surgery on a framed knot K, and zero surgery on K."
+ },
+ {
+  "paper": "1706.06557",
+  "label": "thm:I-tri",
+  "type": "theorem",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "vague",
+  "query": "surgery exact triangle in involutive Heegaard Floer theory"
+ },
+ {
+  "paper": "1706.06557",
+  "label": "lem:0-HB-rigid",
+  "type": "lemma",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "precise",
+  "query": "The standard type D module of the genus-k zero-framed handlebody has only one homogeneous self-homotopy equivalence."
+ },
+ {
+  "paper": "1706.06557",
+  "label": "lem:0-HB-rigid",
+  "type": "lemma",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "vague",
+  "query": "handlebody type D module automorphisms"
+ },
+ {
+  "paper": "1706.06557",
+  "label": "thm:MCG-act-is",
+  "type": "theorem",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "precise",
+  "query": "The mapping class action on involutive Heegaard Floer homology is exactly the composition of the bordered Floer maps used to define the action."
+ },
+ {
+  "paper": "1706.06557",
+  "label": "thm:MCG-act-is",
+  "type": "theorem",
+  "target_title": "Involutive bordered Floer homology",
+  "mode": "vague",
+  "query": "mapping class actions in involutive Heegaard Floer theory"
+ },
+ {
+  "paper": "1711.08232",
+  "label": "poinineprop",
+  "type": "proposition",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "precise",
+  "query": "On a set Sigma satisfying a density lower bound, a function's L^p oscillation is controlled by its fractional Sobolev seminorm."
+ },
+ {
+  "paper": "1711.08232",
+  "label": "poinineprop",
+  "type": "proposition",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "vague",
+  "query": "fractional Poincare inequality on rough hypersurfaces"
+ },
+ {
+  "paper": "1711.08232",
+  "label": "q>1lem",
+  "type": "lemma",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "precise",
+  "query": "A positive supersolution on Sigma satisfies a weak Harnack estimate: its infimum on smaller balls is bounded below by a negative-moment average on a larger ball."
+ },
+ {
+  "paper": "1711.08232",
+  "label": "q>1lem",
+  "type": "lemma",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "vague",
+  "query": "weak Harnack estimate for nonlocal supersolutions"
+ },
+ {
+  "paper": "1711.08232",
+  "label": "restrictedsobinecor",
+  "type": "corollary",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "precise",
+  "query": "Under uniform density and measure bounds on Sigma, fractional Sobolev norms control a local Sobolev-conjugate norm with an explicit boundary-scale term."
+ },
+ {
+  "paper": "1711.08232",
+  "label": "restrictedsobinecor",
+  "type": "corollary",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "vague",
+  "query": "fractional Sobolev inequality on nonlocal minimal surfaces"
+ },
+ {
+  "paper": "1711.08232",
+  "label": "isopinecor",
+  "type": "corollary",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "precise",
+  "query": "Any finite-measure subset of Sigma satisfies a fractional isoperimetric inequality bounding its measure by its nonlocal perimeter, including reduced boundaries of alpha-perimeter minimizers."
+ },
+ {
+  "paper": "1711.08232",
+  "label": "isopinecor",
+  "type": "corollary",
+  "target_title": "A gradient estimate for nonlocal minimal graphs",
+  "mode": "vague",
+  "query": "fractional isoperimetric inequality on minimal boundaries"
+ },
+ {
+  "paper": "1801.06308",
+  "label": "lem:cofib",
+  "type": "lem",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "precise",
+  "query": "A cofibration sequence of Burnside functors realizes to a cofibration sequence of spaces, and any natural transformation induces a map between realizations."
+ },
+ {
+  "paper": "1801.06308",
+  "label": "lem:cofib",
+  "type": "lem",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "vague",
+  "query": "realizing Burnside functors as spaces"
+ },
+ {
+  "paper": "1801.06308",
+  "label": "prop:reduced-unified",
+  "type": "prop",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "precise",
+  "query": "The reduced unified Khovanov spectrum is a well-defined pointed-link invariant, its cellular cochains recover the reduced unified Khovanov complex, and it sits in a cofibration sequence."
+ },
+ {
+  "paper": "1801.06308",
+  "label": "prop:reduced-unified",
+  "type": "prop",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "vague",
+  "query": "reduced unified Khovanov spectrum invariant"
+ },
+ {
+  "paper": "1801.06308",
+  "label": "thm:cobordism-maps",
+  "type": "thm",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "precise",
+  "query": "Khovanov cobordism maps over mod 2 are compatible with the free-product Steenrod action coming from the even and odd Khovanov homotopy types."
+ },
+ {
+  "paper": "1801.06308",
+  "label": "thm:cobordism-maps",
+  "type": "thm",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "vague",
+  "query": "Steenrod operations on Khovanov cobordism maps"
+ },
+ {
+  "paper": "1801.06308",
+  "label": "thm:odd-functor-invariant",
+  "type": "thm",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "precise",
+  "query": "The shifted odd Khovanov Burnside functor has an equivariant equivalence class independent of all construction choices, so it defines a link invariant."
+ },
+ {
+  "paper": "1801.06308",
+  "label": "thm:odd-functor-invariant",
+  "type": "thm",
+  "target_title": "An odd Khovanov homotopy type",
+  "mode": "vague",
+  "query": "odd Khovanov Burnside functor invariance"
+ },
+ {
+  "paper": "1802.05066",
+  "label": "goodtestfunctions",
+  "type": "prop",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "precise",
+  "query": "For weight w, positivity of certain test-function quadratic forms on archimedean representation rings is equivalent to the bound r less than r(w), and fails beyond it."
+ },
+ {
+  "paper": "1802.05066",
+  "label": "goodtestfunctions",
+  "type": "prop",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "vague",
+  "query": "archimedean quadratic forms and automorphic finiteness"
+ },
+ {
+  "paper": "1802.05066",
+  "label": "propmainthm",
+  "type": "prop",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "precise",
+  "query": "When the archimedean parameter r_E is below r(w), positive definite local quadratic forms control algebraic cuspidal automorphic representations by the logarithm of their Rankin-Selberg conductor."
+ },
+ {
+  "paper": "1802.05066",
+  "label": "propmainthm",
+  "type": "prop",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "vague",
+  "query": "bounding automorphic representations by archimedean quadratic forms"
+ },
+ {
+  "paper": "1802.05066",
+  "label": "corthsansgrh",
+  "type": "cor",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "precise",
+  "query": "For the specific test function e^{-t/2}/cosh(t/2), the relevant quadratic form is positive definite exactly in dimensions n up to 23."
+ },
+ {
+  "paper": "1802.05066",
+  "label": "corthsansgrh",
+  "type": "cor",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "vague",
+  "query": "positivity range of a special automorphic quadratic form"
+ },
+ {
+  "paper": "1802.05066",
+  "label": "calctnSANSGRH",
+  "type": "cor",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "precise",
+  "query": "For this special test function, the associated extremal constant and vector have strong rationality properties, with even n allowing only rational and log 2 terms."
+ },
+ {
+  "paper": "1802.05066",
+  "label": "calctnSANSGRH",
+  "type": "cor",
+  "target_title": "An automorphic generalization of the Hermite-Minkowski theorem",
+  "mode": "vague",
+  "query": "rationality properties of automorphic extremal vectors"
+ },
+ {
+  "paper": "1802.07049",
+  "label": "funke",
+  "type": "prop",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "precise",
+  "query": "When H has rank at least two, an element P is a single polytope exactly when every nonzero one-dimensional specialization is a single polytope."
+ },
+ {
+  "paper": "1802.07049",
+  "label": "funke",
+  "type": "prop",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "vague",
+  "query": "detecting single Newton polytopes by one-dimensional projections"
+ },
+ {
+  "paper": "1802.07049",
+  "label": "bns convex",
+  "type": "lem",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "precise",
+  "query": "For any subset S of cohomology, the completed invariant attached to S depends only on the convex hull of S."
+ },
+ {
+  "paper": "1802.07049",
+  "label": "bns convex",
+  "type": "lem",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "vague",
+  "query": "convex hull dependence in BNS-type invariants"
+ },
+ {
+  "paper": "1802.07049",
+  "label": "l2 acyclic via D",
+  "type": "prop",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "precise",
+  "query": "For a torsion-free group satisfying the Atiyah conjecture, the nth L2-homology dimension over the group von Neumann algebra equals the dimension over the division closure."
+ },
+ {
+  "paper": "1802.07049",
+  "label": "l2 acyclic via D",
+  "type": "prop",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "vague",
+  "query": "Atiyah conjecture L2 homology dimension equality"
+ },
+ {
+  "paper": "1802.07049",
+  "label": "P is hom",
+  "type": "lem",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "precise",
+  "query": "For nonzero p and q in K H, the Newton polytope of pq equals the Minkowski sum of the polytopes of p and q."
+ },
+ {
+  "paper": "1802.07049",
+  "label": "P is hom",
+  "type": "lem",
+  "target_title": "The Bieri-Neumann-Strebel invariants via Newton polytopes",
+  "mode": "vague",
+  "query": "Newton polytope multiplicativity in group rings"
+ },
+ {
+  "paper": "1805.00030",
+  "label": "thm:45",
+  "type": "theorem",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "precise",
+  "query": "The fundamental group of the exchange graph of decorated triangulations is generated by square, pentagon, and hexagon loops, making the cluster exchange groupoid simply connected."
+ },
+ {
+  "paper": "1805.00030",
+  "label": "thm:45",
+  "type": "theorem",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "vague",
+  "query": "exchange graphs of decorated triangulations fundamental group"
+ },
+ {
+  "paper": "1805.00030",
+  "label": "pp:ass",
+  "type": "proposition",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "precise",
+  "query": "Under the triviality condition, the cluster braid group at any cluster equals the fundamental group of the cluster exchange groupoid based there."
+ },
+ {
+  "paper": "1805.00030",
+  "label": "pp:ass",
+  "type": "proposition",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "vague",
+  "query": "cluster braid group versus exchange groupoid"
+ },
+ {
+  "paper": "1805.00030",
+  "label": "cor:s.c.",
+  "type": "corollary",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "precise",
+  "query": "The moduli space of framed quadratic differentials splits into connected components indexed by SBr modulo BT, each isomorphic to a fixed framed stratum and simply connected."
+ },
+ {
+  "paper": "1805.00030",
+  "label": "cor:s.c.",
+  "type": "corollary",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "vague",
+  "query": "framed quadratic differentials connected components"
+ },
+ {
+  "paper": "1805.00030",
+  "label": "lem:Krammer",
+  "type": "lemma",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "precise",
+  "query": "The forgetful map from decorated to undecorated exchange graphs induces a Galois covering of exchange groupoids whose deck group is the kernel of the framing map."
+ },
+ {
+  "paper": "1805.00030",
+  "label": "lem:Krammer",
+  "type": "lemma",
+  "target_title": "Cluster exchange groupoids and framed quadratic differentials",
+  "mode": "vague",
+  "query": "coverings of cluster exchange graphs"
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Punique",
+  "type": "prop",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "precise",
+  "query": "For rational numbers 0 <= a < a' and an integer N, the shortest N-path joining a to a' is unique."
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Punique",
+  "type": "prop",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "vague",
+  "query": "uniqueness of shortest N-paths between rational numbers"
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Pdiskoidequivalence",
+  "type": "prop",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "precise",
+  "query": "Diskoids over K inside the closed unit disk are in bijection with inductive valuations on K[x], via the map sending each diskoid to its valuation."
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Pdiskoidequivalence",
+  "type": "prop",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "vague",
+  "query": "inductive valuations and diskoids over K"
+ },
+ {
+  "paper": "1805.09709",
+  "label": "LinB0",
+  "type": "lem",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "precise",
+  "query": "After a suitable change of the coordinate T, the given representation can be assumed to have image inside B0."
+ },
+ {
+  "paper": "1805.09709",
+  "label": "LinB0",
+  "type": "lem",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "vague",
+  "query": "normalizing representation image by coordinate change"
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Lcrossingsingularity",
+  "type": "lem",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "precise",
+  "query": "The intersection point of the two special-fiber components is singular exactly when the final valuation gap lambda_n' minus lambda_n exceeds N divided by lcm(N,c)lcm(N,c')."
+ },
+ {
+  "paper": "1805.09709",
+  "label": "Lcrossingsingularity",
+  "type": "lem",
+  "target_title": "Explicit resolution of weak wild quotient singularities on arithmetic surfaces",
+  "mode": "vague",
+  "query": "singularity criterion for intersecting components of models"
+ },
+ {
+  "paper": "1807.00276",
+  "label": "prop: capi formula compact",
+  "type": "prop",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "precise",
+  "query": "For compact K, the theta-capacity equals the Monge-Ampere mass of the equilibrium potential on K and the integral of phi minus h against that measure."
+ },
+ {
+  "paper": "1807.00276",
+  "label": "prop: capi formula compact",
+  "type": "prop",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "vague",
+  "query": "capacity and equilibrium potentials in pluripotential theory"
+ },
+ {
+  "paper": "1807.00276",
+  "label": "lemma: balayage",
+  "type": "lemma",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "precise",
+  "query": "A theta-plurisubharmonic function can be modified on a small ample ball to dominate the original, agree outside the ball, keep controlled supremum, and have zero Monge-Ampere mass there."
+ },
+ {
+  "paper": "1807.00276",
+  "label": "lemma: balayage",
+  "type": "lemma",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "vague",
+  "query": "local modification of theta-psh functions"
+ },
+ {
+  "paper": "1807.00276",
+  "label": "thm: Schauder",
+  "type": "theorem",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "precise",
+  "query": "Every continuous self-map of a nonempty compact convex subset of a Banach space has a fixed point."
+ },
+ {
+  "paper": "1807.00276",
+  "label": "thm: Schauder",
+  "type": "theorem",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "vague",
+  "query": "fixed point theorem for compact convex sets"
+ },
+ {
+  "paper": "1807.00276",
+  "label": "lem: relative extremal contact set",
+  "type": "lemma",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "precise",
+  "query": "For a Borel set E, the Monge-Ampere measure of the extremal envelope h star vanishes where the envelope is negative outside the closure of E."
+ },
+ {
+  "paper": "1807.00276",
+  "label": "lem: relative extremal contact set",
+  "type": "lemma",
+  "target_title": "Log-concavity of volume and complex Monge-Amp\u00e8re equations with prescribed singularity",
+  "mode": "vague",
+  "query": "extremal envelopes and Monge-Ampere vanishing"
+ },
+ {
+  "paper": "1807.04373",
+  "label": "lemma:core-angles",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "precise",
+  "query": "Any Voronoi core on a spherical surface contains conical points whose total angle exceeds four pi over three."
+ },
+ {
+  "paper": "1807.04373",
+  "label": "lemma:core-angles",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "vague",
+  "query": "Voronoi cores on spherical cone surfaces"
+ },
+ {
+  "paper": "1807.04373",
+  "label": "lemma:subcore",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "precise",
+  "query": "For a regular value r below pi over two, a unique Voronoi r-core exists exactly when r exceeds the systole and every component of the level set is nonessential."
+ },
+ {
+  "paper": "1807.04373",
+  "label": "lemma:subcore",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "vague",
+  "query": "existence of Voronoi cores on spherical surfaces"
+ },
+ {
+  "paper": "1807.04373",
+  "label": "prop:luo",
+  "type": "proposition",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "precise",
+  "query": "If the angle data has positive non-bubbling parameter and no angle is integral, the moduli space of spherical surfaces is a real-analytic orbifold of dimension 6g-6+2n."
+ },
+ {
+  "paper": "1807.04373",
+  "label": "prop:luo",
+  "type": "proposition",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "vague",
+  "query": "moduli of spherical surfaces with conical points"
+ },
+ {
+  "paper": "1807.04373",
+  "label": "graphconvex",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "precise",
+  "query": "Each completed Voronoi domain around a conical point is a convex polygonal disk with piecewise geodesic boundary and all interior angles strictly less than pi."
+ },
+ {
+  "paper": "1807.04373",
+  "label": "graphconvex",
+  "type": "lemma",
+  "target_title": "Spherical surfaces with conical points: systole inequality and moduli spaces with many connected components",
+  "mode": "vague",
+  "query": "Voronoi cells on spherical cone surfaces"
+ },
+ {
+  "paper": "1807.11931",
+  "label": null,
+  "type": "prop",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "precise",
+  "query": "For each 1 <= n <= 7, the lattice D_n fills n-surgery on several specified torus knots and connected sums."
+ },
+ {
+  "paper": "1807.11931",
+  "label": null,
+  "type": "prop",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "vague",
+  "query": "definite lattices filling positive surgeries on torus knots"
+ },
+ {
+  "paper": "1807.11931",
+  "label": "lemma:clattices",
+  "type": "lemma",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "precise",
+  "query": "For 1 <= n <= 11 and n != 3, orthogonal complements in C_n with the given norm and determinant are C_{n+1}; for n=3, only C_4 or D_9 occur."
+ },
+ {
+  "paper": "1807.11931",
+  "label": "lemma:clattices",
+  "type": "lemma",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "vague",
+  "query": "classification of orthogonal complements in definite lattices"
+ },
+ {
+  "paper": "1807.11931",
+  "label": null,
+  "type": "corollary",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "precise",
+  "query": "For 1 <= n <= 8, the lattice T_n fills n-surgery on the torus knots T_{2,3}, T_{2,5}, and T_{3,4}."
+ },
+ {
+  "paper": "1807.11931",
+  "label": null,
+  "type": "corollary",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "vague",
+  "query": "lattice fillings of surgeries on torus knots"
+ },
+ {
+  "paper": "1807.11931",
+  "label": "lemma:T354",
+  "type": "lemma",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "precise",
+  "query": "There exist genus-zero cobordisms from the torus knots T_{3,5} and T_{2,9} to the link T_{4,4}."
+ },
+ {
+  "paper": "1807.11931",
+  "label": "lemma:T354",
+  "type": "lemma",
+  "target_title": "On definite lattices bounded by integer surgeries along knots with slice genus at most 2",
+  "mode": "vague",
+  "query": "genus-zero cobordisms between torus links"
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop:pi_chi-holom",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "precise",
+  "query": "There exists Phi_1 < Phi such that Pi_{C,chi} is uniformly bounded from local weighted L2 spaces into local holomorphic functions with weight Phi_1."
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop:pi_chi-holom",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "vague",
+  "query": "semiclassical Bergman projector weighted L2 estimates"
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop:pi_x0",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "precise",
+  "query": "Near x_0 there is a local Bergman operator that is almost self-adjoint, projects onto holomorphic functions, and approximates the identity with lower-weight L2 control."
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop:pi_x0",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "vague",
+  "query": "local semiclassical Bergman projection near a point"
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop_lien_op_brg_op_weyl",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "precise",
+  "query": "A Berezin operator with analytic symbol is microlocally equivalent to a Weyl quantization with an explicitly transformed analytic symbol, and asymptotic negligibility is preserved."
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop_lien_op_brg_op_weyl",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "vague",
+  "query": "Berezin and Weyl quantization correspondence"
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop_transfor_Bargmann_et_quantif_weyl",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "precise",
+  "query": "Conjugating a semiclassical Weyl operator by the Bargmann transform produces an analytic Weyl operator whose symbol is the original symbol pulled back by the canonical map."
+ },
+ {
+  "paper": "1808.00199",
+  "label": "prop_transfor_Bargmann_et_quantif_weyl",
+  "type": "prop",
+  "target_title": "Analytic Bergman operators in the semiclassical limit",
+  "mode": "vague",
+  "query": "Bargmann transform of Weyl operators"
+ },
+ {
+  "paper": "1810.08168",
+  "label": "prop: interior open",
+  "type": "proposition",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "precise",
+  "query": "For chiral intertwining operators with in and out annihilation operators, the natural insertion domains are open and the resulting operator-valued fields are multivalued holomorphic functions."
+ },
+ {
+  "paper": "1810.08168",
+  "label": "prop: interior open",
+  "type": "proposition",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "vague",
+  "query": "Holomorphicity of chiral intertwining fields"
+ },
+ {
+  "paper": "1810.08168",
+  "label": "thm: WZW BLVO",
+  "type": "theorem",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "precise",
+  "query": "Every positive-level WZW vertex operator algebra attached to a compact simple Lie algebra has bounded localized vertex operators."
+ },
+ {
+  "paper": "1810.08168",
+  "label": "thm: WZW BLVO",
+  "type": "theorem",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "vague",
+  "query": "Bounded localized operators in WZW models"
+ },
+ {
+  "paper": "1810.08168",
+  "label": "prop: tensor splitting modules",
+  "type": "proposition",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "precise",
+  "query": "Any simple unitary module over a tensor product of two unitary vertex operator superalgebras is unitarily equivalent to a tensor product of simple modules over the two factors."
+ },
+ {
+  "paper": "1810.08168",
+  "label": "prop: tensor splitting modules",
+  "type": "proposition",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "vague",
+  "query": "Tensor product decomposition of VOA modules"
+ },
+ {
+  "paper": "1810.08168",
+  "label": "lem: easy fermionic and bosonic simple currents",
+  "type": "lemma",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "precise",
+  "query": "A self-dual simple current W-submodule of a simple unitary vertex operator superalgebra is bosonic in the even sector and fermionic in the odd sector."
+ },
+ {
+  "paper": "1810.08168",
+  "label": "lem: easy fermionic and bosonic simple currents",
+  "type": "lemma",
+  "target_title": "Representation theory in chiral conformal field theory: from fields to observables",
+  "mode": "vague",
+  "query": "Parity of self-dual simple currents"
+ },
+ {
+  "paper": "1810.11873",
+  "label": "corollary:R''F''",
+  "type": "corollary",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "precise",
+  "query": "The Fourier-Mukai kernel of the composition R'' after F'' is the direct sum of the diagonal structure sheaf and the structure sheaf of X times X."
+ },
+ {
+  "paper": "1810.11873",
+  "label": "corollary:R''F''",
+  "type": "corollary",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "vague",
+  "query": "Fourier-Mukai kernels on Hilbert squares"
+ },
+ {
+  "paper": "1810.11873",
+  "label": "corollary:short-exact",
+  "type": "corollary",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "precise",
+  "query": "For every i, a degree d minus 1 E2 term sits in a short exact sequence linking Hochschild cohomology of the tangent bundle exterior power and the anticanonical bundle."
+ },
+ {
+  "paper": "1810.11873",
+  "label": "corollary:short-exact",
+  "type": "corollary",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "vague",
+  "query": "Hochschild exact sequences on Hilbert squares"
+ },
+ {
+  "paper": "1810.11873",
+  "label": "proposition:iso-2",
+  "type": "proposition",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "precise",
+  "query": "Convolving the universal ideal kernel with the shifted canonical bundle kernel gives zero, so the Fourier-Mukai composition R' composed with F vanishes."
+ },
+ {
+  "paper": "1810.11873",
+  "label": "proposition:iso-2",
+  "type": "proposition",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "vague",
+  "query": "Vanishing of a Fourier-Mukai composition"
+ },
+ {
+  "paper": "1810.11873",
+  "label": "theorem:main-comparison",
+  "type": "theorem",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "precise",
+  "query": "For a smooth projective variety of dimension at least three with exceptional structure sheaf, the tangent-direction Hochschild cohomology is unchanged when passing to the Hilbert square."
+ },
+ {
+  "paper": "1810.11873",
+  "label": "theorem:main-comparison",
+  "type": "theorem",
+  "target_title": "Hilbert squares: derived categories and deformations",
+  "mode": "vague",
+  "query": "Deformations of varieties and their Hilbert squares"
+ },
+ {
+  "paper": "1905.04741",
+  "label": "Hitchin fibers",
+  "type": "theorem",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "precise",
+  "query": "Each Hitchin fiber over a point b is the stack of generic rank-one Cohen-Macaulay sheaves on the spectral surface, containing the Picard stack and therefore nonempty."
+ },
+ {
+  "paper": "1905.04741",
+  "label": "Hitchin fibers",
+  "type": "theorem",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "vague",
+  "query": "Hitchin fibers via spectral sheaves"
+ },
+ {
+  "paper": "1905.04741",
+  "label": null,
+  "type": "lemma",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "precise",
+  "query": "For such spectral data b, the identity component of the Picard stack is a quotient of an abelian variety by a trivially acting multiplicative group."
+ },
+ {
+  "paper": "1905.04741",
+  "label": null,
+  "type": "lemma",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "vague",
+  "query": "Picard stack components of spectral covers"
+ },
+ {
+  "paper": "1905.04741",
+  "label": "Cayley",
+  "type": "proposition",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "precise",
+  "query": "The Cayley morphism to the Chow variety is finite and generically etale; its fibers are local thickened points encoding spectral support, so in higher dimension the cover is not flat."
+ },
+ {
+  "paper": "1905.04741",
+  "label": "Cayley",
+  "type": "proposition",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "vague",
+  "query": "Cayley covers over Chow varieties"
+ },
+ {
+  "paper": "1905.04741",
+  "label": null,
+  "type": "proposition",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "precise",
+  "query": "Every fiber of the Hitchin morphism is the stack of maximal Cohen-Macaulay sheaves of generic rank one on the spectral cover."
+ },
+ {
+  "paper": "1905.04741",
+  "label": null,
+  "type": "proposition",
+  "target_title": "On the Hitchin morphism for higher dimensional varieties",
+  "mode": "vague",
+  "query": "Spectral cover description of Hitchin fibers"
+ },
+ {
+  "paper": "1907.06985",
+  "label": "phig",
+  "type": "proposition",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "precise",
+  "query": "A union of extended Schur-positive generators with summable parameters gives a G-positive specialization of symmetric Grothendieck polynomials, with explicit one-row generating formulas."
+ },
+ {
+  "paper": "1907.06985",
+  "label": "phig",
+  "type": "proposition",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "vague",
+  "query": "Positive specializations of Grothendieck polynomials"
+ },
+ {
+  "paper": "1907.06985",
+  "label": "gine",
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "precise",
+  "query": "For any G-bar-positive homomorphism, the one-row Grothendieck values form a nonincreasing sequence lying between one and zero."
+ },
+ {
+  "paper": "1907.06985",
+  "label": "gine",
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "vague",
+  "query": "Monotonicity for positive Grothendieck specializations"
+ },
+ {
+  "paper": "1907.06985",
+  "label": "fdet",
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "precise",
+  "query": "The number of elegant tableaux of a skew shape is given by a determinant whose entries are specific binomial coefficients determined by the two partitions."
+ },
+ {
+  "paper": "1907.06985",
+  "label": "fdet",
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "vague",
+  "query": "Determinant formula for elegant tableaux counts"
+ },
+ {
+  "paper": "1907.06985",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "precise",
+  "query": "If two specializations of the symmetric function ring each extend to Gamma, then their union also extends to Gamma by taking the union of the extensions."
+ },
+ {
+  "paper": "1907.06985",
+  "label": null,
+  "type": "lemma",
+  "target_title": "Positive specializations of symmetric Grothendieck polynomials",
+  "mode": "vague",
+  "query": "Extending unions of symmetric function specializations"
+ },
+ {
+  "paper": "1909.01418",
+  "label": "BaseNesting",
+  "type": "lemma",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "precise",
+  "query": "If the covering set of z has no free covering inversions, deleting a removable element b bijects covering sets where b is removable with those where b is addable."
+ },
+ {
+  "paper": "1909.01418",
+  "label": "BaseNesting",
+  "type": "lemma",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "vague",
+  "query": "Bijections between removable and addable coverings"
+ },
+ {
+  "paper": "1909.01418",
+  "label": "GoingDownCombinatorics",
+  "type": "theorem",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "precise",
+  "query": "Restricting the character indexed by w to the chosen block subgroup gives a tensor product of left and right pieces exactly in the admissible subset case, and otherwise vanishes."
+ },
+ {
+  "paper": "1909.01418",
+  "label": "GoingDownCombinatorics",
+  "type": "theorem",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "vague",
+  "query": "Restriction formulas in Malvenuto-Reutenauer categorification"
+ },
+ {
+  "paper": "1909.01418",
+  "label": null,
+  "type": "proposition",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "precise",
+  "query": "The superinduction map and the corresponding Deligne restriction map are adjoint with respect to the natural pairing on superclass functions."
+ },
+ {
+  "paper": "1909.01418",
+  "label": null,
+  "type": "proposition",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "vague",
+  "query": "Adjunction between induction and restriction of superclass functions"
+ },
+ {
+  "paper": "1909.01418",
+  "label": "CoveringLemma",
+  "type": "lemma",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "precise",
+  "query": "If one removes a selected covering pair with minimal second entry from a set I, the remaining pairs still form coverings of the modified permutation."
+ },
+ {
+  "paper": "1909.01418",
+  "label": "CoveringLemma",
+  "type": "lemma",
+  "target_title": "A categorification of the Malvenuto--Reutenauer algebra via a tower of groups",
+  "mode": "vague",
+  "query": "Removing minimal covering inversions in permutations"
+ },
+ {
+  "paper": "2002.04848",
+  "label": "prop:F4p2",
+  "type": "proposition",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "precise",
+  "query": "For nonzero p-restricted weights, the tensor product L(lambda) tensor L(mu) is completely reducible over G_1 exactly in one specific ordered pair case, where it is simple."
+ },
+ {
+  "paper": "2002.04848",
+  "label": "prop:F4p2",
+  "type": "proposition",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "vague",
+  "query": "Complete reducibility of tensor products over Frobenius kernels"
+ },
+ {
+  "paper": "2002.04848",
+  "label": "lem:C3p2",
+  "type": "lemma",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "precise",
+  "query": "In type C3 over characteristic two, a tensor product of nontrivial p-restricted simple modules is completely reducible over G_1 only in the same exceptional pair, when it is simple."
+ },
+ {
+  "paper": "2002.04848",
+  "label": "lem:C3p2",
+  "type": "lemma",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "vague",
+  "query": "Tensor product reducibility in type C3 characteristic two"
+ },
+ {
+  "paper": "2002.04848",
+  "label": "thm:completelyreducibleprestrictedG2",
+  "type": "theorem",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "precise",
+  "query": "In type G2 outside characteristic three, complete reducibility of L(lambda) tensor L(mu) forces every composition factor to be p-restricted."
+ },
+ {
+  "paper": "2002.04848",
+  "label": "thm:completelyreducibleprestrictedG2",
+  "type": "theorem",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "vague",
+  "query": "p-restricted factors in G2 tensor products"
+ },
+ {
+  "paper": "2002.04848",
+  "label": "lem:Anp2highestroot",
+  "type": "lemma",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "precise",
+  "query": "For any nonzero p-restricted weight mu, the tensor product of L(omega_1 plus omega_n) with L(mu) is not completely reducible."
+ },
+ {
+  "paper": "2002.04848",
+  "label": "lem:Anp2highestroot",
+  "type": "lemma",
+  "target_title": "On complete reducibility of tensor products of simple modules over simple algebraic groups",
+  "mode": "vague",
+  "query": "Nonsemisimple tensor products with omega1 plus omegan"
+ }
+]

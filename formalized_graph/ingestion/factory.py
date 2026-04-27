@@ -27,7 +27,7 @@ def _get_lake_path() -> str:
 
 
 def _extract_single_file(
-    lean_file: Path, project_root: Path, extractor_path: Path
+    lean_file: Path, project_root: Path, extractor_path: Path, timeout: int = 600
 ) -> str | None:
     """Helper for parallel execution of the Lean compiler."""
     try:
@@ -38,7 +38,7 @@ def _extract_single_file(
             cwd=project_root,
             capture_output=True,
             text=True,
-            timeout=600,
+            timeout=timeout,
         )
         if result.returncode != 0:
             logger.warning(f"FAILED {lean_file}: {result.stderr[:300]}")
@@ -65,11 +65,14 @@ class GroundTruthFactory:
         task_id: int = 0,
         total_tasks: int = 1,
         limit: int | None = None,
+        retry_missing: bool = False,
+        timeout: int = 600,
     ) -> None:
         logger.info(f"--- Starting Verified Extraction: {project_name} (task {task_id}/{total_tasks}) ---")
         project_id = self.db.add_project(project_name, is_mathlib=is_mathlib)
 
         build_lib = project_path / ".lake" / "build" / "lib" / "lean"
+        build_ir = project_path / ".lake" / "build" / "ir"
         all_lean_files = sorted(
             f
             for f in project_path.rglob("*.lean")
@@ -77,7 +80,16 @@ class GroundTruthFactory:
             and ".lake" not in str(f)
             and (build_lib / f.relative_to(project_path).with_suffix(".olean")).exists()
         )
-        if limit is not None:
+
+        if retry_missing:
+            # Only process files that don't already have a .ast.json — these
+            # are the ones that timed out or errored in a previous pass.
+            all_lean_files = [
+                f for f in all_lean_files
+                if not (build_ir / f.relative_to(project_path).with_suffix(".ast.json")).exists()
+            ]
+            logger.info(f"Retry mode: {len(all_lean_files)} files missing .ast.json")
+        elif limit is not None:
             all_lean_files = all_lean_files[:limit]
             logger.info(f"Limiting to {limit} files for test run.")
 
@@ -86,11 +98,10 @@ class GroundTruthFactory:
         lean_files = [f for i, f in enumerate(all_lean_files) if i % total_tasks == task_id]
         logger.info(f"Found {len(all_lean_files)} total files; this task processing {len(lean_files)}.")
 
-        temp_extractor = project_path / "ExtractData.lean"
-        temp_extractor.write_text(self.extractor_lean.read_text())
-
-        max_workers = os.cpu_count() or 4
-        logger.info(f"Using {max_workers} parallel workers.")
+        # Cap at 2 for retry mode: timed-out files are the heaviest in Mathlib
+        # and need more RAM per process. Normal mode uses 4 workers.
+        max_workers = min(os.cpu_count() or 4, 2 if retry_missing else 4)
+        logger.info(f"Using {max_workers} parallel workers (timeout={timeout}s).")
 
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             future_to_file = {
@@ -98,7 +109,8 @@ class GroundTruthFactory:
                     _extract_single_file,
                     f.relative_to(project_path),
                     project_path,
-                    Path("ExtractData.lean"),
+                    self.extractor_lean,  # absolute path — no copy/delete race
+                    timeout,
                 ): f
                 for f in lean_files
             }
@@ -113,8 +125,6 @@ class GroundTruthFactory:
         ast_files = list(project_path.rglob("*.ast.json"))
         self._ingest_ast_files(ast_files, project_id, project_path)
 
-        if temp_extractor.exists():
-            os.remove(temp_extractor)
         logger.success(f"--- {project_name} Ingested into Corpus ---")
 
     def _ingest_ast_files(

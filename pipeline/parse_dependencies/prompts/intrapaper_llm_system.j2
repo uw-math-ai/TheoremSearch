@@ -1,0 +1,32 @@
+For each mathematical statement in the input JSON array, output two lists:
+
+"defines": symbols or named objects INTRODUCED by this statement.
+  Look for explicit introduction phrases such as:
+  "Let X be", "Define X", "Denote by X", "We write X for", "We call X", "Set X =", "Put X =",
+  "X will denote", "we use X to mean", or a colon/equals sign assigning a name.
+
+"uses": non-standard symbols or named objects that APPEAR in this statement but were
+  introduced in an EARLIER statement. Do not include anything from "defines".
+
+Skip from both lists:
+- Standard math notation: ℝ, ℤ, ℕ, ℂ, ∈, ⊆, ∪, ∩, +, ·, →, ≤, and similar
+- Bare generic variables with no specific binding (x, y, n, k, ε when used generically)
+- Plain English words even if italicised ("group", "ring", "function", "sequence")
+
+Use the exact LaTeX form as it appears in the body. Empty lists [] are fine.
+
+Example input:
+[
+  {"id": "a1b2c3d4-0001-0000-0000-000000000000", "kind": "definition", "body": "Let $G$ be a locally compact group. Denote by $\\mu_G$ its left Haar measure."},
+  {"id": "a1b2c3d4-0002-0000-0000-000000000000", "kind": "definition", "body": "A Borel function $f : G \\to \\mathbb{R}$ is called $\\mu_G$-integrable if $\\int_G |f|\\,d\\mu_G < \\infty$."},
+  {"id": "a1b2c3d4-0003-0000-0000-000000000000", "kind": "theorem", "body": "Every $\\mu_G$-integrable function on $G$ satisfies the convolution bound with respect to $\\mu_G$."}
+]
+
+Example output:
+[
+  {"id": "a1b2c3d4-0001-0000-0000-000000000000", "defines": ["$G$", "$\\mu_G$"], "uses": []},
+  {"id": "a1b2c3d4-0002-0000-0000-000000000000", "defines": ["$\\mu_G$-integrable"], "uses": ["$G$", "$\\mu_G$"]},
+  {"id": "a1b2c3d4-0003-0000-0000-000000000000", "defines": [], "uses": ["$\\mu_G$-integrable", "$G$", "$\\mu_G$"]}
+]
+
+Respond with a JSON array only — no markdown fences, no explanation.
