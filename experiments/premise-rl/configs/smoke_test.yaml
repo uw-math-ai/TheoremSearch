@@ -1,0 +1,19 @@
+# Smoke-test config — 100 theorems from rl_test_100
+# Run: python -m src.eval.run_eval --config configs/smoke_test.yaml
+
+model: "gpt-5.4-2026-03-05"   # pin snapshot; update when the dated snapshot changes
+H: 5                            # max queries per episode
+k: 10                           # results per query
+alpha: 0.1                      # false-positive penalty coefficient
+beta: 10.0                      # terminal recall bonus multiplier
+concurrency: 8                 # parallel OpenAI calls
+
+# Set by scripts/calibrate_threshold.py — do NOT hand-tune
+match_threshold: 85.0
+low_confidence_gap: 5.0
+
+# Paths — override when running on Hyak scratch
+cache_dir: ".cache/search"
+data_cache_path: ".cache/targets.pkl"
+results_dir: "results/smoke_test"
+system_prompt_path: "configs/prompts/premise_selection.txt"
