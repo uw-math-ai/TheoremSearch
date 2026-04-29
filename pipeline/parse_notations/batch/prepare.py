@@ -91,6 +91,10 @@ def prepare_batch(
         sample=sample,
         base_query="SELECT paper.paper_id FROM paper",
         where_clauses=[
+            {
+                "if":        True,
+                "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)",
+            },
             {"if": bool(condition), "condition": condition or "", "params": condition_params},
             {
                 "if":        n_shards > 1,
