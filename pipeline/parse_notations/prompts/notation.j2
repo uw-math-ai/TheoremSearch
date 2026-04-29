@@ -1,0 +1,18 @@
+Extract what this mathematical statement introduces and uses.
+
+Return JSON only — no markdown, no explanation:
+{"defines": [{"description": "...", "pattern": "..."}], "uses": ["...", ...]}
+
+"defines": notation explicitly introduced here (paper-specific symbols/objects/concepts, custom operators, named shorthands). Look for "Let X be", "Denote by", "We write X for", "Define X", etc. Each "pattern" is a regex; use \\\\ for LaTeX backslash. Skip standard math (\\mathbb{R}, \\sum, \\int, \\leq, etc.) and generic variable letters. The "description" should briefly explain what the notation means or how it is defined.
+
+"uses": exact substrings of notation used but not introduced here. For isolated symbols include delimiters ("$G$" not "G"). Skip standard math and anything in "defines". Never include \\ref, \\cite, \\label, \\eqref or similar.
+
+Example:
+
+Definition: Let $G$ be a locally compact group. Denote by $\mu_G$ its left Haar measure. A function $f$ is $\mu_G$-integrable if $\int_G |f|\,d\mu_G < \infty$.
+{"defines": [{"description": "left Haar measure of G", "pattern": "\\\\mu_G"}, {"description": "mu_G-integrable function", "pattern": "\\\\mu_G-integrable"}], "uses": []}
+
+Theorem: Every $\mu_G$-integrable $f$ on $G$ satisfies $\|\hat{f}\|_\infty \leq \|\mu_G\|$ (see \cite{folland}).
+{"defines": [], "uses": ["\\mu_G-integrable", "\\mu_G", "$G$", "\\hat{f}"]}
+
+{{ statement.kind | title }}{% if statement.note %} ({{ statement.note }}){% endif %}: {{ statement.body }}

@@ -1,4 +1,3 @@
-import re
 from typing import List, Dict, Tuple, Any
 from psycopg2.extensions import connection
 
@@ -51,15 +50,6 @@ def build_query(
     query = base_query
     params = base_params.copy()
 
-    if sample > 0:
-        query = re.sub(
-            r'(FROM\s+\w+(?:\.\w+)?)',
-            r'\1 TABLESAMPLE BERNOULLI(1)',
-            query,
-            count=1,
-            flags=re.IGNORECASE
-        )
-
     where_conditions = []
     for where_clause in where_clauses:
         _validate_where_clause(where_clause)
@@ -76,7 +66,7 @@ def build_query(
         query += " WHERE " + " AND ".join(where_conditions)
 
     if sample > 0:
-        query += " LIMIT %s"
+        query += " ORDER BY RANDOM() LIMIT %s"
         params.append(sample)
 
     return query, params

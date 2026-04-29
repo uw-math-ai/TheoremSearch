@@ -1,0 +1,51 @@
+Write a 1-3 sentence, plain-English slogan for the following mathematical statement. No LaTeX.
+If you believe this is insufficient context to summarise this statement, respond with exactly "INSUFFICIENT CONTEXT:" followed by a short reason.
+If the context is malformed due to a parsing error respond with exactly "MALFORMED CONTEXT:" followed by a short reason.
+
+{{ statement.kind | title }}{% if statement.note %} ({{ statement.note }}){% endif %}: {{ statement.body }}
+{% if statement.proof %}
+
+Proof: {{ statement.proof }}
+{% endif %}
+{% if prev_statement or next_statement %}
+
+Document order:
+{% if prev_statement %}
+Before — {{ prev_statement.kind | title }}: {{ prev_statement.body }}
+{% endif %}
+[this result]
+{% if next_statement %}
+After — {{ next_statement.kind | title }}: {{ next_statement.body }}
+{% endif %}
+{% endif %}
+{% if statement.pre_context %}
+
+Pre-context: {{ statement.pre_context }}
+{% endif %}
+{% if statement.post_context %}
+
+Post-context: {{ statement.post_context }}
+{% endif %}
+{% set body_deps = informal_dependency | selectattr("dep_body") | list %}
+{% set cite_deps = informal_dependency | rejectattr("dep_body") | selectattr("cite_key") | list %}
+{% if body_deps or cite_deps %}
+
+This result uses:
+{% for dep in body_deps %}
+- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.method %}, method: {{ dep.method }}{% endif %})
+{% if dep.dep_proof %}
+  Proof: {{ dep.dep_proof }}
+{% endif %}
+{% if dep.cite_abstract %}
+  From paper abstract: {{ dep.cite_abstract }}
+{% endif %}
+{% endfor %}
+{% for dep in cite_deps %}
+{% if dep.cite_title %}
+- "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %} [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}]{% if dep.cite_abstract %} — {{ dep.cite_abstract }}{% endif %}
+
+{% else %}
+- [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}] — cited, not resolved to a specific statement
+{% endif %}
+{% endfor %}
+{% endif %}
