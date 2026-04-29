@@ -12,6 +12,8 @@
 downloaded_sources/
 parsed_papers/
 !requirements.txt
+!pipeline/parse_notations/models.json
+!pipeline/generate_slogans/models.json
 *pyc
 *.csv
 
