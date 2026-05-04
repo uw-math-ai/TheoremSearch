@@ -1,7 +1,6 @@
 """Nebius batch output JSONL iterator, shared across all batch inference pipelines."""
 
 import json
-import sys
 import tempfile
 from pathlib import Path
 from typing import Iterator, List, Tuple
@@ -11,12 +10,16 @@ import boto3
 from .io import parse_uri
 
 
-def iter_batch_results(paths: List[str]) -> Iterator[Tuple[str, str, dict]]:
+def iter_batch_results(paths: List[str], stats: dict = None) -> Iterator[Tuple[str, str, dict]]:
     """Yield (custom_id, llm_text, usage) from Nebius batch output JSONL paths.
 
     Paths may be local file paths or s3:// URIs. Skips malformed/errored entries
-    and raises ValueError if no valid results are found.
+    and raises ValueError if no valid results are found. If `stats` is provided it
+    is mutated with running "skipped" and "yielded" counts (no warnings are printed).
     """
+    _stats = stats if stats is not None else {}
+    _stats.setdefault("skipped", 0)
+    _stats.setdefault("yielded", 0)
     skipped = yielded = 0
 
     for path in paths:
@@ -38,37 +41,31 @@ def iter_batch_results(paths: List[str]) -> Iterator[Tuple[str, str, dict]]:
 
         try:
             with local_path.open(encoding="utf-8") as f:
-                for lineno, line in enumerate(f, 1):
+                for line in f:
                     line = line.strip()
                     if not line:
                         continue
                     try:
                         obj = json.loads(line)
                     except json.JSONDecodeError:
-                        print(f"  Warning: line {lineno} in {path} is not valid JSON, skipping.",
-                              file=sys.stderr)
-                        skipped += 1
+                        skipped += 1; _stats["skipped"] += 1
                         continue
 
                     custom_id = obj.get("custom_id", "").strip()
                     if not custom_id:
-                        skipped += 1
+                        skipped += 1; _stats["skipped"] += 1
                         continue
 
                     error = obj.get("error")
                     if error:
-                        msg = error.get("message") or error if isinstance(error, str) else error
-                        print(f"  Warning: {custom_id} — API error: {msg}", file=sys.stderr)
-                        skipped += 1
+                        skipped += 1; _stats["skipped"] += 1
                         continue
 
                     response = obj.get("response") or {}
                     status   = response.get("status_code")
                     if status is not None:
                         if status != 200:
-                            print(f"  Warning: {custom_id} returned status {status}, skipping.",
-                                  file=sys.stderr)
-                            skipped += 1
+                            skipped += 1; _stats["skipped"] += 1
                             continue
                         body = response.get("body") or {}
                     else:
@@ -77,13 +74,11 @@ def iter_batch_results(paths: List[str]) -> Iterator[Tuple[str, str, dict]]:
                     try:
                         text = body["choices"][0]["message"]["content"]
                     except (KeyError, IndexError, TypeError):
-                        print(f"  Warning: {custom_id} has malformed response body, skipping.",
-                              file=sys.stderr)
-                        skipped += 1
+                        skipped += 1; _stats["skipped"] += 1
                         continue
 
                     yield custom_id, text, body.get("usage") or {}
-                    yielded += 1
+                    yielded += 1; _stats["yielded"] += 1
         finally:
             if is_s3:
                 local_path.unlink(missing_ok=True)
@@ -91,5 +86,3 @@ def iter_batch_results(paths: List[str]) -> Iterator[Tuple[str, str, dict]]:
     if yielded == 0:
         detail = f"{skipped} entries skipped due to errors." if skipped else "Files may be empty."
         raise ValueError(f"No valid results found. {detail}")
-    if skipped:
-        print(f"  {skipped} failed/malformed entries skipped.", file=sys.stderr)

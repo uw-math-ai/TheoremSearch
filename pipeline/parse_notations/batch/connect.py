@@ -69,56 +69,83 @@ def _fetch_all_paper_stmt_ids(conn, paper_ids: List[str]) -> Dict[str, List[str]
     return result
 
 
-def connect_batch_results(conn, paths: List[str], batch_size: int) -> dict:
-    # Step 1: parse all results from JSONL
-    extractions: Dict[str, dict] = {}
-    total_in = total_out = 0
-    for statement_id, text, usage in iter_batch_results(paths):
-        extractions[statement_id] = parse_extraction(text)
-        total_in  += usage.get("prompt_tokens", 0)
-        total_out += usage.get("completion_tokens", 0)
+def _process_one_file(conn, path: str, batch_size: int) -> dict:
+    label = Path(path).stem  # e.g. "000", "001"
+    print(f"\nBatch {label}")
 
-    print(f"Parsed {len(extractions)} statement results.")
-
-    # Step 2: look up statement metadata from DB in chunks
-    stmt_ids  = list(extractions.keys())
-    stmts_meta: Dict[str, dict] = {}
-    for i in range(0, len(stmt_ids), batch_size * 10):
-        chunk = stmt_ids[i:i + batch_size * 10]
-        stmts_meta.update(_fetch_stmts_by_id(conn, chunk))
-
-    # Step 3: group by paper, merging extraction into metadata
+    # Phase 1: parse + DB lookup (batched, flushed every batch_size statements)
     stmts_by_paper: Dict[str, List[dict]] = defaultdict(list)
-    for sid, meta in stmts_meta.items():
-        stmts_by_paper[meta["paper_id"]].append({**meta, **extractions[sid]})
+    total_in = total_out = 0
+    api_stats: dict = {}
+    ok_parse = total_parse = 0
+    buf_ids:     List[str]        = []
+    buf_results: Dict[str, dict]  = {}
 
-    # Step 4: fetch ALL statement_ids per paper for the DELETE
+    def flush():
+        meta_map = _fetch_stmts_by_id(conn, buf_ids)
+        for sid in buf_ids:
+            if sid in meta_map:
+                meta = meta_map[sid]
+                stmts_by_paper[meta["paper_id"]].append({**meta, **buf_results[sid]})
+        buf_ids.clear()
+        buf_results.clear()
+
+    with tqdm(desc="  parse", unit=" stmts", dynamic_ncols=True) as pbar:
+        for statement_id, text, usage in iter_batch_results([path], stats=api_stats):
+            result = parse_extraction(text)
+            total_parse += 1
+            if result.get("defines") or result.get("uses"):
+                ok_parse += 1
+            total_in  += usage.get("prompt_tokens", 0)
+            total_out += usage.get("completion_tokens", 0)
+            buf_ids.append(statement_id)
+            buf_results[statement_id] = result
+            if len(buf_ids) >= batch_size:
+                flush()
+            pct = 100.0 * ok_parse / total_parse if total_parse else 0.0
+            pbar.update()
+            pbar.set_postfix({"ok": f"{pct:.1f}%", "api_skip": api_stats.get("skipped", 0)})
+        flush()  # remaining statements
+
+    parse_pct = 100.0 * ok_parse / total_parse if total_parse else 0.0
+
     paper_ids        = list(stmts_by_paper.keys())
     all_ids_by_paper = _fetch_all_paper_stmt_ids(conn, paper_ids)
 
-    # Step 5: write per paper
+    # Phase 3: connect
     total_deps = total_notations = failed = 0
-    with tqdm(total=len(paper_ids), dynamic_ncols=True, unit=" papers") as pbar:
+    with tqdm(total=len(paper_ids), desc="  connect", dynamic_ncols=True, unit=" papers") as pbar:
         for pid in paper_ids:
             try:
                 stmts   = sorted(stmts_by_paper[pid], key=lambda s: s["ordinal"])
                 all_ids = all_ids_by_paper.get(pid, [s["statement_id"] for s in stmts])
-                deps, notations     = _write_paper_deps(conn, all_ids, stmts)
-                total_deps         += deps
-                total_notations    += notations
+                deps, notations  = _write_paper_deps(conn, all_ids, stmts)
+                total_deps      += deps
+                total_notations += notations
             except Exception as e:
                 failed += 1
                 print(f"\n[error] paper {pid}: {e}", file=sys.stderr)
             pbar.update()
-            pbar.set_postfix({"deps": total_deps, "notations": total_notations, "failed": failed})
+            pbar.set_postfix({
+                "ok": f"{parse_pct:.1f}%",
+                "deps": total_deps,
+                "notations": total_notations,
+                "failed": failed,
+            })
 
     return {
-        "deps":      total_deps,
-        "notations": total_notations,
-        "failed":    failed,
-        "total_in":  total_in,
-        "total_out": total_out,
+        "deps": total_deps, "notations": total_notations, "failed": failed,
+        "total_in": total_in, "total_out": total_out,
     }
+
+
+def connect_batch_results(conn, paths: List[str], batch_size: int) -> dict:
+    totals: dict = {"deps": 0, "notations": 0, "failed": 0, "total_in": 0, "total_out": 0}
+    for path in paths:
+        stats = _process_one_file(conn, path, batch_size)
+        for k in totals:
+            totals[k] += stats[k]
+    return totals
 
 
 if __name__ == "__main__":
