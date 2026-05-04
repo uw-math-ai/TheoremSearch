@@ -156,7 +156,7 @@ if __name__ == "__main__":
                         help="Chunk size for DB lookups (default: 256).")
     parser.add_argument("--shard", type=int, default=0, dest="shard_index",
                         help="0-based shard index for this node (default: 0).")
-    parser.add_argument("--num-shards", type=int, default=1, dest="num_shards",
+    parser.add_argument("--n-shards", type=int, default=1, dest="n_shards",
                         help="Total number of shards across all nodes (default: 1).")
 
     args = parser.parse_args()
@@ -171,10 +171,10 @@ if __name__ == "__main__":
             sys.exit(1)
 
     input_paths = sorted(input_paths)
-    if args.num_shards > 1:
-        input_paths = input_paths[args.shard_index::args.num_shards]
+    if args.n_shards > 1:
+        input_paths = input_paths[args.shard_index::args.n_shards]
         if not input_paths:
-            print(f"Shard {args.shard_index}/{args.num_shards}: no files assigned.")
+            print(f"Shard {args.shard_index}/{args.n_shards}: no files assigned.")
             sys.exit(0)
 
     print_script_header(
@@ -182,7 +182,7 @@ if __name__ == "__main__":
         params={
             "input":      args.input_paths or _default_output_dir(),
             "batch size": args.batch_size,
-            **( {"shard": f"{args.shard_index}/{args.num_shards}"} if args.num_shards > 1 else {} ),
+            **( {"shard": f"{args.shard_index}/{args.n_shards}"} if args.n_shards > 1 else {} ),
         },
     )
 
