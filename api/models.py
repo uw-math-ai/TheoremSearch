@@ -70,7 +70,7 @@ class DependencyEdge(BaseModel):
     dep_name: Optional[str] = None     # e.g. "Theorem 3.2" (LLM-extracted or stored)
     dep_key: Optional[str] = None      # verbatim phrase for LLM-only deps
     location: str
-    method: str
+    methods: List[str]
 
 
 class GraphResponse(BaseModel):

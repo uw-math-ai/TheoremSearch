@@ -40,7 +40,7 @@ async def graph(external_id: str):
         cur.execute(
             """
             SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
-                   d.dep_name, d.dep_key, d.location, d.method
+                   d.dep_name, d.dep_key, d.location, d.methods
             FROM informal_dependency d
             JOIN statement s ON s.statement_id = d.src_id
             WHERE s.paper_id = %s
@@ -67,9 +67,9 @@ async def graph(external_id: str):
             dep_name=dep_name,
             dep_key=dep_key,
             location=location,
-            method=method,
+            methods=methods,
         )
-        for src_id, dep_id, cite_id, cite_key, dep_name, dep_key, location, method in dep_rows
+        for src_id, dep_id, cite_id, cite_key, dep_name, dep_key, location, methods in dep_rows
     ]
 
     return GraphResponse(
@@ -154,7 +154,7 @@ def _build_subgraph(cur, node_depth: dict) -> SubgraphResponse:
     cur.execute(
         """
         SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
-               d.dep_name, d.dep_key, d.location, d.method
+               d.dep_name, d.dep_key, d.location, d.methods
         FROM informal_dependency d
         WHERE d.src_id = ANY(%s::uuid[])
           AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
@@ -170,7 +170,7 @@ def _build_subgraph(cur, node_depth: dict) -> SubgraphResponse:
             dep_name=r[4],
             dep_key=r[5],
             location=r[6],
-            method=r[7],
+            methods=r[7],
         )
         for r in cur.fetchall()
     ]

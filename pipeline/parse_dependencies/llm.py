@@ -1,32 +1,23 @@
-import json
-import os
-from argparse import ArgumentParser
+"""
+Online LLM dependency extraction via per-statement notation prompts.
+
+For each statement, asks the LLM what it defines and uses; then match_paper()
+turns those annotations into dependency rows written to informal_dependency.
+"""
+import sys
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List
 
 from jinja2 import Environment, FileSystemLoader
-from openai import OpenAI
 from tqdm import tqdm
 
-from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
-from ..printing import print_script_header
 from .extract import parse_extraction
 from .write import _write_paper_deps, _fetch_paper_statements, _papers_already_processed
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
-_MODELS_FILE = Path(__file__).parent / "models.json"
-
-
-def _load_model_config(name: str) -> dict:
-    with open(_MODELS_FILE) as f:
-        models = json.load(f)
-    if name not in models:
-        raise ValueError(f"Model '{name}' not in models.json. Available: {list(models)}")
-    return models[name]
 
 
 def _jinja_env():
@@ -41,7 +32,7 @@ def _jinja_env():
 def _llm_extract(client, model_config: dict, template, stmt: dict) -> dict:
     prompt = template.render(statement=stmt)
     response = client.chat.completions.create(
-        model=model_config["model"],
+        model=model_config["id"],
         messages=[{"role": "user", "content": prompt}],
         temperature=model_config.get("temperature", 0.7),
         max_tokens=model_config.get("max_tokens", 512),
@@ -61,6 +52,10 @@ def _paper_query(condition, condition_params, shard, n_shards):
     return build_query(
         base_query="SELECT paper.paper_id FROM paper",
         where_clauses=[
+            {
+                "if":        True,
+                "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)",
+            },
             {"if": bool(condition), "condition": condition or "", "params": condition_params},
             {
                 "if":        n_shards > 1,
@@ -82,19 +77,19 @@ def _postfix(status: dict, total_in: int, total_out: int,
     }
 
 
-def run(conn, client, model_config, template,
-        condition, condition_params, overwrite,
-        batch_size, workers, shard, n_shards):
+def run_llm(conn, client, model_config, condition, condition_params,
+            overwrite, batch_size, workers, shard, n_shards):
     cost_per_1m_in  = model_config.get("cost_per_1m_in",  0.0)
     cost_per_1m_out = model_config.get("cost_per_1m_out", 0.0)
 
     query, params = _paper_query(condition, condition_params, shard, n_shards)
     total = get_query_count(conn, query, params)
 
+    template = _jinja_env().get_template("notation.j2")
     status = {"success": 0, "failed": 0, "skipped": 0}
     total_in = total_out = 0
 
-    with tqdm(total=total, dynamic_ncols=True, unit=" papers") as pbar:
+    with tqdm(total=total, dynamic_ncols=True, unit=" papers", desc="LLM", file=sys.stdout) as pbar:
         for page in paginate_query(conn, base_query=query, base_params=params,
                                    order_by="paper_id", page_size=batch_size):
             paper_ids = [str(p["paper_id"]) for p in page]
@@ -127,7 +122,7 @@ def run(conn, client, model_config, template,
                         status["success"] += 1
                     except Exception as e:
                         status["failed"] += 1
-                        print(f"\n[error] {futures[fut]['statement_id']}: {e}")
+                        tqdm.write(f"[llm] {futures[fut]['statement_id']}: {e}")
 
             for pid in extracted_by_paper:
                 all_ids = [s["statement_id"] for s in stmts_by_paper[pid]]
@@ -139,57 +134,3 @@ def run(conn, client, model_config, template,
                 **_postfix(status, total_in, total_out, cost_per_1m_in, cost_per_1m_out),
                 **({"skipped": status["skipped"]} if status["skipped"] else {}),
             })
-
-
-def main():
-    parser = ArgumentParser(description="Online notation dep extraction: LLM + match + write in one pass.")
-    parser.add_argument("-m", "--model", required=True, dest="model_name",
-                        help="Short model name from models.json (e.g. qwen3-235b).")
-    parser.add_argument("-c", "--condition", type=str, nargs="+", metavar=("SQL", "PARAM"),
-                        help="SQL WHERE condition on paper, followed by bind params.")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="Re-process papers that already have llm deps.")
-    parser.add_argument("-b", "--batch-size", type=int, default=16, dest="batch_size",
-                        help="Papers per page (default: 16).")
-    parser.add_argument("-w", "--workers", type=int, default=8,
-                        help="Concurrent LLM requests (default: 8).")
-    parser.add_argument("--shard", type=int, default=0)
-    parser.add_argument("--n-shards", type=int, default=1, dest="n_shards")
-
-    args = parser.parse_args()
-
-    if args.condition and len(args.condition) >= 2:
-        condition, *condition_params = args.condition
-    else:
-        condition        = args.condition[0] if args.condition else None
-        condition_params = []
-
-    model_config = _load_model_config(args.model_name)
-
-    print_script_header(
-        action="Generating notation deps (online)",
-        params={
-            "model":      args.model_name,
-            "condition?": condition,
-            "params?":    condition_params or None,
-            "overwrite":  args.overwrite,
-            "batch size": args.batch_size,
-            "workers":    args.workers,
-            "shard?":     f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
-        },
-    )
-
-    conn = get_rds_connection("v2")
-    client = OpenAI(
-        api_key=os.environ["NEBIUS_API_KEY"],
-        base_url="https://api.studio.nebius.ai/v1/",
-    )
-    template = _jinja_env().get_template("notation.j2")
-
-    run(conn, client, model_config, template,
-        condition, condition_params, args.overwrite,
-        args.batch_size, args.workers, args.shard, args.n_shards)
-
-
-if __name__ == "__main__":
-    main()

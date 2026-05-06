@@ -13,10 +13,21 @@ def _clean_row(row: Dict[str, Any]) -> tuple:
     return tuple(_strip_nul(v) for v in row.values())
 
 def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
-    if not ("with" in on_conflict and "replace" in on_conflict):
-        raise ValueError("both 'with' and 'replace' must be included in on_conflict")
-    if len(on_conflict) > 2:
-        raise ValueError("on_conflict must be a dictionary of exactly 'with' and 'replace'")
+    if "with" not in on_conflict:
+        raise ValueError("'with' is required in on_conflict")
+    unknown = set(on_conflict) - {"with", "where", "replace"}
+    if unknown:
+        raise ValueError(f"unknown keys in on_conflict: {sorted(unknown)}")
+
+
+def _build_conflict_clause(on_conflict: Dict[str, List[str]]) -> str:
+    cols = ", ".join(on_conflict["with"])
+    where = on_conflict.get("where", "")
+    where_part = f" WHERE {where}" if where else ""
+    if on_conflict.get("replace"):
+        set_clause = ", ".join(f"{c} = EXCLUDED.{c}" for c in on_conflict["replace"])
+        return f"ON CONFLICT ({cols}){where_part} DO UPDATE SET {set_clause}"
+    return f"ON CONFLICT ({cols}){where_part} DO NOTHING"
 
 def upsert_row(
     conn: connection, 
@@ -46,15 +57,10 @@ def upsert_row(
         By default None
     """
 
+    conflict_clause = ""
     if on_conflict is not None:
         _validate_on_conflict(on_conflict)
-
-        conflict_clause = "ON CONFLICT "
-        conflict_clause += f"({', '.join(on_conflict['with'])}) "
-        conflict_clause += "DO UPDATE SET "
-        conflict_clause += f"{', '.join(col + ' = EXCLUDED.' + col for col in on_conflict.get('replace', []))}"
-    else:
-        conflict_clause = ""
+        conflict_clause = _build_conflict_clause(on_conflict)
 
     with conn.cursor() as cur:
         cur.execute(f"""
@@ -91,15 +97,11 @@ def upsert_rows(
         By default None
     """
 
+    conflict_clause = ""
     if on_conflict is not None:
         _validate_on_conflict(on_conflict)
+        conflict_clause = _build_conflict_clause(on_conflict)
 
-        conflict_clause = "ON CONFLICT "
-        conflict_clause += f"({', '.join(on_conflict['with'])}) "
-        conflict_clause += "DO UPDATE SET "
-        conflict_clause += f"{', '.join(col + ' = EXCLUDED.' + col for col in on_conflict.get('replace', []))}"
-    else:
-        conflict_clause = ""
     with conn.cursor() as cur:
         execute_values(cur, f"""
             INSERT INTO {table} ({", ".join(rows[0].keys())})

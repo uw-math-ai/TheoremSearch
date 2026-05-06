@@ -17,16 +17,14 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     Returns dep rows ready for insertion into informal_dependency.
     """
     dep_rows = []
-    # Track first definer of each (description) so later redefinitions don't create extra deps
     first_definer: Dict[str, tuple] = {}  # desc -> (a_id, compiled, pattern)
-    used: set = set()  # (b_id, a_id, desc) — avoid duplicate rows
+    used: set = set()  # (b_id, a_id, desc)
 
     for j, B in enumerate(statements):
         b_id = str(B["statement_id"])
         b_body  = B.get("body")  or ""
         b_proof = B.get("proof") or ""
 
-        # Register any new defines from B before matching (for statements after B)
         for define in B.get("defines", []):
             pattern = define.get("pattern", "").strip()
             desc    = define.get("description", "")
@@ -41,13 +39,12 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     continue
             first_definer[desc] = (b_id, compiled, pattern)
 
-        # Match B's uses against first definers from prior statements only
         for use_str in B.get("uses", []):
             if not use_str:
                 continue
             for desc, (a_id, compiled, dep_key) in first_definer.items():
                 if a_id == b_id:
-                    continue  # defined in same statement
+                    continue
                 key = (b_id, a_id, desc)
                 if key in used:
                     continue
@@ -61,7 +58,7 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                         "dep_id":   a_id,
                         "dep_key":  use_str,
                         "dep_name": desc,
-                        "method":   "llm",
+                        "methods":  ["llm"],
                     })
 
     return dep_rows

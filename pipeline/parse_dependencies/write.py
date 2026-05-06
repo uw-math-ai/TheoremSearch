@@ -4,7 +4,8 @@ from typing import List
 from rds.utils.upsert import upsert_rows
 from .match import match_paper
 
-def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extracts: List[dict]) -> int:
+
+def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extracts: List[dict]) -> tuple:
     statements = statements_with_extracts
     dep_rows   = match_paper(statements)
 
@@ -27,7 +28,7 @@ def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extrac
     with conn.cursor() as cur:
         cur.execute(
             "DELETE FROM informal_dependency"
-            " WHERE src_id = ANY(%s::uuid[]) AND method = 'llm' AND cite_key IS NULL",
+            " WHERE src_id = ANY(%s::uuid[]) AND methods = ARRAY['llm'] AND cite_key IS NULL",
             (all_statement_ids,),
         )
         cur.execute(
@@ -73,7 +74,7 @@ def _papers_already_processed(conn, paper_ids: List[str]) -> set:
             FROM informal_dependency d
             JOIN statement s ON s.statement_id = d.src_id
             WHERE s.paper_id = ANY(%s::uuid[])
-              AND d.method = 'llm' AND d.cite_key IS NULL
+              AND 'llm' = ANY(d.methods) AND d.cite_key IS NULL
             """,
             (paper_ids,),
         )
