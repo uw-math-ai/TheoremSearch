@@ -65,7 +65,7 @@ lake build graph 2>&1
 
 # Step 1: Extract dependency graph
 echo "--- Step 1: lean-graph unified extraction ---"
-lake exe graph --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT_NAME}.ndjson" 2>&1
+lake exe graph --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT_NAME}.ndjson" 2>&1 || true
 
 echo "--- Step 2: export_statements ---"
 lake exe export_statements -- --to "$MODULE" --pretty \
