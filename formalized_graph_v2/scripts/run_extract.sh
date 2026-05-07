@@ -22,6 +22,7 @@
 set -euo pipefail
 
 export PATH="$HOME/.elan/bin:$PATH"
+export LEAN_CC=/usr/bin/gcc
 
 PROJECT="${1:?Usage: sbatch run_extract.sh <project-name>}"
 WORK_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2"
@@ -54,18 +55,18 @@ echo "Project dir: $PROJECT_DIR"
 echo "Module: $MODULE"
 echo "Output: $OUT_DIR/${PROJECT_NAME}.ndjson"
 
-# Use interpreter (lake env lean --run) instead of compiled binary (lake exe)
-# because HYAK's GLIBC 2.28 is too old for Lean v4.29.0's bundled clang.
-LEAN_GRAPH_DIR="$WORK_DIR/data/mathlib4/.lake/packages/lean-graph"
+# Build the graph executable with system gcc (HYAK's GLIBC 2.28 is too old
+# for Lean v4.29.0's bundled clang). Only rebuilds if not already compiled.
+echo "--- Building graph executable ---"
+lake build graph 2>&1
 
 # Step 1: Extract dependency graph
 echo "--- Step 1: lean-graph unified extraction ---"
-lake env lean --run "$LEAN_GRAPH_DIR/MainGraph.lean" -- \
-    --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT_NAME}.ndjson" 2>&1
+lake exe graph --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT_NAME}.ndjson" 2>&1
 
 echo "--- Step 2: export_statements ---"
-lake env lean --run "$LEAN_GRAPH_DIR/MainExportStatements.lean" -- \
-    --to "$MODULE" --pretty --output "$OUT_DIR/${PROJECT_NAME}_statements.jsonl" 2>&1
+lake exe export_statements -- --to "$MODULE" --pretty \
+    --output "$OUT_DIR/${PROJECT_NAME}_statements.jsonl" 2>&1
 
 echo "=== $PROJECT_NAME extraction complete ==="
 echo "Graph: $(wc -l < "$OUT_DIR/${PROJECT_NAME}.ndjson") declarations"
