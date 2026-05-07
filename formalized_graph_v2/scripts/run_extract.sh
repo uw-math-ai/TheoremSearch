@@ -4,7 +4,7 @@
 #SBATCH --partition=cpu-g2
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
-#SBATCH --time=04:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=/gscratch/amath/simku22/logs/extract_v2_%j.out
 #SBATCH --error=/gscratch/amath/simku22/logs/extract_v2_%j.err
 #SBATCH --mail-type=END,FAIL
@@ -57,9 +57,10 @@ echo "Project dir: $PROJECT_DIR"
 echo "Module: $MODULE"
 echo "Output: $OUT_DIR/${PROJECT_NAME}.ndjson"
 
-# Build the graph executable with system gcc (HYAK's GLIBC 2.28 is too old
-# for Lean v4.29.0's bundled clang). Only rebuilds if not already compiled.
-echo "--- Building graph executable ---"
+# Build the project + graph executable with system gcc (HYAK's GLIBC 2.28
+# is too old for Lean v4.29.0's bundled clang). Skips already-built modules.
+echo "--- Building $MODULE + graph executable ---"
+lake build "$MODULE" 2>&1
 lake build graph 2>&1
 
 # Step 1: Extract dependency graph
