@@ -23,6 +23,8 @@ set -euo pipefail
 
 export PATH="$HOME/.elan/bin:$PATH"
 export LEAN_CC=/usr/bin/gcc
+LEAN_TOOLCHAIN="$HOME/.elan/toolchains/leanprover--lean4---v4.29.0"
+export LIBRARY_PATH="$LEAN_TOOLCHAIN/lib:${LIBRARY_PATH:-}"
 
 PROJECT="${1:?Usage: sbatch run_extract.sh <project-name>}"
 WORK_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2"
