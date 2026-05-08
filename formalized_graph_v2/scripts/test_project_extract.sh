@@ -34,10 +34,11 @@ if ! grep -q "lean-graph" lakefile.toml 2>/dev/null && ! grep -q "lean-graph" la
     fi
 fi
 
-# Always ensure manifest is up to date (--no-build skips post-update hooks
-# that try to download Mathlib cache, which fails on HYAK's old OpenSSL)
+# Update manifest — tolerate cache download failures (HYAK OpenSSL 3.0.8
+# can't connect to Mathlib cache server; the manifest is written before
+# the post-update hook fires, so lean-graph is still registered)
 echo "--- Updating manifest ---"
-lake update lean-graph --no-build 2>&1 || lake update lean-graph 2>&1
+lake update lean-graph 2>&1 || echo "  (lake update exited non-zero — expected if Mathlib cache hook failed)"
 
 echo "--- Building graph executable ---"
 lake build graph 2>&1
