@@ -7,9 +7,10 @@ from typing import Dict, List, Optional, Tuple
 from tqdm import tqdm
 from psycopg2.extensions import connection
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
+from .write import informal_dep_update_expr
 from .llm_utils import strip_code_fence
 from .models import load_model_config, build_openai_client
 
@@ -200,50 +201,56 @@ def connect_judge_dependencies(
     model_config = load_model_config(model_name)
     client = build_openai_client()
 
-    query, params = build_query(
-        base_query=(
-            "SELECT p.paper_id, p.title, p.external_id"
-            " FROM paper p"
+    _aps_join = " LEFT JOIN arxiv_parse_status aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else ""
+    _where = [
+        {
+            "if": True,
+            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = p.paper_id)",
+        },
+        {
+            "if": not overwrite,
+            "condition": (
+                "NOT EXISTS ("
+                " SELECT 1 FROM statement s"
+                " JOIN informal_dependency d ON d.src_id = s.statement_id"
+                " WHERE s.paper_id = p.paper_id"
+                " AND d.cite_key IS NULL AND 'judge' = ANY(d.methods)"
+                ")"
+            ),
+        },
+        {
+            "if": condition,
+            "condition": condition,
+            "params": condition_params,
+        },
+        {
+            "if": n_shards > 1,
+            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "params": [n_shards, shard],
+        },
+    ]
+
+    if sample > 0:
+        id_query, id_params = build_query(
+            base_query="SELECT p.paper_id FROM paper p" + _aps_join,
+            where_clauses=_where,
+        )
+        paper_ids = sample_ids(conn, id_query, id_params, sample)
+        query  = (
+            "SELECT p.paper_id, p.title, p.external_id FROM paper p"
             " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id"
-            + (" LEFT JOIN arxiv_parse_status aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
-        ),
-        sample=sample,
-        where_clauses=[
-            {
-                "if": True,
-                "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = p.paper_id)",
-            },
-            {
-                "if": sample > 0,
-                "condition": (
-                    "(SELECT COUNT(*) FROM statement s"
-                    " JOIN informal_dependency d ON d.src_id = s.statement_id"
-                    " WHERE s.paper_id = p.paper_id AND d.cite_key IS NULL AND d.dep_id IS NOT NULL) >= 10"
-                ),
-            },
-            {
-                "if": not overwrite,
-                "condition": (
-                    "NOT EXISTS ("
-                    " SELECT 1 FROM statement s"
-                    " JOIN informal_dependency d ON d.src_id = s.statement_id"
-                    " WHERE s.paper_id = p.paper_id"
-                    " AND d.cite_key IS NULL AND 'judge' = ANY(d.methods)"
-                    ")"
-                ),
-            },
-            {
-                "if": condition,
-                "condition": condition,
-                "params": condition_params,
-            },
-            {
-                "if": n_shards > 1,
-                "condition": "hashtext(p.paper_id::text) %% %s = %s",
-                "params": [n_shards, shard],
-            },
-        ],
-    )
+            " WHERE p.paper_id = ANY(%s::uuid[])"
+        )
+        params = [paper_ids]
+    else:
+        query, params = build_query(
+            base_query=(
+                "SELECT p.paper_id, p.title, p.external_id FROM paper p"
+                " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id"
+                + _aps_join
+            ),
+            where_clauses=_where,
+        )
 
     count = get_query_count(conn, query, params)
     total_in = total_out = total_deps = failed = papers_done = 0
@@ -354,7 +361,8 @@ def connect_judge_dependencies(
             if new_rows:
                 upsert_rows(conn, "informal_dependency", new_rows,
                             on_conflict={"with": ["src_id", "dep_id"],
-                                         "where": "dep_id IS NOT NULL"})
+                                         "where": "dep_id IS NOT NULL",
+                                         "update_expr": informal_dep_update_expr()})
 
             merged = len(rows) - len(new_rows)
             print(f"  Phase 1  done — {len(rows)} deps  ({merged} merged, {len(new_rows)} new) | cost so far: {_fmt_cost(_total_cost())}")

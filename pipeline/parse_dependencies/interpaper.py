@@ -7,7 +7,7 @@ from typing import List, Dict, Optional, Tuple
 from tqdm import tqdm
 from psycopg2.extensions import connection
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..constants import STATEMENT_KINDS
@@ -319,47 +319,65 @@ def connect_interpaper_dependencies(
     n_shards: int = 1,
     sample: int = -1,
 ):
-    query, params = build_query(
-        base_query=(
-            "SELECT p.paper_id, p.external_id"
-            " FROM paper p"
+    _aps_join = " LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else ""
+    _where = [
+        {
+            "if": condition,
+            "condition": condition,
+            "params": condition_params,
+        },
+        {
+            "if": not overwrite,
+            "condition": (
+                "NOT EXISTS ("
+                " SELECT 1 FROM informal_dependency d"
+                " INNER JOIN statement s ON s.statement_id = d.src_id"
+                " WHERE s.paper_id = p.paper_id"
+                " AND d.cite_key IS NOT NULL"
+                + _overwrite_method_clause(do_deterministic, do_heuristic, alias="d")
+                + ")"
+            ),
+        },
+        {
+            "if": True,
+            "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = p.paper_id)",
+        },
+        {
+            "if": True,
+            "condition": "p.kind = 'paper'",
+        },
+        {
+            "if": n_shards > 1,
+            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "params": [n_shards, shard],
+        },
+    ]
+
+    if sample > 0:
+        id_query, id_params = build_query(
+            base_query=(
+                "SELECT p.paper_id FROM paper p"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
+                + _aps_join
+            ),
+            where_clauses=_where,
+        )
+        ids    = sample_ids(conn, id_query, id_params, sample)
+        query  = (
+            "SELECT p.paper_id, p.external_id FROM paper p"
             " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
-            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
-        ),
-        sample=sample,
-        where_clauses=[
-            {
-                "if": condition,
-                "condition": condition,
-                "params": condition_params,
-            },
-            {
-                "if": not overwrite,
-                "condition": (
-                    "NOT EXISTS ("
-                    " SELECT 1 FROM informal_dependency d"
-                    " INNER JOIN statement s ON s.statement_id = d.src_id"
-                    " WHERE s.paper_id = p.paper_id"
-                    " AND d.cite_key IS NOT NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic, alias="d")
-                    + ")"
-                ),
-            },
-            {
-                "if": True,
-                "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = p.paper_id)"
-            },
-            {
-                "if": True,
-                "condition": "p.kind = 'paper'"
-            },
-            {
-                "if": n_shards > 1,
-                "condition": "hashtext(p.paper_id::text) %% %s = %s",
-                "params": [n_shards, shard],
-            },
-        ]
-    )
+            " WHERE p.paper_id = ANY(%s::uuid[])"
+        )
+        params = [ids]
+    else:
+        query, params = build_query(
+            base_query=(
+                "SELECT p.paper_id, p.external_id FROM paper p"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
+                + _aps_join
+            ),
+            where_clauses=_where,
+        )
 
     count = get_query_count(conn, query, params)
     total_deps = 0

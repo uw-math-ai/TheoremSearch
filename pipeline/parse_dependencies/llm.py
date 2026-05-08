@@ -12,7 +12,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from tqdm import tqdm
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from .extract import parse_extraction
 from .write import _write_paper_deps, _fetch_paper_statements, _papers_already_processed
@@ -48,10 +48,9 @@ def _llm_extract(client, model_config: dict, template, stmt: dict) -> dict:
     }
 
 
-def _paper_query(condition, condition_params, shard, n_shards, sample=-1):
+def _paper_query(condition, condition_params, shard, n_shards):
     return build_query(
         base_query="SELECT paper.paper_id FROM paper",
-        sample=sample,
         where_clauses=[
             {
                 "if":        True,
@@ -83,7 +82,11 @@ def run_llm(conn, client, model_config, condition, condition_params,
     cost_per_1m_in  = model_config.get("cost_per_1m_in",  0.0)
     cost_per_1m_out = model_config.get("cost_per_1m_out", 0.0)
 
-    query, params = _paper_query(condition, condition_params, shard, n_shards, sample=sample)
+    query, params = _paper_query(condition, condition_params, shard, n_shards)
+    if sample > 0:
+        ids    = sample_ids(conn, query, params, sample)
+        query  = "SELECT paper.paper_id FROM paper WHERE paper.paper_id = ANY(%s::uuid[])"
+        params = [ids]
     total = get_query_count(conn, query, params)
 
     template = _jinja_env().get_template("notation.j2")

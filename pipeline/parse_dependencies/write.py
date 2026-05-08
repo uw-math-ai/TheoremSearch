@@ -2,6 +2,29 @@ from collections import defaultdict
 from typing import List
 
 from rds.utils.upsert import upsert_rows
+
+
+def _method_priority(alias: str) -> str:
+    return (
+        f"(CASE WHEN {alias}.methods && ARRAY['deterministic'] THEN 4"
+        f"      WHEN {alias}.methods && ARRAY['heuristic']     THEN 3"
+        f"      WHEN {alias}.methods && ARRAY['llm']           THEN 2"
+        f"      WHEN {alias}.methods && ARRAY['judge']         THEN 1 ELSE 0 END)"
+    )
+
+
+def informal_dep_update_expr() -> str:
+    """Evidence precedence: deterministic > heuristic > llm > judge.
+    dep_key and location are overwritten only when the incoming method has
+    strictly higher priority than the best method already on the row.
+    methods is always merged (union, no duplicates).
+    """
+    higher = f"{_method_priority('EXCLUDED')} > {_method_priority('informal_dependency')}"
+    return (
+        f"dep_key  = CASE WHEN {higher} THEN EXCLUDED.dep_key  ELSE informal_dependency.dep_key  END,"
+        f" location = CASE WHEN {higher} THEN EXCLUDED.location ELSE informal_dependency.location END,"
+        " methods  = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"
+    )
 from .match import match_paper
 
 
@@ -39,7 +62,7 @@ def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extrac
             upsert_rows(conn, "informal_dependency", dep_rows,
                         on_conflict={"with": ["src_id", "dep_id"],
                                      "where": "dep_id IS NOT NULL",
-                                     "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
+                                     "update_expr": informal_dep_update_expr()})
         if notation_rows:
             upsert_rows(conn, "notation", notation_rows)
     conn.commit()

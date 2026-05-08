@@ -63,3 +63,20 @@ CREATE INDEX IF NOT EXISTS idx_informal_dependency_methods_gin
 --     The composite index lets Postgres satisfy both in one scan.
 CREATE INDEX IF NOT EXISTS idx_informal_metadata_statement_ordinal
     ON informal_metadata(statement_id, ordinal);
+
+-- 12. statement(statement_id) INCLUDE (paper_id)
+--     Covering index for the dep-count aggregation query: after scanning
+--     informal_dependency by src_id, the join to statement needs paper_id.
+--     Without this, Postgres does a heap fetch per row; with it, the join
+--     is an index-only scan.
+CREATE INDEX IF NOT EXISTS idx_statement_id_covering_paper
+    ON statement(statement_id) INCLUDE (paper_id);
+
+-- 13. informal_dependency(src_id) partial — judge intrapaper deps only
+--     Targets the common "filter to papers with judge deps" pattern used by
+--     experiments and by re-running parsers conditioned on judge output.
+--     Without this, the EXISTS subquery does a GIN scan + statement join
+--     per outer paper; with it, each EXISTS is a single index seek.
+CREATE INDEX IF NOT EXISTS idx_informal_dependency_judge_src
+    ON informal_dependency(src_id)
+    WHERE cite_key IS NULL AND 'judge' = ANY(methods);

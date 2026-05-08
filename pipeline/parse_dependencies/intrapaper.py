@@ -6,9 +6,10 @@ from typing import List, Dict, Optional
 from tqdm import tqdm
 from psycopg2.extensions import connection
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
+from .write import informal_dep_update_expr
 from .llm_utils import proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
 
 
@@ -218,47 +219,45 @@ def connect_intrapaper_dependencies(
     n_shards: int = 1,
     sample: int = -1,
 ):
-    query, params = build_query(
-        base_query=(
-            "SELECT paper_id FROM paper"
-            + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
-            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
-        ),
-        sample=sample,
-        where_clauses=[
-            {
-                "if": True,
-                "condition": """
-                    EXISTS (
-                        SELECT 1 FROM statement
-                        WHERE statement.paper_id = paper.paper_id
-                    )
-                """
-            },
-            {
-                "if": not overwrite,
-                "condition": (
-                    "NOT EXISTS ("
-                    " SELECT 1 FROM statement"
-                    " JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id"
-                    " WHERE statement.paper_id = paper.paper_id"
-                    " AND informal_dependency.cite_key IS NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic)
-                    + ")"
-                ),
-            },
-            {
-                "if": condition,
-                "condition": condition,
-                "params": condition_params,
-            },
-            {
-                "if": n_shards > 1,
-                "condition": "hashtext(paper_id::text) %% %s = %s",
-                "params": [n_shards, shard],
-            },
-        ]
+    _base = (
+        "SELECT p.paper_id FROM paper p"
+        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id" if condition and "apm." in condition else "")
+        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
     )
+    _where = [
+        {
+            "if": True,
+            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = p.paper_id)",
+        },
+        {
+            "if": not overwrite,
+            "condition": (
+                "NOT EXISTS ("
+                " SELECT 1 FROM statement"
+                " JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id"
+                " WHERE statement.paper_id = p.paper_id"
+                " AND informal_dependency.cite_key IS NULL"
+                + _overwrite_method_clause(do_deterministic, do_heuristic)
+                + ")"
+            ),
+        },
+        {
+            "if": condition,
+            "condition": condition,
+            "params": condition_params,
+        },
+        {
+            "if": n_shards > 1,
+            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "params": [n_shards, shard],
+        },
+    ]
+
+    query, params = build_query(base_query=_base, where_clauses=_where)
+    if sample > 0:
+        ids    = sample_ids(conn, query, params, sample)
+        query  = "SELECT p.paper_id FROM paper p WHERE p.paper_id = ANY(%s::uuid[])"
+        params = [ids]
 
     count = get_query_count(conn, query, params)
     total_deps = 0
@@ -320,7 +319,7 @@ def connect_intrapaper_dependencies(
                     upsert_rows(conn, table="informal_dependency", rows=batch_rows,
                                 on_conflict={"with": ["src_id", "dep_id"],
                                              "where": "dep_id IS NOT NULL",
-                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
+                                             "update_expr": informal_dep_update_expr()})
                 conn.commit()
 
             pbar.update(len(papers))

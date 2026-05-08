@@ -65,11 +65,19 @@ def build_query(
     if where_conditions:
         query += " WHERE " + " AND ".join(where_conditions)
 
-    if sample > 0:
-        query += " ORDER BY RANDOM() LIMIT %s"
-        params.append(sample)
-
     return query, params
+
+
+def sample_ids(conn: connection, query: str, params: list, n: int) -> list:
+    """
+    Fetch all IDs (first column) from query and return a random Python sample of n.
+    Faster than ORDER BY RANDOM() LIMIT for large tables since it avoids a full sort.
+    """
+    import random
+    with conn.cursor() as cur:
+        cur.execute(query, params)
+        all_ids = [r[0] for r in cur.fetchall()]
+    return random.sample(all_ids, min(n, len(all_ids)))
 
 def get_query_count(
     conn: connection,
