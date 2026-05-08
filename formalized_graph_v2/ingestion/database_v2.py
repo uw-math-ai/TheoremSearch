@@ -37,7 +37,7 @@ class CorpusV2:
                 kind            TEXT NOT NULL DEFAULT 'lean_repo',
                 lean_toolchain  TEXT,
                 mathlib_rev     TEXT,
-                commit          TEXT,
+                git_commit          TEXT,
                 extracted_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -82,19 +82,19 @@ class CorpusV2:
         url: str | None = None,
         lean_toolchain: str | None = None,
         mathlib_rev: str | None = None,
-        commit: str | None = None,
+        git_commit: str | None = None,
     ) -> int:
         c = self.conn.cursor()
         c.execute("""
-            INSERT INTO projects (name, url, lean_toolchain, mathlib_rev, commit)
+            INSERT INTO projects (name, url, lean_toolchain, mathlib_rev, git_commit)
             VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(name) DO UPDATE SET
                 url = COALESCE(excluded.url, projects.url),
                 lean_toolchain = COALESCE(excluded.lean_toolchain, projects.lean_toolchain),
                 mathlib_rev = COALESCE(excluded.mathlib_rev, projects.mathlib_rev),
-                commit = COALESCE(excluded.commit, projects.commit),
+                git_commit = COALESCE(excluded.git_commit, projects.git_commit),
                 extracted_at = CURRENT_TIMESTAMP
-        """, (name, url, lean_toolchain, mathlib_rev, commit))
+        """, (name, url, lean_toolchain, mathlib_rev, git_commit))
         self.conn.commit()
         row = c.execute("SELECT id FROM projects WHERE name = ?", (name,)).fetchone()
         return row["id"]

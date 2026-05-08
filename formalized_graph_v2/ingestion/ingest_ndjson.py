@@ -9,7 +9,7 @@ Usage:
         --project Mathlib \
         --url https://github.com/leanprover-community/mathlib4 \
         --toolchain v4.29.0 \
-        --commit abc123
+        --git-commit abc123
 
     # Ingest without statements (edges + basic nodes only):
     python3 -m ingestion.ingest_ndjson \
@@ -72,7 +72,7 @@ def ingest_project(
         url=url,
         lean_toolchain=toolchain,
         mathlib_rev=mathlib_rev,
-        commit=commit,
+        git_commit=commit,
     )
 
     # Pass 1: Read NDJSON, collect nodes and raw edges
@@ -160,7 +160,7 @@ def main():
     parser.add_argument("--url", type=str, default=None)
     parser.add_argument("--toolchain", type=str, default=None)
     parser.add_argument("--mathlib-rev", type=str, default=None)
-    parser.add_argument("--commit", type=str, default=None)
+    parser.add_argument("--git-commit", type=str, default=None)
     args = parser.parse_args()
 
     db = CorpusV2(args.db)
@@ -173,7 +173,7 @@ def main():
             url=args.url,
             toolchain=args.toolchain,
             mathlib_rev=args.mathlib_rev,
-            commit=args.commit,
+            git_commit=args.git_commit,
         )
     finally:
         db.close()
