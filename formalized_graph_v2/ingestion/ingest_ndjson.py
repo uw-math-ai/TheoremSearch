@@ -55,7 +55,7 @@ def ingest_project(
     url: str | None = None,
     toolchain: str | None = None,
     mathlib_rev: str | None = None,
-    commit: str | None = None,
+    git_commit: str | None = None,
 ):
     """Ingest one project's lean-graph output into the database."""
 
@@ -72,7 +72,7 @@ def ingest_project(
         url=url,
         lean_toolchain=toolchain,
         mathlib_rev=mathlib_rev,
-        git_commit=commit,
+        git_commit=git_commit,
     )
 
     # Pass 1: Read NDJSON, collect nodes and raw edges
