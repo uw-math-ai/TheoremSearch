@@ -36,7 +36,10 @@ def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extrac
             (all_statement_ids,),
         )
         if dep_rows:
-            upsert_rows(conn, "informal_dependency", dep_rows)
+            upsert_rows(conn, "informal_dependency", dep_rows,
+                        on_conflict={"with": ["src_id", "dep_id"],
+                                     "where": "dep_id IS NOT NULL",
+                                     "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
         if notation_rows:
             upsert_rows(conn, "notation", notation_rows)
     conn.commit()

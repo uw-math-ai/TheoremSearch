@@ -70,6 +70,7 @@ def _process_paper_deterministic(
         for s in statements
         if s["label"]
     }
+    stmt_order = {s["statement_id"]: i for i, s in enumerate(statements)}
 
     rows = []
 
@@ -89,14 +90,15 @@ def _process_paper_deterministic(
                     if not content:
                         continue
                     for label in (lbl.strip() for lbl in content.split(',')):
-                        if label in label_to_dep and label not in seen:
+                        dep_id = label_to_dep.get(label)
+                        if dep_id and dep_id != statement["statement_id"] and label not in seen:
                             seen.add(label)
                             rows.append({
                                 "src_id":   statement["statement_id"],
                                 "location": location,
                                 "cite_id":  None,
                                 "cite_key": None,
-                                "dep_id":   label_to_dep[label],
+                                "dep_id":   dep_id,
                                 "dep_key":  label,
                                 "dep_name": None,
                                 "methods":  ["deterministic"],
@@ -121,7 +123,10 @@ def _process_paper_deterministic(
                         continue
                     kw = "proof" if is_proof_context else proximity_keywords(text, m.start(), proximity_threshold)
                     for label in (lbl.strip() for lbl in content.split(',')):
-                        if label in label_to_dep and label not in seen:
+                        dep_id = label_to_dep.get(label)
+                        if dep_id and dep_id != statement["statement_id"] and label not in seen:
+                            if stmt_order.get(dep_id, -1) >= stmt_order[statement["statement_id"]]:
+                                continue
                             seen.add(label)
                             dep_key = f"{label}|{kw}" if kw else f"{label}|"
                             rows.append({
@@ -129,7 +134,7 @@ def _process_paper_deterministic(
                                 "location": location,
                                 "cite_id":  None,
                                 "cite_key": None,
-                                "dep_id":   label_to_dep[label],
+                                "dep_id":   dep_id,
                                 "dep_key":  dep_key,
                                 "dep_name": None,
                                 "methods":  ["heuristic"],
@@ -183,6 +188,8 @@ def _process_paper_deterministic(
                     dep_id = name_to_dep[name]
                     if dep_id == statement["statement_id"] or name in seen:
                         continue
+                    if stmt_order.get(dep_id, -1) >= stmt_order[statement["statement_id"]]:
+                        continue
                     seen.add(name)
                     rows.append({
                         "src_id":   statement["statement_id"],
@@ -209,6 +216,7 @@ def connect_intrapaper_dependencies(
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
+    sample: int = -1,
 ):
     query, params = build_query(
         base_query=(
@@ -216,6 +224,7 @@ def connect_intrapaper_dependencies(
             + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
             + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
         ),
+        sample=sample,
         where_clauses=[
             {
                 "if": True,
@@ -310,7 +319,8 @@ def connect_intrapaper_dependencies(
                 if batch_rows:
                     upsert_rows(conn, table="informal_dependency", rows=batch_rows,
                                 on_conflict={"with": ["src_id", "dep_id"],
-                                             "where": "dep_id IS NOT NULL"})
+                                             "where": "dep_id IS NOT NULL",
+                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
                 conn.commit()
 
             pbar.update(len(papers))

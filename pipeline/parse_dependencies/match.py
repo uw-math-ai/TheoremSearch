@@ -17,35 +17,27 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     Returns dep rows ready for insertion into informal_dependency.
     """
     dep_rows = []
-    first_definer: Dict[str, tuple] = {}  # desc -> (a_id, compiled, pattern)
-    used: set = set()  # (b_id, a_id, desc)
+    recent_definer: Dict[str, tuple] = {}  # desc -> (a_id, compiled, pattern) — most recent wins
+    used: set = set()  # (b_id, a_id) — one dep per pair
 
-    for j, B in enumerate(statements):
-        b_id = str(B["statement_id"])
+    for B in statements:
+        b_id    = str(B["statement_id"])
         b_body  = B.get("body")  or ""
         b_proof = B.get("proof") or ""
 
-        for define in B.get("defines", []):
-            pattern = define.get("pattern", "").strip()
-            desc    = define.get("description", "")
-            if not pattern or desc in first_definer:
-                continue
-            try:
-                compiled = re.compile(pattern)
-            except re.error:
-                try:
-                    compiled = re.compile(re.escape(pattern))
-                except re.error:
-                    continue
-            first_definer[desc] = (b_id, compiled, pattern)
+        # Descriptions that B itself defines — uses of these are skipped because
+        # B is re-introducing the notation, not depending on the prior definition.
+        b_defines = {d.get("description", "") for d in B.get("defines", []) if d.get("description")}
 
+        # Resolve uses against definitions from statements strictly before B
+        # (recent_definer is updated with B's defines only after this loop).
         for use_str in B.get("uses", []):
             if not use_str:
                 continue
-            for desc, (a_id, compiled, dep_key) in first_definer.items():
-                if a_id == b_id:
+            for desc, (a_id, compiled, dep_key) in recent_definer.items():
+                if desc in b_defines:
                     continue
-                key = (b_id, a_id, desc)
+                key = (b_id, a_id)
                 if key in used:
                     continue
                 if compiled.search(use_str):
@@ -60,5 +52,20 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                         "dep_name": desc,
                         "methods":  ["llm"],
                     })
+
+        # Update most-recent definer table with B's definitions.
+        for define in B.get("defines", []):
+            pattern = define.get("pattern", "").strip()
+            desc    = define.get("description", "")
+            if not pattern:
+                continue
+            try:
+                compiled = re.compile(pattern)
+            except re.error:
+                try:
+                    compiled = re.compile(re.escape(pattern))
+                except re.error:
+                    continue
+            recent_definer[desc] = (b_id, compiled, pattern)
 
     return dep_rows

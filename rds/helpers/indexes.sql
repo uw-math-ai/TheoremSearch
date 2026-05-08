@@ -43,3 +43,23 @@ CREATE INDEX IF NOT EXISTS idx_dependency_dep_id
 --    in the /paper-search endpoint. text_pattern_ops enables LIKE 'q%' plans.
 CREATE INDEX IF NOT EXISTS idx_paper_external_id_lower_prefix
     ON paper (lower(external_id) text_pattern_ops);
+
+-- 9. informal_dependency(src_id) partial — intrapaper deps only
+--    Covers the dep-count subquery (--sample filter), Phase 2 dep fetch, and
+--    both Phase 1 UPDATEs in the judge pipeline, all of which filter on
+--    src_id with cite_key IS NULL AND dep_id IS NOT NULL.
+CREATE INDEX IF NOT EXISTS idx_informal_dependency_src_intrapaper
+    ON informal_dependency(src_id)
+    WHERE cite_key IS NULL AND dep_id IS NOT NULL;
+
+-- 10. GIN on informal_dependency(methods)
+--     Required for any(methods) and && containment checks used by the judge
+--     pipeline (skip-check, Phase 2 fetch, experiments query).
+CREATE INDEX IF NOT EXISTS idx_informal_dependency_methods_gin
+    ON informal_dependency USING gin(methods);
+
+-- 11. informal_metadata(statement_id, ordinal)
+--     Every paper's statement fetch joins on statement_id then sorts by ordinal.
+--     The composite index lets Postgres satisfy both in one scan.
+CREATE INDEX IF NOT EXISTS idx_informal_metadata_statement_ordinal
+    ON informal_metadata(statement_id, ordinal);

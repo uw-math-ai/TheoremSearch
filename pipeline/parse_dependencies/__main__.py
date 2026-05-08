@@ -105,7 +105,8 @@ if __name__ == "__main__":
                             help="Randomly sample N papers (for --batch prepare, testing).")
     arg_parser.add_argument("--rows-per-file", type=int, default=-1, dest="rows_per_file",
                             help="Split batch output into files of at most N rows.")
-
+    arg_parser.add_argument("--debug", action="store_true",
+                            help="Print per-rejection reasons (only valid with --method judge).")
     args = arg_parser.parse_args()
 
     methods          = set(args.methods)
@@ -115,6 +116,11 @@ if __name__ == "__main__":
     do_judge         = "judge"         in methods
 
     # ── Validate combinations ────────────────────────────────────────────
+    if do_judge and len(methods) > 1:
+        _err("--method judge cannot be combined with other methods")
+    if args.debug and not do_judge:
+        _err("--debug is only valid with --method judge")
+
     if args.batch is not None:
         invalid = methods - _BATCH_METHODS
         if invalid:
@@ -266,6 +272,7 @@ if __name__ == "__main__":
             proximity_threshold=args.proximity_threshold,
             shard=args.shard,
             n_shards=args.n_shards,
+            sample=args.sample,
         )
         connect_interpaper_dependencies(
             conn=conn,
@@ -279,6 +286,7 @@ if __name__ == "__main__":
             proximity_threshold=args.proximity_threshold,
             shard=args.shard,
             n_shards=args.n_shards,
+            sample=args.sample,
         )
 
     if do_llm:
@@ -298,6 +306,7 @@ if __name__ == "__main__":
             workers=args.workers,
             shard=args.shard,
             n_shards=args.n_shards,
+            sample=args.sample,
         )
 
     if do_judge:
@@ -311,4 +320,5 @@ if __name__ == "__main__":
             shard=args.shard,
             n_shards=args.n_shards,
             sample=args.sample,
+            debug=args.debug,
         )

@@ -48,9 +48,10 @@ def _llm_extract(client, model_config: dict, template, stmt: dict) -> dict:
     }
 
 
-def _paper_query(condition, condition_params, shard, n_shards):
+def _paper_query(condition, condition_params, shard, n_shards, sample=-1):
     return build_query(
         base_query="SELECT paper.paper_id FROM paper",
+        sample=sample,
         where_clauses=[
             {
                 "if":        True,
@@ -78,11 +79,11 @@ def _postfix(status: dict, total_in: int, total_out: int,
 
 
 def run_llm(conn, client, model_config, condition, condition_params,
-            overwrite, batch_size, workers, shard, n_shards):
+            overwrite, batch_size, workers, shard, n_shards, sample=-1):
     cost_per_1m_in  = model_config.get("cost_per_1m_in",  0.0)
     cost_per_1m_out = model_config.get("cost_per_1m_out", 0.0)
 
-    query, params = _paper_query(condition, condition_params, shard, n_shards)
+    query, params = _paper_query(condition, condition_params, shard, n_shards, sample=sample)
     total = get_query_count(conn, query, params)
 
     template = _jinja_env().get_template("notation.j2")

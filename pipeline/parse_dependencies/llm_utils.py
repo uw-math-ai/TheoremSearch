@@ -29,6 +29,8 @@ _PROXIMITY_ANCHORS: List[Tuple[str, float]] = sorted([
     ("whence",               0.9),
     ("hence",                0.9),
     ("preceding",            0.9),
+    ("implies",              0.9),
+    ("entails",              0.9),
     ("appealing to",         0.8),
     ("appeal to",            0.8),
     ("as established",       0.8),
@@ -40,6 +42,8 @@ _PROXIMITY_ANCHORS: List[Tuple[str, float]] = sorted([
     ("invoking",             0.8),
     ("invoke",               0.8),
     ("previous",             0.8),
+    ("shows that",           0.8),
+    ("yields",               0.8),
     ("together with",        0.7),
     ("by analogy",           0.7),
     ("analogously",          0.7),
@@ -51,9 +55,12 @@ _PROXIMITY_ANCHORS: List[Tuple[str, float]] = sorted([
     ("combining",            0.7),
     ("applying",             0.7),
     ("prior",                0.7),
+    ("we obtain",            0.7),
+    ("this gives",           0.7),
     ("similarly",            0.6),
     ("immediately",          0.6),
     ("due to",               0.6),
+    ("gives",                0.6),
     ("thus",                 0.5),
     ("using",                0.5),
     ("from",                 0.5),
@@ -78,7 +85,7 @@ def _proximity_hits(text: str, cmd_start: int) -> List[Tuple[str, float]]:
                 break
             anchor_word = bisect.bisect_left(word_starts, pos)
             dist = abs(anchor_word - cmd_word)
-            hits.append((phrase, strength / max(1, dist)))
+            hits.append((phrase, strength / max(1, dist ** 0.5)))
             idx = pos + len(phrase)
     return hits
 

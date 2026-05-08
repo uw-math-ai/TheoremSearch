@@ -317,6 +317,7 @@ def connect_interpaper_dependencies(
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
+    sample: int = -1,
 ):
     query, params = build_query(
         base_query=(
@@ -325,6 +326,7 @@ def connect_interpaper_dependencies(
             " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
             + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
         ),
+        sample=sample,
         where_clauses=[
             {
                 "if": condition,
@@ -432,11 +434,13 @@ def connect_interpaper_dependencies(
                 if resolved:
                     upsert_rows(conn, table="informal_dependency", rows=resolved,
                                 on_conflict={"with": ["src_id", "dep_id"],
-                                             "where": "dep_id IS NOT NULL"})
+                                             "where": "dep_id IS NOT NULL",
+                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
                 if unresolved:
                     upsert_rows(conn, table="informal_dependency", rows=unresolved,
                                 on_conflict={"with": ["src_id", "cite_key"],
-                                             "where": "dep_id IS NULL AND cite_key IS NOT NULL"})
+                                             "where": "dep_id IS NULL AND cite_key IS NOT NULL",
+                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
                 conn.commit()
 
             pbar.update(len(papers))

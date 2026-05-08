@@ -3,6 +3,22 @@ from psycopg2.extensions import connection
 from psycopg2.extras import execute_values
 
 
+def _dedup_rows(rows: List[Dict[str, Any]], key_cols: List[str]) -> List[Dict[str, Any]]:
+    seen: Dict[tuple, int] = {}
+    deduped: List[Dict[str, Any]] = []
+    for row in rows:
+        key = tuple(row.get(c) for c in key_cols)
+        if key not in seen:
+            seen[key] = len(deduped)
+            deduped.append({**row, **({"methods": list(row["methods"])} if "methods" in row else {})})
+        elif "methods" in row:
+            existing = deduped[seen[key]]
+            for m in row["methods"]:
+                if m not in existing["methods"]:
+                    existing["methods"].append(m)
+    return deduped
+
+
 def _strip_nul(value: Any) -> Any:
     if isinstance(value, str):
         return value.replace("\x00", "")
@@ -15,7 +31,7 @@ def _clean_row(row: Dict[str, Any]) -> tuple:
 def _validate_on_conflict(on_conflict: Dict[str, List[str]]):
     if "with" not in on_conflict:
         raise ValueError("'with' is required in on_conflict")
-    unknown = set(on_conflict) - {"with", "where", "replace"}
+    unknown = set(on_conflict) - {"with", "where", "replace", "update_expr"}
     if unknown:
         raise ValueError(f"unknown keys in on_conflict: {sorted(unknown)}")
 
@@ -24,6 +40,8 @@ def _build_conflict_clause(on_conflict: Dict[str, List[str]]) -> str:
     cols = ", ".join(on_conflict["with"])
     where = on_conflict.get("where", "")
     where_part = f" WHERE {where}" if where else ""
+    if on_conflict.get("update_expr"):
+        return f"ON CONFLICT ({cols}){where_part} DO UPDATE SET {on_conflict['update_expr']}"
     if on_conflict.get("replace"):
         set_clause = ", ".join(f"{c} = EXCLUDED.{c}" for c in on_conflict["replace"])
         return f"ON CONFLICT ({cols}){where_part} DO UPDATE SET {set_clause}"
@@ -101,6 +119,8 @@ def upsert_rows(
     if on_conflict is not None:
         _validate_on_conflict(on_conflict)
         conflict_clause = _build_conflict_clause(on_conflict)
+        if on_conflict.get("update_expr") and on_conflict.get("with"):
+            rows = _dedup_rows(rows, on_conflict["with"])
 
     with conn.cursor() as cur:
         execute_values(cur, f"""
