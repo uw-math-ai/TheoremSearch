@@ -3,7 +3,7 @@
 #SBATCH --account=amath
 #SBATCH --partition=cpu-g2
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --mem=16G
 #SBATCH --time=04:00:00
 #SBATCH --output=/gscratch/amath/simku22/logs/ingest_v2_%j.out
 #SBATCH --error=/gscratch/amath/simku22/logs/ingest_v2_%j.err
