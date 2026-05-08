@@ -24,7 +24,7 @@ cd "$PROJ_DIR"
 
 echo "=== Extracting $PROJECT (module: $MODULE) ==="
 
-# Add lean-graph dependency if not already present
+# Add lean-graph dependency if not already in lakefile
 if ! grep -q "lean-graph" lakefile.toml 2>/dev/null && ! grep -q "lean-graph" lakefile.lean 2>/dev/null; then
     echo "--- Adding lean-graph dependency ---"
     if [ -f lakefile.toml ]; then
@@ -32,8 +32,11 @@ if ! grep -q "lean-graph" lakefile.toml 2>/dev/null && ! grep -q "lean-graph" la
     else
         echo 'require «lean-graph» from git "https://github.com/aurasoph/lean-graph" @ "main"' >> lakefile.lean
     fi
-    lake update lean-graph 2>&1
 fi
+
+# Always ensure manifest is up to date
+echo "--- Updating manifest ---"
+lake update lean-graph 2>&1
 
 echo "--- Building graph executable ---"
 lake build graph 2>&1
