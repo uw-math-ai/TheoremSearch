@@ -12,7 +12,7 @@
 downloaded_sources/
 parsed_papers/
 !requirements.txt
-!pipeline/parse_notations/models.json
+!pipeline/parse_dependencies/models.json
 !pipeline/generate_slogans/models.json
 !formalized_graph/projects.json
 *pyc
