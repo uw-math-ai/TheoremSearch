@@ -1,16 +1,16 @@
 {
+    "kimi": {
+        "model": "moonshotai/Kimi-K2.5-fast",
+        "cost_per_1m_in": 0.50,
+        "cost_per_1m_out": 2.50,
+        "thinking": true,
+        "max_tokens": 8000
+    },
     "qwen3-235b": {
         "model": "Qwen/Qwen3-235B-A22B-Instruct-2507",
-        "temperature": 0.7,
-        "max_tokens": 128,
+        "temperature": 0.3,
+        "max_tokens": 256,
         "cost_per_1m_in": 0.20,
         "cost_per_1m_out": 0.60
-    },
-    "deepseek": {
-        "model": "deepseek-ai/DeepSeek-V3.2",
-        "temperature": 0.7,
-        "max_tokens": 128,
-        "cost_per_1m_in": 0.30,
-        "cost_per_1m_out": 0.45
     }
 }

@@ -1,4 +1,5 @@
 import os
+import sys
 from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -16,8 +17,16 @@ from .prompt_utils import (
     load_prompt, load_model_config,
     detect_needed_joins, fetch_contexts, render_prompt,
     register_prompt, register_model,
+    condition_joins, parse_slogan_text,
     PROMPTS_DIR,
 )
+
+_BATCH_PHASES = ("prepare", "run", "poll", "upsert")
+
+
+def _err(msg: str):
+    print(f"error: {msg}", file=sys.stderr)
+    sys.exit(2)
 
 
 def generate_slogans(
@@ -52,10 +61,7 @@ def generate_slogans(
         }
     )
 
-    base_query = (
-        "SELECT statement.statement_id FROM statement"
-        + (" JOIN paper ON paper.paper_id = statement.paper_id" if condition and "paper." in condition else "")
-    )
+    base_query = "SELECT statement.statement_id FROM statement" + condition_joins(condition)
 
     conn = get_rds_connection("v2")
 
@@ -138,14 +144,16 @@ def generate_slogans(
             max_tokens=model_config.get("max_tokens", 512),
         )
         usage = response.usage
+        slogan, insufficient = parse_slogan_text(response.choices[0].message.content)
         return {
-            "statement_id": statement_id,
-            "prompt_name":  spec.name,
-            "model_name":   model_name,
-            "slogan":       response.choices[0].message.content.strip(),
-            "in_tokens":    usage.prompt_tokens     if usage else None,
-            "out_tokens":   usage.completion_tokens if usage else None,
-            "created_at":   datetime.now(timezone.utc),
+            "statement_id":         statement_id,
+            "prompt_name":          spec.name,
+            "model_name":           model_name,
+            "slogan":               slogan,
+            "insufficient_context": insufficient,
+            "in_tokens":            usage.prompt_tokens     if usage else None,
+            "out_tokens":           usage.completion_tokens if usage else None,
+            "created_at":           datetime.now(timezone.utc),
         }
 
     cost_per_1m_in  = model_config.get("cost_per_1m_in",  0.0)
@@ -206,7 +214,7 @@ def generate_slogans(
                     rows=batch_rows,
                     on_conflict={
                         "with":    ["statement_id", "prompt_name", "model_name"],
-                        "replace": ["slogan", "in_tokens", "out_tokens"],
+                        "replace": ["slogan", "insufficient_context", "in_tokens", "out_tokens"],
                         # created_at intentionally excluded: preserves original creation time
                     },
                 )
@@ -282,6 +290,31 @@ if __name__ == "__main__":
             "prompts/<prompt>/example.txt. No LLM call or DB write."
         ),
     )
+    parser.add_argument(
+        "--batch",
+        choices=_BATCH_PHASES,
+        default=None,
+        metavar="PHASE",
+        help=(
+            f"Run a batch pipeline phase ({', '.join(_BATCH_PHASES)}) instead of online processing."
+        ),
+    )
+    # Batch-prepare / run / upsert passthrough args
+    parser.add_argument("-i", "--input", type=str, nargs="+", default=None, dest="batch_input",
+                        help="Batch input path(s) (for --batch run/upsert).")
+    parser.add_argument("--output", type=str, default=None, dest="batch_output",
+                        help="Batch output path (for --batch prepare/run).")
+    parser.add_argument("--sample", type=int, default=-1,
+                        help="Randomly sample N statements (for --batch prepare, testing).")
+    parser.add_argument("--rows-per-file", type=int, default=-1, dest="rows_per_file",
+                        help="Split batch output into files of at most N rows.")
+    # Batch-poll passthrough flags
+    parser.add_argument("--download", action="store_true",
+                        help="(--batch poll) Download results for completed batches and remove them from state.")
+    parser.add_argument("--all", action="store_true", dest="all_batches",
+                        help="(--batch poll) List all batches on the account, not just those in the state file.")
+    parser.add_argument("--cancel", action="store_true",
+                        help="(--batch poll) Cancel all non-terminal batches.")
 
     args = parser.parse_args()
 
@@ -291,6 +324,124 @@ if __name__ == "__main__":
         condition = args.condition[0] if args.condition else None
         condition_params = []
 
+    # ── Batch mode ───────────────────────────────────────────────────────
+    if args.batch is not None:
+        phase = args.batch
+
+        if phase == "prepare":
+            from .batch.prepare import prepare_batch, _default_input_dir
+            output = args.batch_output or _default_input_dir(args.model_name, args.prompt_name)
+
+            print_script_header(
+                action="Preparing slogan batch",
+                params={
+                    "prompt":     args.prompt_name,
+                    "model":      args.model_name,
+                    "output":     output,
+                    "condition?": condition,
+                    "params?":    condition_params or None,
+                    "overwrite":  args.overwrite,
+                    "batch size": args.batch_size,
+                    "shard?":     f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
+                    "sample?":    args.sample if args.sample > 0 else None,
+                    "rows/file?": args.rows_per_file if args.rows_per_file > 0 else None,
+                },
+            )
+
+            prepare_batch(
+                output=output,
+                prompt_name=args.prompt_name,
+                model_name=args.model_name,
+                condition=condition,
+                condition_params=condition_params,
+                overwrite=args.overwrite,
+                batch_size=args.batch_size,
+                shard=args.shard,
+                n_shards=args.n_shards,
+                sample=args.sample,
+                rows_per_file=args.rows_per_file,
+            )
+
+        elif phase == "run":
+            from .batch.prepare import _default_input_dir, _default_output_dir, _state_path
+            from pipeline.nebius_batch import make_client, run_batch, _DEFAULT_BASE_URL, _DEFAULT_KEY_ENV
+            input_path = (args.batch_input[0] if args.batch_input
+                          else _default_input_dir(args.model_name, args.prompt_name))
+            output     = args.batch_output or _default_output_dir(args.model_name, args.prompt_name)
+            out_dir    = output if output.endswith("/") else output.rsplit("/", 1)[0] + "/"
+
+            print_script_header(
+                action="Running slogan LLM batch",
+                params={
+                    "prompt": args.prompt_name,
+                    "model":  args.model_name,
+                    "input":  input_path,
+                    "output": out_dir,
+                },
+            )
+            run_batch(input_path, out_dir,
+                      _state_path(args.model_name, args.prompt_name),
+                      make_client(_DEFAULT_KEY_ENV, _DEFAULT_BASE_URL))
+
+        elif phase == "poll":
+            from .batch.prepare import _state_path
+            from pipeline.nebius_batch import make_client, poll_batches, _DEFAULT_BASE_URL, _DEFAULT_KEY_ENV
+            print_script_header(
+                action="Polling slogan LLM batches",
+                params={
+                    "prompt":   args.prompt_name,
+                    "model":    args.model_name,
+                    "all":      args.all_batches,
+                    "cancel":   args.cancel,
+                    "download": args.download,
+                },
+            )
+            poll_batches(
+                _state_path(args.model_name, args.prompt_name),
+                make_client(_DEFAULT_KEY_ENV, _DEFAULT_BASE_URL),
+                download=args.download,
+                all_batches=args.all_batches,
+                cancel=args.cancel,
+            )
+
+        elif phase == "upsert":
+            from .batch.upsert import upsert_batch_results
+            from .batch.prepare import _default_output_dir
+            from s3.utils.io import list_files
+
+            default_output = _default_output_dir(args.model_name, args.prompt_name)
+
+            if args.batch_input:
+                input_paths = args.batch_input
+            else:
+                input_paths = list_files(default_output)
+                if not input_paths:
+                    _err(f"No result files found in {default_output}.")
+
+            input_paths = sorted(input_paths)
+            if args.n_shards > 1:
+                input_paths = input_paths[args.shard::args.n_shards]
+
+            print_script_header(
+                action="Upserting slogan batch results",
+                params={
+                    "prompt": args.prompt_name,
+                    "model":  args.model_name,
+                    "input":  args.batch_input or default_output,
+                    **({"shard": f"{args.shard}/{args.n_shards}"} if args.n_shards > 1 else {}),
+                },
+            )
+            conn  = get_rds_connection("v2")
+            stats = upsert_batch_results(conn, input_paths, args.prompt_name, args.model_name)
+            print(
+                f"\nDone. {stats['written']} slogan rows upserted."
+                f"\n  Input tokens:  {stats['total_in']:,}"
+                f"\n  Output tokens: {stats['total_out']:,}"
+            )
+
+        sys.exit(0)
+
+    # ── Online mode ──────────────────────────────────────────────────────
     generate_slogans(
         prompt_name=args.prompt_name,
         model_name=args.model_name,

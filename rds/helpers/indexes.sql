@@ -80,3 +80,18 @@ CREATE INDEX IF NOT EXISTS idx_statement_id_covering_paper
 CREATE INDEX IF NOT EXISTS idx_informal_dependency_judge_src
     ON informal_dependency(src_id)
     WHERE cite_key IS NULL AND 'judge' = ANY(methods);
+
+-- 14. paper(external_id)
+--     Required for the arxiv_paper_metadata.arxiv_id = paper.external_id join
+--     used by the slogan batch-prepare query (and any -c "apm.<col>" filter).
+--     The existing (source, external_id) and (kind, external_id) composite
+--     indexes can't satisfy a lookup keyed only on external_id.
+CREATE INDEX IF NOT EXISTS idx_paper_external_id
+    ON paper(external_id);
+
+-- 15. arxiv_paper_metadata(arxiv_id) partial — validation papers only
+--     Lets `-c "apm.in_validation"` filters seek directly to the small set
+--     of validation papers instead of scanning all of arxiv_paper_metadata.
+CREATE INDEX IF NOT EXISTS idx_arxiv_paper_metadata_in_validation
+    ON arxiv_paper_metadata(arxiv_id)
+    WHERE in_validation;

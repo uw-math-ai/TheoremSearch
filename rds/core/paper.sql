@@ -29,7 +29,8 @@ CREATE TABLE arxiv_paper_metadata (
     bibliography JSONB, -- Map of cite key -> {title?, arxiv_id?}
     bibtex BOOLEAN,
     citation_count int,
-    reference_ids TEXT[] -- ARXIV (preferred) or DOI-prefixed ID (e.g. ARXIV:2109.06451)
+    reference_ids TEXT[], -- ARXIV (preferred) or DOI-prefixed ID (e.g. ARXIV:2109.06451)
+    in_validation BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 COMMENT ON TABLE arxiv_paper_metadata IS

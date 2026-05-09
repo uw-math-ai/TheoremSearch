@@ -23,10 +23,11 @@ CREATE TABLE slogan (
     statement_id UUID NOT NULL REFERENCES statement(statement_id) ON DELETE CASCADE,
     prompt_name  TEXT NOT NULL REFERENCES slogan_prompt(name),
     model_name   TEXT NOT NULL REFERENCES slogan_model(name),
-    slogan       TEXT NOT NULL,
-    in_tokens    INT,
-    out_tokens   INT,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    slogan               TEXT NOT NULL,
+    insufficient_context BOOLEAN NOT NULL,
+    in_tokens            INT,
+    out_tokens           INT,
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (statement_id, prompt_name, model_name)
 );
 

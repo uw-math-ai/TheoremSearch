@@ -59,6 +59,38 @@ def load_model_config(name: str) -> Dict[str, Any]:
     return models[name]
 
 
+_INSUFFICIENT_PREFIX = "INSUFFICIENT CONTEXT"
+
+
+def parse_slogan_text(text: str) -> tuple[str, bool]:
+    """
+    Strip the "INSUFFICIENT CONTEXT:" marker if present.
+    Returns (cleaned_slogan, insufficient_context).
+    """
+    s = text.strip()
+    if s.upper().startswith(_INSUFFICIENT_PREFIX):
+        return s[len(_INSUFFICIENT_PREFIX):].lstrip(": \t"), True
+    return s, False
+
+
+def condition_joins(condition: str | None) -> str:
+    """
+    Build the JOIN suffix needed for a SELECT on `statement` when the user-supplied
+    `-c` condition references `paper.` or `apm.` (arxiv_paper_metadata AS apm).
+    Joining apm requires paper since apm is keyed off paper.external_id.
+    """
+    if not condition:
+        return ""
+    needs_apm   = bool(re.search(r"\bapm\s*\.", condition))
+    needs_paper = needs_apm or bool(re.search(r"\bpaper\s*\.", condition))
+    parts = []
+    if needs_paper:
+        parts.append(" JOIN paper ON paper.paper_id = statement.paper_id")
+    if needs_apm:
+        parts.append(" JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id")
+    return "".join(parts)
+
+
 def detect_needed_joins(template_source: str) -> Dict[str, bool]:
     """
     Scan a jinja2 template source for namespace references to determine the

@@ -25,14 +25,28 @@ from ...printing import print_script_header
 from ..prompt_utils import (
     load_prompt, load_model_config,
     detect_needed_joins, fetch_contexts, render_prompt,
+    condition_joins,
 )
 
 _S3_BUCKET = "dependency-graph-bucket"
 _S3_FOLDER = "slogan_batches"
 
 
-def _default_input_dir() -> str:
-    return f"s3://{_S3_BUCKET}/{_S3_FOLDER}/input/"
+def _batch_subfolder(model_name: str, prompt_name: str) -> str:
+    """Per-pair subfolder, so multiple (model, prompt) batches don't collide."""
+    return f"{model_name}+{prompt_name}"
+
+
+def _default_input_dir(model_name: str, prompt_name: str) -> str:
+    return f"s3://{_S3_BUCKET}/{_S3_FOLDER}/{_batch_subfolder(model_name, prompt_name)}/input/"
+
+
+def _default_output_dir(model_name: str, prompt_name: str) -> str:
+    return f"s3://{_S3_BUCKET}/{_S3_FOLDER}/{_batch_subfolder(model_name, prompt_name)}/output/"
+
+
+def _state_path(model_name: str, prompt_name: str) -> Path:
+    return Path(f".slogan_batch.{_batch_subfolder(model_name, prompt_name)}.run_state.json")
 
 
 def _build_request(statement_id: str, prompt_text: str, model_config: dict) -> dict:
@@ -41,9 +55,10 @@ def _build_request(statement_id: str, prompt_text: str, model_config: dict) -> d
         "method":    "POST",
         "url":       "/v1/chat/completions",
         "body": {
-            "model":      model_config["model"],
-            "messages":   [{"role": "user", "content": prompt_text}],
-            "max_tokens": model_config.get("max_tokens", 512),
+            "model":       model_config["model"],
+            "messages":    [{"role": "user", "content": prompt_text}],
+            "temperature": model_config.get("temperature", 0.7),
+            "max_tokens":  model_config.get("max_tokens", 512),
         },
     }
 
@@ -73,11 +88,7 @@ def prepare_batch(
 
     conn = get_rds_connection("v2")
 
-    base_query = (
-        "SELECT statement.statement_id FROM statement"
-        + (" JOIN paper ON paper.paper_id = statement.paper_id"
-           if condition and "paper." in condition else "")
-    )
+    base_query = "SELECT statement.statement_id FROM statement" + condition_joins(condition)
 
     query, params = build_query(
         sample=sample,
@@ -155,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model", required=True, dest="model_name",
                         help="Short model name from models.json (e.g. qwen3-235b).")
     parser.add_argument("-o", "--output", type=str, default=None,
-                        help=f"Output path (local or s3://). Default: {_default_input_dir()}")
+                        help="Output path (local or s3://). Defaults to per-pair S3 input dir.")
     parser.add_argument("-c", "--condition", type=str, nargs="+", metavar=("SQL", "PARAM"),
                         help="SQL WHERE condition on statement (and optionally paper), followed by bind params.")
     parser.add_argument("--overwrite", action="store_true",
@@ -177,7 +188,7 @@ if __name__ == "__main__":
         condition        = args.condition[0] if args.condition else None
         condition_params = []
 
-    output = args.output or _default_input_dir()
+    output = args.output or _default_input_dir(args.model_name, args.prompt_name)
 
     print_script_header(
         action="Preparing slogan batch",
