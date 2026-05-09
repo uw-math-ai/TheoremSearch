@@ -13,7 +13,7 @@ MODULE="${2:?Usage: bash run_extract_direct.sh <project-name> <module-name>}"
 
 BIN="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/packages/lean-graph/.lake/build/bin"
 MATHLIB_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/build/lib"
-PROJ_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT/.lake/build/lib"
+PROJ_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT/.lake/build/lib/lean"
 OUT_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/generated/ndjson"
 
 mkdir -p "$OUT_DIR"
