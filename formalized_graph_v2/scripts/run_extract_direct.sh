@@ -7,6 +7,7 @@
 
 set -euo pipefail
 export PATH="$HOME/.elan/bin:$PATH"
+export ELAN_TOOLCHAIN="leanprover/lean4:v4.29.0"
 
 PROJECT="${1:?Usage: bash run_extract_direct.sh <project-name> <module-name>}"
 MODULE="${2:?Usage: bash run_extract_direct.sh <project-name> <module-name>}"
