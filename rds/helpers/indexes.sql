@@ -105,3 +105,24 @@ CREATE INDEX IF NOT EXISTS idx_informal_dependency_llm_not_judge
     WHERE cite_key IS NULL
       AND 'llm' = ANY(methods)
       AND NOT ('judge' = ANY(methods));
+
+-- 17. statement(kind)
+--     Filter statements by lean-graph DeclarationType (thm/def/ind/...).
+CREATE INDEX IF NOT EXISTS idx_statement_kind
+    ON statement(kind);
+
+-- 18. formal_metadata(decl_name) and formal_metadata(module)
+--     decl_name: lookup by Lean FQN (the join key from lean-graph nodes).
+--     module: filter formal statements by defining Lean module.
+CREATE INDEX IF NOT EXISTS idx_formal_metadata_decl_name
+    ON formal_metadata(decl_name);
+CREATE INDEX IF NOT EXISTS idx_formal_metadata_module
+    ON formal_metadata(module);
+
+-- 19. statement_link reverse-lookup index
+--     The PK (a_id, b_id, relation) covers a_id-keyed lookups; this covers
+--     the b_id side so "all links touching X" can be found from either end.
+CREATE INDEX IF NOT EXISTS idx_statement_link_b
+    ON statement_link(b_id, relation);
+CREATE INDEX IF NOT EXISTS idx_statement_link_relation
+    ON statement_link(relation);

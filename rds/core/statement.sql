@@ -1,12 +1,21 @@
 CREATE TYPE formality_kind AS ENUM ('formal', 'informal', 'semiformal');
 
+-- statement.kind value domain mirrors lean-graph's DeclarationType.label
+-- (see formalized_graph_v2/lean-graph/ImportGraph/Types.lean).
+-- Informal-source kinds (e.g. LaTeX 'lemma', 'corollary', 'conjecture') must be
+-- normalized at ingest: lemma/corollary -> 'thm', conjecture -> 'other'.
 CREATE TABLE statement (
     statement_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     paper_id UUID NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
-    -- repr_id UUID REFERENCES representation(repr_id) ON DELETE SET NULL,
     formality formality_kind NOT NULL,
-    kind TEXT NOT NULL,
-    body TEXT NOT NULL, -- statement as it appears in the source
+    kind TEXT NOT NULL CHECK (kind IN (
+        'thm', 'def', 'ind', 'ctor', 'quot', 'rec',
+        'inst', 'struct', 'class', 'opaque', 'axiom', 'other'
+    )),
+    -- Verbatim source text. Pinned NULL-able for now: lean-graph supplies only
+    -- signature/docstring (see formal_metadata), no body. Stage 1 extractor will
+    -- populate this for formal rows once wired up; informal rows fill it directly.
+    body TEXT,
     proof TEXT
 );
 
@@ -16,7 +25,10 @@ COMMENT ON TABLE statement IS
 CREATE TABLE formal_metadata (
     statement_id  UUID PRIMARY KEY REFERENCES statement(statement_id) ON DELETE CASCADE,
     file_path TEXT NOT NULL, -- path within the repo
-    decl_name TEXT, -- fully qualified declaration name
+    decl_name TEXT, -- fully qualified declaration name (Lean FQN)
+    module TEXT, -- defining Lean module (lean-graph nodes.module)
+    signature TEXT, -- pretty-printed type from lean-graph statements.jsonl
+    docstring TEXT, -- Lean docstring from lean-graph statements.jsonl
     tactic_summary TEXT -- summary of tactics used in proof
 );
 
