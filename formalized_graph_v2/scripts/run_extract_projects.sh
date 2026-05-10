@@ -40,8 +40,8 @@ PROJECT="${ENTRY%%:*}"
 MODULE="${ENTRY##*:}"
 
 BIN="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/packages/lean-graph/.lake/build/bin"
-MATHLIB_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/build/lib/lean"
-PROJ_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT/.lake/build/lib/lean"
+PROJ_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT"
+PROJ_LIB="$PROJ_DIR/.lake/build/lib/lean"
 OUT_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/generated/ndjson"
 
 mkdir -p "$OUT_DIR"
@@ -54,11 +54,20 @@ if [ ! -d "$PROJ_LIB" ]; then
     exit 1
 fi
 
+# Build LEAN_PATH from project lib + every package's lib/lean dir
+# (Mathlib, Batteries, Aesop, Cli, importGraph, etc. live in .lake/packages/*)
+PATHS="$PROJ_LIB"
+for pkg in "$PROJ_DIR"/.lake/packages/*/.lake/build/lib/lean; do
+    [ -d "$pkg" ] && PATHS="$PATHS:$pkg"
+done
+echo "--- LEAN_PATH ---"
+echo "$PATHS" | tr ':' '\n'
+
 echo "--- Graph ---"
-LEAN_PATH="$PROJ_LIB:$MATHLIB_LIB" "$BIN/graph" --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT}.ndjson" 2>&1 || true
+LEAN_PATH="$PATHS" "$BIN/graph" --mode unified --to "$MODULE" "$OUT_DIR/${PROJECT}.ndjson" 2>&1 || true
 
 echo "--- Statements ---"
-LEAN_PATH="$PROJ_LIB:$MATHLIB_LIB" "$BIN/export_statements" -- --to "$MODULE" --pretty --output "$OUT_DIR/${PROJECT}_statements.jsonl" 2>&1 || true
+LEAN_PATH="$PATHS" "$BIN/export_statements" -- --to "$MODULE" --pretty --output "$OUT_DIR/${PROJECT}_statements.jsonl" 2>&1 || true
 
 echo "=== Result ==="
 wc -l "$OUT_DIR/${PROJECT}.ndjson" 2>/dev/null || echo "No graph output"
