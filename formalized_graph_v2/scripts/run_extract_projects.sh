@@ -40,7 +40,7 @@ PROJECT="${ENTRY%%:*}"
 MODULE="${ENTRY##*:}"
 
 BIN="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/packages/lean-graph/.lake/build/bin"
-MATHLIB_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/build/lib"
+MATHLIB_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4/.lake/build/lib/lean"
 PROJ_LIB="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT/.lake/build/lib/lean"
 OUT_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/generated/ndjson"
 
