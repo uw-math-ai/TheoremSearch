@@ -49,9 +49,18 @@ def _write_paper_deps(conn, all_statement_ids: List[str], statements_with_extrac
             })
 
     with conn.cursor() as cur:
+        # Strip 'llm' from every intrapaper dep for these statements, then drop
+        # rows whose methods array becomes empty. The upsert below re-adds 'llm'
+        # for deps the current LLM run still produces.
+        cur.execute(
+            "UPDATE informal_dependency"
+            " SET methods = array_remove(methods, 'llm')"
+            " WHERE src_id = ANY(%s::uuid[]) AND cite_key IS NULL AND 'llm' = ANY(methods)",
+            (all_statement_ids,),
+        )
         cur.execute(
             "DELETE FROM informal_dependency"
-            " WHERE src_id = ANY(%s::uuid[]) AND methods = ARRAY['llm'] AND cite_key IS NULL",
+            " WHERE src_id = ANY(%s::uuid[]) AND cite_key IS NULL AND cardinality(methods) = 0",
             (all_statement_ids,),
         )
         cur.execute(
