@@ -267,7 +267,7 @@ def fetch_contexts(
                 """
                 SELECT
                     id.src_id, id.location, id.cite_id, id.cite_key,
-                    id.dep_id, id.dep_key, id.dep_name, id.method,
+                    id.dep_id, id.dep_key, id.dep_name, id.methods,
                     ds.kind        AS dep_kind,
                     ds.body        AS dep_body,
                     ds.proof       AS dep_proof,

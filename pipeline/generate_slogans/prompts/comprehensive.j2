@@ -32,13 +32,21 @@ Post-context: {{ statement.post_context }}
 {% if body_deps or cite_deps %}
 This result uses:
 {% for dep in body_deps %}
-- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.method %}, method: {{ dep.method }}{% endif %})
+- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.methods %}, methods: {{ dep.methods | join(", ") }}{% endif %})
 {% if dep.dep_proof %}
   Proof: {{ dep.dep_proof }}
 {% endif %}
+{% if dep.cite_abstract %}
+  From paper abstract: {{ dep.cite_abstract }}
+{% endif %}
 {% endfor %}
 {% for dep in cite_deps %}
-- [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}]{% if dep.cite_title %} — "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %} — cited, not resolved to a specific statement
+{% if dep.cite_title %}
+- "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %} [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}]{% if dep.cite_abstract %} — {{ dep.cite_abstract }}{% endif %}
+
+{% else %}
+- [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}] — cited, not resolved to a specific statement
+{% endif %}
 {% endfor %}
 {% endif %}
 {% endif %}

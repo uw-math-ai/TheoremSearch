@@ -32,7 +32,7 @@ Post-context: {{ statement.post_context }}
 {% if body_deps or cite_deps %}
 This result uses:
 {% for dep in body_deps %}
-- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [cited as {{ dep.cite_key }}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.method %}, method: {{ dep.method }}{% endif %})
+- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [cited as {{ dep.cite_key }}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.methods %}, methods: {{ dep.methods | join(", ") }}{% endif %})
 {% endfor %}
 {% for dep in cite_deps %}
 - [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}] — cited, not resolved to a specific statement

@@ -3,7 +3,6 @@
 Write a 1-4 sentence, plain-English standalone summary of the following mathematical statement.
 Use words in ASCII characters only, no LaTeX or Unicode.
 Describe the result without referencing it as "this statement" or similar.
-If you believe this is insufficient context to summarise this statement, respond with exactly "INSUFFICIENT CONTEXT: " followed by a short reason.
 
 Statement to summarize:
 {{ statement.kind | title }}{% if statement.note %} ({{ statement.note }}){% endif %}: {{ statement.body }}
@@ -32,7 +31,7 @@ Post-context: {{ statement.post_context }}
 {% if body_deps or cite_deps %}
 This result uses:
 {% for dep in body_deps %}
-- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.method %}, method: {{ dep.method }}{% endif %})
+- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.methods %}, methods: {{ dep.methods | join(", ") }}{% endif %})
 {% if dep.dep_proof %}
   Proof: {{ dep.dep_proof }}
 {% endif %}

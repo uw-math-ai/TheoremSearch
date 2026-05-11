@@ -13,7 +13,7 @@ from rds.utils.query import build_query, get_query_count
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows, update_rows, insert_rows_returning
 from ..printing import print_script_header
-from ..constants import STATEMENT_KINDS
+from ..constants import STATEMENT_KINDS, PAPERS_BUCKET
 
 
 @contextmanager
@@ -28,47 +28,52 @@ def _timer(label: str, enabled: bool):
 
 def _overwrite_condition(focus: ParseFocus) -> str:
     """Returns a SQL condition (for WHERE) that filters out papers already processed
-    under the given focus. Only applied when overwrite=False."""
+    under the given focus. Only applied when overwrite=False.
+
+    Branches on paper.kind: arXiv papers check arxiv_paper_metadata; blueprints check
+    reservoir_paper_metadata.
+    """
+    statement_done = """
+        EXISTS (
+            SELECT 1 FROM statement
+            WHERE statement.paper_id = paper.paper_id
+        )
+    """
+    preamble_done = """
+        (
+            (paper.source = 'arXiv' AND EXISTS (
+                SELECT 1 FROM arxiv_paper_metadata
+                WHERE arxiv_id = paper.external_id AND preamble IS NOT NULL
+            ))
+            OR
+            (paper.source = 'Reservoir' AND EXISTS (
+                SELECT 1 FROM reservoir_paper_metadata
+                WHERE reservoir_slug = paper.external_id AND preamble IS NOT NULL
+            ))
+        )
+    """
+    bibliography_done = """
+        (
+            (paper.source = 'arXiv' AND EXISTS (
+                SELECT 1 FROM arxiv_paper_metadata
+                WHERE arxiv_id = paper.external_id AND bibliography IS NOT NULL
+            ))
+            OR
+            (paper.source = 'Reservoir' AND EXISTS (
+                SELECT 1 FROM reservoir_paper_metadata
+                WHERE reservoir_slug = paper.external_id AND bibliography IS NOT NULL
+            ))
+        )
+    """
     match focus:
         case ParseFocus.STATEMENTS:
-            return """
-                NOT EXISTS (
-                    SELECT 1 FROM statement
-                    WHERE statement.paper_id = paper.paper_id
-                )
-            """
+            return f"NOT {statement_done}"
         case ParseFocus.PREAMBLE:
-            return """
-                NOT EXISTS (
-                    SELECT 1 FROM arxiv_paper_metadata
-                    WHERE arxiv_id = paper.external_id AND preamble IS NOT NULL
-                )
-            """
+            return f"NOT {preamble_done}"
         case ParseFocus.BIBLIOGRAPHY:
-            return """
-                NOT EXISTS (
-                    SELECT 1 FROM arxiv_paper_metadata
-                    WHERE arxiv_id = paper.external_id AND bibliography IS NOT NULL
-                )
-            """
+            return f"NOT {bibliography_done}"
         case ParseFocus.ALL:
-            # Skip only when all three are already present
-            return """
-                NOT (
-                    EXISTS (
-                        SELECT 1 FROM statement
-                        WHERE statement.paper_id = paper.paper_id
-                    )
-                    AND EXISTS (
-                        SELECT 1 FROM arxiv_paper_metadata
-                        WHERE arxiv_id = paper.external_id AND preamble IS NOT NULL
-                    )
-                    AND EXISTS (
-                        SELECT 1 FROM arxiv_paper_metadata
-                        WHERE arxiv_id = paper.external_id AND bibliography IS NOT NULL
-                    )
-                )
-            """
+            return f"NOT ({statement_done} AND {preamble_done} AND {bibliography_done})"
 
 
 def parse_papers(
@@ -116,7 +121,7 @@ def parse_papers(
 
     query, params = build_query(
         base_query=(
-            "SELECT paper.paper_id, external_id as arxiv_id FROM paper"
+            "SELECT paper.paper_id, paper.external_id, paper.kind, paper.source FROM paper"
             + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
             + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
         ),
@@ -132,7 +137,7 @@ def parse_papers(
             },
             {
                 "if": True,
-                "condition": "paper.kind = 'paper'"
+                "condition": "paper.kind IN ('paper', 'blueprint')"
             },
             {
                 "if": n_shards > 1,
@@ -156,36 +161,48 @@ def parse_papers(
             conn,
             base_query=query,
             base_params=params,
-            order_by="arxiv_id",
+            order_by="external_id",
             page_size=batch_size
         ):
             fut_to_paper = {}
             batch_statement_rows = []
             batch_informal_metadata_rows = []
             batch_parse_status_rows = []
-            batch_preamble_rows = []
-            batch_bibliography_rows = []
+            batch_arxiv_preamble_rows = []
+            batch_arxiv_bibliography_rows = []
+            batch_reservoir_preamble_rows = []
+            batch_reservoir_bibliography_rows = []
 
             for paper in papers:
                 paper_id = paper["paper_id"]
-                arxiv_id = paper["arxiv_id"]
+                external_id = paper["external_id"]
+                kind = paper["kind"]
+                source = paper["source"]
 
-                fut = ex.submit(
-                    parse_paper,
-                    arxiv_id,
-                    None, None, None,
-                    STATEMENT_KINDS,
-                    parsing_method,
-                    validation_level,
-                    timeout,
-                    focus,
-                    context
-                )
-                fut_to_paper[fut] = {"paper_id": paper_id, "arxiv_id": arxiv_id}
+                submit_kwargs = {
+                    "statement_kinds": STATEMENT_KINDS,
+                    "parsing_method": parsing_method,
+                    "validation_level": validation_level,
+                    "timeout": timeout,
+                    "focus": focus,
+                    "context": context,
+                }
+                if source == "arXiv":
+                    submit_kwargs["arxiv_id"] = external_id
+                else:
+                    submit_kwargs["s3_uri"] = f"s3://{PAPERS_BUCKET}/{kind}/{external_id}.tar.gz"
+
+                fut = ex.submit(parse_paper, **submit_kwargs)
+                fut_to_paper[fut] = {
+                    "paper_id": paper_id,
+                    "external_id": external_id,
+                    "source": source,
+                }
 
             for fut in as_completed(fut_to_paper):
                 paper_id = fut_to_paper[fut]["paper_id"]
-                arxiv_id = fut_to_paper[fut]["arxiv_id"]
+                external_id = fut_to_paper[fut]["external_id"]
+                source = fut_to_paper[fut]["source"]
                 current_time = datetime.now(timezone.utc)
                 error = None
                 result = None
@@ -204,9 +221,9 @@ def parse_papers(
                 else:
                     status_counts["success"] += 1
 
-                if do_statements:
+                if do_statements and source == "arXiv":
                     batch_parse_status_rows.append({
-                        "arxiv_id": arxiv_id,
+                        "arxiv_id": external_id,
                         "last_parse_attempt_at": current_time,
                         "error": error,
                         "parsing_method": parsing_method.value,
@@ -238,10 +255,16 @@ def parse_papers(
                             for ordinal, statement in enumerate(result.statements)
                         ])
 
-                    if result.preamble is not None:
-                        batch_preamble_rows.append({"arxiv_id": arxiv_id, "preamble": result.preamble})
-                    if result.bibliography:
-                        batch_bibliography_rows.append({"arxiv_id": arxiv_id, "bibliography": Json(result.bibliography), "bibtex": result.bibliography_bibtex})
+                    if source == "arXiv":
+                        if result.preamble is not None:
+                            batch_arxiv_preamble_rows.append({"arxiv_id": external_id, "preamble": result.preamble})
+                        if result.bibliography:
+                            batch_arxiv_bibliography_rows.append({"arxiv_id": external_id, "bibliography": Json(result.bibliography), "bibtex": result.bibliography_bibtex})
+                    elif source == "Reservoir":
+                        if result.preamble is not None:
+                            batch_reservoir_preamble_rows.append({"reservoir_slug": external_id, "preamble": result.preamble})
+                        if result.bibliography:
+                            batch_reservoir_bibliography_rows.append({"reservoir_slug": external_id, "bibliography": Json(result.bibliography), "bibtex": result.bibliography_bibtex})
 
                 pbar.update()
 
@@ -290,22 +313,41 @@ def parse_papers(
                         ],
                     )
 
-            if batch_preamble_rows:
+            if batch_arxiv_preamble_rows:
                 with _timer("update arxiv_paper_metadata (preamble)", timings):
                     update_rows(
                         conn,
                         table="arxiv_paper_metadata",
-                        rows=batch_preamble_rows,
+                        rows=batch_arxiv_preamble_rows,
                         where=["arxiv_id"],
                     )
 
-            if batch_bibliography_rows:
+            if batch_arxiv_bibliography_rows:
                 with _timer("update arxiv_paper_metadata (bibliography)", timings):
                     update_rows(
                         conn,
                         table="arxiv_paper_metadata",
-                        rows=batch_bibliography_rows,
+                        rows=batch_arxiv_bibliography_rows,
                         where=["arxiv_id"],
+                        casts={"bibliography": "jsonb"},
+                    )
+
+            if batch_reservoir_preamble_rows:
+                with _timer("update reservoir_paper_metadata (preamble)", timings):
+                    update_rows(
+                        conn,
+                        table="reservoir_paper_metadata",
+                        rows=batch_reservoir_preamble_rows,
+                        where=["reservoir_slug"],
+                    )
+
+            if batch_reservoir_bibliography_rows:
+                with _timer("update reservoir_paper_metadata (bibliography)", timings):
+                    update_rows(
+                        conn,
+                        table="reservoir_paper_metadata",
+                        rows=batch_reservoir_bibliography_rows,
+                        where=["reservoir_slug"],
                         casts={"bibliography": "jsonb"},
                     )
 

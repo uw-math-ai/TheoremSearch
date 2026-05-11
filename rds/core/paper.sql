@@ -1,4 +1,4 @@
-CREATE TYPE paper_kind AS ENUM ('lean_repo', 'paper', 'textbook', 'open_project');
+CREATE TYPE paper_kind AS ENUM ('lean_repo', 'paper', 'textbook', 'open_project', 'blueprint');
 
 CREATE TABLE paper (
     paper_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,3 +35,13 @@ CREATE TABLE arxiv_paper_metadata (
 
 COMMENT ON TABLE arxiv_paper_metadata IS
 'Extension table for arXiv papers. Join to paper on paper_id.';
+
+CREATE TABLE reservoir_paper_metadata (
+    reservoir_slug TEXT PRIMARY KEY, -- references paper(external_id) where source = 'Reservoir'
+    preamble TEXT,
+    bibliography JSONB, -- Map of cite key -> {title?, arxiv_id?}
+    bibtex BOOLEAN
+);
+
+COMMENT ON TABLE reservoir_paper_metadata IS
+'Extension table for Reservoir (Lean) blueprints. Join to paper on external_id.';

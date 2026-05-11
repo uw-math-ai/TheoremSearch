@@ -73,6 +73,7 @@ def prepare_batch(
     shard: int, n_shards: int,
     sample: int = -1,
     rows_per_file: int = -1,
+    only_insufficient: bool = False,
 ):
     output_str = str(output)
     is_dir     = output_str.endswith("/")
@@ -110,6 +111,17 @@ def prepare_batch(
                 "if": bool(condition),
                 "condition": condition or "",
                 "params": condition_params,
+            },
+            {
+                "if": only_insufficient,
+                "condition": """
+                    statement.statement_id IN (
+                        SELECT statement_id FROM slogan
+                        GROUP BY statement_id
+                        HAVING bool_and(insufficient_context)
+                    )
+                """,
+                "params": [],
             },
             {
                 "if": n_shards > 1,
@@ -171,6 +183,8 @@ if __name__ == "__main__":
                         help="SQL WHERE condition on statement (and optionally paper), followed by bind params.")
     parser.add_argument("--overwrite", action="store_true",
                         help="Include statements that already have a slogan for this prompt+model.")
+    parser.add_argument("--insufficient", action="store_true", dest="only_insufficient",
+                        help="Only include statements whose every existing slogan is marked insufficient_context.")
     parser.add_argument("-b", "--batch-size", type=int, default=64, dest="batch_size",
                         help="Statements per DB page (default: 64).")
     parser.add_argument("--shard", type=int, default=0)
@@ -193,16 +207,17 @@ if __name__ == "__main__":
     print_script_header(
         action="Preparing slogan batch",
         params={
-            "prompt":      args.prompt_name,
-            "model":       args.model_name,
-            "output":      output,
-            "condition?":  condition,
-            "params?":     condition_params or None,
-            "overwrite":   args.overwrite,
-            "batch size":  args.batch_size,
-            "shard?":      f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
-            "sample?":     args.sample if args.sample > 0 else None,
-            "rows/file?":  args.rows_per_file if args.rows_per_file > 0 else None,
+            "prompt":            args.prompt_name,
+            "model":             args.model_name,
+            "output":            output,
+            "condition?":        condition,
+            "params?":           condition_params or None,
+            "insufficient only": args.only_insufficient or None,
+            "overwrite":         args.overwrite,
+            "batch size":        args.batch_size,
+            "shard?":            f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
+            "sample?":           args.sample if args.sample > 0 else None,
+            "rows/file?":        args.rows_per_file if args.rows_per_file > 0 else None,
         },
     )
 
@@ -218,4 +233,5 @@ if __name__ == "__main__":
         n_shards=args.n_shards,
         sample=args.sample,
         rows_per_file=args.rows_per_file,
+        only_insufficient=args.only_insufficient,
     )

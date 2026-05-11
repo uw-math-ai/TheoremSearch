@@ -22,6 +22,17 @@ from .prompt_utils import (
 )
 
 _BATCH_PHASES = ("prepare", "run", "poll", "upsert")
+_DEFAULT_CHAIN = ("minimal", "standard", "comprehensive", "final")
+
+# Selects statements whose every existing slogan is marked insufficient_context.
+# Implicitly requires the statement to have at least one slogan (empty groups don't appear).
+_INSUFFICIENT_ONLY_SQL = """
+    statement.statement_id IN (
+        SELECT statement_id FROM slogan
+        GROUP BY statement_id
+        HAVING bool_and(insufficient_context)
+    )
+"""
 
 
 def _err(msg: str):
@@ -39,6 +50,7 @@ def generate_slogans(
     workers: int,
     shard: int,
     n_shards: int,
+    only_insufficient: bool = False,
     test: bool = False,
 ):
     spec = load_prompt(prompt_name)
@@ -54,6 +66,7 @@ def generate_slogans(
             "model":             model_name,
             "condition?":        condition,
             "condition params?": condition_params,
+            "insufficient only": only_insufficient or None,
             "overwrite":         overwrite,
             "batch size":        batch_size,
             "workers":           workers,
@@ -73,6 +86,11 @@ def generate_slogans(
                     "if": bool(condition),
                     "condition": condition or "",
                     "params": condition_params,
+                },
+                {
+                    "if": only_insufficient,
+                    "condition": _INSUFFICIENT_ONLY_SQL,
+                    "params": [],
                 },
                 {
                     "if": n_shards > 1,
@@ -124,6 +142,11 @@ def generate_slogans(
                 "if": bool(condition),
                 "condition": condition or "",
                 "params": condition_params,
+            },
+            {
+                "if": only_insufficient,
+                "condition": _INSUFFICIENT_ONLY_SQL,
+                "params": [],
             },
             {
                 "if": n_shards > 1,
@@ -229,9 +252,22 @@ if __name__ == "__main__":
     parser.add_argument(
         "-p", "--prompt",
         type=str,
-        required=True,
+        required=False,
         dest="prompt_name",
-        help="Name of the prompt folder inside pipeline/generate_slogans/prompts/.",
+        help="Name of the prompt folder inside pipeline/generate_slogans/prompts/. Required unless --chain is used.",
+    )
+    parser.add_argument(
+        "--chain",
+        nargs="?",
+        const=",".join(_DEFAULT_CHAIN),
+        default=None,
+        metavar="p1,p2,...",
+        help=(
+            "Run prompts in escalation order. The first prompt runs on all matching statements; "
+            "each later prompt only runs on statements whose existing slogans are all marked "
+            "insufficient_context. Bare flag uses the default chain: "
+            f"{','.join(_DEFAULT_CHAIN)}. Online mode only; incompatible with -p, --batch, --test."
+        ),
     )
     parser.add_argument(
         "-c", "--condition",
@@ -248,6 +284,16 @@ if __name__ == "__main__":
         "-o", "--overwrite",
         action="store_true",
         help="Re-generate slogans for statements that already have one for this prompt.",
+    )
+    parser.add_argument(
+        "--insufficient",
+        action="store_true",
+        dest="only_insufficient",
+        help=(
+            "Restrict to statements where every existing slogan is marked "
+            "insufficient_context. Works in both online and --batch prepare modes. "
+            "Typically combined with --overwrite to retry these statements."
+        ),
     )
     parser.add_argument(
         "-b", "--batch-size",
@@ -324,6 +370,42 @@ if __name__ == "__main__":
         condition = args.condition[0] if args.condition else None
         condition_params = []
 
+    # ── Validate -p / --chain / mode combinations ────────────────────────
+    if args.chain is not None:
+        if args.prompt_name:
+            _err("--chain cannot be combined with -p/--prompt")
+        if args.batch is not None:
+            _err("--chain is online-mode only; remove --batch")
+        if args.test:
+            _err("--chain cannot be combined with --test")
+        chain = [s.strip() for s in args.chain.split(",") if s.strip()]
+        if not chain:
+            _err("--chain requires at least one prompt name")
+    elif not args.prompt_name:
+        _err("either -p/--prompt or --chain is required")
+    else:
+        chain = None
+
+    # ── Chain mode ───────────────────────────────────────────────────────
+    if chain is not None:
+        for i, prompt_name in enumerate(chain):
+            stage_label = f"[chain {i+1}/{len(chain)}] {prompt_name}"
+            print(f"\n{'='*70}\n{stage_label}\n{'='*70}")
+            generate_slogans(
+                prompt_name=prompt_name,
+                model_name=args.model_name,
+                condition=condition,
+                condition_params=condition_params,
+                overwrite=args.overwrite,
+                batch_size=args.batch_size,
+                workers=args.workers,
+                shard=args.shard,
+                n_shards=args.n_shards,
+                only_insufficient=(i > 0),
+                test=False,
+            )
+        sys.exit(0)
+
     # ── Batch mode ───────────────────────────────────────────────────────
     if args.batch is not None:
         phase = args.batch
@@ -335,16 +417,17 @@ if __name__ == "__main__":
             print_script_header(
                 action="Preparing slogan batch",
                 params={
-                    "prompt":     args.prompt_name,
-                    "model":      args.model_name,
-                    "output":     output,
-                    "condition?": condition,
-                    "params?":    condition_params or None,
-                    "overwrite":  args.overwrite,
-                    "batch size": args.batch_size,
-                    "shard?":     f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
-                    "sample?":    args.sample if args.sample > 0 else None,
-                    "rows/file?": args.rows_per_file if args.rows_per_file > 0 else None,
+                    "prompt":            args.prompt_name,
+                    "model":             args.model_name,
+                    "output":            output,
+                    "condition?":        condition,
+                    "params?":           condition_params or None,
+                    "insufficient only": args.only_insufficient or None,
+                    "overwrite":         args.overwrite,
+                    "batch size":        args.batch_size,
+                    "shard?":            f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
+                    "sample?":           args.sample if args.sample > 0 else None,
+                    "rows/file?":        args.rows_per_file if args.rows_per_file > 0 else None,
                 },
             )
 
@@ -354,6 +437,7 @@ if __name__ == "__main__":
                 model_name=args.model_name,
                 condition=condition,
                 condition_params=condition_params,
+                only_insufficient=args.only_insufficient,
                 overwrite=args.overwrite,
                 batch_size=args.batch_size,
                 shard=args.shard,
@@ -452,5 +536,6 @@ if __name__ == "__main__":
         workers=args.workers,
         shard=args.shard,
         n_shards=args.n_shards,
+        only_insufficient=args.only_insufficient,
         test=args.test,
     )
