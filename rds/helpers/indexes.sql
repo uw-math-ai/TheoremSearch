@@ -95,3 +95,13 @@ CREATE INDEX IF NOT EXISTS idx_paper_external_id
 CREATE INDEX IF NOT EXISTS idx_arxiv_paper_metadata_in_validation
     ON arxiv_paper_metadata(arxiv_id)
     WHERE in_validation;
+
+-- 16. informal_dependency(src_id) partial — LLM intrapaper deps the judge
+--     rejected. Supports the analysis query that filters
+--     `'llm' = ANY(methods) AND NOT ('judge' = ANY(methods))`, which
+--     neither the GIN on methods nor the existing partial indexes cover.
+CREATE INDEX IF NOT EXISTS idx_informal_dependency_llm_not_judge
+    ON informal_dependency(src_id)
+    WHERE cite_key IS NULL
+      AND 'llm' = ANY(methods)
+      AND NOT ('judge' = ANY(methods));

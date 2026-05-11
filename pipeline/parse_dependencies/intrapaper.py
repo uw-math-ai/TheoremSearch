@@ -37,7 +37,7 @@ def _reset_methods(cur, source_ids: list, do_deterministic: bool, do_heuristic: 
 
 
 _REF_RE = re.compile(
-    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref)\*?\s*\{([^}]*)\}'
+    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref|uses)\*?\s*\{([^}]*)\}'
     r'|\\hyperref\*?\s*\[([^\]]*)\]'
 )
 

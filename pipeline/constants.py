@@ -1,3 +1,5 @@
+PAPERS_BUCKET = "papers-bucket"
+
 STATEMENT_KINDS = {
     "theorem", "lemma", "proposition", "corollary",
     "definition",

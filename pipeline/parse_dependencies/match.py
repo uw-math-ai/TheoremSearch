@@ -1,6 +1,8 @@
 import re
 from typing import List, Dict, Any
 
+from .extract import MIN_PATTERN_LEN
+
 
 def _find_location(body: str, proof: str, substring: str) -> str:
     if body and substring in body:
@@ -57,7 +59,7 @@ def match_paper(statements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         for define in B.get("defines", []):
             pattern = define.get("pattern", "").strip()
             desc    = define.get("description", "")
-            if not pattern:
+            if len(pattern) < MIN_PATTERN_LEN:
                 continue
             try:
                 compiled = re.compile(pattern)

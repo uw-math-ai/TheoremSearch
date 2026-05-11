@@ -90,6 +90,14 @@ def finalize_output(f_out, local_path: Path, dest: str) -> None:
         local_path.unlink()
 
 
+def upload_file(local_path: str | Path, dest: str) -> None:
+    """Upload a local file to an s3:// URI."""
+    if not dest.startswith("s3://"):
+        raise ValueError(f"Destination must be an s3:// URI, got: {dest}")
+    bucket, key = parse_uri(dest)
+    boto3.client("s3").upload_file(str(local_path), bucket, key)
+
+
 def write_text(content: str, dest: str) -> None:
     """Write text to a local path or upload to an s3:// URI."""
     if dest.startswith("s3://"):
