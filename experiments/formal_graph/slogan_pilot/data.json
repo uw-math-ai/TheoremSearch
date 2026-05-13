@@ -1,0 +1,1458 @@
+{
+  "fl_nodes": [
+    {
+      "id": "AddDissociated.boringEnergy_le",
+      "full_name": "AddDissociated.boringEnergy_le",
+      "kind": "theorem",
+      "signature": "AddDissociated.boringEnergy_le.{u_1} {G : Type u_1} [AddCommGroup G] [MeasurableSpace G] [DiscreteMeasurableSpace G]\n  [DecidableEq G] [Finite G] {s : Finset G} (hs : AddDissociated ↑s) (n : ℕ) :\n  boringEnergy n s ≤ changConst ^ n * ↑n ^ n * ↑(Finset.card s) ^ n",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "AddDissociated",
+      "full_name": "AddDissociated",
+      "kind": "definition",
+      "signature": "AddDissociated.{u_1} {α : Type u_1} [AddCommGroup α] (s : Set α) : Prop",
+      "docstring": "A set is dissociated iff all its finite subsets have different sums.\n\nThis is an analog of linear independence in a vector space, but with the \"scalars\" restricted to\n`0` and `±1`. ",
+      "resolved": true
+    },
+    {
+      "id": "AlmostPeriodicity.almost_periodicity",
+      "full_name": "AlmostPeriodicity.almost_periodicity",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "AlmostPeriodicity.just_the_triangle_inequality",
+      "full_name": "AlmostPeriodicity.just_the_triangle_inequality",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "AlmostPeriodicity.lemma28",
+      "full_name": "AlmostPeriodicity.lemma28",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "AlmostPeriodicity.linfty_almost_periodicity_boosted",
+      "full_name": "AlmostPeriodicity.linfty_almost_periodicity_boosted",
+      "kind": "theorem",
+      "signature": "AlmostPeriodicity.linfty_almost_periodicity_boosted.{u_1} {G : Type u_1} [Fintype G] {A S : Finset G} {K : ℝ}\n  [DecidableEq G] [AddCommGroup G] [MeasurableSpace G] [DiscreteMeasurableSpace G] (ε : ℝ) (hε₀ : 0 < ε) (hε₁ : ε ≤ 1)\n  (k : ℕ) (hk : k ≠ 0) (hK₂ : 2 ≤ K) (hK : ↑(Finset.addConst A S) ≤ K) (hS : Finset.Nonempty S) (B C : Finset G)\n  (hB : Finset.Nonempty B) (hC : Finset.Nonempty C) :\n  ∃ T,\n    K ^ (-4096 * ↑⌈1 + Real.log (min 1 (↑(Finset.card C) / ↑(Finset.card B)))⁻¹⌉ * ↑k ^ 2 / ε ^ 2) * ↑(Finset.card S) ≤\n        ↑(Finset.card T) ∧\n      ‖mu T ∗^ k ∗ (mu A ∗ 𝟭 B ∗ mu C) - mu A ∗ 𝟭 ",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "AlmostPeriodicity.linfty_almost_periodicity",
+      "full_name": "AlmostPeriodicity.linfty_almost_periodicity",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "ap_in_ff",
+      "full_name": "ap_in_ff",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "balance_conv",
+      "full_name": "balance_conv",
+      "kind": "theorem",
+      "signature": "balance_conv.{u_1, u_2} {G : Type u_1} {R : Type u_2} [Fintype G] [DecidableEq G] [AddCommGroup G] [Field R]\n  [CharZero R] (f g : G → R) : Fintype.balance (f ∗ g) = Fintype.balance f ∗ Fintype.balance g",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "balance_dconv",
+      "full_name": "balance_dconv",
+      "kind": "theorem",
+      "signature": "balance_dconv.{u_1, u_2} {G : Type u_1} {R : Type u_2} [Fintype G] [DecidableEq G] [AddCommGroup G] [Field R]\n  [CharZero R] [StarRing R] (f g : G → R) : Fintype.balance (f ○ g) = Fintype.balance f ○ Fintype.balance g",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "big_shifts",
+      "full_name": "big_shifts",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "BohrSet.IsRegular",
+      "full_name": "BohrSet.IsRegular",
+      "kind": "structure",
+      "signature": "BohrSet.IsRegular.{u_1} {G : Type u_1} [AddCommGroup G] (B : BohrSet G) : Prop",
+      "docstring": "A Bohr set `B` is *regular* if the dilates of `B` by numbers close to `1` are of comparable size\nto `B`. ",
+      "resolved": true
+    },
+    {
+      "id": "BohrSet.le_card_smul",
+      "full_name": "BohrSet.le_card_smul",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "BohrSet.regularity",
+      "full_name": "BohrSet.regularity",
+      "kind": "theorem",
+      "signature": "BohrSet.regularity.{u_1} {G : Type u_1} [AddCommGroup G] [Finite G] (B : BohrSet G) :\n  ∃ ρ, 2⁻¹ ≤ ρ ∧ ρ ≤ 1 ∧ BohrSet.IsRegular (ρ • B)",
+      "docstring": "**Bohr Set Regularity**. Any Bohr set can be dilated by a small amount to become a regular Bohr\nset. ",
+      "resolved": true
+    },
+    {
+      "id": "BohrSet",
+      "full_name": "BohrSet",
+      "kind": "structure",
+      "signature": "BohrSet.{u_1} (G : Type u_1) [AddCommGroup G] : Type u_1",
+      "docstring": "A *Bohr set* `B` on an additive group `G` is a finite set of characters of `G`, called the\n*frequencies*, along with an extended non-negative real number for each frequency `ψ`, called the\n*width of `B` at `ψ`*.\n\nA Bohr set `B` is thought of as the set `{x | ∀ ψ ∈ B.frequencies, ‖1 - ψ x‖ ≤ B.width ψ}`. This is\nthe *chord-length* convention. The arc-length convention would instead be\n`{x | ∀ ψ ∈ B",
+      "resolved": true
+    },
+    {
+      "id": "boringEnergy_eq",
+      "full_name": "boringEnergy_eq",
+      "kind": "theorem",
+      "signature": "boringEnergy_eq.{u_1} {G : Type u_1} [AddCommGroup G] [DecidableEq G] [Fintype G] (n : ℕ) (s : Finset G) :\n  boringEnergy n s = ∑ x, (𝟭 s ∗^ n) x ^ 2",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "boringEnergy",
+      "full_name": "boringEnergy",
+      "kind": "definition",
+      "signature": "boringEnergy.{u_1} {G : Type u_1} [AddCommGroup G] [DecidableEq G] (n : ℕ) (s : Finset G) : ℝ",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "chang",
+      "full_name": "chang",
+      "kind": "theorem",
+      "signature": "chang.{u_1} {G : Type u_1} [AddCommGroup G] {f : G → ℂ} {η : ℝ} [Fintype G] [MeasurableSpace G]\n  [DiscreteMeasurableSpace G] (hf : f ≠ 0) (hη : 0 < η) :\n  ∃ Δ ⊆ largeSpec f η,\n    Finset.card Δ ≤\n        ⌈changConst * Real.exp 1 * ↑⌈1 + Real.log (‖f‖_[1] ^ 2 / ‖f‖_[2] ^ 2 / ↑(Fintype.card G))⁻¹⌉₊ / η ^ 2⌉₊ ∧\n      largeSpec f η ⊆ Finset.addSpan Δ",
+      "docstring": "**Chang's lemma**. ",
+      "resolved": true
+    },
+    {
+      "id": "cLpNorm_cconv_le_cLpNorm_cdconv",
+      "full_name": "cLpNorm_cconv_le_cLpNorm_cdconv",
+      "kind": "theorem",
+      "signature": "cLpNorm_cconv_le_cLpNorm_cdconv.{u_1} {G : Type u_1} [AddCommGroup G] [Fintype G] [DecidableEq G] [MeasurableSpace G]\n  [DiscreteMeasurableSpace G] {n : ℕ} (hn₀ : n ≠ 0) (hn : Even n) (f : G → ℂ) : ‖f ∗ₙ f‖ₙ_[↑n] ≤ ‖f ○ₙ f‖ₙ_[↑n]",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "di_in_ff",
+      "full_name": "di_in_ff",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "drc",
+      "full_name": "drc",
+      "kind": "theorem",
+      "signature": "drc.{u_1} {G : Type u_1} [DecidableEq G] [Fintype G] [AddCommGroup G] {p : ℕ} {B₁ B₂ A : Finset G} [MeasurableSpace G]\n  [DiscreteMeasurableSpace G] (hp₂ : 2 ≤ p) (f : G → NNReal) (hf : ∃ x ∈ B₁ - B₂, x ∈ A - A ∧ x ∈ Function.support f)\n  (hB : Finset.Nonempty (B₁ ∩ B₂)) (hA : Finset.Nonempty A) :\n  ∃ A₁ ⊆ B₁,\n    ∃ A₂ ⊆ B₂,\n      RCLike.wInner 1 (mu A₁ ○ mu A₂) (NNReal.toReal ∘ f) * ‖𝟭 A ○ 𝟭 A‖_[↑p, mu B₁ ○ mu B₂] ^ p ≤\n          2 * ∑ x, (mu B₁ ○ mu B₂) x * (𝟭 A ○ 𝟭 A) x ^ p * ↑(f x) ∧\n        4⁻¹ * ‖𝟭 A ○ 𝟭 A‖_[↑p, mu B₁ ○ mu B₂] ^ (2 * p) / ↑(Finset.card A) ^ (2 * p) ≤\n            ↑(Finset",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "energy",
+      "full_name": "energy",
+      "kind": "definition",
+      "signature": "energy.{u_1} {G : Type u_1} [AddCommGroup G] (n : ℕ) (s : Finset G) (ν : G → ℂ) : ℝ",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated",
+      "full_name": "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated",
+      "kind": "theorem",
+      "signature": "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated.{u_1} {α : Type u_1} [AddCommGroup α] [DecidableEq α]\n  [Fintype α] {s : Finset α} {d : ℕ} (hs : ∀ s' ⊆ s, AddDissociated ↑s' → Finset.card s' ≤ d) :\n  ∃ s' ⊆ s, Finset.card s' ≤ d ∧ s ⊆ Finset.addSpan s'",
+      "docstring": "If every dissociated subset of `s` has size at most `d`, then `s` is actually\ngenerated by a subset of size at most `d`.\n\nThis is a dissociation analog of the fact that a set whose linearly independent subspaces all have\nsize at most `d` is of dimension at most `d` itself. ",
+      "resolved": true
+    },
+    {
+      "id": "general_hoelder",
+      "full_name": "general_hoelder",
+      "kind": "theorem",
+      "signature": "general_hoelder.{u_1} {G : Type u_1} [AddCommGroup G] {f : G → ℂ} {η : ℝ} {Δ : Finset (AddChar G ℂ)} {m : ℕ} [Fintype G]\n  [MeasurableSpace G] [DiscreteMeasurableSpace G] (hη : 0 ≤ η) (ν : G → NNReal) (hfν : ∀ (x : G), f x ≠ 0 → 1 ≤ ν x)\n  (hΔ : Δ ⊆ largeSpec f η) (hm : m ≠ 0) :\n  ↑(Finset.card Δ) ^ (2 * m) * (η ^ (2 * m) * (‖f‖_[1] ^ 2 / ‖f‖_[2] ^ 2)) ≤ energy m Δ (dft fun a => ↑↑(ν a))",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "global_dichotomy",
+      "full_name": "global_dichotomy",
+      "kind": "unresolved",
+      "signature": "",
+      "docstring": "",
+      "resolved": false
+    },
+    {
+      "id": "largeSpec",
+      "full_name": "largeSpec",
+      "kind": "definition",
+      "signature": "largeSpec.{u_1} {G : Type u_1} [AddCommGroup G] [Fintype G] [MeasurableSpace G] (f : G → ℂ) (η : ℝ) :\n  Finset (AddChar G ℂ)",
+      "docstring": "The `η`-large spectrum of a function. ",
+      "resolved": true
+    },
+    {
+      "id": "pow_inner_nonneg",
+      "full_name": "pow_inner_nonneg",
+      "kind": "theorem",
+      "signature": "pow_inner_nonneg.{u_1} {G : Type u_1} [Fintype G] [DecidableEq G] [AddCommGroup G] {ν : G → NNReal} {g h : G → ℂ}\n  {f : G → ℝ} (hf : g ○ g = Complex.ofReal ∘ f) (hν : h ○ h = (fun x => ↑↑x) ∘ ν) (k : ℕ) :\n  0 ≤ RCLike.wInner 1 (NNReal.toReal ∘ ν) (f ^ k)",
+      "docstring": "Note that we do the physical proof in order to avoid the Fourier transform. ",
+      "resolved": true
+    },
+    {
+      "id": "RCLike.marcinkiewicz_zygmund",
+      "full_name": "RCLike.marcinkiewicz_zygmund",
+      "kind": "theorem",
+      "signature": "RCLike.marcinkiewicz_zygmund.{u_1, u_2} {ι : Type u_1} {A : Finset ι} {m n : ℕ} {𝕜 : Type u_2} [RCLike 𝕜] (hm : m ≠ 0)\n  (f : ι → 𝕜) (hf : ∀ (i : Fin n), ∑ a ∈ Fintype.piFinset fun x => A, f (a i) = 0) :\n  ∑ a ∈ Fintype.piFinset fun x => A, ‖∑ i, f (a i)‖ ^ (2 * m) ≤\n    (8 * ↑m) ^ m * ↑n ^ (m - 1) * ∑ a ∈ Fintype.piFinset fun x => A, ∑ i, ‖f (a i)‖ ^ (2 * m)",
+      "docstring": "The **Marcinkiewicz-Zygmund inequality** for real- or complex-valued functions. ",
+      "resolved": true
+    },
+    {
+      "id": "Real.marcinkiewicz_zygmund'",
+      "full_name": "Real.marcinkiewicz_zygmund'",
+      "kind": "theorem",
+      "signature": "Real.marcinkiewicz_zygmund'.{u_1} {ι : Type u_1} {A : Finset ι} {n : ℕ} (m : ℕ) (f : ι → ℝ)\n  (hf : ∀ (i : Fin n), ∑ a ∈ Fintype.piFinset fun x => A, f (a i) = 0) :\n  ∑ a ∈ Fintype.piFinset fun x => A, (∑ i, f (a i)) ^ (2 * m) ≤\n    (4 * ↑m) ^ m * ∑ a ∈ Fintype.piFinset fun x => A, (∑ i, f (a i) ^ 2) ^ m",
+      "docstring": "The **Marcinkiewicz-Zygmund inequality** for real-valued functions, with a slightly better\nconstant than `Real.marcinkiewicz_zygmund`. ",
+      "resolved": true
+    },
+    {
+      "id": "Real.marcinkiewicz_zygmund",
+      "full_name": "Real.marcinkiewicz_zygmund",
+      "kind": "theorem",
+      "signature": "Real.marcinkiewicz_zygmund.{u_1} {ι : Type u_1} {A : Finset ι} {m n : ℕ} (hm : m ≠ 0) (f : ι → ℝ)\n  (hf : ∀ (i : Fin n), ∑ a ∈ Fintype.piFinset fun x => A, f (a i) = 0) :\n  ∑ a ∈ Fintype.piFinset fun x => A, (∑ i, f (a i)) ^ (2 * m) ≤\n    (4 * ↑m) ^ m * ↑n ^ (m - 1) * ∑ a ∈ Fintype.piFinset fun x => A, ∑ i, f (a i) ^ (2 * m)",
+      "docstring": "The **Marcinkiewicz-Zygmund inequality** for real-valued functions, with a slightly easier to\nbound constant than `Real.marcinkiewicz_zygmund'`.\n\nNote that `RCLike.marcinkiewicz_zygmund` is another version that works for both `ℝ` and `ℂ` at the\nexpense of a slightly worse constant. ",
+      "resolved": true
+    },
+    {
+      "id": "rudin_exp_ineq",
+      "full_name": "rudin_exp_ineq",
+      "kind": "theorem",
+      "signature": "rudin_exp_ineq.{u_1} {G : Type u_1} [Fintype G] [AddCommGroup G] [MeasurableSpace G] [DiscreteMeasurableSpace G]\n  (f : G → ℂ) (hf : AddDissociated (Function.support (cft f))) :\n  (Finset.expect Finset.univ fun a => Real.exp (Complex.re (f a))) ≤ Real.exp (‖f‖ₙ_[2] ^ 2 / 2)",
+      "docstring": "**Rudin's inequality**, exponential form. ",
+      "resolved": true
+    },
+    {
+      "id": "rudin_ineq",
+      "full_name": "rudin_ineq",
+      "kind": "theorem",
+      "signature": "rudin_ineq.{u_1} {G : Type u_1} [Fintype G] [AddCommGroup G] {p : ℕ} [MeasurableSpace G] [DiscreteMeasurableSpace G]\n  (hp : 2 ≤ p) (f : G → ℂ) (hf : AddDissociated (Function.support (cft f))) :\n  ‖f‖ₙ_[↑p] ≤ 4 * Real.exp 2⁻¹ * √↑p * ‖f‖ₙ_[2]",
+      "docstring": "**Rudin's inequality**, usual form. ",
+      "resolved": true
+    },
+    {
+      "id": "sifting_cor",
+      "full_name": "sifting_cor",
+      "kind": "theorem",
+      "signature": "sifting_cor.{u_1} {G : Type u_1} [DecidableEq G] [Fintype G] [AddCommGroup G] {p : ℕ} {A : Finset G} {ε δ : ℝ}\n  [MeasurableSpace G] [DiscreteMeasurableSpace G] (hε : 0 < ε) (hε₁ : ε ≤ 1) (hδ : 0 < δ) (hp : Even p) (hp₂ : 2 ≤ p)\n  (hpε : ε⁻¹ * Real.log (2 / δ) ≤ ↑p) (hA : Finset.Nonempty A) :\n  ∃ A₁ A₂,\n    1 - δ ≤ ∑ x ∈ s (↑p) ε Finset.univ Finset.univ A, (mu A₁ ○ mu A₂) x ∧\n      4⁻¹ * ↑(Finset.dens A) ^ (2 * p) ≤ ↑(Finset.dens A₁) ∧ 4⁻¹ * ↑(Finset.dens A) ^ (2 * p) ≤ ↑(Finset.dens A₂)",
+      "docstring": "Special case of `sifting` when `B₁ = B₂ = univ`. ",
+      "resolved": true
+    },
+    {
+      "id": "sifting",
+      "full_name": "sifting",
+      "kind": "theorem",
+      "signature": "sifting.{u_1} {G : Type u_1} [DecidableEq G] [Fintype G] [AddCommGroup G] {p : ℕ} {A : Finset G} {ε δ : ℝ}\n  [MeasurableSpace G] [DiscreteMeasurableSpace G] (B₁ B₂ : Finset G) (hε : 0 < ε) (hε₁ : ε ≤ 1) (hδ : 0 < δ)\n  (hp : Even p) (hp₂ : 2 ≤ p) (hpε : ε⁻¹ * Real.log (2 / δ) ≤ ↑p) (hB : Finset.Nonempty (B₁ ∩ B₂))\n  (hA : Finset.Nonempty A) (hf : ∃ x ∈ B₁ - B₂, x ∈ A - A ∧ x ∉ s (↑p) ε B₁ B₂ A) :\n  ∃ A₁ ⊆ B₁,\n    ∃ A₂ ⊆ B₂,\n      1 - δ ≤ ∑ x ∈ s (↑p) ε B₁ B₂ A, (mu A₁ ○ mu A₂) x ∧\n        4⁻¹ * ‖𝟭 A ○ 𝟭 A‖_[↑p, mu B₁ ○ mu B₂] ^ (2 * p) / ↑(Finset.card A) ^ (2 * p) ≤\n            ↑(Finset.card A₁",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "spec_hoelder",
+      "full_name": "spec_hoelder",
+      "kind": "theorem",
+      "signature": "spec_hoelder.{u_1} {G : Type u_1} [AddCommGroup G] {f : G → ℂ} {η : ℝ} {Δ : Finset (AddChar G ℂ)} {m : ℕ} [Fintype G]\n  [MeasurableSpace G] [DiscreteMeasurableSpace G] (hη : 0 ≤ η) (hΔ : Δ ⊆ largeSpec f η) (hm : m ≠ 0) :\n  ↑(Finset.card Δ) ^ (2 * m) * (η ^ (2 * m) * (‖f‖_[1] ^ 2 / ‖f‖_[2] ^ 2 / ↑(Fintype.card G))) ≤ boringEnergy m Δ",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu",
+      "full_name": "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu",
+      "kind": "theorem",
+      "signature": "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu.{u_1} {G : Type u_1} [AddCommGroup G] [DecidableEq G] [Fintype G]\n  {s : Finset G} (hG : Odd (Fintype.card G)) (hs : ThreeAPFree ↑s) :\n  RCLike.wInner 1 (mu s ∗ mu s) (mu (Finset.image (fun x => 2 • x) s)) = (↑(Finset.card s) ^ 2)⁻¹",
+      "docstring": "",
+      "resolved": true
+    },
+    {
+      "id": "unbalancing",
+      "full_name": "unbalancing",
+      "kind": "theorem",
+      "signature": "unbalancing.{u_1} {G : Type u_1} [Fintype G] [DecidableEq G] [AddCommGroup G] [MeasurableSpace G]\n  [DiscreteMeasurableSpace G] (p : ℕ) (hp : p ≠ 0) (ε : ℝ) (hε₀ : 0 < ε) (hε₁ : ε ≤ 1) (f : G → ℝ) (g h : G → ℂ)\n  (hf : g ○ g = Complex.ofReal ∘ f) (hh : h ○ h = mu Finset.univ) (hε : ε ≤ ‖f‖_[↑p, mu Finset.univ]) :\n  ∃ p', ↑p' ≤ 2 ^ 10 * ε⁻¹ ^ 2 * ↑p ∧ 1 + ε / 2 ≤ ‖f + 1‖_[↑p', mu Finset.univ]",
+      "docstring": "The unbalancing step. Note that we do the physical proof in order to avoid the Fourier\ntransform. ",
+      "resolved": true
+    }
+  ],
+  "fl_edges": [
+    {
+      "source": "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated",
+      "target": "AddDissociated",
+      "type": "sig"
+    },
+    {
+      "source": "chang",
+      "target": "largeSpec",
+      "type": "sig"
+    },
+    {
+      "source": "boringEnergy",
+      "target": "energy",
+      "type": "def"
+    },
+    {
+      "source": "spec_hoelder",
+      "target": "largeSpec",
+      "type": "sig"
+    },
+    {
+      "source": "spec_hoelder",
+      "target": "boringEnergy",
+      "type": "sig"
+    },
+    {
+      "source": "AddDissociated.boringEnergy_le",
+      "target": "AddDissociated",
+      "type": "sig"
+    },
+    {
+      "source": "AddDissociated.boringEnergy_le",
+      "target": "boringEnergy",
+      "type": "sig"
+    },
+    {
+      "source": "rudin_ineq",
+      "target": "AddDissociated",
+      "type": "sig"
+    },
+    {
+      "source": "boringEnergy_eq",
+      "target": "boringEnergy",
+      "type": "sig"
+    },
+    {
+      "source": "general_hoelder",
+      "target": "largeSpec",
+      "type": "sig"
+    },
+    {
+      "source": "general_hoelder",
+      "target": "energy",
+      "type": "sig"
+    },
+    {
+      "source": "BohrSet.IsRegular",
+      "target": "BohrSet",
+      "type": "sig"
+    },
+    {
+      "source": "rudin_exp_ineq",
+      "target": "AddDissociated",
+      "type": "sig"
+    },
+    {
+      "source": "BohrSet.regularity",
+      "target": "BohrSet",
+      "type": "sig"
+    },
+    {
+      "source": "BohrSet.regularity",
+      "target": "BohrSet.IsRegular",
+      "type": "sig"
+    }
+  ],
+  "bp_nodes": [
+    {
+      "id": "mzi",
+      "kind": "lemma",
+      "leans": [
+        "Real.marcinkiewicz_zygmund'",
+        "Real.marcinkiewicz_zygmund"
+      ],
+      "body": "[Marcinkiewicz-Zygmund inequality]\n\nLet $m\\geq 1$. If $f:G\\to\\bbr$ is such that $\\bbe_x f(x)=0$ and $\\abs{f(x)}\\leq 2$ for all $x$ then\n\\[\\bbe_{x_1,\\ldots,x_n} \\abs{\\sum_{i=1}^n f(x_i)}^{2m} \\leq (4mn)^{m}.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "mzi_complex",
+      "kind": "lemma",
+      "leans": [
+        "RCLike.marcinkiewicz_zygmund"
+      ],
+      "body": "[Complex-valued Marcinkiewicz-Zygmund inequality]\n\nLet $m\\geq 1$. If $f:G\\to\\bbc$ is such that $\\bbe_x f(x)=0$ and $\\abs{f(x)}\\leq 2$ for all $x$ then\n\\[\\bbe_{x_1,\\ldots,x_n} \\abs{\\sum_{i=1}^n f(x_i)}^{2m} \\leq (8mn)^{m}.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "random_approx_expect",
+      "kind": "lemma",
+      "leans": [
+        "AlmostPeriodicity.lemma28"
+      ],
+      "body": "Let $\\epsilon>0$ and $m\\geq 1$. Let $A\\subseteq G$ and $f:G\\to \\bbc$.\n  If $k\\geq 64m\\epsilon^{-2}$ then the set\n  \\[\n    L = \\{\\tup{a}\\in A^k : \\|\\tfrac{1}{k}\\sum_{i=1}^k f(x-a_i)-\\mu_A\\ast f\\|_{2m}\n      \\le \\epsilon \\| f\\|_{2m}\\}.\n  \\]\n  has size at least $\\lvert A \\rvert^k/2$.",
+      "chapter": "ap"
+    },
+    {
+      "id": "aps_in_translates",
+      "kind": "lemma",
+      "leans": [
+        "AlmostPeriodicity.just_the_triangle_inequality"
+      ],
+      "body": "Let $A\\subseteq G$ and $f:G\\to \\bbc$. Let $\\epsilon>0$ and $m\\geq 1$ and $k\\geq 1$. Let\n  \\[\n    L = \\{\\tup{a}\\in A^k : \\|\\tfrac{1}{k}\\sum_{i=1}^k f(x-a_i) - \\mu_A\\ast f\\|_{2m}\n      \\leq \\epsilon \\| f\\|_{2m}\\}.\n  \\]\n  If $t\\in G$ is such that $\\tup{a}\\in L$ and $\\tup{a}+(t,\\ldots,t)\\in L$ then\n  \\[\\| \\tau_t(\\mu_A\\ast f)-\\mu_A\\ast f\\|_{2m}\\leq 2\\epsilon \\|f\\|_{2m}.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "lots_of_diagonals",
+      "kind": "lemma",
+      "leans": [
+        "big_shifts"
+      ],
+      "body": "Let $A\\subseteq G$ and $k\\geq 1$ and $L\\subseteq A^k$. Then there exists some $\\tup{a}\\in L$ such that\n\\[\\#\\{ t\\in G : \\tup{a}+(t,\\ldots,t)\\in L\\}\\geq \\frac{\\lvert L\\rvert}{\\lvert A+S\\rvert^k}\\lvert S\\rvert.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "lp_ap",
+      "kind": "theorem",
+      "leans": [
+        "AlmostPeriodicity.almost_periodicity"
+      ],
+      "body": "[$L_p$ almost periodicity]\n\nLet $\\epsilon\\in (0,1]$ and $m\\geq 1$. Let $K\\geq 2$ and $A,S\\subseteq G$ with $\\lvert A+S\\rvert\\leq K\\lvert A\\rvert$.\nLet $f:G\\to \\bbc$. There exists $T\\subseteq G$ such that\n\\[\\lvert T\\rvert \\geq K^{-512m\\epsilon^{-2}}\\lvert S\\rvert\\]\nsuch that for any $t\\in T$ we have\n\\[\\| \\tau_t(\\mu_A\\ast f)-\\mu_A\\ast f\\|_{2m}\\leq \\epsilon \\| f\\|_{2m}.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "linfty_ap",
+      "kind": "theorem",
+      "leans": [
+        "AlmostPeriodicity.linfty_almost_periodicity"
+      ],
+      "body": "[$L_\\infty$ almost periodicity]\n\nLet $\\epsilon\\in (0,1]$. Let $K\\geq 2$ and $A,S\\subseteq G$ with $\\lvert A+S\\rvert\\leq K\\lvert A\\rvert$.\nLet $B,C\\subseteq G$. Let $\\eta=\\min(1,\\lvert C\\rvert/\\lvert B\\rvert)$. There exists $T\\subseteq G$ such that\n\\[\\lvert T\\rvert \\geq K^{-4096\\lceil \\lo{\\eta}\\rceil\\epsilon^{-2}}\\lvert S\\rvert\\]\nsuch that for any $t\\in T$ we have\n\\[\\| \\tau_t(\\mu_A\\ast 1_B\\ast \\mu_C)-\\mu_A\\ast 1_B\\ast \\mu_C\\|_{\\infty}\\leq \\epsilon.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "linfty_ap_boosted",
+      "kind": "theorem",
+      "leans": [
+        "AlmostPeriodicity.linfty_almost_periodicity_boosted"
+      ],
+      "body": "Let $\\epsilon\\in (0,1]$ and $k\\geq 1$. Let $K\\geq 2$ and $A,S\\subseteq G$ with $\\lvert A+S\\rvert\\leq K\\lvert A\\rvert$.\nLet $B,C\\subseteq G$. Let $\\eta=\\min(1,\\lvert C\\rvert/\\lvert B\\rvert)$. There exists $T\\subseteq G$ such that\n\\[\\lvert T\\rvert \\geq K^{-4096\\lceil \\lo{\\eta}\\rceil k^2\\epsilon^{-2}}\\lvert S\\rvert\\]\nsuch that\n\\[\\| \\mu_T^{(k)}\\ast \\mu_A\\ast 1_B\\ast \\mu_C-\\mu_A\\ast 1_B\\ast \\mu_C\\|_{\\infty}\\leq \\epsilon.\\]",
+      "chapter": "ap"
+    },
+    {
+      "id": "bohr-set",
+      "kind": "definition",
+      "leans": [
+        "BohrSet"
+      ],
+      "body": "[Bohr sets]\n\nLet $\\nu: \\widehat{G} \\to \\mathbb{R}$. The corresponding Bohr set is defined to be\n\\[\\mathrm{Bohr}(\\nu)=\\left\\{ x\\in G : \\abs{1-\\gamma(x)}\\leq \\nu(\\gamma)\\textrm{ for all }\\gamma\\in\\Gamma\\right\\}.\\]\nThe rank of $\\nu$, denoted by $\\mathrm{rk}(\\nu)$, is defined to be the size of the set of those $\\gamma\\in\\widehat{G}$ such that $\\nu(\\gamma)<2$.\n\n(Basic API facts: Bohr sets are symmetric and contain $0$. Also that, without loss of generality, we can assume $\\nu$ takes only values in $\\mathbb{R}_{\\geq 0}$ - I think it might be easier to have the definition allow arbitrary real values, and then switch to non-negative only in proofs where convenient. Or could have the definition only allow non-negative valued functions in the first place.)",
+      "chapter": "bohr"
+    },
+    {
+      "id": "bohr-size",
+      "kind": "lemma",
+      "leans": [
+        "BohrSet.le_card_smul"
+      ],
+      "body": "% \n  % \n\n  If $\\rho\\in (0,1)$ and $\\nu:\\widehat{G}\\to \\mathbb{R}$ then\n  \\[\\abs{\\mathrm{Bohr}(\\rho\\cdot \\nu)}\\geq (\\rho/4)^{\\mathrm{rk}(\\nu)}\\abs{\\mathrm{Bohr}(\\nu)}.\\]",
+      "chapter": "bohr"
+    },
+    {
+      "id": "bohr-reg-def",
+      "kind": "definition",
+      "leans": [
+        "BohrSet.IsRegular"
+      ],
+      "body": "[Regularity]\n\nWe say $\\nu:\\widehat{G}\\to \\mathbb{R}$ is regular if, with $d=\\mathrm{rk}(\\nu)$, for all $\\kappa\\in\\mathbb{R}$ with $\\abs{\\kappa}\\leq 1/100d$ we have\n\\[(1-100 d\\abs{\\kappa})\\leq \\frac{\\abs{\\mathrm{Bohr}((1+\\kappa)\\nu)}}{\\abs{\\mathrm{Bohr}(\\nu)}}\\leq(1+ 100 d\\abs{\\kappa})\\]",
+      "chapter": "bohr"
+    },
+    {
+      "id": "bohr-regularity",
+      "kind": "lemma",
+      "leans": [
+        "BohrSet.regularity"
+      ],
+      "body": "For any $\\nu:\\widehat{G}\\to \\mathbb{R}$ there exists $\\rho\\in[\\frac{1}{2},1]$ such that $\\rho\\cdot \\nu$ is regular.",
+      "chapter": "bohr"
+    },
+    {
+      "id": "reg-conv",
+      "kind": "lemma",
+      "leans": [],
+      "body": "If $B$ is a regular Bohr set of rank $d$ and $\\mu:G\\to\\bbr_{\\geq 0}$ is supported on $B_\\rho$, with $\\rho \\in (0,1)$, then\n\\[ \\norm{ \\mu_B*\\mu - \\mu_B }_{1} \\ll \\rho d\\norm{\\mu}_1. \\]",
+      "chapter": "bohr"
+    },
+    {
+      "id": "bohr-majorise",
+      "kind": "lemma",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds.  Let $B$ be a regular Bohr set of rank $d$ and $L\\geq 1$ be any integer. If $\\nu:G\\to\\bbr_{\\geq 0}$ is supported on $L B_\\rho$, where $\\rho \\leq c/Ld$, and $\\norm{\\nu}_1=1$, then\n\\[\\mu_B \\leq 2\\mu_{B_{1+L\\rho}}\\ast \\nu.\\]",
+      "chapter": "bohr"
+    },
+    {
+      "id": "bourgain-trick",
+      "kind": "lemma",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $B$ be a regular Bohr set of rank $d$, suppose $A\\subseteq B$ has density $\\alpha$, let $\\epsilon>0$, and suppose $B',B''\\subseteq B_\\rho$ where $\\rho\\leq c\\alpha\\epsilon/d$. Then either\n\\begin{enumerate}\n\\item there is some translate $A'$ of $A$ such that $\\abs{A'\\cap B'}\\geq (1-\\epsilon)\\alpha\\abs{B'}$ and $\\abs{A'\\cap B''}\\geq (1-\\epsilon)\\alpha \\abs{B''}$, or\n\\item $\\norm{\\ind{A}\\ast \\mu_{B'}}_\\infty\\geq (1+\\epsilon/2)\\alpha$, or\n\\item $\\norm{\\ind{A}\\ast \\mu_{B''}}_\\infty \\geq (1+\\epsilon/2)\\alpha$.\n\\end{enumerate}",
+      "chapter": "bohr"
+    },
+    {
+      "id": "dissociated",
+      "kind": "definition",
+      "leans": [
+        "AddDissociated"
+      ],
+      "body": "[Dissociation]\n\nWe say that $A\\subseteq G$ is dissociated if, for any $m\\geq 1$, and any $x\\in G$, there is at most one $A'\\subset A$ of size $\\abs{A'}=m$ such that\n\\[\\sum_{a\\in A'}a=x.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "rudin_exp",
+      "kind": "lemma",
+      "leans": [
+        "rudin_exp_ineq"
+      ],
+      "body": "[Rudin's exponential inequality]\n\nIf the discrete Fourier transform of $f : G \\longrightarrow \\C$ has dissociated support, then\n$$\\E \\exp(\\Re f) \\le \\exp\\left(\\frac{\\norm f_2^2} 2\\right)$$\nIt follows that\n\\[\\E_x e^{\\abs{f(x)}} \\le 2e^{\\| f\\|_2^2/2}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "rudin",
+      "kind": "lemma",
+      "leans": [
+        "rudin_ineq"
+      ],
+      "body": "[Rudin's inequality]\n\nIf the discrete Fourier transform of $f : G \\longrightarrow \\C$ has dissociated support and $p \\ge 2$ is an integer, then $\\norm{f}_p \\le 4\\sqrt{pe} \\norm f_2$.",
+      "chapter": "chang"
+    },
+    {
+      "id": "large_spec",
+      "kind": "definition",
+      "leans": [
+        "largeSpec"
+      ],
+      "body": "[Large spectrum]\n  \n  \n  \n\n  Let $G$ be a finite abelian group and $f:G\\to\\bbc$. Let $\\eta\\in \\bbr$. The $\\eta$-large spectrum is defined to be\n  \\[\\Delta_\\eta(f) = \\{ \\gamma\\in\\widehat{G} : \\lvert \\widehat{f}(\\gamma)\\rvert \\geq \\eta\\norm{f}_1\\}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "weight_energy",
+      "kind": "definition",
+      "leans": [
+        "energy"
+      ],
+      "body": "[Weighted energy]\n\nLet $\\Delta\\subseteq \\widehat{G}$ and $m\\geq 1$. Let $\\nu:G\\to \\bbc$. Then\n\\[E_{2m}(\\Delta;\\nu)=\\sum_{\\gamma_1,\\ldots,\\gamma_{2m}\\in \\Delta}\\abs{\\widehat{\\nu}(\\gamma_1+\\cdots-\\gamma_{2m})}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "energy",
+      "kind": "definition",
+      "leans": [
+        "boringEnergy"
+      ],
+      "body": "[Energy]\n\nLet $G$ be a finite abelian group and $A\\subseteq G$. Let $m\\geq 1$. We define\n\\[E_{2m}(A)=\\sum_{a_1,\\ldots,a_{2m}\\in A}1_{a_1+\\cdots-a_{2m}=0}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "general_hoelder",
+      "kind": "lemma",
+      "leans": [
+        "general_hoelder"
+      ],
+      "body": "Let $G$ be a finite abelian group and $f:G\\to\\bbc$. Let $\\nu:G\\to \\bbr_{\\geq 0}$ be such that whenever $\\abs{f}\\neq 0$ we have $\\nu \\geq 1$. Let $\\Delta\\subseteq \\Delta_\\eta(f)$. Then, for any $m\\geq 1$.\n\\[\\eta^{2m}\\frac{\\norm{f}_1^2}{\\norm{f}_2^2}\\abs{\\Delta}^{2m}\\le E_{2m}(\\Delta;\\nu).\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "spec_hoelder",
+      "kind": "lemma",
+      "leans": [
+        "spec_hoelder"
+      ],
+      "body": "Let $G$ be a finite abelian group and $f:G\\to\\bbc$. Let $\\Delta\\subseteq \\Delta_\\eta(f)$. Then, for any $m\\geq 1$.\n\\[N^{-1}\\eta^{2m}\\frac{\\norm{f}_1^2}{\\norm{f}_2^2}\\abs{\\Delta}^{2m}\\le E_{2m}(\\Delta).\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "energy_alt",
+      "kind": "lemma",
+      "leans": [
+        "boringEnergy_eq"
+      ],
+      "body": "If $A\\subset G$ and $m\\geq 1$ then\n\\[E_{2m}(A) = \\sum_x 1_A^{(m)}(x)^2.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "diss_energy",
+      "kind": "lemma",
+      "leans": [
+        "AddDissociated.boringEnergy_le"
+      ],
+      "body": "If $A\\subseteq G$ is dissociated then $E_{2m}(A) \\le (32e m \\abs{A})^m$.",
+      "chapter": "chang"
+    },
+    {
+      "id": "diss_span",
+      "kind": "lemma",
+      "leans": [
+        "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated"
+      ],
+      "body": "If $A\\subseteq G$ contains no dissociated set with $\\geq K+1$ elements,\n  then there is $A'\\subseteq A$ of size $\\abs{A'}\\le K$ such that\n  \\[A\\subseteq \\left\\{ \\sum_{a\\in A'}c_aa : c_a\\in \\{-1,0,1\\} \\right\\}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "chang",
+      "kind": "theorem",
+      "leans": [
+        "chang"
+      ],
+      "body": "[Chang's lemma]\n\nLet $G$ be a finite abelian group and $f:G\\to \\bbc$. Let $\\eta >0$ and $\\alpha=N^{-1}\\norm{f}_1^2/\\norm{f}_2^2$. There exists some $\\Delta\\subseteq \\Delta_\\eta(f)$ such that\n\\[\\abs{\\Delta}\\le \\lceil e\\mathcal{L}(\\alpha)\\eta^{-2}\\rceil \\]\nand\n\\[\\Delta_\\eta(f)\\subseteq \\left\\{ \\sum_{\\gamma\\in\\Delta}c_\\gamma \\gamma : c_\\gamma\\in \\{-1,0,1\\} \\right\\}.\\]",
+      "chapter": "chang"
+    },
+    {
+      "id": "drc",
+      "kind": "lemma",
+      "leans": [
+        "drc"
+      ],
+      "body": "Let $p\\geq 2$ be an even integer. Let $B_1,B_2\\subseteq G$ and $\\mu=\\mu_{B_1}\\circ\\mu_{B_2}$. For any finite set $A\\subseteq G$ and function $f:G\\to\\bbr_{\\geq 0}$ there exist $A_1\\subseteq B_1$ and $A_2\\subseteq B_2$ such that\n\\[\\langle \\mu_{A_1}\\circ \\mu_{A_2}, f\\rangle \\norm{\\ind{A}\\circ \\ind{A}}_{p(\\mu)}^p\\leq 2\\langle (\\ind{A}\\circ \\ind{A})^p,f\\rangle_\\mu\\]\nand\n\\[\\min\\brac{\\frac{\\abs{A_1}}{\\abs{B_1}},\\frac{\\abs{A_2}}{\\abs{B_2}}}\\geq \\frac{1}{4}\\abs{A}^{-2p}\\norm{\\ind{A}\\circ \\ind{A}}_{p(\\mu)}^{2p}.\\]",
+      "chapter": "drc"
+    },
+    {
+      "id": "sift",
+      "kind": "lemma",
+      "leans": [
+        "sifting"
+      ],
+      "body": "Let $\\epsilon,\\delta >0$ and $p\\geq \\max(2,\\epsilon^{-1}\\log(2/\\delta))$ be an even integer. Let $B_1,B_2\\subseteq G$, and let $\\mu=\\mu_{B_1}\\circ\\mu_{B_2}$. For any finite set $A\\subseteq G$, if\n\\[S=\\{ x\\in G: \\ind{A}\\circ \\ind{A}(x)>(1-\\epsilon)\\norm{\\ind{A}\\circ \\ind{A}}_{p(\\mu)}\\},\\]\nthen there are $A_1\\subseteq B_1$ and $A_2\\subseteq B_2$ such that\n\\[\\langle \\mu_{A_1}\\circ\\mu_{A_2},\\ind{S}\\rangle \\geq 1-\\delta\\]\nand\n\\[\\min\\brac{\\frac{\\abs{A_1}}{\\abs{B_1}},\\frac{\\abs{A_2}}{\\abs{B_2}}}\\geq \\frac{1}{4}\\abs{A}^{-2p}\\norm{\\ind{A}\\circ \\ind{A}}_{p(\\mu)}^{2p}.\\]",
+      "chapter": "drc"
+    },
+    {
+      "id": "sift_cor",
+      "kind": "corollary",
+      "leans": [
+        "sifting_cor"
+      ],
+      "body": "Let $\\epsilon,\\delta>0$ and $p\\geq \\max(2,\\epsilon^{-1}\\log(2/\\delta))$ be an even integer and $\\mu\\equiv 1/N$. If $A\\subseteq G$ has density $\\alpha$ and\n\\[S = \\{ x : \\mu_A\\circ \\mu_A(x) \\geq (1-\\epsilon)\\| \\mu_A\\circ \\mu_A\\|_{p(\\mu)}\\}\\]\nthen there are $A_1,A_2\\subseteq G$ such that\n\\[\\langle \\mu_{A_1}\\circ \\mu_{A_2}, 1_S\\rangle \\geq 1-\\delta\\]\nand both $A_1$ and $A_2$ have density\n\\[\\geq \\frac{1}{4}\\alpha^{2p}.\\]",
+      "chapter": "drc"
+    },
+    {
+      "id": "ap_in_ff",
+      "kind": "theorem",
+      "leans": [
+        "ap_in_ff"
+      ],
+      "body": "If $A_1,A_2,S\\subseteq \\bbf_q^n$ are such that $A_1$ and $A_2$ both have density at least $\\alpha$ then there is a subspace $V$ of codimension\n\n\\[\\mathrm{codim}(V)\\leq 2^{27}\\lo(\\alpha)^2\\lo(\\epsilon \\alpha)^2\\epsilon^{-2}\\]\nsuch that\n\\[\\abs{\\langle \\mu_V\\ast \\mu_{A_1}\\ast \\mu_{A_2},\\ind{S}\\rangle-\\langle \\mu_{A_1}\\ast \\mu_{A_2},\\ind{S}\\rangle}\\leq \\epsilon.\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "ast_le_circ",
+      "kind": "lemma",
+      "leans": [
+        "cLpNorm_cconv_le_cLpNorm_cdconv"
+      ],
+      "body": "For any function $f:G\\to \\mathbb{C}$ and integer $k\\geq 1$\n\\[\\| f\\ast f\\|_{2k}\\leq \\| f\\circ f\\|_{2k}.\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "ast_expand",
+      "kind": "lemma",
+      "leans": [
+        "balance_conv"
+      ],
+      "body": "For any function $f$ with $\\sum f(x)=1$\n\\[f\\ast f-1/N = (f-1/N)\\ast (f-1/N).\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "circ_expand",
+      "kind": "lemma",
+      "leans": [
+        "balance_dconv"
+      ],
+      "body": "For any function $f$ with $\\sum f(x)=1$\n\\[f\\circ f-1/N = (f-1/N)\\circ (f-1/N).\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "global_dichotomy",
+      "kind": "lemma",
+      "leans": [
+        "global_dichotomy"
+      ],
+      "body": "Let $\\epsilon >0$ and $\\mu\\equiv 1/N$. If $A,C\\subseteq G$, where $C$ has density at least $\\gamma$, and\n\\[\\abs{N\\langle \\mu_A\\ast \\mu_A,\\mu_C\\rangle -1}>\\epsilon\\]\nthen, if $f=(\\mu_A-1/N)$, $\\norm{f\\circ f}_{p(\\mu)} \\geq \\epsilon /2N$ for $p=2\\lceil \\lo(\\gamma)\\rceil$.",
+      "chapter": "ff"
+    },
+    {
+      "id": "di_in_ff",
+      "kind": "proposition",
+      "leans": [
+        "di_in_ff"
+      ],
+      "body": "Let $\\epsilon \\in (0,1)$. If $A,C\\subseteq \\bbf_q^n$, where $C$ has density at least $\\gamma$, and\n\\[\\abs{N\\langle \\mu_A\\ast \\mu_A,\\mu_C\\rangle -1}> \\epsilon\\]\nthen there is a subspace $V$ of codimension\n\\[\\leq 2^{171}\\epsilon^{-24}\\lo(\\alpha)^4\\lo(\\gamma)^4.\\]\nsuch that $\\norm{\\ind{A}\\ast \\mu_V}_\\infty \\geq (1+\\epsilon/32)\\alpha$.",
+      "chapter": "ff"
+    },
+    {
+      "id": "no3aps_inner_prod",
+      "kind": "lemma",
+      "leans": [
+        "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu"
+      ],
+      "body": "If $A\\subseteq G$ has no non-trivial three-term arithmetic progressions and $G$ has odd order then\n  \\[\\langle \\mu_A\\ast \\mu_A,\\mu_{2\\cdot A}\\rangle = 1/\\abs{A}^2.\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "ff",
+      "kind": "theorem",
+      "leans": [
+        "ff"
+      ],
+      "body": "Let $q$ be an odd prime power. If $A\\subseteq \\mathbb{F}_q^n$ with $\\alpha=\\abs{A}/q^n$ has no non-trivial three-term arithmetic progressions then\n  \\[n \\ll \\lo(\\alpha)^9.\\]",
+      "chapter": "ff"
+    },
+    {
+      "id": "th-ap-int",
+      "kind": "theorem",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $\\epsilon>0$ and $B,B'\\subseteq G$ be regular Bohr sets of rank $d$. Suppose that $A_1\\subseteq B$ with density $\\alpha_1$ and $A_2$ is such that there exists $x$ with $A_2\\subseteq B'-x$ with density $\\alpha_2$. Let $S$ be any set with $\\abs{S}\\leq 2\\abs{B}$. There is a regular Bohr set $B''\\subseteq B'$ of rank at most\n\\[d+O_\\epsilon(\\lo{\\alpha_1}^3\\lo{\\alpha_2})\\]\nand size\n\\[\\abs{B''}\\geq \\exp(-O_\\epsilon(d\\lo{\\alpha_1\\alpha_2/d}+\\lo{\\alpha_1}^3\\lo{\\alpha_2}\\lo{\\alpha_1\\alpha_2/d}))\\abs{B'}\\]\nsuch that\n\\[\\abs{\\langle \\mu_{B'}\\ast \\mu_{A_1}\\circ \\mu_{A_2},\\ind{S}\\rangle-\\langle \\mu_{A_1}\\circ \\mu_{A_2},\\ind{S}\\rangle}\\leq \\epsilon.\\]",
+      "chapter": "integers"
+    },
+    {
+      "id": "Lp-orth",
+      "kind": "proposition",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $\\epsilon >0$ and $p \\geq 2$ be an integer. Let $B \\subseteq G$ be a regular Bohr set and $A\\subseteq B$ with relative density $\\alpha$. Let $\\nu : G \\to \\bbr_{\\geq 0}$ be supported on $B_\\rho$, where $\\rho \\leq c\\epsilon\\alpha/\\rk(B)$, such that $\\norm{\\nu}_1=1$ and $\\widehat{\\nu}\\geq 0$. If\n    \\[ \\norm{(\\mu_A-\\mu_B) \\circ (\\mu_{A}-\\mu_B)}_{p(\\nu)} \\geq \\epsilon\\, \\mu(B)^{-1}, \\]\n    then there exists $p'\\ll_\\epsilon p$ such that\n    \\[ \\norm{ \\mu_{A}\\circ \\mu_{A}}_{p'(\\nu)} \\geq \\left(1+\\tfrac{1}{4}\\epsilon\\right) \\mu(B)^{-1}. \\]",
+      "chapter": "integers"
+    },
+    {
+      "id": "pos-def-measures",
+      "kind": "proposition",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $p \\geq 2$ be an even integer. Let $f : G \\to \\bbr$, let $B \\subseteq G$ and $B', B'' \\subseteq B_{c/\\rk(B)}$ all be regular Bohr sets. Then\n\\[ \\norm{ f\\circ f }_{p(\\mu_{B'}\\circ \\mu_{B'}\\ast \\mu_{B''}\\circ \\mu_{B''})} \\geq \\tfrac{1}{2} \\norm{f*f}_{p(\\mu_B)}. \\]",
+      "chapter": "integers"
+    },
+    {
+      "id": "hoelder-lifting",
+      "kind": "proposition",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $\\epsilon >0$. Let $B \\subseteq G$ be a regular Bohr set and $A\\subseteq B$ with relative density $\\alpha$, and let $B' \\subseteq B_{c\\epsilon\\alpha/\\rk(B)}$ be a regular Bohr set and $C\\subseteq B'$ with relative density $\\gamma$. Either\n\\begin{enumerate}\n\\item $\\abs{ \\langle \\mu_A*\\mu_A, \\mu_{C} \\rangle - \\mu(B)^{-1} } \\leq \\epsilon \\mu(B)^{-1}$ or\n\\item there is some $p \\ll\\lo{\\gamma}$ such that $\\norm{ (\\mu_A-\\mu_B)*(\\mu_A-\\mu_B)}_{p(\\mu_{B'})} \\geq \\tfrac{1}{2}\\epsilon \\mu(B)^{-1}$.\n\\end{enumerate}",
+      "chapter": "integers"
+    },
+    {
+      "id": "prop-it",
+      "kind": "proposition",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $\\epsilon>0$ and $p,k\\geq 1$ be integers such that $(k,\\abs{G})=1$. Let $B,B',B''\\subseteq G$ be regular Bohr sets of rank $d$ such that $B''\\subseteq B'_{c/d}$ and $A\\subseteq B$ with relative density $\\alpha$. If\n    \\[ \\norm{ \\mu_{A}\\circ \\mu_{A}}_{p(\\mu_{k\\cdot B'}\\circ\\mu_{k\\cdot B'}\\ast \\mu_{k\\cdot B''}\\circ \\mu_{k\\cdot B''})} \\geq \\left(1+\\epsilon\\right) \\mu(B)^{-1},\\]\n    then there is a regular Bohr set $B'''\\subseteq B''$ of rank at most\n    \\[\\rk(B''')\\leq d+O_{\\epsilon}(\\lo{\\alpha}^4p^4)\\]\n    and size\n    \\[\\abs{B'''}\\geq \\exp(-O_{\\epsilon}(dp\\lo{\\alpha/d}+\\lo{\\alpha}^5p^5))\\abs{B''}\\]\n    such that\n    \\[ \\norm{ \\mu_{B'''}*\\mu_A }_\\infty \\geq (1+c\\epsilon)\\mu(B)^{-1}. \\]",
+      "chapter": "integers"
+    },
+    {
+      "id": "flat-on-bohr",
+      "kind": "theorem",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let ${\\epsilon,\\delta\\in (0,1)}$ and $p,k\\geq 1$ be integers such that $(k,\\abs{G})=1$. For any $A\\subseteq G$ with density $\\alpha$ there is a regular Bohr set $B$ with\n\\[ d=\\rk(B) =O_{\\epsilon}\\left(\\lo{\\alpha}^5p^4\\right) \\quad\\text{and}\\quad \\abs{B}\\geq \\exp\\left(-O_{\\epsilon,\\delta}(\\lo{\\alpha}^6p^5\\lo{\\alpha/p})\\right)\\abs{G} \\]\nand some $A'\\subseteq (A-x)\\cap B$ for some $x \\in G$ such that\n\\begin{enumerate}\n\\item $\\abs{A'}\\geq (1-\\epsilon)\\alpha\\abs{B}$,\n\\item $\\abs{A'\\cap B'}\\geq (1-\\epsilon)\\alpha\\abs{B'}$, where $B'=B_{\\rho}$ is a regular Bohr set with ${\\rho\\in (\\tfrac{1}{2},1)\\cdot c\\delta\\alpha/d}$, and\n\\item\n\\[\\norm{\\mu_{A'}\\circ \\mu_{A'}}_{p(\\mu_{k\\cdot B''}\\circ \\mu_{k\\cdot B''}\\ast \\mu_{k\\cdot B'''}\\circ \\mu_{k\\cdot B'''})} <(1+ \\epsilon)\\mu(B)^{-1},\\]\nfor any regular Bohr sets $B'' = B'_{\\rho'}$ and $B'''=B''_{\\rho''}$ satisfying ${\\rho',\\rho''\\in(\\frac{1}{2},1)\\cdot c\\delta\\alpha/d}$.\n\\end{enumerate}",
+      "chapter": "integers"
+    },
+    {
+      "id": "th-int-gen",
+      "kind": "theorem",
+      "leans": [],
+      "body": "There is a constant $c>0$ such that the following holds. Let $\\delta,\\epsilon\\in (0,1)$, let $p \\geq 1$ and let $k$ be a positive integer such that $(k,\\abs{G})=1$. There is a constant $C=C(\\epsilon,\\delta,k)>0$ such that the following holds.\n\nFor any finite abelian group $G$ and any subset $A\\subseteq G$ with $\\abs{A}=\\alpha \\abs{G}$ there exists a regular Bohr set $B$ with\n\\[\\rk(B)\\leq Cp^4\\log(2/\\alpha)^5\\]\nand\n\\[\\abs{B}\\geq \\exp\\left(-Cp^5\\log(2p/\\alpha)\\log(2/\\alpha)^6\\right)\\abs{G}\\]\nand $A' \\subseteq (A-x)\\cap B$ for some $x\\in G$ such that\n\\begin{enumerate}\n\\item $\\abs{A'}\\geq (1-\\epsilon)\\alpha \\abs{B}$,\n\\item $\\abs{A'\\cap B'}\\geq (1-\\epsilon)\\alpha\\abs{B'}$, where $B'=B_{\\rho}$ is a regular Bohr set with $\\rho\\in (\\tfrac{1}{2},1)\\cdot c\\delta\\alpha/dk$, and\n\\item\n\\[\\norm{(\\mu_{A'}-\\mu_B)\\ast (\\mu_{A'}- \\mu_B)}_{p(\\mu_{k\\cdot B'})} \\leq \\epsilon\\frac{\\abs{G}}{\\abs{B}}.\\]\n\\end{enumerate}",
+      "chapter": "integers"
+    },
+    {
+      "id": "main-int-count",
+      "kind": "theorem",
+      "leans": [],
+      "body": "If $A\\subseteq \\{1,\\ldots,N\\}$ has size $\\abs{A}=\\alpha N$, then $A$ contains at least\n\\[\\exp(-O(\\lo{\\alpha}^{12}))N^2\\]\nmany three-term arithmetic progressions.",
+      "chapter": "integers"
+    },
+    {
+      "id": "int",
+      "kind": "theorem",
+      "leans": [
+        "int"
+      ],
+      "body": "[Integer case]\n  \n  \n  \n  \n  If $A\\subseteq \\{1,\\ldots,N\\}$ contains no non-trivial three-term arithmetic progressions then\n  \\[\\lvert A\\rvert \\leq \\frac{N}{\\exp(-c(\\log N)^{1/12})}\\]",
+      "chapter": "integers"
+    },
+    {
+      "id": "nonneg_moments",
+      "kind": "lemma",
+      "leans": [
+        "pow_inner_nonneg"
+      ],
+      "body": "For any function $f:G\\to\\bbr$ and integer $k\\geq 0$\n\\[\\bbe_x f\\circ f(x)^k\\geq 0.\\]",
+      "chapter": "unbalancing"
+    },
+    {
+      "id": "unbalancing",
+      "kind": "lemma",
+      "leans": [
+        "unbalancing"
+      ],
+      "body": "Let $\\epsilon\\in(0,1)$ and $\\nu:G\\to\\bbr_{\\geq 0}$ be some probability measure such that $\\widehat{\\nu}\\geq 0$. Let $f:G\\to\\bbr$. If $\\norm{f\\circ f}_{p(\\nu)}\\geq \\epsilon$ for some $p\\geq 1$ then $\\norm{f\\circ f+1}_{p'(\\nu)}\\geq 1+\\tfrac{1}{2}\\epsilon$ for $p'=120\\epsilon^{-1}\\log(3/\\epsilon)$.",
+      "chapter": "unbalancing"
+    }
+  ],
+  "bp_edges": [
+    {
+      "source": "bohr-size",
+      "target": "bohr-set"
+    },
+    {
+      "source": "bohr-reg-def",
+      "target": "bohr-set"
+    },
+    {
+      "source": "bohr-regularity",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "reg-conv",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "bohr-majorise",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "bourgain-trick",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "rudin_exp",
+      "target": "dissociated"
+    },
+    {
+      "source": "rudin",
+      "target": "dissociated"
+    },
+    {
+      "source": "energy",
+      "target": "weight_energy"
+    },
+    {
+      "source": "general_hoelder",
+      "target": "large_spec"
+    },
+    {
+      "source": "general_hoelder",
+      "target": "weight_energy"
+    },
+    {
+      "source": "spec_hoelder",
+      "target": "energy"
+    },
+    {
+      "source": "energy_alt",
+      "target": "energy"
+    },
+    {
+      "source": "diss_energy",
+      "target": "dissociated"
+    },
+    {
+      "source": "diss_energy",
+      "target": "energy"
+    },
+    {
+      "source": "diss_span",
+      "target": "dissociated"
+    },
+    {
+      "source": "chang",
+      "target": "large_spec"
+    },
+    {
+      "source": "th-ap-int",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "Lp-orth",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "pos-def-measures",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "hoelder-lifting",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "prop-it",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "flat-on-bohr",
+      "target": "bohr-reg-def"
+    },
+    {
+      "source": "th-int-gen",
+      "target": "bohr-reg-def"
+    }
+  ],
+  "lean_to_label": {
+    "Real.marcinkiewicz_zygmund'": "mzi",
+    "Real.marcinkiewicz_zygmund": "mzi",
+    "RCLike.marcinkiewicz_zygmund": "mzi_complex",
+    "AlmostPeriodicity.lemma28": "random_approx_expect",
+    "AlmostPeriodicity.just_the_triangle_inequality": "aps_in_translates",
+    "big_shifts": "lots_of_diagonals",
+    "AlmostPeriodicity.almost_periodicity": "lp_ap",
+    "AlmostPeriodicity.linfty_almost_periodicity": "linfty_ap",
+    "AlmostPeriodicity.linfty_almost_periodicity_boosted": "linfty_ap_boosted",
+    "BohrSet": "bohr-set",
+    "BohrSet.le_card_smul": "bohr-size",
+    "BohrSet.IsRegular": "bohr-reg-def",
+    "BohrSet.regularity": "bohr-regularity",
+    "AddDissociated": "dissociated",
+    "rudin_exp_ineq": "rudin_exp",
+    "rudin_ineq": "rudin",
+    "largeSpec": "large_spec",
+    "energy": "weight_energy",
+    "boringEnergy": "energy",
+    "general_hoelder": "general_hoelder",
+    "spec_hoelder": "spec_hoelder",
+    "boringEnergy_eq": "energy_alt",
+    "AddDissociated.boringEnergy_le": "diss_energy",
+    "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated": "diss_span",
+    "chang": "chang",
+    "drc": "drc",
+    "sifting": "sift",
+    "sifting_cor": "sift_cor",
+    "ap_in_ff": "ap_in_ff",
+    "cLpNorm_cconv_le_cLpNorm_cdconv": "ast_le_circ",
+    "balance_conv": "ast_expand",
+    "balance_dconv": "circ_expand",
+    "global_dichotomy": "global_dichotomy",
+    "di_in_ff": "di_in_ff",
+    "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu": "no3aps_inner_prod",
+    "ff": "ff",
+    "int": "int",
+    "pow_inner_nonneg": "nonneg_moments",
+    "unbalancing": "unbalancing"
+  },
+  "slogans": {
+    "AddDissociated.boringEnergy_le": {
+      "isolated": {
+        "slogan": "If a set in a finite abelian group is dissociated (sum-free in a strong sense), then its 2n-fold additive energy is bounded above by a constant to the n times n^n times the n-th power of its cardinality.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For a dissociated set A in a finite abelian group, the 2n-fold additive energy of A is bounded above by a constant to the n times n^n times the cardinality of A to the n.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For a dissociated set in a finite abelian group, the n-fold additive energy is bounded above by a constant to the n times n^n times the n-th power of the set's cardinality.",
+        "confidence": "high"
+      }
+    },
+    "AddDissociated": {
+      "isolated": {
+        "slogan": "A subset of an abelian group is dissociated if all of its finite subsets have distinct sums, making it an additive analogue of linear independence where coefficients are restricted to -1, 0, and 1.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "A subset of an additive group is dissociated if all of its finite subsets have distinct sums, making it an additive analogue of linear independence where the only allowed \"coefficients\" are 0 and plus or minus 1.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "A subset of an abelian group is dissociated if all of its finite subsets have distinct sums -- an analogue of linear independence where the only allowed \"coefficients\" are 0 and plus or minus 1.",
+        "confidence": "high"
+      }
+    },
+    "AlmostPeriodicity.almost_periodicity": {
+      "isolated": {
+        "slogan": "Given sets A and S in a finite group with |A+S| at most K|A|, and a function f, there exists a set T of size at least K^(-512m/epsilon^2) times |S| such that for every t in T, the L^(2m) norm of the translate-by-t of the convolution of the uniform measure on A with f minus that convolution is at most epsilon times the L^(2m) norm of f.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Given sets A and S in a finite abelian group with |A+S| at most K*|A|, and any function f, there exists a large subset T of S of size at least K^(-512m/epsilon^2) * |S| such that for every t in T, translating the convolution of the uniform measure on A with f by t changes the L^(2m) norm of the result by at most epsilon times the L^(2m) norm of f. This is the core L^p almost-periodicity result underpinning the Kelley-Meka bound.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "Given sets A and S in a finite abelian group with |A+S| at most K|A|, and any function f, there exists a large subset T of S of size at least K^(-512m/epsilon^2)|S| such that for every t in T, the translate of the convolution of the uniform measure on A with f differs from that convolution in L^(2m) norm by at most epsilon times the L^(2m) norm of f.",
+        "confidence": "medium"
+      }
+    },
+    "AlmostPeriodicity.just_the_triangle_inequality": {
+      "isolated": {
+        "slogan": "If a tuple a and its translate a+(t,...,t) both witness that the k-fold average of f over A approximates the convolution of the uniform measure on A with f in the L^(2m) norm up to epsilon times the L^(2m) norm of f, then the translate of that convolution by t differs from itself in L^(2m) norm by at most 2*epsilon times the L^(2m) norm of f.",
+        "confidence": "low"
+      },
+      "slogan_context": {
+        "slogan": "If a tuple of shifts a and its translate a+(t,...,t) both witness that the k-fold average of f over A is within epsilon of the convolution of the uniform measure on A with f in the L^{2m} norm, then the translate of that convolution by t differs from itself in L^{2m} norm by at most 2*epsilon times the L^{2m} norm of f -- a triangle inequality argument extracting approximate periodicity from two good approximations.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "If a tuple a and its translate a+(t,...,t) both witness that the k-fold average of f over A is epsilon-close in L^(2m) norm to the convolution of the uniform measure on A with f, then the translate of that convolution by t differs from the convolution itself in L^(2m) norm by at most 2*epsilon times the L^(2m) norm of f -- a direct consequence of the triangle inequality.",
+        "confidence": "medium"
+      }
+    },
+    "AlmostPeriodicity.lemma28": {
+      "isolated": {
+        "slogan": "For k at least 64m/epsilon^2, at least half of all k-tuples drawn from a set A have the property that the empirical average of f over the tuple approximates the convolution of the uniform measure on A with f to within epsilon in the L^(2m) norm.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "For k at least 64m/epsilon^2, at least half of all k-tuples drawn from A have the property that their empirical average of translates of f approximates the convolution of the uniform measure on A with f to within epsilon in the L^(2m) norm.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "For k at least 64m/epsilon^2, at least half of all k-tuples drawn from a set A have the property that the empirical average of f over the tuple approximates the convolution of the uniform measure on A with f to within epsilon in the L^(2m) norm.",
+        "confidence": "medium"
+      }
+    },
+    "AlmostPeriodicity.linfty_almost_periodicity_boosted": {
+      "isolated": {
+        "slogan": "Given sets A, S, B, C in a finite abelian group with the doubling constant |A+S|/|A| at most K, and parameters epsilon in (0,1] and k a positive integer, there exists a subset T of S whose cardinality is at least K^(-4096 * ceil(log(1/min(1,|C|/|B|))) * k^2 / epsilon^2) times |S|, such that convolving the k-fold convolution of the uniform measure on T with the function mu_A * 1_B * mu_C shifts it by at most epsilon in L-infinity norm.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Given epsilon in (0,1], a positive integer k, a constant K >= 2, sets A and S with additive covering number at most K, and nonempty sets B and C, there exists a set T of size at least K^(-4096 * ceil(log(min(1, |C|/|B|))^{-1}) * k^2 / epsilon^2) * |S| such that the L-infinity norm of the k-fold convolution of the uniform measure on T against the convolution of the uniform measure on A, the indicator of B, and the uniform measure on C, minus that same convolution, is at most epsilon.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Given epsilon in (0,1], a positive integer k, and sets A, S, B, C in a finite abelian group with the doubling constant of A+S at most K >= 2, there exists a subset T of S of size at least K^(-4096 * ceil(log(1/eta)) * k^2 / epsilon^2) times |S|, where eta = min(1, |C|/|B|), such that the L-infinity norm of the k-fold convolution of the uniform measure on T convolved against the function (uniform measure on A) * (indicator of B) * (uniform measure on C), minus that function itself, is at most epsilon.",
+        "confidence": "high"
+      }
+    },
+    "AlmostPeriodicity.linfty_almost_periodicity": {
+      "isolated": {
+        "slogan": "Given sets A, S, B, C in a finite abelian group with the sumset A+S controlled by K times the size of A, there exists a set T of size at least a negative power of K (with exponent depending on log of the ratio |C|/|B| and epsilon^{-2}) times |S|, such that every translate in T shifts the convolution of the indicator of B against the probability measures of A and C by at most epsilon in the L-infinity norm.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "Given sets A, S, B, C in a finite abelian group with |A+S| at most K|A|, there exists a set T of size at least K^{-4096 * ceil(log(|B|/|C|)) * epsilon^{-2}} * |S| such that every translate in T shifts the convolution of the uniform measure on A, the indicator of B, and the uniform measure on C by at most epsilon in the L-infinity norm; this is the L-infinity almost periodicity result.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "Given sets A, S, B, C in a finite group with the sumset A+S having size at most K times |A|, there exists a translate-rich set T of size at least K^(-4096 * ceil(log(|C|/|B|)) / epsilon^2) times |S| such that, for every t in T, the L-infinity norm of the shift-by-t perturbation of the convolution of the A-measure with the indicator of B and the C-measure is at most epsilon.",
+        "confidence": "low"
+      }
+    },
+    "ap_in_ff": {
+      "isolated": {
+        "slogan": "Given sets A1, A2, S in F_q^n where A1 and A2 each have density at least alpha, there exists a subspace V of codimension at most a constant times log(1/alpha)^2 * log(1/(epsilon*alpha))^2 * epsilon^{-2} such that averaging the convolution of the two density functions over V changes its inner product with the indicator of S by at most epsilon.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Given sets A1, A2, S in F_q^n where A1 and A2 each have density at least alpha, there exists a subspace V of codimension at most a explicit bound polynomial in log(1/alpha) and 1/epsilon such that averaging the convolution of the two density functions over V changes its inner product with the indicator of S by at most epsilon.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "If two sets in F_q^n each have density at least alpha, then there exists a subspace V of codimension at most a constant times log(1/alpha)^2 times log(1/(epsilon times alpha))^2 times epsilon^{-2} such that averaging the convolution of the two sets over V changes its inner product with any indicator function by at most epsilon.",
+        "confidence": "high"
+      }
+    },
+    "balance_conv": {
+      "isolated": {
+        "slogan": "Balancing commutes with convolution: the balanced version of a convolution of two functions equals the convolution of their individual balanced versions.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Balancing commutes with convolution: the balanced version of a convolution of two functions equals the convolution of their balanced versions.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Balancing commutes with convolution: the balanced version of a convolution of two functions equals the convolution of their balanced versions.",
+        "confidence": "high"
+      }
+    },
+    "balance_dconv": {
+      "isolated": {
+        "slogan": "Balancing commutes with difference convolution: the difference convolution of two functions, then balanced, equals the difference convolution of their individual balances.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Balancing commutes with difference convolution: the balanced version of the difference convolution of two functions equals the difference convolution of their balanced versions.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Balancing commutes with difference convolution: the balanced version of the difference convolution of two functions equals the difference convolution of their balanced versions.",
+        "confidence": "high"
+      }
+    },
+    "big_shifts": {
+      "isolated": {
+        "slogan": "For a subset A of a finite group G, a positive integer k, and a subset L of the k-fold product of A, there exists a k-tuple in L such that the number of shifts t in G for which translating that tuple by (t,...,t) stays in L is at least |L| times |S| divided by |A+S|^k; that is, some element of L lies on many \"diagonal\" translates within L.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "For any subset A of a group G, any k-fold product set L inside A^k, and any set S, there exists a k-tuple a in L such that the number of shifts t in G for which a translated by (t,...,t) remains in L is at least |L| * |S| / |A+S|^k.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "For a subset A of a finite group G, an integer k at least 1, and a set L of k-tuples from A, there exists a tuple a in L such that the number of shifts t in G for which a plus the diagonal (t,...,t) lands back in L is at least |L| times |S| divided by |A+S|^k, where S is any nonempty subset of G.",
+        "confidence": "medium"
+      }
+    },
+    "BohrSet.IsRegular": {
+      "isolated": {
+        "slogan": "A Bohr set is regular if dilating its frequency-width function by a factor close to 1 changes the size of the Bohr set by a proportionally small multiplicative amount, controlled by the rank of the set.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "A Bohr set is regular if dilating all of its width parameters by a factor close to 1 changes the size of the Bohr set by only a proportionally small multiplicative amount, controlled by the rank of the set.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "A Bohr set is regular if dilating its frequency cutoff function by any factor sufficiently close to 1 changes the size of the Bohr set by at most a controlled multiplicative factor proportional to the rank and the dilation amount.",
+        "confidence": "high"
+      }
+    },
+    "BohrSet.le_card_smul": {
+      "isolated": {
+        "slogan": "A Bohr set defined by scaling a frequency-weight function by rho has cardinality at least (rho/4) raised to the rank of the weight function times the cardinality of the original Bohr set.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "A Bohr set defined by scaling all frequencies by a factor rho in (0,1) has cardinality at least (rho/4) raised to the rank of the frequency weight times the cardinality of the original Bohr set.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "For a Bohr set defined by frequency weights nu and a scaling parameter rho in (0,1), the cardinality of the dilated Bohr set Bohr(rho * nu) is at least (rho/4)^r times the cardinality of Bohr(nu), where r is the rank (number of frequencies) of nu.",
+        "confidence": "medium"
+      }
+    },
+    "BohrSet.regularity": {
+      "isolated": {
+        "slogan": "Every Bohr set admits a dilation by some factor between 1/2 and 1 that makes it regular.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Every Bohr set admits a dilation by some factor between 1/2 and 1 that makes it regular.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Every Bohr set has a regular dilation: there exists a real number rho in [1/2, 1] such that scaling the Bohr set by rho yields a regular Bohr set.",
+        "confidence": "high"
+      }
+    },
+    "BohrSet": {
+      "isolated": {
+        "slogan": "A Bohr set on an additive group is a structure consisting of a finite set of characters (the frequencies) together with a width parameter for each frequency, representing the set of group elements whose character values lie within the specified chord-length distance from 1 at every frequency.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "A Bohr set on an additive group G consists of a finite set of characters (the frequencies) together with a width parameter for each frequency; it represents the set of group elements whose characters are all within the specified chord-length distance from 1, with rank given by the number of frequencies having width less than 2.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "A Bohr set on an additive group G is a record consisting of a finite set of characters (the frequencies) together with a width parameter for each frequency; it represents the set of group elements x for which the chord-length distance |1 - psi(x)| is at most the prescribed width for every frequency psi.",
+        "confidence": "high"
+      }
+    },
+    "boringEnergy_eq": {
+      "isolated": {
+        "slogan": "The 2m-fold additive energy of a set A equals the sum over all group elements of the square of the m-fold convolution of the indicator function of A.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "The 2m-fold additive energy of a set A in a finite abelian group equals the sum over all group elements of the square of the m-fold convolution power of the indicator function of A.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "The 2n-fold additive energy of a set A in a finite abelian group equals the sum over all group elements of the square of the n-fold convolution power of the indicator function of A.",
+        "confidence": "high"
+      }
+    },
+    "boringEnergy": {
+      "isolated": {
+        "slogan": "The 2m-fold additive energy of a subset A of an abelian group, defined as the number of 2m-tuples (a_1, ..., a_{2m}) in A^{2m} satisfying a_1 + a_2 + ... + a_m = a_{m+1} + ... + a_{2m}, returned as a real number.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "The 2m-fold additive energy of a set A in an abelian group G, defined as the number of 2m-tuples (a_1, ..., a_{2m}) in A such that a_1 + ... + a_m - a_{m+1} - ... - a_{2m} = 0.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "The 2m-fold additive energy of a finite subset A of an abelian group, defined as the number of 2m-tuples (a_1, ..., a_{2m}) in A for which a_1 + a_2 + ... + a_m - a_{m+1} - ... - a_{2m} = 0.",
+        "confidence": "medium"
+      }
+    },
+    "chang": {
+      "isolated": {
+        "slogan": "Chang's lemma: for a nonzero function f on a finite abelian group and threshold eta > 0, the large spectrum of f (the set of characters on which the Fourier transform is large) can be covered by the sumset of a small subset Delta of itself, where the size of Delta is bounded by a constant times (1 + log of the ratio of the squared L^1 norm to the squared L^2 norm, normalized by the group order) divided by eta squared.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Chang's lemma: for a nonzero function f on a finite abelian group and threshold eta > 0, the large spectrum of f (the set of characters on which the Fourier transform is large relative to the L^1 norm) is covered by the integer span of a subset Delta of itself, where Delta has cardinality at most a constant times (1 + log of the ratio of the squared L^1 norm to the squared L^2 norm, normalized by the group order) divided by eta squared.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Chang's lemma: for a nonzero function f on a finite abelian group and eta > 0, the large spectrum of f at threshold eta is covered by the integer span of a small subset of itself, where the subset has cardinality at most a constant times (1 + log of the inverse of the normalized ratio of the L^1 norm squared to the L^2 norm squared) divided by eta squared.",
+        "confidence": "high"
+      }
+    },
+    "cLpNorm_cconv_le_cLpNorm_cdconv": {
+      "isolated": {
+        "slogan": "For any function f from a finite abelian group to the complex numbers and any positive even integer n, the L^n norm of the convolution of f with itself is at most the L^n norm of the difference convolution of f with itself.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For any function f from a finite abelian group to the complex numbers and any positive even integer n, the L^n norm of the convolution of f with itself is at most the L^n norm of the difference convolution (multiplicative convolution with the conjugate-reversed function) of f with itself.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For any function f from a finite abelian group to the complex numbers and any even integer n >= 2, the L^n norm of the convolution of f with itself is at most the L^n norm of the difference convolution of f with itself.",
+        "confidence": "high"
+      }
+    },
+    "di_in_ff": {
+      "isolated": {
+        "slogan": "If a set A in F_q^n fails to have its double convolution density near 1 against a dense set C (with discrepancy exceeding epsilon), then there exists a subspace V of codimension at most a constant times epsilon^{-24} times a polynomial in the logarithms of the densities of A and C, such that the convolution of the indicator of A with the uniform measure on V achieves density at least (1 + epsilon/32) times the density of A — giving a density increment on a structured subspace.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "If two copies of a set A in F_q^n fail to be statistically independent relative to a dense set C (measured by how far their normalized inner product deviates from 1 by more than epsilon), then there exists a subspace V of codimension at most a polynomial in 1/epsilon, log(1/alpha), and log(1/gamma) such that the convolution of the indicator of A with the uniform measure on V achieves a sup-norm strictly greater than the density of A by a factor of 1 + epsilon/32.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "If a set A in F_q^n fails to have near-uniform additive energy relative to a dense set C, then there exists a subspace V of codimension at most a fixed power of epsilon^{-1}, log(1/alpha), and log(1/gamma) such that the convolution of the indicator of A with the uniform measure on V exceeds the density of A by a factor of at least 1 + epsilon/32; this is a density increment result in the finite-field setting.",
+        "confidence": "medium"
+      }
+    },
+    "drc": {
+      "isolated": {
+        "slogan": "Given sets B_1, B_2, A in a finite abelian group, an integer p >= 2, and a nonneg function f with support meeting (B_1 - B_2) intersect (A - A), there exist subsets A_1 of B_1 and A_2 of B_2 such that the inner product of the convolved means of A_1 and A_2 against f, times the L^p norm (with respect to the convolved uniform measures on B_1 and B_2) of the self-difference-convolution of A, is at most twice the weighted L^p average of that convolution against f, while both density ratios |A_1|/|B_1| and |A_2|/|B_2| are bounded below by (1/4) times the 2p-th power of that L^p norm divided by |A|^(2p).",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Given an integer p at least 2, sets B1, B2, and A in a finite abelian group, and a nonnegative function f, there exist subsets A1 of B1 and A2 of B2 such that the inner product of the convolution of normalized measures on A1 and A2 with f, times the p-th power of the L^p norm (with respect to the convolution measure on B1 and B2) of the self-convolution of the indicator of A, is at most twice the weighted sum of p-th powers of that self-convolution against f, and moreover both density ratios |A1|/|B1| and |A2|/|B2| are bounded below by (1/4) times the (2p)-th power of that L^p norm divided by the (2p)-th power of |A|.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Given sets B1, B2, A in a finite abelian group, an integer p at least 2, and a nonneg function f, there exist subsets A1 of B1 and A2 of B2 such that the inner product of the difference-convolution of their uniform measures with f, times the L^p norm (weighted by the convolution of the uniform measures of B1 and B2) of the difference-convolution of the indicator of A with itself to the p-th power, is at most twice the weighted L^p average of that convolution against f, and moreover both density ratios |A1|/|B1| and |A2|/|B2| are at least (1/4) times the 2p-th power of that L^p norm divided by |A|^(2p).",
+        "confidence": "high"
+      }
+    },
+    "energy": {
+      "isolated": {
+        "slogan": "The weighted 2n-th additive energy of a set in an abelian group with respect to a weight function, defined as the sum over all 2n-tuples of elements of the set of the absolute value of the Fourier transform of the weight evaluated at the alternating sum of those elements.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "The 2n-th weighted additive energy of a set in an abelian group with respect to a weight function nu, defined as the sum over all 2n-tuples of elements of the set of the absolute value of the Fourier transform of nu evaluated at the alternating sum of those elements.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "The 2n-th weighted additive energy of a set in an abelian group with respect to a weight function nu, defined as the sum over all 2n-tuples of elements of the set of the absolute value of the Fourier transform of nu evaluated at the signed sum of those elements.",
+        "confidence": "medium"
+      }
+    },
+    "Finset.exists_subset_addSpan_card_le_of_forall_addDissociated": {
+      "isolated": {
+        "slogan": "If every dissociated subset of a finite set s has at most d elements, then s has a subset s' of size at most d whose additive span (integer combinations with coefficients in {-1, 0, 1}) covers all of s.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "If every dissociated subset of a set s in a finite abelian group has size at most d, then s contains a subset s' of size at most d whose additive span (integer combinations with coefficients in {-1, 0, 1}) covers all of s.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "If every dissociated subset of a set s in a finite abelian group has size at most d, then s has a subset s' of size at most d whose additive span (sums of signed elements) covers all of s.",
+        "confidence": "high"
+      }
+    },
+    "general_hoelder": {
+      "isolated": {
+        "slogan": "For a finite abelian group G, a function f on G, a weight nu that is at least 1 wherever f is nonzero, and a set Delta of eta-large Fourier characters of f, the 2m-th energy of Delta against the Fourier transform of nu is at least eta^(2m) times the square of the L^1 norm of f divided by the square of the L^2 norm of f, multiplied by the (2m)-th power of the size of Delta.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For a finite abelian group G, a function f from G to the complex numbers, a weight function nu that is at least 1 wherever f is nonzero, and a set Delta of eta-large Fourier characters of f, the 2m-th energy of Delta with respect to the Fourier transform of nu is at least eta^(2m) times the square of the L^1 norm of f divided by the square of the L^2 norm of f, all multiplied by |Delta|^(2m).",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For a finite abelian group G, a function f from G to the complex numbers, a nonneg weight function nu that is at least 1 wherever f is nonzero, and a set Delta of characters lying in the eta-large spectrum of f, the 2m-th energy of Delta with respect to the Fourier transform of nu is at least |Delta|^(2m) times eta^(2m) times the square of the L^1 norm of f divided by the square of the L^2 norm of f.",
+        "confidence": "high"
+      }
+    },
+    "global_dichotomy": {
+      "isolated": {
+        "slogan": "If a set A and a set C of density at least gamma in a finite group satisfy a discrepancy condition -- namely that the inner product of the self-convolution of the normalized indicator of A with the normalized indicator of C deviates from 1 by more than epsilon -- then the L^p norm of the difference convolution of the balanced version of A with itself is at least epsilon divided by 2N, where p is roughly twice the logarithm of 1/gamma.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "If a set A and a set C of density at least gamma in a finite group fail the expected triple-count by more than epsilon, then the difference convolution of the balanced indicator of A with itself has L^p norm at least epsilon divided by 2N, where p is twice the ceiling of the logarithm of 1/gamma.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "If a set A and a set C of density at least gamma in a finite group fail the near-uniform mixing condition -- meaning the normalized inner product of the self-convolution of the balanced indicator of A with the indicator of C deviates from 1 by more than epsilon -- then the L^p norm of the difference convolution of the balanced version of A with itself is at least epsilon divided by 2N, where p is twice the ceiling of the logarithm of 1/gamma.",
+        "confidence": "medium"
+      }
+    },
+    "largeSpec": {
+      "isolated": {
+        "slogan": "The eta-large spectrum of a function f on a finite abelian group G is the set of characters of G whose Fourier coefficient has absolute value at least eta times the L^1 norm of f.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "The eta-large spectrum of a function f on a finite abelian group is the set of characters whose Fourier coefficient has absolute value at least eta times the L^1 norm of f.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "The eta-large spectrum of a function f on a finite abelian group is the set of characters whose Fourier coefficient has absolute value at least eta times the L^1 norm of f.",
+        "confidence": "high"
+      }
+    },
+    "pow_inner_nonneg": {
+      "isolated": {
+        "slogan": "If f is the self-difference-convolution of some complex-valued function g, and nu arises as the self-difference-convolution of another function h, then the weighted average of the k-th power of f against nu is nonnegative.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "If f arises as the self-convolution of some complex-valued function, then the weighted average of any nonneg integer power of f against a nonneg weight (itself a self-convolution) is nonneg; proved directly without invoking the Fourier transform.",
+        "confidence": "medium"
+      },
+      "code_context": {
+        "slogan": "If f is the self-difference-convolution of some complex-valued function, and nu arises similarly as a nonneg-real-valued self-difference-convolution, then the nu-weighted average of the k-th power of f is nonneg for any natural number k.",
+        "confidence": "medium"
+      }
+    },
+    "RCLike.marcinkiewicz_zygmund": {
+      "isolated": {
+        "slogan": "The Marcinkiewicz-Zygmund inequality: if each coordinate-slice of f sums to zero over a finite index set, then the (2m)-th power moment of the row sums over the product set is bounded above by (8m)^m times n^(m-1) times the sum of individual (2m)-th power moments.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For real- or complex-valued functions with mean zero along each coordinate, the sum over all n-tuples (from a product index set) of the 2m-th power of the norm of the coordinate sum is bounded above by (8m)^m times n^(m-1) times the sum of the individual 2m-th power norms; this is the Marcinkiewicz-Zygmund inequality controlling moments of sums of mean-zero functions.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "The Marcinkiewicz-Zygmund inequality: if f is a real- or complex-valued function whose sum over every coordinate slice vanishes, then the sum over all n-tuples of the (2m)-th power of the norm of the coordinate sum is bounded by (8m)^m times n^(m-1) times the sum of the individual (2m)-th power norms, giving moment control on sums of mean-zero functions over product index sets.",
+        "confidence": "high"
+      }
+    },
+    "Real.marcinkiewicz_zygmund'": {
+      "isolated": {
+        "slogan": "For real-valued functions with mean zero over each coordinate, the average of the (2m)-th power of the sum over n independent variables is bounded above by (4m)^m times the average of the m-th power of the sum of squares; this is the Marcinkiewicz-Zygmund inequality with an improved constant.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For real-valued functions with zero sum over each coordinate, the sum over all n-tuples of the 2m-th power of the row-sum is bounded by (4m)^m times the sum over all n-tuples of the m-th power of the sum of squares of entries; this is the Marcinkiewicz-Zygmund inequality with an improved constant.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "A Marcinkiewicz-Zygmund inequality for real-valued functions: if each function f has zero mean over a finite index set A in each coordinate, then the average of the (2m)-th power of the row sums over all n-tuples in the product of A is bounded above by (4m)^m times the average of the m-th power of the sum of squares of the row entries, with a slightly sharper constant than the standard version.",
+        "confidence": "medium"
+      }
+    },
+    "Real.marcinkiewicz_zygmund": {
+      "isolated": {
+        "slogan": "For real-valued functions whose coordinate sums are zero in each fiber, the sum over all n-tuples (drawn from a product index set) of the 2m-th power of the row-sum is at most (4m)^m times n^(m-1) times the sum of the individual 2m-th powers; this is the Marcinkiewicz-Zygmund moment inequality giving an upper bound on even moments of sums of mean-zero terms.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For real-valued functions f_1, ..., f_n indexed by a finite set, if each f_i has zero sum over that set, then the (2m)-th moment of their sum is bounded above by (4m)^m times n^(m-1) times the sum of the individual (2m)-th moments -- a real-valued Marcinkiewicz-Zygmund inequality with an explicit and relatively clean constant.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For real-valued functions indexed by a finite set, if for each coordinate the sum of f over all tuples vanishes, then the sum over all tuples of the (2m)-th power of the coordinate sum is bounded above by (4m)^m times n^(m-1) times the sum over all tuples of the individual (2m)-th powers -- this is the Marcinkiewicz-Zygmund moment inequality with an explicit and relatively sharp constant.",
+        "confidence": "high"
+      }
+    },
+    "rudin_exp_ineq": {
+      "isolated": {
+        "slogan": "Rudin's inequality (exponential form): if the support of the Fourier transform of a function f on a finite abelian group is dissociated, then the average of exp(Re f) is at most exp of half the squared L^2 norm of f.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For a function on a finite abelian group whose Fourier transform has dissociated support, the average of exp(Re f) is at most exp of half the squared L^2 norm of f -- the exponential form of Rudin's inequality.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "If the Fourier transform of a function f from a finite abelian group to the complex numbers has dissociated support, then the average of exp(Re f) over the group is at most exp of half the squared L^2 norm of f.",
+        "confidence": "high"
+      }
+    },
+    "rudin_ineq": {
+      "isolated": {
+        "slogan": "For a function on a finite abelian group whose Fourier transform has dissociated support, the L^p norm is bounded by a constant times the square root of p times the L^2 norm, for any integer p at least 2.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For a function on a finite abelian group whose Fourier transform has dissociated support, the L^p norm is bounded above by a constant times the square root of p times the L^2 norm, for any integer p at least 2.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For a function on a finite abelian group whose Fourier transform has dissociated support, the L^p norm is bounded by a constant times the square root of p times the L^2 norm, for any integer p at least 2.",
+        "confidence": "high"
+      }
+    },
+    "sifting_cor": {
+      "isolated": {
+        "slogan": "Given a nonempty set A of density alpha in a finite abelian group, and parameters epsilon, delta > 0 and an even integer p at least max(2, epsilon^{-1} log(2/delta)), there exist subsets A_1 and A_2, each of density at least (1/4) * alpha^{2p}, such that the difference convolution of their uniform measures places at least 1 - delta of its total mass on the sifted set of x where the self-convolution of the uniform measure on A is large relative to its L^p norm.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "Given a set A of density alpha in a finite abelian group, an even integer p at least max(2, (1/epsilon) * log(2/delta)), and the sifted set S of elements where the self-difference convolution of A is large, there exist subsets A_1 and A_2 each of density at least (1/4) * alpha^(2p) such that the convolution of their normalised indicator functions places mass at least 1 - delta on S.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Given a nonempty set A of density alpha in a finite abelian group, an even integer p at least 2 and at least epsilon^{-1} times log(2/delta), there exist subsets A_1 and A_2 each of density at least (1/4) * alpha^{2p} such that the convolution of their uniform probability measures places total mass at least 1 - delta on the sifted level set of the self-convolution of the uniform measure on A.",
+        "confidence": "medium"
+      }
+    },
+    "sifting": {
+      "isolated": {
+        "slogan": "Given an even integer p at least 2 and at least epsilon^{-1} times log(2/delta), and sets B_1, B_2, A in a finite abelian group, if A has an element outside the set S of x where the self-difference convolution of A exceeds (1-epsilon) times its L^p norm (with respect to the convolution of the uniform measures on B_1 and B_2), then there exist subsets A_1 of B_1 and A_2 of B_2 such that the convolution of their uniform measures places mass at least 1-delta on S, and both density ratios |A_1|/|B_1| and |A_2|/|B_2| are at least (1/4) times the 2p-th power of the L^p norm of the self-difference convolution of A divided by |A|^{2p}.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "Given sets A, B_1, B_2 in a finite abelian group with A not entirely \"sifted\" at scale epsilon relative to B_1 and B_2, and an even integer p at least max(2, epsilon^{-1} log(2/delta)), there exist subsets A_1 of B_1 and A_2 of B_2 such that the convolution of their normalized indicators charges the epsilon-popular sumset of A with mass at least 1 - delta, and each of |A_1|/|B_1| and |A_2|/|B_2| is bounded below by (1/4) times the (2p)-th power of the L^p norm of the self-convolution of the indicator of A (with respect to the convolution measure on B_1 and B_2), divided by |A|^{2p}.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Given an even integer p at least max(2, epsilon^{-1} log(2/delta)), sets B_1 and B_2 in a finite abelian group, and a nonempty set A whose difference set meets B_1 - B_2 outside the top-(1-epsilon) level set S of the self-convolution of the indicator of A (measured in the L^p norm against the convolved uniform measures on B_1 and B_2), there exist subsets A_1 of B_1 and A_2 of B_2 such that the convolved uniform measure on A_1 and A_2 assigns mass at least 1-delta to S, and the relative densities of A_1 in B_1 and A_2 in B_2 are each at least (1/4) times the 2p-th power of the L^p norm of the self-convolution of the indicator of A divided by the 2p-th power of the size of A.",
+        "confidence": "high"
+      }
+    },
+    "spec_hoelder": {
+      "isolated": {
+        "slogan": "For a function on a finite abelian group, if a set of characters is contained in the eta-large spectrum of f, then the (2m)-th additive energy of that set is at least |Delta|^(2m) times eta^(2m) times the ratio of the L^1 norm squared to the L^2 norm squared, divided by the group order.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "For a function f on a finite abelian group G and a set Delta of eta-large Fourier characters, the 2m-th energy of Delta is at least |Delta|^(2m) times eta^(2m) times the ratio of the squared L^1 norm to the squared L^2 norm of f, divided by the group order. This gives a lower bound on the additive energy of the spectrum via a Holder-type inequality.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "For a function on a finite abelian group, if Delta is a subset of its eta-large spectrum, then for any positive integer m, the quantity |Delta|^(2m) times eta^(2m) times the ratio of the squared L^1 norm to the squared L^2 norm, divided by the group order, is at most the 2m-th additive energy of Delta.",
+        "confidence": "high"
+      }
+    },
+    "ThreeAPFree.wInner_one_mu_conv_mu_mu_two_smul_mu": {
+      "isolated": {
+        "slogan": "If A is a 3-AP-free subset of a finite abelian group of odd order, then the inner product of the convolution of the uniform measure on A with itself against the uniform measure on the doubling set 2*A equals 1 divided by the square of the size of A.",
+        "confidence": "high"
+      },
+      "slogan_context": {
+        "slogan": "If a subset A of a finite abelian group of odd order is 3-AP-free, then the inner product of the convolution of its uniform probability measure with itself against the uniform probability measure on the doubling set 2A equals 1 divided by the square of the size of A.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "If A is a 3-AP-free subset of a finite abelian group of odd order, then the inner product of the convolution of the uniform probability measure on A with itself against the uniform probability measure on the doubled set 2A equals 1 divided by the square of the size of A.",
+        "confidence": "high"
+      }
+    },
+    "unbalancing": {
+      "isolated": {
+        "slogan": "Given a real-valued function f on a finite abelian group whose L^p norm (against the uniform measure) is at least epsilon, there exists an exponent p' at most 2^10 times epsilon^{-2} times p such that the L^{p'} norm of f + 1 is at least 1 + epsilon/2. This is the unbalancing step: passing from a lower bound on the L^p norm of f to a slightly larger-than-1 lower bound on the L^{p'} norm of f + 1, with only a polynomial increase in the exponent.",
+        "confidence": "medium"
+      },
+      "slogan_context": {
+        "slogan": "If the L^p norm of a real-valued function f (expressed as a self-difference-convolution) is at least epsilon, then there exists p' at most 2^10 * epsilon^{-2} * p such that the L^{p'} norm of f + 1 is at least 1 + epsilon/2; this is the unbalancing step that converts an L^p lower bound into a shifted L^{p'} lower bound without passing through the Fourier transform.",
+        "confidence": "high"
+      },
+      "code_context": {
+        "slogan": "Given a real-valued function f on a finite abelian group whose L^p norm (against the uniform measure) is at least epsilon, there exists p' at most 2^10 times epsilon^{-2} times p such that the L^{p'} norm of f + 1 is at least 1 + epsilon/2; this is the unbalancing step that converts an L^p lower bound into a shifted L^{p'} lower bound without using the Fourier transform.",
+        "confidence": "medium"
+      }
+    }
+  }
+}

@@ -13,21 +13,27 @@ Think "the line you'd put under the theorem name in a survey article."
 
 ## Style rules
 
-1. **One sentence. ≤30 words.** If you can't say it in one sentence, the slogan
-   is wrong; rewrite.
-2. **Mathematical content, not Lean syntax.** Say what the statement means, not
-   what type-class or notation it uses.
-3. **Active voice, concrete claim.** "Bounds the codimension by …" beats "is a
-   result about codimensions."
-4. **No Lean identifiers in the slogan text.** If the declaration is
+1. **1–4 sentences, plain English.** Standalone summary. Don't open with "this
+   statement", "this theorem", "this definition" or similar self-reference;
+   just describe the result.
+2. **ASCII characters only. No LaTeX, no Unicode math symbols.** Write
+   "alpha-dense" not "α-dense", "L^p norm" not "‖·‖_p", "F_q^n" not "𝔽_q^n",
+   "epsilon" not "ε", "sum" not "∑", "subset of" not "⊆". No `$…$`, no
+   backslashes, no `\frac`, no `\mathbb`. The goal is text that embeds well —
+   pretend the reader can only see ASCII.
+3. **Mathematical content, not Lean syntax.** Say what the statement means,
+   not what type-class or notation it uses.
+4. **Active voice, concrete claim.** "Bounds the codimension by …" beats "is
+   a result about codimensions."
+5. **No Lean identifiers in the slogan text.** If the declaration is
    `AlmostPeriodicity.lemma28`, the slogan must not contain `lemma28` or
    `AlmostPeriodicity`. Likewise no `cLpNorm`, `dconv`, etc. — translate them
    ("L^p norm of the difference convolution") or paraphrase.
-5. **Definitions get definitional slogans.** "The Roth number of a finite
+6. **Definitions get definitional slogans.** "The Roth number of a finite
    group, i.e. the largest 3-AP-free subset." For instances/structures: state
    what mathematical object is being equipped or characterized.
-6. **Technical glue is allowed to admit it.** "Technical: rewrites convolution
-   under the natural inclusion ℤ/p ↪ ℤ." Don't dress it up.
+7. **Technical glue is allowed to admit it.** "Technical: rewrites convolution
+   under the natural inclusion of Z/p into Z." Don't dress it up.
 
 ## Input format (one declaration at a time)
 
@@ -73,22 +79,20 @@ alone.
 
 ```
 DECL_NAME: balance_conv
-SIGNATURE: ∀ f : G → ℂ, ∑ f = 1 → f ∗ f - 1/N = (f - 1/N) ∗ (f - 1/N)
-SLOGAN: Convolving the balanced version of a probability mass function reduces to the balanced version of its self-convolution.
+SLOGAN: Balancing commutes with convolution: subtracting the mean from a probability density and then convolving the result with itself gives the same function as convolving the density with itself and then subtracting its mean.
 CONFIDENCE: high
 ```
 
 ```
 DECL_NAME: ap_in_ff
-SIGNATURE: ∀ (A₁ A₂ S : Finset (ZMod q)^n), … codim V ≤ 2^27 * log α^2 * log(εα)^2 * ε^(-2)
-SLOGAN: In F_q^n, two α-dense sets and any third set contain a subspace V of codimension polylogarithmic in α and ε on which their convolution is ε-uniform.
+SLOGAN: Given two sets in F_q^n, each of density at least alpha, and any third set, there exists a subspace V of codimension polynomial in log(1/alpha) and 1/epsilon on which the convolution of the first two sets is epsilon-uniform relative to the third. This is the finite-field analogue of an almost-periodicity result used in additive combinatorics.
 CONFIDENCE: high
 ```
 
 ```
 DECL_NAME: BohrSet.IsRegular
 KIND: structure
-SLOGAN: A Bohr set whose width function is sufficiently insensitive to small dilations, so that ρ-dilations change its cardinality only by a controlled factor.
+SLOGAN: A Bohr set is regular when small dilations of its width function change its cardinality only by a controlled multiplicative factor. This insensitivity property is the standard technical condition used to make Bohr sets behave well under iterative refinement.
 CONFIDENCE: medium
 ```
 
