@@ -1,38 +1,22 @@
 """
-Register a local LaTeX paper (e.g. a Lean blueprint) into the paper table.
+Register a paper in the ``paper`` table.
 
-The folder is tarballed, gzipped, and uploaded to S3 under ``s3://<bucket>/<kind>/<external_id>.tar.gz``.
-A row is upserted into ``paper`` plus the source-specific metadata extension table
-(e.g. ``reservoir_paper_metadata`` for Reservoir blueprints).
+Pure metadata registration — does not store source files anywhere. Per-source scrapers
+(e.g. ``scrape_lean_community``) are responsible for populating their own
+``<source>_paper_metadata`` extension table with whatever is needed to re-fetch the
+LaTeX source at parse time.
 """
 
-import tarfile
-import tempfile
 from argparse import ArgumentParser
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 from rds.utils.connect import get_rds_connection
 from rds.utils.upsert import upsert_row
-from s3.utils.io import upload_file
-from ..constants import PAPERS_BUCKET
 from ..printing import print_script_header
 
 
-_SOURCE_METADATA_TABLE = {
-    "Reservoir": ("reservoir_paper_metadata", "reservoir_slug"),
-}
-
-
-def _tar_gzip(folder: Path, out_path: Path) -> None:
-    with tarfile.open(out_path, "w:gz") as tf:
-        for entry in sorted(folder.iterdir()):
-            tf.add(entry, arcname=entry.name)
-
-
 def add_paper(
-    path: Path,
     kind: str,
     source: str,
     external_id: str,
@@ -41,26 +25,15 @@ def add_paper(
     url: Optional[str],
     overwrite: bool,
 ):
-    if not path.is_dir():
-        raise NotADirectoryError(f"--path must be a directory: {path}")
-
-    if not any(p.suffix == ".tex" for p in path.rglob("*")):
-        raise ValueError(f"No .tex files found under {path}")
-
-    s3_key = f"{kind}/{external_id}.tar.gz"
-    s3_uri = f"s3://{PAPERS_BUCKET}/{s3_key}"
-
     print_script_header(
-        action="Adding paper folder",
+        action="Adding paper",
         params={
-            "path": path,
             "kind": kind,
             "source": source,
             "external_id": external_id,
             "title": title,
             "authors": authors,
             "url?": url,
-            "s3 destination": s3_uri,
             "overwrite": overwrite,
         }
     )
@@ -78,19 +51,6 @@ def add_paper(
                     f"paper already exists for (source={source}, external_id={external_id}). "
                     "Pass --overwrite to replace."
                 )
-
-    print("Creating tarball...")
-    with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp:
-        tarball_path = Path(tmp.name)
-    try:
-        _tar_gzip(path, tarball_path)
-        size_mb = tarball_path.stat().st_size / (1024 * 1024)
-        print(f"  Tarball: {tarball_path} ({size_mb:.2f} MB)")
-
-        print(f"Uploading to {s3_uri}...")
-        upload_file(tarball_path, s3_uri)
-    finally:
-        tarball_path.unlink(missing_ok=True)
 
     print("Upserting paper row...")
     upsert_row(
@@ -111,33 +71,13 @@ def add_paper(
         }
     )
 
-    if source in _SOURCE_METADATA_TABLE:
-        table, id_col = _SOURCE_METADATA_TABLE[source]
-        print(f"Ensuring {table} row exists...")
-        upsert_row(
-            conn,
-            table=table,
-            row={id_col: external_id},
-            on_conflict={
-                "with": [id_col],
-                # DO NOTHING — preserve any preamble/bibliography already there
-            }
-        )
-
     conn.commit()
     print("Done.")
 
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
-        description="Register a local LaTeX paper folder (uploads to S3 and updates paper table)."
-    )
-
-    arg_parser.add_argument(
-        "--path",
-        type=Path,
-        required=True,
-        help="Path to the local folder containing the paper's LaTeX source."
+        description="Register a paper row (no source file storage)."
     )
 
     arg_parser.add_argument(
@@ -145,14 +85,14 @@ if __name__ == "__main__":
         type=str,
         required=True,
         choices=["paper", "blueprint", "textbook", "lean_repo", "open_project"],
-        help="paper_kind. Determines the S3 folder (e.g. blueprint/, textbook/)."
+        help="paper_kind."
     )
 
     arg_parser.add_argument(
         "--source",
         type=str,
         required=True,
-        help="Upstream source (e.g. 'Reservoir' for Lean blueprints)."
+        help="Upstream source (e.g. 'Lean Community', 'arXiv')."
     )
 
     arg_parser.add_argument(
@@ -160,7 +100,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         dest="external_id",
-        help="Identifier within the source (e.g. Reservoir slug like 'apap')."
+        help="Identifier within the source (e.g. 'teorth/pfr' for a GitHub repo slug, arXiv ID, etc.)."
     )
 
     arg_parser.add_argument(
@@ -181,7 +121,7 @@ if __name__ == "__main__":
         "--url",
         type=str,
         default=None,
-        help="Canonical URL (e.g. blueprint homepage). Optional."
+        help="Canonical URL (e.g. blueprint PDF or repo URL). Optional."
     )
 
     arg_parser.add_argument(
@@ -193,7 +133,6 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     add_paper(
-        path=args.path,
         kind=args.kind,
         source=args.source,
         external_id=args.external_id,

@@ -220,14 +220,14 @@ def connect_intrapaper_dependencies(
     sample: int = -1,
 ):
     _base = (
-        "SELECT p.paper_id FROM paper p"
-        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id" if condition and "apm." in condition else "")
-        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
+        "SELECT paper.paper_id FROM paper"
+        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
+        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
     )
     _where = [
         {
             "if": True,
-            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = p.paper_id)",
+            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)",
         },
         {
             "if": not overwrite,
@@ -235,7 +235,7 @@ def connect_intrapaper_dependencies(
                 "NOT EXISTS ("
                 " SELECT 1 FROM statement"
                 " JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id"
-                " WHERE statement.paper_id = p.paper_id"
+                " WHERE statement.paper_id = paper.paper_id"
                 " AND informal_dependency.cite_key IS NULL"
                 + _overwrite_method_clause(do_deterministic, do_heuristic)
                 + ")"
@@ -248,7 +248,7 @@ def connect_intrapaper_dependencies(
         },
         {
             "if": n_shards > 1,
-            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "condition": "hashtext(paper.paper_id::text) %% %s = %s",
             "params": [n_shards, shard],
         },
     ]
@@ -256,7 +256,7 @@ def connect_intrapaper_dependencies(
     query, params = build_query(base_query=_base, where_clauses=_where)
     if sample > 0:
         ids    = sample_ids(conn, query, params, sample)
-        query  = "SELECT p.paper_id FROM paper p WHERE p.paper_id = ANY(%s::uuid[])"
+        query  = "SELECT paper.paper_id FROM paper WHERE paper.paper_id = ANY(%s::uuid[])"
         params = [ids]
 
     count = get_query_count(conn, query, params)

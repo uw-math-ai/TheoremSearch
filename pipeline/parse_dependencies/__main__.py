@@ -87,6 +87,14 @@ if __name__ == "__main__":
         help="Concurrent LLM requests for online --method llm (default: 8)",
     )
     arg_parser.add_argument(
+        "--llm-batch-size",
+        type=int,
+        default=10,
+        dest="llm_batch_size",
+        help="Statements per LLM call for online --method llm (default: 10). "
+             "Each call asks the model for a JSON array of that many extractions.",
+    )
+    arg_parser.add_argument(
         "--batch",
         choices=_BATCH_PHASES,
         default=None,
@@ -106,7 +114,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--rows-per-file", type=int, default=-1, dest="rows_per_file",
                             help="Split batch output into files of at most N rows.")
     arg_parser.add_argument("--debug", action="store_true",
-                            help="Print per-rejection reasons (only valid with --method judge).")
+                            help="Verbose per-call logging. With --method judge: print per-rejection reasons. "
+                                 "With --method llm: print one line per LLM submit/return.")
     args = arg_parser.parse_args()
 
     methods          = set(args.methods)
@@ -118,8 +127,8 @@ if __name__ == "__main__":
     # ── Validate combinations ────────────────────────────────────────────
     if do_judge and len(methods) > 1:
         _err("--method judge cannot be combined with other methods")
-    if args.debug and not do_judge:
-        _err("--debug is only valid with --method judge")
+    if args.debug and not (do_judge or do_llm):
+        _err("--debug is only valid with --method judge or --method llm")
 
     if args.batch is not None:
         invalid = methods - _BATCH_METHODS
@@ -254,7 +263,7 @@ if __name__ == "__main__":
             "shard?":                f"{args.shard}/{args.n_shards}" if args.n_shards > 1 else None,
             "methods":              sorted(methods),
             **({"model": args.model} if (do_llm or do_judge) else {}),
-            **({"workers": args.workers} if do_llm else {}),
+            **({"workers": args.workers, "llm batch size": args.llm_batch_size} if do_llm else {}),
         }
     )
 
@@ -304,9 +313,11 @@ if __name__ == "__main__":
             overwrite=args.overwrite,
             batch_size=args.batch_size,
             workers=args.workers,
+            llm_batch_size=args.llm_batch_size,
             shard=args.shard,
             n_shards=args.n_shards,
             sample=args.sample,
+            debug=args.debug,
         )
 
     if do_judge:

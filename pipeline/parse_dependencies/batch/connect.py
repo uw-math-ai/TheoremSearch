@@ -24,7 +24,7 @@ from rds.utils.upsert import upsert_rows
 from s3.utils.io import list_files
 from s3.utils.batch import iter_batch_results
 from ...printing import print_script_header
-from ..extract import parse_extraction
+from ..extract import parse_extraction_batch
 from ..write import _write_paper_deps
 from .prepare import _s3_output_dir, _fetch_judge_statements, _fetch_paper_info
 
@@ -99,7 +99,8 @@ def _process_llm_file(conn, path: str, batch_size: int) -> dict:
 
     with tqdm(desc="  parse", unit=" stmts", dynamic_ncols=True) as pbar:
         for statement_id, text, usage in iter_batch_results([path], stats=api_stats):
-            result = parse_extraction(text)
+            extractions = parse_extraction_batch(text, expected_ids=[statement_id])
+            result = extractions.get(statement_id) or {"defines": [], "uses": []}
             total_parse += 1
             if result.get("defines") or result.get("uses"):
                 ok_parse += 1

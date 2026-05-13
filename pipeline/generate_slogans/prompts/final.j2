@@ -3,6 +3,7 @@
 Write a 1-4 sentence, plain-English standalone summary of the following mathematical statement.
 Use words in ASCII characters only, no LaTeX or Unicode.
 Describe the result without referencing it as "this statement" or similar.
+If the context feels thin, make your best guess and write the slogan confidently — do not hedge, refuse, or mention missing context.
 
 Statement to summarize:
 {{ statement.kind | title }}{% if statement.note %} ({{ statement.note }}){% endif %}: {{ statement.body }}
@@ -29,9 +30,9 @@ Pre-context: {{ statement.pre_context }}
 Post-context: {{ statement.post_context }}
 {% endif %}
 {% if body_deps or cite_deps %}
-This result uses:
+This result uses the following dependencies, listed most-trustworthy first. Each "trust" score is the sum of the methods that detected the dependency (deterministic=1.0, heuristic=0.7, LLM=0.5, judge=0); higher trust means you should weigh the dependency more confidently when summarising.
 {% for dep in body_deps %}
-- {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.methods %}, methods: {{ dep.methods | join(", ") }}{% endif %})
+- (trust {{ "%.1f" | format(dep.trust) }}) {{ dep.dep_kind | title if dep.dep_kind else "Result" }}{% if dep.dep_name %} "{{ dep.dep_name }}"{% elif dep.dep_key %} ({{ dep.dep_key }}){% endif %}{% if dep.cite_key %} [{{ dep.cite_key }}{% if dep.cite_title %} = "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %}{% endif %}]{% endif %}: {{ dep.dep_body }} (via {{ dep.dep_key or dep.cite_key }}{% if dep.location %}, found in {{ dep.location }}{% endif %}{% if dep.methods %}, methods: {{ dep.methods | join(", ") }}{% endif %})
 {% if dep.dep_proof %}
   Proof: {{ dep.dep_proof }}
 {% endif %}
@@ -41,10 +42,10 @@ This result uses:
 {% endfor %}
 {% for dep in cite_deps %}
 {% if dep.cite_title %}
-- "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %} [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}]{% if dep.cite_abstract %} — {{ dep.cite_abstract }}{% endif %}
+- (trust {{ "%.1f" | format(dep.trust) }}) "{{ dep.cite_title }}"{% if dep.cite_authors %} by {{ dep.cite_authors | join(", ") }}{% endif %} [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}]{% if dep.cite_abstract %} — {{ dep.cite_abstract }}{% endif %}
 
 {% else %}
-- [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}] — cited, not resolved to a specific statement
+- (trust {{ "%.1f" | format(dep.trust) }}) [{{ dep.cite_key }}{% if dep.dep_name %}, {{ dep.dep_name }}{% endif %}] — cited, not resolved to a specific statement
 {% endif %}
 {% endfor %}
 {% endif %}

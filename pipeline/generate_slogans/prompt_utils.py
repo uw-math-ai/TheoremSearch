@@ -15,6 +15,23 @@ _ARXIV_META_FIELDS = frozenset({
     "citation_count", "reference_ids", "journal_ref", "doi", "license",
 })
 
+# How much each extraction method contributes to a dependency's trust score.
+# A dependency's trust is the sum across the methods that produced it. A dep
+# whose only method is "judge" therefore scores 0 and is dropped before
+# templates ever see it — judge alone is signal-free here.
+_DEP_TRUST_POINTS = {
+    "deterministic": 1.0,
+    "heuristic":     0.7,
+    "llm":           0.5,
+    "judge":         0.0,
+}
+
+
+def _dep_trust(methods) -> float:
+    if not methods:
+        return 0.0
+    return sum(_DEP_TRUST_POINTS.get(m, 0.0) for m in methods)
+
 # Fields that live in informal_metadata but are exposed under the "statement" namespace.
 _INFORMAL_META_FIELDS = frozenset({
     "ordinal", "ref", "label", "note", "pre_context", "post_context",
@@ -291,6 +308,19 @@ def fetch_contexts(
 
         for ctx in contexts.values():
             ctx.setdefault("informal_dependency", [])
+
+        # Score each dep by the sum of its method trust points, drop deps that
+        # score 0 (no methods, or methods=={"judge"}), and order most→least
+        # trustworthy so templates can present them that way.
+        for ctx in contexts.values():
+            scored = []
+            for d in ctx["informal_dependency"]:
+                trust = _dep_trust(d.get("methods"))
+                if trust <= 0:
+                    continue
+                scored.append({**d, "trust": trust})
+            scored.sort(key=lambda d: d["trust"], reverse=True)
+            ctx["informal_dependency"] = scored
 
     # Adjacent statement fetch: prev (ordinal - 1) and/or next (ordinal + 1), same paper.
     if joins["prev_statement"] or joins["next_statement"]:

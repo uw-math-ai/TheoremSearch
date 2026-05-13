@@ -1,20 +1,28 @@
 """
-Online LLM dependency extraction via per-statement notation prompts.
+Online LLM dependency extraction via notation prompts.
 
-For each statement, asks the LLM what it defines and uses; then match_paper()
-turns those annotations into dependency rows written to informal_dependency.
+Each LLM call carries a batch of ``llm_batch_size`` statements (default 10);
+the model returns one ``{defines, uses}`` entry per statement. Batches are
+dispatched concurrently with a ThreadPoolExecutor.
 """
+import itertools
 import sys
+import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Iterable, List
+
+# itertools.count() is thread-safe in CPython, so multiple worker threads can
+# share one counter to tag LLM calls with monotonic ids for --debug logs.
+_call_seq = itertools.count(1)
 
 from jinja2 import Environment, FileSystemLoader
 from tqdm import tqdm
 
 from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
-from .extract import parse_extraction
+from .extract import parse_extraction_batch
 from .write import _write_paper_deps, _fetch_paper_statements, _papers_already_processed
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -29,20 +37,56 @@ def _jinja_env():
     )
 
 
-def _llm_extract(client, model_config: dict, template, stmt: dict) -> dict:
-    prompt = template.render(statement=stmt)
-    response = client.chat.completions.create(
-        model=model_config["id"],
-        messages=[{"role": "user", "content": prompt}],
-        temperature=model_config.get("temperature", 0.7),
-        max_tokens=model_config.get("max_tokens", 512),
-    )
+def _chunks(items: List, size: int) -> Iterable[List]:
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+
+def _llm_extract_batch(client, model_config: dict, template, statements: list,
+                       debug: bool = False) -> dict:
+    """One LLM call covering ``statements``. Returns a dict mapping each
+    successfully-extracted ``statement_id`` to its ``{defines, uses}`` plus
+    the call's token usage. Statements absent from ``extractions`` were not
+    recovered (the model omitted or mangled them) and the caller counts them
+    as failed.
+    """
+    prompt = template.render(statements=statements)
+    # Per-statement token budget × batch size — the model gets proportionally
+    # more output budget as we cram more statements into one call.
+    per_stmt_max_tokens = model_config.get("max_tokens", 512)
+
+    call_id = next(_call_seq)
+    if debug:
+        tqdm.write(f"[llm] #{call_id} → submit ({len(statements)} stmts, "
+                   f"max_tokens={per_stmt_max_tokens * len(statements)})")
+    t0 = time.perf_counter()
+    try:
+        response = client.chat.completions.create(
+            model=model_config["id"],
+            messages=[{"role": "user", "content": prompt}],
+            temperature=model_config.get("temperature", 0.7),
+            max_tokens=per_stmt_max_tokens * len(statements),
+        )
+    except Exception as e:
+        if debug:
+            tqdm.write(f"[llm] #{call_id} ✗ {time.perf_counter() - t0:.1f}s "
+                       f"raised {type(e).__name__}: {e}")
+        raise
+    elapsed = time.perf_counter() - t0
+
     usage = response.usage
-    extraction = parse_extraction(response.choices[0].message.content.strip())
+    extractions = parse_extraction_batch(
+        response.choices[0].message.content.strip(),
+        expected_ids=[str(s["statement_id"]) for s in statements],
+    )
+    if debug:
+        in_t  = usage.prompt_tokens     if usage else 0
+        out_t = usage.completion_tokens if usage else 0
+        tqdm.write(f"[llm] #{call_id} ← {elapsed:.1f}s {in_t}→{out_t} tokens, "
+                   f"got {len(extractions)}/{len(statements)} extractions")
+
     return {
-        **stmt,
-        "defines":    extraction["defines"],
-        "uses":       extraction["uses"],
+        "extractions": extractions,
         "in_tokens":  usage.prompt_tokens     if usage else 0,
         "out_tokens": usage.completion_tokens if usage else 0,
     }
@@ -78,7 +122,8 @@ def _postfix(status: dict, total_in: int, total_out: int,
 
 
 def run_llm(conn, client, model_config, condition, condition_params,
-            overwrite, batch_size, workers, shard, n_shards, sample=-1):
+            overwrite, batch_size, workers, shard, n_shards, sample=-1,
+            llm_batch_size: int = 10, debug: bool = False):
     cost_per_1m_in  = model_config.get("cost_per_1m_in",  0.0)
     cost_per_1m_out = model_config.get("cost_per_1m_out", 0.0)
 
@@ -90,6 +135,8 @@ def run_llm(conn, client, model_config, condition, condition_params,
     total = get_query_count(conn, query, params)
 
     template = _jinja_env().get_template("notation.j2")
+    # status is counted per statement (not per batch) so percentages remain
+    # meaningful to a user thinking in statements.
     status = {"success": 0, "failed": 0, "skipped": 0}
     total_in = total_out = 0
 
@@ -112,21 +159,42 @@ def run_llm(conn, client, model_config, condition, condition_params,
 
             stmts_by_paper = _fetch_paper_statements(conn, paper_ids)
             all_stmts = [s for stmts in stmts_by_paper.values() for s in stmts]
+            stmt_batches = list(_chunks(all_stmts, llm_batch_size))
 
             extracted_by_paper: dict = defaultdict(list)
             with ThreadPoolExecutor(max_workers=workers) as ex:
-                futures = {ex.submit(_llm_extract, client, model_config, template, s): s
-                           for s in all_stmts}
+                futures = {
+                    ex.submit(_llm_extract_batch, client, model_config, template, batch, debug): batch
+                    for batch in stmt_batches
+                }
                 for fut in as_completed(futures):
+                    batch = futures[fut]
                     try:
                         result = fut.result()
-                        extracted_by_paper[result["paper_id"]].append(result)
-                        total_in  += result["in_tokens"]
-                        total_out += result["out_tokens"]
-                        status["success"] += 1
                     except Exception as e:
-                        status["failed"] += 1
-                        tqdm.write(f"[llm] {futures[fut]['statement_id']}: {e}")
+                        status["failed"] += len(batch)
+                        tqdm.write(f"[llm] batch of {len(batch)} failed: {e}")
+                        continue
+
+                    extractions = result["extractions"]
+                    total_in  += result["in_tokens"]
+                    total_out += result["out_tokens"]
+
+                    n_missing = 0
+                    for s in batch:
+                        ex = extractions.get(str(s["statement_id"]))
+                        if ex is None:
+                            n_missing += 1
+                            continue
+                        extracted_by_paper[s["paper_id"]].append(
+                            {**s, "defines": ex["defines"], "uses": ex["uses"]}
+                        )
+                    status["success"] += len(batch) - n_missing
+                    status["failed"]  += n_missing
+                    if n_missing:
+                        tqdm.write(
+                            f"[llm] {n_missing}/{len(batch)} statements missing from response"
+                        )
 
             for pid in extracted_by_paper:
                 all_ids = [s["statement_id"] for s in stmts_by_paper[pid]]

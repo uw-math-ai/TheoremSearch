@@ -1,82 +1,54 @@
-from typing import List, Literal
+from typing import Dict, List, Literal, Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from db import rds_conn
 from models import (
-    StatementNode, DependencyEdge, GraphResponse, SubgraphResponse,
+    StatementNode, DependencyEdge, SubgraphResponse,
     IdsRequest, StatementDetail, PaperDetail,
+    GraphPaperItem, GraphPaperResponse, PaperItem, StatementItem, DependencyItem,
 )
 
 router = APIRouter()
 
 
-@router.get("/graph", response_model=GraphResponse)
-async def graph(external_id: str):
-    with rds_conn("v2") as conn, conn.cursor() as cur:
-        cur.execute(
-            "SELECT paper_id FROM paper WHERE external_id = %s AND kind = 'paper'",
-            (external_id,),
-        )
-        row = cur.fetchone()
-        if row is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No paper found with external_id '{external_id}'",
-            )
-        paper_id = row[0]
+# Maps paper.source → the source's metadata table, the column it keys on
+# (always equals paper.external_id), and the fields we surface in PaperItem.
+# Fields explicitly excluded per spec: preamble, bibliography, bibtex,
+# in_validation, reference_ids, citation_count.
+_SOURCE_METADATA = {
+    "arXiv": {
+        "table":   "arxiv_paper_metadata",
+        "id_col":  "arxiv_id",
+        "fields":  ["abstract", "journal_ref", "doi", "license"],
+    },
+    "Lean Community": {
+        "table":   "lean_community_paper_metadata",
+        "id_col":  "repo_slug",
+        "fields":  ["repo_slug", "branch", "src_path"],
+    },
+}
 
-        cur.execute(
-            """
-            SELECT s.statement_id, s.kind, im.ref
-            FROM statement s
-            LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
-            WHERE s.paper_id = %s
-            """,
-            (paper_id,),
-        )
-        stmt_rows = cur.fetchall()
+_ALL_ITEMS: List[GraphPaperItem] = ["paper", "statements", "dependencies"]
 
-        # Interpaper deps only included when cite_id is resolved.
-        cur.execute(
-            """
-            SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
-                   d.dep_name, d.dep_key, d.location, d.methods
-            FROM informal_dependency d
-            JOIN statement s ON s.statement_id = d.src_id
-            WHERE s.paper_id = %s
-              AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
-            """,
-            (paper_id,),
-        )
-        dep_rows = cur.fetchall()
 
-    statements = [
-        StatementNode(
-            statement_id=str(sid),
-            name=kind.capitalize() + (f" {ref}" if ref else ""),
-        )
-        for sid, kind, ref in stmt_rows
-    ]
-
-    dependencies = [
-        DependencyEdge(
-            src_id=str(src_id),
-            dep_id=str(dep_id) if dep_id is not None else None,
-            cite_id=str(cite_id) if cite_id is not None else None,
-            cite_key=cite_key,
-            dep_name=dep_name,
-            dep_key=dep_key,
-            location=location,
-            methods=methods,
-        )
-        for src_id, dep_id, cite_id, cite_key, dep_name, dep_key, location, methods in dep_rows
-    ]
-
-    return GraphResponse(
-        paper_id=str(paper_id),
-        statements=statements,
-        dependencies=dependencies,
+def _fetch_slogans(cur, statement_ids: list) -> Dict[str, str]:
+    """For each statement_id, return the earliest slogan whose
+    ``insufficient_context`` is FALSE. Statements without such a slogan are
+    absent from the returned dict.
+    """
+    if not statement_ids:
+        return {}
+    cur.execute(
+        """
+        SELECT DISTINCT ON (statement_id) statement_id, slogan
+        FROM slogan
+        WHERE statement_id = ANY(%s::uuid[])
+          AND NOT insufficient_context
+        ORDER BY statement_id, created_at
+        """,
+        (statement_ids,),
     )
+    return {str(sid): text for sid, text in cur.fetchall()}
 
 
 # ------------------------------------------------------------------ #
@@ -142,13 +114,16 @@ def _build_subgraph(cur, node_depth: dict) -> SubgraphResponse:
         """,
         (node_ids,),
     )
+    stmt_rows = cur.fetchall()
+    slogans = _fetch_slogans(cur, [r[0] for r in stmt_rows])
     nodes = [
         StatementNode(
             statement_id=str(r[0]),
             name=r[1].capitalize() + (f" {r[2]}" if r[2] else ""),
+            slogan=slogans.get(str(r[0])),
             depth=node_depth[r[0]],
         )
-        for r in cur.fetchall()
+        for r in stmt_rows
     ]
 
     cur.execute(
@@ -192,23 +167,218 @@ async def graph_statement(
         return _build_subgraph(cur, node_depth)
 
 
-@router.get("/graph/paper/{paper_id}", response_model=SubgraphResponse)
-async def graph_paper(
-    paper_id: str,
-    depth: int = Query(default=1, ge=1, le=10),
-    direction: Literal["dependency", "dependent", "both"] = "dependency",
+def _fetch_paper_item(cur, paper_id: str, minimal: bool) -> PaperItem:
+    """Look up a paper plus its source-specific metadata. Raises 404."""
+    if minimal:
+        cur.execute("SELECT paper_id, title FROM paper WHERE paper_id = %s", (paper_id,))
+        row = cur.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
+        return PaperItem(paper_id=str(row[0]), title=row[1])
+
+    cur.execute(
+        """
+        SELECT paper_id, kind, source, title, authors, url, external_id, categories, updated_at
+        FROM paper WHERE paper_id = %s
+        """,
+        (paper_id,),
+    )
+    row = cur.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
+
+    data: Dict[str, object] = {
+        "paper_id":    str(row[0]),
+        "kind":        row[1],
+        "source":      row[2],
+        "title":       row[3],
+        "authors":     row[4] or [],
+        "url":         row[5],
+        "external_id": row[6],
+        "categories":  row[7] or [],
+        "updated_at":  row[8],
+    }
+
+    cfg = _SOURCE_METADATA.get(row[2])
+    if cfg and row[6] is not None:
+        cur.execute(
+            f"SELECT {', '.join(cfg['fields'])} "
+            f"FROM {cfg['table']} WHERE {cfg['id_col']} = %s",
+            (row[6],),
+        )
+        meta = cur.fetchone()
+        if meta is not None:
+            for field, value in zip(cfg["fields"], meta):
+                data[field] = value
+
+    return PaperItem(**data)
+
+
+def _fetch_paper_statements(cur, paper_id: str, minimal: bool) -> List[StatementItem]:
+    if minimal:
+        cur.execute(
+            """
+            SELECT s.statement_id, s.kind, im.ref
+            FROM statement s
+            LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+            WHERE s.paper_id = %s AND s.formality = 'informal'
+            ORDER BY im.ordinal
+            """,
+            (paper_id,),
+        )
+        return [
+            StatementItem(
+                statement_id=str(r[0]),
+                name=r[1].capitalize() + (f" {r[2]}" if r[2] else ""),
+            )
+            for r in cur.fetchall()
+        ]
+
+    cur.execute(
+        """
+        SELECT s.statement_id, s.formality, s.kind, s.body, s.proof,
+               im.ref, im.note
+        FROM statement s
+        LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+        WHERE s.paper_id = %s AND s.formality = 'informal'
+        ORDER BY im.ordinal
+        """,
+        (paper_id,),
+    )
+    rows = cur.fetchall()
+    slogans = _fetch_slogans(cur, [r[0] for r in rows])
+    return [
+        StatementItem(
+            statement_id=str(r[0]),
+            formality=r[1],
+            name=r[2].capitalize() + (f" {r[5]}" if r[5] else ""),
+            note=r[6],
+            body=r[3],
+            proof=r[4],
+            slogan=slogans.get(str(r[0])),
+        )
+        for r in rows
+    ]
+
+
+def _fetch_paper_dependencies(cur, paper_id: str, minimal: bool) -> List[DependencyItem]:
+    # Same row filter the older /graph endpoint uses: drop unresolved interpaper
+    # citations (cite_key set but no cite_id) — those are dangling edges.
+    if minimal:
+        cur.execute(
+            """
+            SELECT d.src_id, d.cite_id, d.dep_id
+            FROM informal_dependency d
+            JOIN statement s ON s.statement_id = d.src_id
+            WHERE s.paper_id = %s
+              AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+            """,
+            (paper_id,),
+        )
+        return [
+            DependencyItem(
+                src_id=str(r[0]),
+                cite_id=str(r[1]) if r[1] else None,
+                dep_id=str(r[2]) if r[2] else None,
+            )
+            for r in cur.fetchall()
+        ]
+
+    cur.execute(
+        """
+        SELECT d.src_id, d.cite_id, d.dep_id, d.cite_key, d.dep_key, d.dep_name,
+               d.location, d.methods
+        FROM informal_dependency d
+        JOIN statement s ON s.statement_id = d.src_id
+        WHERE s.paper_id = %s
+          AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+        """,
+        (paper_id,),
+    )
+    return [
+        DependencyItem(
+            src_id=str(r[0]),
+            cite_id=str(r[1]) if r[1] else None,
+            dep_id=str(r[2]) if r[2] else None,
+            cite_key=r[3],
+            dep_key=r[4],
+            dep_name=r[5],
+            location=r[6],
+            methods=r[7] or [],
+        )
+        for r in cur.fetchall()
+    ]
+
+
+def _graph_paper_response(
+    cur, paper_id: str, items: List[GraphPaperItem], minimal: bool,
+) -> GraphPaperResponse:
+    chosen = set(items)
+    if "paper" in chosen:
+        paper = _fetch_paper_item(cur, paper_id, minimal)  # raises 404
+    else:
+        cur.execute("SELECT 1 FROM paper WHERE paper_id = %s", (paper_id,))
+        if cur.fetchone() is None:
+            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
+        paper = None
+    return GraphPaperResponse(
+        paper=paper,
+        statements=_fetch_paper_statements(cur, paper_id, minimal) if "statements" in chosen else None,
+        dependencies=_fetch_paper_dependencies(cur, paper_id, minimal) if "dependencies" in chosen else None,
+    )
+
+
+@router.get(
+    "/graph/paper",
+    response_model=GraphPaperResponse,
+    response_model_exclude_none=True,
+)
+async def graph_paper_by_source(
+    source: str = Query(..., description="paper.source, e.g. 'arXiv' or 'Lean Community'"),
+    external_id: str = Query(..., description="paper.external_id within that source"),
+    items: Optional[List[GraphPaperItem]] = Query(
+        default=None,
+        description="Which top-level keys to populate. Defaults to all three.",
+    ),
+    minimal: bool = Query(
+        default=False,
+        description="Return only the minimal fields per item (paper=paper_id+title; "
+                    "statements=statement_id+name; dependencies=src_id+cite_id+dep_id).",
+    ),
 ):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
-            "SELECT statement_id FROM statement WHERE paper_id = %s",
-            (paper_id,),
+            "SELECT paper_id FROM paper WHERE source = %s AND external_id = %s",
+            (source, external_id),
         )
-        rows = cur.fetchall()
-        if not rows:
-            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}' or paper has no statements")
-        start_ids = [str(r[0]) for r in rows]
-        node_depth = _traverse(cur, start_ids, depth, direction)
-        return _build_subgraph(cur, node_depth)
+        row = cur.fetchone()
+        if row is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No paper with source={source!r} external_id={external_id!r}",
+            )
+        return _graph_paper_response(cur, str(row[0]), items or _ALL_ITEMS, minimal)
+
+
+@router.get(
+    "/graph/paper/{paper_id}",
+    response_model=GraphPaperResponse,
+    response_model_exclude_none=True,
+)
+async def graph_paper(
+    paper_id: str,
+    items: Optional[List[GraphPaperItem]] = Query(
+        default=None,
+        description="Which top-level keys to populate. Defaults to all three.",
+    ),
+    minimal: bool = Query(
+        default=False,
+        description="Return only the minimal fields per item (paper=paper_id+title; "
+                    "statements=statement_id+name; dependencies=src_id+cite_id+dep_id).",
+    ),
+):
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        return _graph_paper_response(cur, paper_id, items or _ALL_ITEMS, minimal)
 
 
 # ------------------------------------------------------------------ #

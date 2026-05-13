@@ -201,11 +201,11 @@ def connect_judge_dependencies(
     model_config = load_model_config(model_name)
     client = build_openai_client()
 
-    _aps_join = " LEFT JOIN arxiv_parse_status aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else ""
+    _aps_join = " LEFT JOIN arxiv_parse_status aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else ""
     _where = [
         {
             "if": True,
-            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = p.paper_id)",
+            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)",
         },
         {
             "if": not overwrite,
@@ -213,7 +213,7 @@ def connect_judge_dependencies(
                 "NOT EXISTS ("
                 " SELECT 1 FROM statement s"
                 " JOIN informal_dependency d ON d.src_id = s.statement_id"
-                " WHERE s.paper_id = p.paper_id"
+                " WHERE s.paper_id = paper.paper_id"
                 " AND d.cite_key IS NULL AND 'judge' = ANY(d.methods)"
                 ")"
             ),
@@ -225,28 +225,28 @@ def connect_judge_dependencies(
         },
         {
             "if": n_shards > 1,
-            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "condition": "hashtext(paper.paper_id::text) %% %s = %s",
             "params": [n_shards, shard],
         },
     ]
 
     if sample > 0:
         id_query, id_params = build_query(
-            base_query="SELECT p.paper_id FROM paper p" + _aps_join,
+            base_query="SELECT paper.paper_id FROM paper" + _aps_join,
             where_clauses=_where,
         )
         paper_ids = sample_ids(conn, id_query, id_params, sample)
         query  = (
-            "SELECT p.paper_id, p.title, p.external_id FROM paper p"
-            " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id"
-            " WHERE p.paper_id = ANY(%s::uuid[])"
+            "SELECT paper.paper_id, paper.title, paper.external_id FROM paper"
+            " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = paper.external_id"
+            " WHERE paper.paper_id = ANY(%s::uuid[])"
         )
         params = [paper_ids]
     else:
         query, params = build_query(
             base_query=(
-                "SELECT p.paper_id, p.title, p.external_id FROM paper p"
-                " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id"
+                "SELECT paper.paper_id, paper.title, paper.external_id FROM paper"
+                " LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = paper.external_id"
                 + _aps_join
             ),
             where_clauses=_where,

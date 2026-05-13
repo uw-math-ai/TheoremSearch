@@ -63,7 +63,7 @@ def _llm_request(stmt: dict, model_config: dict, template) -> dict:
         "url":       "/v1/chat/completions",
         "body": {
             "model":      model_config["id"],
-            "messages":   [{"role": "user", "content": template.render(statement=stmt)}],
+            "messages":   [{"role": "user", "content": template.render(statements=[stmt])}],
             "max_tokens": model_config.get("max_tokens", 512),
         },
     }
@@ -253,10 +253,10 @@ def _fetch_paper_info(conn, paper_ids: list) -> dict:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT p.paper_id::text, p.title, apm.abstract
-            FROM paper p
-            LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
-            WHERE p.paper_id = ANY(%s::uuid[])
+            SELECT paper.paper_id::text, paper.title, apm.abstract
+            FROM paper
+            LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = paper.external_id
+            WHERE paper.paper_id = ANY(%s::uuid[])
             """,
             (paper_ids,),
         )

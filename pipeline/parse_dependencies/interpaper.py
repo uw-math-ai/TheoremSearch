@@ -319,7 +319,7 @@ def connect_interpaper_dependencies(
     n_shards: int = 1,
     sample: int = -1,
 ):
-    _aps_join = " LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else ""
+    _aps_join = " LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else ""
     _where = [
         {
             "if": condition,
@@ -332,7 +332,7 @@ def connect_interpaper_dependencies(
                 "NOT EXISTS ("
                 " SELECT 1 FROM informal_dependency d"
                 " INNER JOIN statement s ON s.statement_id = d.src_id"
-                " WHERE s.paper_id = p.paper_id"
+                " WHERE s.paper_id = paper.paper_id"
                 " AND d.cite_key IS NOT NULL"
                 + _overwrite_method_clause(do_deterministic, do_heuristic, alias="d")
                 + ")"
@@ -340,15 +340,15 @@ def connect_interpaper_dependencies(
         },
         {
             "if": True,
-            "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = p.paper_id)",
+            "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = paper.paper_id)",
         },
         {
             "if": True,
-            "condition": "p.kind = 'paper'",
+            "condition": "paper.kind = 'paper'",
         },
         {
             "if": n_shards > 1,
-            "condition": "hashtext(p.paper_id::text) %% %s = %s",
+            "condition": "hashtext(paper.paper_id::text) %% %s = %s",
             "params": [n_shards, shard],
         },
     ]
@@ -356,24 +356,24 @@ def connect_interpaper_dependencies(
     if sample > 0:
         id_query, id_params = build_query(
             base_query=(
-                "SELECT p.paper_id FROM paper p"
-                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
+                "SELECT paper.paper_id FROM paper"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
                 + _aps_join
             ),
             where_clauses=_where,
         )
         ids    = sample_ids(conn, id_query, id_params, sample)
         query  = (
-            "SELECT p.paper_id, p.external_id FROM paper p"
-            " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
-            " WHERE p.paper_id = ANY(%s::uuid[])"
+            "SELECT paper.paper_id, paper.external_id FROM paper"
+            " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
+            " WHERE paper.paper_id = ANY(%s::uuid[])"
         )
         params = [ids]
     else:
         query, params = build_query(
             base_query=(
-                "SELECT p.paper_id, p.external_id FROM paper p"
-                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
+                "SELECT paper.paper_id, paper.external_id FROM paper"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
                 + _aps_join
             ),
             where_clauses=_where,
@@ -412,8 +412,8 @@ def connect_interpaper_dependencies(
                                    im.ref, im.note, im.pre_context, im.post_context
                             FROM statement s
                             INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
-                            INNER JOIN paper p ON p.paper_id = s.paper_id
-                            WHERE p.kind = 'paper' AND p.external_id = %s
+                            INNER JOIN paper ON paper.paper_id = s.paper_id
+                            WHERE paper.kind = 'paper' AND paper.external_id = %s
                             """,
                             (arxiv_id,),
                         )

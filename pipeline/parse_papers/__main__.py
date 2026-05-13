@@ -1,20 +1,35 @@
-from tqdm import tqdm
-from typing import List
-from datetime import datetime, timezone
+"""
+Parse papers across any registered source and persist statements + per-source
+metadata. Source-specific behavior (download routine, where preamble /
+bibliography land, whether to track parse status) lives in
+``pipeline.parse_papers.sources``. Adding a new source = adding one Source
+subclass; this file stays unchanged.
+"""
+
+import time
+from argparse import ArgumentParser
+from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from contextlib import contextmanager
-from argparse import ArgumentParser
-import time
-from psycopg2.extras import Json
-from arXiTeX.types import StatementValidationLevel, ParsingMethod, ParseFocus
-from arXiTeX import parse_paper
-from rds.utils.connect import get_rds_connection
-from rds.utils.query import build_query, get_query_count
-from rds.utils.paginate import paginate_query
-from rds.utils.upsert import upsert_rows, update_rows, insert_rows_returning
-from ..printing import print_script_header
-from ..constants import STATEMENT_KINDS, PAPERS_BUCKET
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
+from tqdm import tqdm
+
+from arXiTeX.types import ParseFocus, ParsingMethod, StatementValidationLevel
+from rds.utils.connect import get_rds_connection
+from rds.utils.paginate import paginate_query
+from rds.utils.query import build_query, get_query_count
+from rds.utils.upsert import insert_rows_returning, upsert_rows
+from ..constants import STATEMENT_KINDS
+from ..printing import print_script_header
+from .sources import SOURCES, ParseAttempt
+from .worker import parse_in_worker
+
+
+# ----------------------------------------------------------------------
+# Helpers
+# ----------------------------------------------------------------------
 
 @contextmanager
 def _timer(label: str, enabled: bool):
@@ -26,45 +41,23 @@ def _timer(label: str, enabled: bool):
     print(f"[timer] {label}: {time.perf_counter() - t:.3f}s")
 
 
-def _overwrite_condition(focus: ParseFocus) -> str:
-    """Returns a SQL condition (for WHERE) that filters out papers already processed
-    under the given focus. Only applied when overwrite=False.
+def _or_join(clauses: List[Optional[str]]) -> str:
+    """OR-join non-empty source SQL fragments, falling back to FALSE."""
+    real = [c for c in clauses if c]
+    if not real:
+        return "FALSE"
+    return "(" + " OR ".join(f"({c})" for c in real) + ")"
 
-    Branches on paper.kind: arXiv papers check arxiv_paper_metadata; blueprints check
-    reservoir_paper_metadata.
-    """
-    statement_done = """
-        EXISTS (
-            SELECT 1 FROM statement
-            WHERE statement.paper_id = paper.paper_id
-        )
-    """
-    preamble_done = """
-        (
-            (paper.source = 'arXiv' AND EXISTS (
-                SELECT 1 FROM arxiv_paper_metadata
-                WHERE arxiv_id = paper.external_id AND preamble IS NOT NULL
-            ))
-            OR
-            (paper.source = 'Reservoir' AND EXISTS (
-                SELECT 1 FROM reservoir_paper_metadata
-                WHERE reservoir_slug = paper.external_id AND preamble IS NOT NULL
-            ))
-        )
-    """
-    bibliography_done = """
-        (
-            (paper.source = 'arXiv' AND EXISTS (
-                SELECT 1 FROM arxiv_paper_metadata
-                WHERE arxiv_id = paper.external_id AND bibliography IS NOT NULL
-            ))
-            OR
-            (paper.source = 'Reservoir' AND EXISTS (
-                SELECT 1 FROM reservoir_paper_metadata
-                WHERE reservoir_slug = paper.external_id AND bibliography IS NOT NULL
-            ))
-        )
-    """
+
+def _overwrite_condition(focus: ParseFocus) -> str:
+    """WHERE fragment that filters out papers already processed under the
+    given focus. ``paper`` is in scope."""
+    statement_done = (
+        "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)"
+    )
+    preamble_done = _or_join([s.preamble_done_sql() for s in SOURCES.values()])
+    bibliography_done = _or_join([s.bibliography_done_sql() for s in SOURCES.values()])
+
     match focus:
         case ParseFocus.STATEMENTS:
             return f"NOT {statement_done}"
@@ -75,6 +68,10 @@ def _overwrite_condition(focus: ParseFocus) -> str:
         case ParseFocus.ALL:
             return f"NOT ({statement_done} AND {preamble_done} AND {bibliography_done})"
 
+
+# ----------------------------------------------------------------------
+# Main
+# ----------------------------------------------------------------------
 
 def parse_papers(
     condition: str,
@@ -105,6 +102,7 @@ def parse_papers(
             "batch size": batch_size,
             "workers": workers,
             "timeout": timeout,
+            "sources": ", ".join(SOURCES.keys()),
             **(
                 {
                     "parsing method": parsing_method.value,
@@ -133,11 +131,16 @@ def parse_papers(
             {
                 "if": condition,
                 "condition": condition,
-                "params": condition_params
+                "params": condition_params,
             },
             {
                 "if": True,
-                "condition": "paper.kind IN ('paper', 'blueprint')"
+                "condition": "paper.source = ANY(%s)",
+                "params": [list(SOURCES.keys())],
+            },
+            {
+                "if": True,
+                "condition": "paper.kind IN ('paper', 'blueprint')",
             },
             {
                 "if": n_shards > 1,
@@ -151,6 +154,17 @@ def parse_papers(
 
     do_statements = focus in (ParseFocus.ALL, ParseFocus.STATEMENTS)
 
+    # Kwargs handed to arXiTeX.parse_paper inside each worker — identical
+    # across papers, set once.
+    parse_kwargs = {
+        "statement_kinds": STATEMENT_KINDS,
+        "parsing_method": parsing_method,
+        "validation_level": validation_level,
+        "timeout": timeout,
+        "focus": focus,
+        "context": context,
+    }
+
     status_counts = {"success": 0, "failed": 0}
 
     pbar = tqdm(total=paper_count, dynamic_ncols=True)
@@ -162,139 +176,116 @@ def parse_papers(
             base_query=query,
             base_params=params,
             order_by="external_id",
-            page_size=batch_size
+            page_size=batch_size,
         ):
-            fut_to_paper = {}
-            batch_statement_rows = []
-            batch_informal_metadata_rows = []
-            batch_parse_status_rows = []
-            batch_arxiv_preamble_rows = []
-            batch_arxiv_bibliography_rows = []
-            batch_reservoir_preamble_rows = []
-            batch_reservoir_bibliography_rows = []
-
+            # 1. Group this page by source, then let each source prefetch
+            #    whatever metadata its workers will need to materialize the
+            #    paper (lookups happen here, in the parent, with DB access).
+            by_source: Dict[str, list] = defaultdict(list)
             for paper in papers:
-                paper_id = paper["paper_id"]
-                external_id = paper["external_id"]
-                kind = paper["kind"]
-                source = paper["source"]
+                by_source[paper["source"]].append(paper)
 
-                submit_kwargs = {
-                    "statement_kinds": STATEMENT_KINDS,
-                    "parsing_method": parsing_method,
-                    "validation_level": validation_level,
-                    "timeout": timeout,
-                    "focus": focus,
-                    "context": context,
-                }
-                if source == "arXiv":
-                    submit_kwargs["arxiv_id"] = external_id
-                else:
-                    submit_kwargs["s3_uri"] = f"s3://{PAPERS_BUCKET}/{kind}/{external_id}.tar.gz"
+            prefetched_by_source: Dict[str, Dict[str, Dict[str, Any]]] = {}
+            for src_name, src_papers in by_source.items():
+                src = SOURCES[src_name]
+                with _timer(f"prefetch {src_name}", timings):
+                    prefetched_by_source[src_name] = src.prefetch_metadata(
+                        conn, [p["external_id"] for p in src_papers]
+                    )
 
-                fut = ex.submit(parse_paper, **submit_kwargs)
-                fut_to_paper[fut] = {
-                    "paper_id": paper_id,
-                    "external_id": external_id,
-                    "source": source,
-                }
+            # 2. Submit to the worker pool.
+            fut_to_paper: Dict[Any, Dict[str, Any]] = {}
+            for paper in papers:
+                src_name = paper["source"]
+                ext_id = paper["external_id"]
+                prefetched = prefetched_by_source[src_name].get(ext_id, {})
+                fut = ex.submit(
+                    parse_in_worker,
+                    src_name,
+                    ext_id,
+                    prefetched,
+                    parse_kwargs,
+                )
+                fut_to_paper[fut] = paper
+
+            # 3. Collect results into per-source batches plus the common
+            #    statement / informal_metadata batches.
+            source_batches: Dict[str, Dict[str, list]] = defaultdict(dict)
+            batch_statement_rows: list = []
+            batch_informal_metadata_rows: list = []
 
             for fut in as_completed(fut_to_paper):
-                paper_id = fut_to_paper[fut]["paper_id"]
-                external_id = fut_to_paper[fut]["external_id"]
-                source = fut_to_paper[fut]["source"]
-                current_time = datetime.now(timezone.utc)
-                error = None
-                result = None
+                paper = fut_to_paper[fut]
+                src_name = paper["source"]
+                src = SOURCES[src_name]
+                when = datetime.now(timezone.utc)
 
+                error: Optional[str] = None
+                result = None
                 try:
                     result = fut.result()
-
                     if do_statements and not result.statements:
-                        raise RuntimeError()  # this shouldn't happen
+                        raise RuntimeError()  # shouldn't happen
                 except Exception as e:
                     error = str(e) or "[UNHANDLED ERROR]"
                     result = None
 
-                if result is None:
-                    status_counts["failed"] += 1
-                else:
-                    status_counts["success"] += 1
+                status_counts["success" if result is not None else "failed"] += 1
 
-                if do_statements and source == "arXiv":
-                    batch_parse_status_rows.append({
-                        "arxiv_id": external_id,
-                        "last_parse_attempt_at": current_time,
-                        "error": error,
-                        "parsing_method": parsing_method.value,
-                        "validation_level": validation_level.value,
-                    })
+                # Hand the source its slice of the result; it decides what to
+                # stage and into which table.
+                attempt = ParseAttempt(
+                    external_id=paper["external_id"],
+                    when=when,
+                    error=error,
+                    parsing_method=parsing_method,
+                    validation_level=validation_level,
+                    preamble=getattr(result, "preamble", None),
+                    bibliography=getattr(result, "bibliography", None),
+                    bibliography_bibtex=getattr(result, "bibliography_bibtex", None),
+                )
+                if do_statements or result is not None:
+                    src.record_attempt(attempt, source_batches[src_name])
 
-                if result is not None:
-                    if result.statements:
-                        batch_statement_rows.extend([
-                            {
-                                "paper_id": paper_id,
-                                "formality": "informal",
-                                "kind": statement.kind,
-                                "body": statement.body,
-                                "proof": statement.proof
-                            }
-                            for statement in result.statements
-                        ])
-
-                        batch_informal_metadata_rows.extend([
-                            {
-                                "ordinal": ordinal,
-                                "ref": statement.ref,
-                                "label": statement.label,
-                                "note": statement.note,
-                                "pre_context": statement.pre_context,
-                                "post_context": statement.post_context,
-                            }
-                            for ordinal, statement in enumerate(result.statements)
-                        ])
-
-                    if source == "arXiv":
-                        if result.preamble is not None:
-                            batch_arxiv_preamble_rows.append({"arxiv_id": external_id, "preamble": result.preamble})
-                        if result.bibliography:
-                            batch_arxiv_bibliography_rows.append({"arxiv_id": external_id, "bibliography": Json(result.bibliography), "bibtex": result.bibliography_bibtex})
-                    elif source == "Reservoir":
-                        if result.preamble is not None:
-                            batch_reservoir_preamble_rows.append({"reservoir_slug": external_id, "preamble": result.preamble})
-                        if result.bibliography:
-                            batch_reservoir_bibliography_rows.append({"reservoir_slug": external_id, "bibliography": Json(result.bibliography), "bibtex": result.bibliography_bibtex})
+                # statement + informal_metadata are common across sources.
+                if result is not None and result.statements:
+                    batch_statement_rows.extend([
+                        {
+                            "paper_id": paper["paper_id"],
+                            "formality": "informal",
+                            "kind": statement.kind,
+                            "body": statement.body,
+                            "proof": statement.proof,
+                        }
+                        for statement in result.statements
+                    ])
+                    batch_informal_metadata_rows.extend([
+                        {
+                            "ordinal": ordinal,
+                            "ref": statement.ref,
+                            "label": statement.label,
+                            "note": statement.note,
+                            "pre_context": statement.pre_context,
+                            "post_context": statement.post_context,
+                        }
+                        for ordinal, statement in enumerate(result.statements)
+                    ])
 
                 pbar.update()
-
-                parse_attempts = sum(status_counts.values())
+                attempts = sum(status_counts.values())
                 pbar.set_postfix({
-                    status: f"{(100.0 * count / parse_attempts):.2f}%"
+                    status: f"{(100.0 * count / attempts):.2f}%"
                     for status, count in status_counts.items()
                 })
 
-            if batch_parse_status_rows:
-                with _timer("upsert arxiv_parse_status", timings):
-                    upsert_rows(
-                        conn,
-                        table="arxiv_parse_status",
-                        rows=batch_parse_status_rows,
-                        on_conflict={
-                            "with": ["arxiv_id"],
-                            "replace": ["last_parse_attempt_at", "error", "parsing_method", "validation_level"]
-                        }
-                    )
-
+            # 4. Flush.
             if batch_statement_rows:
                 paper_ids = list({row["paper_id"] for row in batch_statement_rows})
-
                 with _timer("delete statement", timings), conn.cursor() as cur:
                     cur.execute(
                         "DELETE FROM statement WHERE paper_id = ANY(%s::uuid[])",
                         (paper_ids,),
                     )
-
                 with _timer("insert statement", timings):
                     inserted_ids = insert_rows_returning(
                         conn,
@@ -302,7 +293,6 @@ def parse_papers(
                         rows=batch_statement_rows,
                         returning="statement_id",
                     )
-
                 with _timer("insert informal_metadata", timings):
                     upsert_rows(
                         conn,
@@ -313,43 +303,11 @@ def parse_papers(
                         ],
                     )
 
-            if batch_arxiv_preamble_rows:
-                with _timer("update arxiv_paper_metadata (preamble)", timings):
-                    update_rows(
-                        conn,
-                        table="arxiv_paper_metadata",
-                        rows=batch_arxiv_preamble_rows,
-                        where=["arxiv_id"],
-                    )
-
-            if batch_arxiv_bibliography_rows:
-                with _timer("update arxiv_paper_metadata (bibliography)", timings):
-                    update_rows(
-                        conn,
-                        table="arxiv_paper_metadata",
-                        rows=batch_arxiv_bibliography_rows,
-                        where=["arxiv_id"],
-                        casts={"bibliography": "jsonb"},
-                    )
-
-            if batch_reservoir_preamble_rows:
-                with _timer("update reservoir_paper_metadata (preamble)", timings):
-                    update_rows(
-                        conn,
-                        table="reservoir_paper_metadata",
-                        rows=batch_reservoir_preamble_rows,
-                        where=["reservoir_slug"],
-                    )
-
-            if batch_reservoir_bibliography_rows:
-                with _timer("update reservoir_paper_metadata (bibliography)", timings):
-                    update_rows(
-                        conn,
-                        table="reservoir_paper_metadata",
-                        rows=batch_reservoir_bibliography_rows,
-                        where=["reservoir_slug"],
-                        casts={"bibliography": "jsonb"},
-                    )
+            for src_name, batch in source_batches.items():
+                if not batch:
+                    continue
+                with _timer(f"commit {src_name} batch", timings):
+                    SOURCES[src_name].commit_batch(conn, batch)
 
             with _timer("commit", timings):
                 conn.commit()
@@ -359,7 +317,7 @@ def parse_papers(
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
-        description="Parse arXiv papers and store results in the database."
+        description="Parse papers from any registered source and persist results."
     )
 
     arg_parser.add_argument(

@@ -34,19 +34,19 @@ def resolve_unresolved(
     condition_params: list,
 ):
     where = (
-        "WHERE d.cite_key IS NOT NULL AND d.cite_id IS NULL AND p.kind = 'paper'"
+        "WHERE d.cite_key IS NOT NULL AND d.cite_id IS NULL AND paper.kind = 'paper'"
         + (f" AND ({condition})" if condition else "")
     )
     with conn.cursor() as cur:
         cur.execute(
             f"""
-            SELECT DISTINCT p.paper_id, p.external_id
+            SELECT DISTINCT paper.paper_id, paper.external_id
             FROM informal_dependency d
             JOIN statement s ON s.statement_id = d.src_id
-            JOIN paper p ON p.paper_id = s.paper_id
-            LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
+            JOIN paper ON paper.paper_id = s.paper_id
+            LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = paper.external_id
             {where}
-            ORDER BY p.paper_id
+            ORDER BY paper.paper_id
             """,
             condition_params or None,
         )
