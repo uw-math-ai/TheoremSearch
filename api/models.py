@@ -137,29 +137,44 @@ class PaperItem(BaseModel):
     repo_slug: Optional[str] = None
     branch: Optional[str] = None
     src_path: Optional[str] = None
+    # lean_graph_paper_metadata:
+    project_name: Optional[str] = None
+    repo_url: Optional[str] = None
+    lean_toolchain: Optional[str] = None
+    mathlib_rev: Optional[str] = None
+    git_commit: Optional[str] = None
+    extracted_at: Optional[datetime] = None
 
 
 class StatementItem(BaseModel):
     statement_id: str
-    name: str                          # e.g. "Theorem 3.2"
-    # Full mode only:
+    name: str                          # informal: "Theorem 3.2"; formal: Lean decl_name
+    # Full mode (both formalities):
     formality: Optional[str] = None
-    note: Optional[str] = None
-    body: Optional[str] = None
-    proof: Optional[str] = None
+    kind: Optional[str] = None         # 'theorem', 'definition', 'lemma', …
+    body: Optional[str] = None         # informal: LaTeX body; formal: signature
+    proof: Optional[str] = None        # informal: LaTeX proof; formal: tactic_summary
     slogan: Optional[str] = None
+    # Informal-only:
+    note: Optional[str] = None
+    # Formal-only:
+    docstring: Optional[str] = None
+    module: Optional[str] = None       # Lean module path
+    file_path: Optional[str] = None    # path within the repo
 
 
 class DependencyItem(BaseModel):
     src_id: str
-    cite_id: Optional[str] = None
     dep_id: Optional[str] = None
-    # Full mode only:
+    # Informal-only:
+    cite_id: Optional[str] = None
     cite_key: Optional[str] = None
     dep_key: Optional[str] = None
     dep_name: Optional[str] = None
     location: Optional[str] = None
     methods: Optional[List[str]] = None
+    # Formal-only:
+    edge_type: Optional[str] = None    # 'sig' | 'def' | 'proof' | 'extends' | 'field' | 'docref'
 
 
 class GraphPaperResponse(BaseModel):

@@ -26,6 +26,12 @@ _SOURCE_METADATA = {
         "id_col":  "repo_slug",
         "fields":  ["repo_slug", "branch", "src_path"],
     },
+    "Lean Graph": {
+        "table":   "lean_graph_paper_metadata",
+        "id_col":  "project_name",
+        "fields":  ["project_name", "repo_url", "lean_toolchain",
+                    "mathlib_rev", "git_commit", "extracted_at"],
+    },
 }
 
 _ALL_ITEMS: List[GraphPaperItem] = ["paper", "statements", "dependencies"]
@@ -251,11 +257,66 @@ def _fetch_paper_statements(cur, paper_id: str, minimal: bool) -> List[Statement
         StatementItem(
             statement_id=str(r[0]),
             formality=r[1],
+            kind=r[2],
             name=r[2].capitalize() + (f" {r[5]}" if r[5] else ""),
             note=r[6],
             body=r[3],
             proof=r[4],
             slogan=slogans.get(str(r[0])),
+        )
+        for r in rows
+    ]
+
+
+def _fetch_formal_statements(cur, paper_id: str, minimal: bool) -> List[StatementItem]:
+    """Formal counterpart of _fetch_paper_statements. The 'name' for a formal
+    statement is its Lean fully-qualified ``decl_name`` (e.g.
+    ``AddDissociated.boringEnergy_le``). Statements missing a decl_name fall
+    back to a synthetic placeholder so the required ``name`` field stays set."""
+    def _name(decl_name: str | None, sid) -> str:
+        return decl_name or f"<unnamed {str(sid)[:8]}>"
+
+    if minimal:
+        cur.execute(
+            """
+            SELECT s.statement_id, fm.decl_name
+            FROM statement s
+            JOIN formal_metadata fm ON fm.statement_id = s.statement_id
+            WHERE s.paper_id = %s AND s.formality = 'formal'
+            ORDER BY fm.decl_name
+            """,
+            (paper_id,),
+        )
+        return [
+            StatementItem(statement_id=str(r[0]), name=_name(r[1], r[0]))
+            for r in cur.fetchall()
+        ]
+
+    cur.execute(
+        """
+        SELECT s.statement_id, s.formality, s.kind, s.body, s.proof,
+               fm.decl_name, fm.module, fm.file_path, fm.docstring
+        FROM statement s
+        JOIN formal_metadata fm ON fm.statement_id = s.statement_id
+        WHERE s.paper_id = %s AND s.formality = 'formal'
+        ORDER BY fm.decl_name
+        """,
+        (paper_id,),
+    )
+    rows = cur.fetchall()
+    slogans = _fetch_slogans(cur, [r[0] for r in rows])
+    return [
+        StatementItem(
+            statement_id=str(r[0]),
+            formality=r[1],
+            kind=r[2],
+            name=_name(r[5], r[0]),
+            body=r[3],            # signature
+            proof=r[4],            # tactic_summary (usually NULL today)
+            slogan=slogans.get(str(r[0])),
+            docstring=r[8],
+            module=r[6],
+            file_path=r[7],
         )
         for r in rows
     ]
@@ -310,21 +371,68 @@ def _fetch_paper_dependencies(cur, paper_id: str, minimal: bool) -> List[Depende
     ]
 
 
+def _fetch_formal_dependencies(cur, paper_id: str, minimal: bool) -> List[DependencyItem]:
+    """Formal counterpart of _fetch_paper_dependencies, pulling from
+    formal_dependency. Note: src AND dep are both UUIDs (no cite_id concept,
+    since formal deps are always intra-corpus and resolved)."""
+    if minimal:
+        cur.execute(
+            """
+            SELECT d.src_id, d.dep_id, d.edge_type
+            FROM formal_dependency d
+            JOIN statement s ON s.statement_id = d.src_id
+            WHERE s.paper_id = %s
+            """,
+            (paper_id,),
+        )
+        return [
+            DependencyItem(
+                src_id=str(r[0]),
+                dep_id=str(r[1]),
+                edge_type=r[2],
+            )
+            for r in cur.fetchall()
+        ]
+
+    cur.execute(
+        """
+        SELECT d.src_id, d.dep_id, d.edge_type
+        FROM formal_dependency d
+        JOIN statement s ON s.statement_id = d.src_id
+        WHERE s.paper_id = %s
+        """,
+        (paper_id,),
+    )
+    return [
+        DependencyItem(
+            src_id=str(r[0]),
+            dep_id=str(r[1]),
+            edge_type=r[2],
+        )
+        for r in cur.fetchall()
+    ]
+
+
 def _graph_paper_response(
     cur, paper_id: str, items: List[GraphPaperItem], minimal: bool,
 ) -> GraphPaperResponse:
     chosen = set(items)
-    if "paper" in chosen:
-        paper = _fetch_paper_item(cur, paper_id, minimal)  # raises 404
-    else:
-        cur.execute("SELECT 1 FROM paper WHERE paper_id = %s", (paper_id,))
-        if cur.fetchone() is None:
-            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
-        paper = None
+
+    # Single look-up handles existence + routing: lean_repo → formal pipeline,
+    # anything else → the informal pipeline.
+    cur.execute("SELECT kind FROM paper WHERE paper_id = %s", (paper_id,))
+    row = cur.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
+    is_formal = row[0] == "lean_repo"
+
+    paper = _fetch_paper_item(cur, paper_id, minimal) if "paper" in chosen else None
+    statements_fn   = _fetch_formal_statements   if is_formal else _fetch_paper_statements
+    dependencies_fn = _fetch_formal_dependencies if is_formal else _fetch_paper_dependencies
     return GraphPaperResponse(
         paper=paper,
-        statements=_fetch_paper_statements(cur, paper_id, minimal) if "statements" in chosen else None,
-        dependencies=_fetch_paper_dependencies(cur, paper_id, minimal) if "dependencies" in chosen else None,
+        statements=statements_fn(cur, paper_id, minimal) if "statements" in chosen else None,
+        dependencies=dependencies_fn(cur, paper_id, minimal) if "dependencies" in chosen else None,
     )
 
 
