@@ -1454,5 +1454,26 @@
         "confidence": "medium"
       }
     }
+  },
+  "katex_macros": {
+    "\\ind": "1_{#1}",
+    "\\bbn": "\\mathbb{N}",
+    "\\bbz": "\\mathbb{Z}",
+    "\\bbr": "\\mathbb{R}",
+    "\\bbf": "\\mathbb{F}",
+    "\\bbq": "\\mathbb{Q}",
+    "\\bbc": "\\mathbb{C}",
+    "\\bbt": "\\mathbb{T}",
+    "\\bbe": "\\mathbb{E}",
+    "\\abs": "\\left\\lvert #1\\right\\rvert",
+    "\\Abs": "\\lvert #1 \\rvert",
+    "\\brac": "\\left( #1\\right)",
+    "\\norm": "\\lVert #1\\rVert",
+    "\\tup": "{\\vec{#1}}",
+    "\\lo": "\\mathcal{L}{#1}",
+    "\\inn": "\\left\\langle #1 \\right\\rangle",
+    "\\C": "\\mathbb{C}",
+    "\\E": "\\mathbb{E}",
+    "\\rk": "\\operatorname{rank}"
   }
 }

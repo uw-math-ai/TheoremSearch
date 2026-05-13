@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <title>apap slogan pilot — graph viewer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 <style>
   body { margin:0; font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; color:#222; background:#fafafa; }
   header { padding: 10px 14px; border-bottom:1px solid #ddd; background:white; display:flex; gap:14px; align-items:center; }
@@ -16,6 +19,8 @@
   #side .name { font-family: ui-monospace, Menlo, monospace; font-size:12px; color:#0a4; word-break: break-all; }
   #side .meta { color:#777; font-size:11px; margin-bottom:10px; }
   #side pre { background:#f4f4f4; padding:8px; border-radius:4px; font-size:11px; white-space:pre-wrap; word-break: break-word; max-height:200px; overflow:auto; }
+  .latex-body { background:#fff7e6; border:1px solid #f0d97a; padding:10px; border-radius:4px; font-size:13px; line-height:1.5; max-height:260px; overflow:auto; }
+  .latex-body .katex { font-size:1.0em; }
   .slogan-block { margin-top:10px; padding:8px; border-left:3px solid #ccc; background:#fafafa; }
   .slogan-block.isolated { border-color:#888; }
   .slogan-block.slogan_context { border-color:#3b82f6; }
@@ -231,7 +236,7 @@ function showDetail(d, pinned) {
       ${renderSlogan("isolated", slogans.isolated)}
       ${renderSlogan("slogan_context", slogans.slogan_context)}
       ${renderSlogan("code_context", slogans.code_context)}
-      ${bpNode ? `<h2 style="margin-top:14px">Blueprint (NL control)</h2><pre>${escape(bpNode.body)}</pre>` : ""}
+      ${bpNode ? `<h2 style="margin-top:14px">Blueprint (NL control)</h2><div class="latex-body">${renderLatex(bpNode.body)}</div>` : ""}
       ${d.signature ? `<h2 style="margin-top:14px">Signature</h2><pre>${escape(d.signature)}</pre>` : ""}
       ${d.docstring ? `<h2 style="margin-top:14px">Docstring</h2><pre>${escape(d.docstring)}</pre>` : ""}
     `;
@@ -240,7 +245,7 @@ function showDetail(d, pinned) {
     side.innerHTML = `
       <h2 class="name">${escape(d.id)}</h2>
       <div class="meta">${d.kind} · chapter: ${d.chapter}${leanNames.length ? " · \\lean{" + leanNames.map(escape).join(", ") + "}" : ""}</div>
-      <pre>${escape(d.body)}</pre>
+      <div class="latex-body">${renderLatex(d.body)}</div>
       ${leanNames.length ? `<div style="margin-top:10px; font-size:11px; color:#666">FL slogans for matching decl(s):</div>` : ""}
       ${leanNames.map(n => {
         const s = DATA.slogans[n];
@@ -261,6 +266,34 @@ function renderSlogan(mode, obj) {
     <div class="text">${escape(obj.slogan)}</div>
     <div class="conf conf-${obj.confidence}">confidence: ${obj.confidence}</div>
   </div>`;
+}
+
+function renderLatex(src) {
+  // Escape HTML first, then let KaTeX auto-render scan for $...$ / \( \) / $$ $$.
+  const esc = escape(src);
+  // Render after the DOM insertion via requestAnimationFrame.
+  const id = "ltx" + (Math.random().toString(36).slice(2));
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id);
+    if (el && window.renderMathInElement) {
+      try {
+        window.renderMathInElement(el, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+          ],
+          macros: DATA.katex_macros || {},
+          throwOnError: false,
+          errorColor: "#c33",
+          trust: true,
+          strict: "ignore",
+        });
+      } catch (e) { /* leave raw */ }
+    }
+  });
+  return `<span id="${id}" style="white-space:pre-wrap">${esc}</span>`;
 }
 
 function escape(s) {

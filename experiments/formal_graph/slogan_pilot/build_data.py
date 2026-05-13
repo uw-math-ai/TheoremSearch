@@ -127,6 +127,71 @@ for tex in sorted(BP.glob("*.tex")):
 known = set(bp_nodes_by_label)
 bp_edges = [e for e in bp_edges if e["target"] in known and e["source"] in known]
 
+# --- LaTeX macros from blueprint preamble ---
+# KaTeX wants a flat {name: expansion} map. We grab \newcommand and
+# \DeclareMathOperator forms. \newcommand{\foo}[n]{body} -> "\foo": "body"
+# (with #1, #2 placeholders preserved — KaTeX supports them).
+macros: dict[str, str] = {}
+
+def _read_braced(text: str, i: int) -> tuple[str, int] | None:
+    """If text[i] == '{', return (content, index_after_close); else None."""
+    if i >= len(text) or text[i] != "{":
+        return None
+    depth, j = 0, i
+    while j < len(text):
+        c = text[j]
+        if c == "\\" and j + 1 < len(text):
+            j += 2; continue
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return text[i+1:j], j + 1
+        j += 1
+    return None
+
+def _extract_macros(text: str) -> None:
+    for m in re.finditer(r"\\(?:re|provide)?newcommand\*?|\\providecommand\*?", text):
+        i = m.end()
+        # optional whitespace, then {\name}
+        while i < len(text) and text[i] in " \t":
+            i += 1
+        name_block = _read_braced(text, i)
+        if not name_block:
+            continue
+        name_inner, i = name_block
+        name_inner = name_inner.strip()
+        if not re.fullmatch(r"\\[A-Za-z]+\*?", name_inner):
+            continue
+        # optional [n] arity and [default]
+        while i < len(text) and text[i] == "[":
+            j = text.find("]", i)
+            if j < 0: break
+            i = j + 1
+        body = _read_braced(text, i)
+        if not body:
+            continue
+        if name_inner in ("\\lean","\\leanok","\\proves","\\uses","\\label"):
+            continue
+        macros[name_inner] = body[0]
+    for m in re.finditer(r"\\DeclareMathOperator\*?", text):
+        i = m.end()
+        nb = _read_braced(text, i)
+        if not nb: continue
+        name, i = nb
+        bb = _read_braced(text, i)
+        if not bb: continue
+        macros[name.strip()] = f"\\operatorname{{{bb[0].strip()}}}"
+
+preamble_dir = BP.parent / "preamble"
+for tex in sorted(preamble_dir.glob("*.tex")) if preamble_dir.exists() else []:
+    _extract_macros(tex.read_text())
+
+# KaTeX-unfriendly overrides: \E in apap uses \mathchoice/\vcenter which KaTeX
+# doesn't support. Replace with a plain \mathbb{E}.
+macros["\\E"] = "\\mathbb{E}"
+
 data = {
     "fl_nodes": fl_nodes,
     "fl_edges": fl_edges,
@@ -134,10 +199,12 @@ data = {
     "bp_edges": bp_edges,
     "lean_to_label": lean_to_label,
     "slogans": slogans,
+    "katex_macros": macros,
 }
 out = HERE / "data.json"
 out.write_text(json.dumps(data, ensure_ascii=False, indent=2))
 print(f"FL: {len(fl_nodes)} nodes, {len(fl_edges)} edges  ({sum(1 for n in fl_nodes if n['resolved'])} resolved)")
 print(f"BP: {len(bp_nodes_by_label)} nodes, {len(bp_edges)} edges")
 print(f"lean_to_label: {len(lean_to_label)} mappings")
+print(f"KaTeX macros: {len(macros)}")
 print(f"-> {out}")
