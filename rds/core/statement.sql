@@ -1,20 +1,10 @@
 CREATE TYPE formality_kind AS ENUM ('formal', 'informal', 'semiformal');
 
--- statement.kind value domain mirrors lean-graph's DeclarationType.label
--- (see formalized_graph_v2/lean-graph/ImportGraph/Types.lean).
--- Informal-source kinds (e.g. LaTeX 'lemma', 'corollary', 'conjecture') must be
--- normalized at ingest: lemma/corollary -> 'thm', conjecture -> 'other'.
 CREATE TABLE statement (
     statement_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     paper_id UUID NOT NULL REFERENCES paper(paper_id) ON DELETE CASCADE,
     formality formality_kind NOT NULL,
-    kind TEXT NOT NULL CHECK (kind IN (
-        'thm', 'def', 'ind', 'ctor', 'quot', 'rec',
-        'inst', 'struct', 'class', 'opaque', 'axiom', 'other'
-    )),
-    -- Verbatim source text. Pinned NULL-able for now: lean-graph supplies only
-    -- signature/docstring (see formal_metadata), no body. Stage 1 extractor will
-    -- populate this for formal rows once wired up; informal rows fill it directly.
+    kind TEXT NOT NULL,
     body TEXT,
     proof TEXT
 );
@@ -22,14 +12,16 @@ CREATE TABLE statement (
 COMMENT ON TABLE statement IS
 'A single mathematical statement extracted from a paper or formal source.';
 
+-- For formal rows, statement.body holds the lean-graph signature (the
+-- pretty-printed type) and statement.proof holds the tactic_summary. The
+-- extension table below carries only the location/identification fields plus
+-- the docstring.
 CREATE TABLE formal_metadata (
     statement_id  UUID PRIMARY KEY REFERENCES statement(statement_id) ON DELETE CASCADE,
-    file_path TEXT NOT NULL, -- path within the repo
-    decl_name TEXT, -- fully qualified declaration name (Lean FQN)
-    module TEXT, -- defining Lean module (lean-graph nodes.module)
-    signature TEXT, -- pretty-printed type from lean-graph statements.jsonl
-    docstring TEXT, -- Lean docstring from lean-graph statements.jsonl
-    tactic_summary TEXT -- summary of tactics used in proof
+    file_path TEXT,          -- path within the repo (NULL when unknown, e.g. unresolved decls)
+    decl_name TEXT,          -- fully qualified declaration name (Lean FQN)
+    module    TEXT,          -- defining Lean module (lean-graph nodes.module)
+    docstring TEXT           -- Lean docstring from lean-graph statements.jsonl
 );
 
 COMMENT ON TABLE formal_metadata IS

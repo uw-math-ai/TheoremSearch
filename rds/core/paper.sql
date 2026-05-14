@@ -36,12 +36,29 @@ CREATE TABLE arxiv_paper_metadata (
 COMMENT ON TABLE arxiv_paper_metadata IS
 'Extension table for arXiv papers. Join to paper on paper_id.';
 
-CREATE TABLE reservoir_paper_metadata (
-    reservoir_slug TEXT PRIMARY KEY, -- references paper(external_id) where source = 'Reservoir'
+CREATE TABLE lean_community_paper_metadata (
+    repo_slug TEXT PRIMARY KEY, -- "owner/repo"; references paper(external_id) where source = 'Lean Community'
+    branch TEXT NOT NULL, -- default branch of the repo at scrape time
+    src_path TEXT NOT NULL, -- relative path inside the repo to the blueprint LaTeX source dir
     preamble TEXT,
     bibliography JSONB, -- Map of cite key -> {title?, arxiv_id?}
     bibtex BOOLEAN
 );
 
-COMMENT ON TABLE reservoir_paper_metadata IS
-'Extension table for Reservoir (Lean) blueprints. Join to paper on external_id.';
+COMMENT ON TABLE lean_community_paper_metadata IS
+'Extension table for Lean Community blueprints. Stores the GitHub coordinates needed to re-fetch the LaTeX source plus the parsed preamble/bibliography. Join to paper on external_id.';
+
+-- Project-level metadata for Lean repositories ingested via the lean-graph
+-- pipeline (formalized_graph_v2). Keyed by the project name from the upstream
+-- corpus DB (projects.name) which becomes paper.external_id when source='Lean Graph'.
+CREATE TABLE lean_graph_paper_metadata (
+    project_name    TEXT PRIMARY KEY,    -- references paper(external_id) where source = 'Lean Graph'
+    repo_url        TEXT,                -- upstream repo URL (projects.url)
+    lean_toolchain  TEXT,                -- e.g. "leanprover/lean4:v4.29.0"
+    mathlib_rev     TEXT,                -- Mathlib git revision pinned at extraction
+    git_commit      TEXT,                -- this project's git revision at extraction
+    extracted_at    TIMESTAMPTZ          -- when lean-graph emitted the snapshot
+);
+
+COMMENT ON TABLE lean_graph_paper_metadata IS
+'Extension table for Lean repositories ingested via lean-graph. Pins the toolchain/git revisions of the snapshot the corresponding statement/formal_metadata rows were extracted from. Join to paper on external_id.';

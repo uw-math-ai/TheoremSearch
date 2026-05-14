@@ -24,14 +24,25 @@ CREATE TABLE informal_dependency (
 COMMENT ON TABLE informal_dependency IS
 'A directed dependency edge from an informal statement to another statement or paper.';
 
--- Template for formal dependencies (e.g. extracted from Lean tactic traces).
--- Populate once a formal statement pipeline exists.
+-- Formal dependencies (e.g. extracted from Lean via lean-graph).
+--
+-- edge_type mirrors lean-graph's emitted kinds; the PK includes it because a
+-- single (src, dep) pair can legitimately appear under multiple kinds (e.g.
+-- a decl used in both a signature and its own proof).
 CREATE TABLE formal_dependency (
     src_id          UUID NOT NULL REFERENCES statement(statement_id) ON DELETE CASCADE,
     dep_id          UUID NOT NULL REFERENCES statement(statement_id) ON DELETE CASCADE,
-    tactic_context  TEXT,   -- tactic or term that triggered this dependency
-    PRIMARY KEY (src_id, dep_id)
+    edge_type       TEXT NOT NULL CHECK (edge_type IN (
+                        'extends',  -- structure/class extends
+                        'field',    -- structure field reference
+                        'sig',      -- used in the declaration's signature/type
+                        'proof',    -- used in the proof term/body
+                        'def',      -- used in the value of a definition
+                        'docref'    -- referenced from docstring
+                    )),
+    tactic_context  TEXT,   -- optional: tactic or term excerpt that triggered this dependency
+    PRIMARY KEY (src_id, dep_id, edge_type)
 );
 
 COMMENT ON TABLE formal_dependency IS
-'A directed dependency edge between two formal (e.g. Lean) statements.';
+'A directed dependency edge between two formal (e.g. Lean) statements. edge_type matches the lean-graph emitter''s vocabulary.';
