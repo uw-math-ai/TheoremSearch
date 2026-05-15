@@ -12,7 +12,7 @@ from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
 from ..generate_slogans.prompt_utils import condition_joins
-from .embed_utils import load_model_config, load_model, register_model
+from .embed_utils import load_model_config, make_encoder, register_model
 
 
 def _err(msg: str):
@@ -29,7 +29,7 @@ def generate_embeddings(
     encode_batch_size: int,
     shard: int,
     n_shards: int,
-    device: Optional[str],
+    device: str,
 ):
     model_config = load_model_config(model_name)
 
@@ -37,12 +37,12 @@ def generate_embeddings(
         action="Generating embeddings",
         params={
             "model":              model_name,
+            "device":             device,
             "condition?":         condition,
             "condition params?":  condition_params,
             "overwrite":          overwrite,
             "DB page size":       batch_size,
             "encode batch size":  encode_batch_size,
-            "device":             device or "auto",
             "shard?":             f"{shard}/{n_shards}" if n_shards > 1 else None,
         },
     )
@@ -90,8 +90,8 @@ def generate_embeddings(
     register_model(conn, model_name, model_config)
     register_vector(conn)
 
-    print(f"Loading {model_config['model']} ...")
-    model = load_model(model_config, device=device)
+    print(f"Loading {model_config['model']} via {device} ...")
+    encoder = make_encoder(model_config, device=device)
     instruction = model_config.get("instruction")
     normalize = bool(model_config.get("normalized", True))
 
@@ -115,13 +115,11 @@ def generate_embeddings(
             texts = [r["slogan"] for r in page]
 
             try:
-                vectors = model.encode(
+                vectors = encoder.encode(
                     texts,
-                    prompt=instruction,
+                    instruction=instruction,
                     batch_size=encode_batch_size,
-                    show_progress_bar=False,
-                    convert_to_numpy=True,
-                    normalize_embeddings=normalize,
+                    normalize=normalize,
                 )
             except Exception as e:
                 status_counts["failed"] += len(page)
@@ -197,13 +195,21 @@ if __name__ == "__main__":
         type=int,
         default=8,
         dest="encode_batch_size",
-        help="Sentence-transformer encode batch size (GPU-bound). Default: 8.",
+        help=(
+            "Encode batch size. For 'cpu'/'gpu', the sentence-transformers inner "
+            "batch. For 'nebius', the number of inputs per API call. Default: 8."
+        ),
     )
     parser.add_argument(
         "--device",
         type=str,
-        default=None,
-        help="Torch device, e.g. 'cuda', 'cuda:0', 'cpu'. Default: auto.",
+        required=True,
+        choices=["nebius", "cpu", "gpu"],
+        help=(
+            "Where to run encoding. 'cpu'/'gpu' use sentence-transformers locally; "
+            "'nebius' calls the Nebius embeddings endpoint and skips importing "
+            "sentence-transformers."
+        ),
     )
     parser.add_argument(
         "--shard",

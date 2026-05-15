@@ -1,7 +1,9 @@
 import json
+import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List
 
+import numpy as np
 from psycopg2.extensions import connection
 
 
@@ -19,22 +21,66 @@ def load_model_config(name: str) -> Dict[str, Any]:
     return models[name]
 
 
-def load_model(config: Dict[str, Any], device: Optional[str]):
-    """
-    Instantiate the sentence-transformers model. Uses CUDA if available (default)
-    and loads in float16 on CUDA for speed/VRAM; falls back to float32 on CPU.
-    """
-    import torch
-    from sentence_transformers import SentenceTransformer
+class LocalEncoder:
+    """sentence-transformers encoder running on cpu or cuda."""
 
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    def __init__(self, model_config: Dict[str, Any], device: str):
+        import torch
+        from sentence_transformers import SentenceTransformer
 
-    kwargs: Dict[str, Any] = {"device": device}
-    if device.startswith("cuda"):
-        kwargs["model_kwargs"] = {"torch_dtype": torch.float16}
+        kwargs: Dict[str, Any] = {"device": device}
+        if device == "cuda":
+            kwargs["model_kwargs"] = {"torch_dtype": torch.float16}
+        self._model = SentenceTransformer(model_config["model"], **kwargs)
 
-    return SentenceTransformer(config["model"], **kwargs)
+    def encode(self, texts, instruction, batch_size, normalize):
+        return self._model.encode(
+            texts,
+            prompt=instruction,
+            batch_size=batch_size,
+            show_progress_bar=False,
+            convert_to_numpy=True,
+            normalize_embeddings=normalize,
+        )
+
+
+class NebiusEncoder:
+    """Remote embedding via Nebius's OpenAI-compatible endpoint."""
+
+    def __init__(self, model_config: Dict[str, Any]):
+        from openai import OpenAI
+
+        self._client = OpenAI(
+            api_key=os.environ["NEBIUS_API_KEY"],
+            base_url="https://api.studio.nebius.ai/v1/",
+        )
+        self._model = model_config["model"]
+
+    def encode(self, texts, instruction, batch_size, normalize):
+        inputs = (
+            [f"{instruction}{t}" for t in texts] if instruction else list(texts)
+        )
+        vecs: List[np.ndarray] = []
+        for start in range(0, len(inputs), batch_size):
+            chunk = inputs[start:start + batch_size]
+            resp = self._client.embeddings.create(model=self._model, input=chunk)
+            vecs.extend(np.asarray(d.embedding, dtype=np.float32) for d in resp.data)
+        arr = np.stack(vecs)
+        if normalize:
+            norms = np.linalg.norm(arr, axis=1, keepdims=True)
+            arr = arr / np.where(norms == 0, 1, norms)
+        return arr
+
+
+def make_encoder(model_config: Dict[str, Any], device: str):
+    """device: 'nebius' | 'cpu' | 'gpu'."""
+    if device == "nebius":
+        return NebiusEncoder(model_config)
+    if device == "cpu":
+        return LocalEncoder(model_config, device="cpu")
+    if device == "gpu":
+        return LocalEncoder(model_config, device="cuda")
+    raise ValueError(f"--device must be one of 'nebius', 'cpu', 'gpu'; got {device!r}")
 
 
 def register_model(conn: connection, name: str, config: Dict[str, Any]) -> None:
