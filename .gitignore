@@ -15,6 +15,7 @@ parsed_papers/
 !pipeline/parse_dependencies/models.json
 !pipeline/generate_slogans/models.json
 !formalized_graph/projects.json
+!pipeline/generate_embeddings/models.json
 *pyc
 *.csv
 

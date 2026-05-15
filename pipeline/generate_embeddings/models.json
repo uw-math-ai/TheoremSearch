@@ -1,0 +1,8 @@
+{
+    "qwen3-8b": {
+        "model": "Qwen/Qwen3-Embedding-8B",
+        "instruction": "Represent the given math statement for retrieving related statements by natural language query.\n",
+        "dim": 4096,
+        "normalized": true
+    }
+}
