@@ -55,6 +55,28 @@ class SearchResponse(BaseModel):
     theorems: List[TheoremResult]
 
 
+# ── v2 search ────────────────────────────────────────────────────────────────
+
+class V2SearchResult(BaseModel):
+    statement_id: str
+    paper_id: str
+    name: str
+    body: Optional[str] = None
+    slogan: str
+    source: Optional[str] = None
+    title: Optional[str] = None
+    authors: List[str] = []
+    url: Optional[str] = None
+    external_id: Optional[str] = None
+    citation_count: Optional[int] = None
+    similarity: float
+    score: float
+
+
+class V2SearchResponse(BaseModel):
+    results: List[V2SearchResult]
+
+
 # Graph route models — minimal; use hydration endpoints for full content
 
 class StatementNode(BaseModel):
