@@ -17,7 +17,12 @@ set -euo pipefail
 export PATH="$HOME/.elan/bin:$PATH"
 export LEAN_CC=/usr/bin/gcc
 
-# Install toolchain if missing (idempotent)
+# Install toolchain; force-reinstall if Widget oleans are missing (past corruption seen on HYAK).
+WIDGET_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.28.0/lib/lean/Lean/Widget"
+if [ ! -f "$WIDGET_DIR/Types.olean" ]; then
+    echo "--- v4.28.0 toolchain corrupt or missing — reinstalling ---"
+    elan toolchain uninstall leanprover/lean4:v4.28.0 2>/dev/null || true
+fi
 elan toolchain install leanprover/lean4:v4.28.0
 
 TOOLCHAIN_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.28.0"
@@ -39,11 +44,10 @@ fi
 
 echo "leanprover/lean4:v4.28.0" > lean-toolchain
 
-# Add lean-graph dependency if not already present
+# Add lean-graph dependency if not already present.
 if ! grep -q "lean-graph" lakefile.lean 2>/dev/null && ! grep -q "lean-graph" lakefile.toml 2>/dev/null; then
     if [ -f lakefile.lean ]; then
         echo "--- Adding lean-graph @ $LEAN_GRAPH_BRANCH to lakefile.lean ---"
-        # Append before the main package definition; use require syntax
         cat >> lakefile.lean <<EOF
 
 require «lean-graph» from git "https://github.com/aurasoph/lean-graph" @ "$LEAN_GRAPH_BRANCH"
@@ -59,6 +63,23 @@ rev = "$LEAN_GRAPH_BRANCH"
 EOF
     fi
 fi
+
+# lean-graph ships its own ImportGraph library. Keeping Mathlib's importGraph require alongside
+# it causes Lake to route ImportGraph.* to the wrong package, making lean-graph's Export/Graph/
+# Tools modules unreachable. Remove importGraph so lean-graph's ImportGraph is the sole provider.
+# Mathlib's code only imports ImportGraph.{Imports,RequiredModules,Meta,Lean.Name}, all present
+# in lean-graph's ImportGraph tree.
+if [ -f lakefile.lean ] && grep -q '"importGraph"' lakefile.lean; then
+    echo "--- Removing importGraph from lakefile (lean-graph ships its own ImportGraph) ---"
+    sed -i '/require.*"importGraph"/d' lakefile.lean
+fi
+
+# Redirect .lake/build to node-local NVMe SSD to avoid slow gscratch I/O during compilation.
+LOCAL_BUILD="/tmp/mathlib-v428-${SLURM_JOB_ID:-$$}"
+rm -rf "$WORK/.lake/build"
+mkdir -p "$LOCAL_BUILD"
+ln -sfn "$LOCAL_BUILD" "$WORK/.lake/build"
+trap "echo '--- Syncing .lake/build from SSD to gscratch ---'; rm -f '$WORK/.lake/build'; [ -d '$LOCAL_BUILD' ] && mv '$LOCAL_BUILD' '$WORK/.lake/build' || true" EXIT
 
 echo "--- lake update lean-graph (cache hook may fail on HYAK; tolerated) ---"
 lake update lean-graph 2>&1 || echo "  (lake update exited non-zero — expected if cache hook failed)"

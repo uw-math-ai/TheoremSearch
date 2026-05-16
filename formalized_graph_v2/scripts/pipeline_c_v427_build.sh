@@ -41,11 +41,13 @@ echo "leanprover/lean4:v4.27.0" > lean-toolchain
 
 if ! grep -q "lean-graph" lakefile.lean 2>/dev/null && ! grep -q "lean-graph" lakefile.toml 2>/dev/null; then
     if [ -f lakefile.lean ]; then
+        echo "--- Adding lean-graph @ $LEAN_GRAPH_BRANCH to lakefile.lean ---"
         cat >> lakefile.lean <<EOF
 
 require «lean-graph» from git "https://github.com/aurasoph/lean-graph" @ "$LEAN_GRAPH_BRANCH"
 EOF
     elif [ -f lakefile.toml ]; then
+        echo "--- Adding lean-graph @ $LEAN_GRAPH_BRANCH to lakefile.toml ---"
         cat >> lakefile.toml <<EOF
 
 [[require]]
@@ -55,6 +57,23 @@ rev = "$LEAN_GRAPH_BRANCH"
 EOF
     fi
 fi
+
+# lean-graph lean-v4.27 (package leanGraph) ships its own ImportGraph library. Keeping Mathlib's
+# importGraph require alongside it causes Lake to route ImportGraph.* to the wrong package, making
+# lean-graph's Export/Graph/Tools modules unreachable. Remove importGraph so lean-graph's
+# ImportGraph is the sole provider. Mathlib's code only imports
+# ImportGraph.{Imports,RequiredModules,Meta,Lean.Name}, all present in lean-graph's tree.
+if [ -f lakefile.lean ] && grep -q '"importGraph"' lakefile.lean; then
+    echo "--- Removing importGraph from lakefile (lean-graph lean-v4.27 ships its own ImportGraph) ---"
+    sed -i '/require.*"importGraph"/d' lakefile.lean
+fi
+
+# Redirect .lake/build to node-local NVMe SSD to avoid slow gscratch I/O during compilation.
+LOCAL_BUILD="/tmp/mathlib-v427-${SLURM_JOB_ID:-$$}"
+rm -rf "$WORK/.lake/build"
+mkdir -p "$LOCAL_BUILD"
+ln -sfn "$LOCAL_BUILD" "$WORK/.lake/build"
+trap "echo '--- Syncing .lake/build from SSD to gscratch ---'; rm -f '$WORK/.lake/build'; [ -d '$LOCAL_BUILD' ] && mv '$LOCAL_BUILD' '$WORK/.lake/build' || true" EXIT
 
 echo "--- lake update lean-graph ---"
 lake update lean-graph 2>&1 || echo "  (lake update exited non-zero — expected if cache hook failed)"
