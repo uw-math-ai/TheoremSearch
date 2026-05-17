@@ -78,6 +78,13 @@ trap "echo '--- Syncing .lake/build from SSD to gscratch ---'; rm -f '$WORK/.lak
 echo "--- lake update lean-graph ---"
 lake update lean-graph 2>&1 || echo "  (lake update exited non-zero — expected if cache hook failed)"
 
+# Mathlib.Tactic.Linter.FindDeprecations uses `parseImports` which was added to Lean core
+# after v4.27; stub it out so lake build doesn't abort on this linter-only module.
+if [ -f Mathlib/Tactic/Linter/FindDeprecations.lean ]; then
+    echo "--- Stubbing FindDeprecations.lean (parseImports absent in v4.27) ---"
+    echo "-- stubbed: parseImports not available in Lean v4.27.0" > Mathlib/Tactic/Linter/FindDeprecations.lean
+fi
+
 echo "--- Building Mathlib + lean-graph (long) ---"
 lake build Mathlib graph export_statements 2>&1
 
