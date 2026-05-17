@@ -20,7 +20,7 @@ export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"
 PROJECTS=(
     "formal-conjectures:FormalConjecturesForMathlib"
     "FormalBook:FormalBook"
-    "lean-stat-learning-theory:StatLearningTheory"
+    "lean-stat-learning-theory:SLT"
 )
 
 ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"

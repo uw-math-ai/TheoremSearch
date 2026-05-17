@@ -18,7 +18,7 @@ export ELAN_TOOLCHAIN="leanprover/lean4:v4.27.0"
 PROJECTS=(
     "formal-conjectures:FormalConjecturesForMathlib"
     "FormalBook:FormalBook"
-    "lean-stat-learning-theory:StatLearningTheory"
+    "lean-stat-learning-theory:SLT"
 )
 
 ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"
