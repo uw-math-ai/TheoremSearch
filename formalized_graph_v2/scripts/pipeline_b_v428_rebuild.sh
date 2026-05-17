@@ -32,8 +32,32 @@ PROJ_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalizat
 echo "=== Pipeline B rebuild: $PROJECT ($MODULE) ==="
 cd "$PROJ_DIR"
 echo "leanprover/lean4:v4.28.0" > lean-toolchain
+
+# Redirect all build outputs to node-local SSD to avoid NFS olean loss on gscratch.
+# Covers both the project's own .lake/build and every package's .lake/build so that
+# dependency oleans (Aesop, Batteries, etc.) are written to SSD too.
+LOCAL_BASE="/tmp/proj-${PROJECT}-${SLURM_JOB_ID:-$$}"
+mkdir -p "$LOCAL_BASE/build"
+
+# Wipe stale build dirs and replace with SSD symlinks
 rm -rf .lake/build
-find .lake/packages -maxdepth 3 -name build -type d -exec rm -rf {} + 2>/dev/null || true
+ln -sfn "$LOCAL_BASE/build" .lake/build
+
+find .lake/packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null | while read -r pkg_dir; do
+    pkg_name=$(basename "$pkg_dir")
+    mkdir -p "$LOCAL_BASE/packages/$pkg_name"
+    rm -rf "$pkg_dir/.lake/build"
+    ln -sfn "$LOCAL_BASE/packages/$pkg_name" "$pkg_dir/.lake/build"
+done
+
+trap "echo '--- Syncing project build from SSD to gscratch ---'; \
+      rm -f '$PROJ_DIR/.lake/build'; \
+      [ -d '$LOCAL_BASE/build' ] && mv '$LOCAL_BASE/build' '$PROJ_DIR/.lake/build' || true; \
+      find '$PROJ_DIR/.lake/packages' -maxdepth 1 -mindepth 1 -type d 2>/dev/null | while read -r pkg_dir; do \
+          pkg_name=\$(basename \"\$pkg_dir\"); \
+          rm -f \"\$pkg_dir/.lake/build\"; \
+          [ -d '$LOCAL_BASE/packages/'\"\$pkg_name\" ] && mv '$LOCAL_BASE/packages/'\"\$pkg_name\" \"\$pkg_dir/.lake/build\" || true; \
+      done" EXIT
 
 lake build "$MODULE" 2>&1
 ls -la ".lake/build/lib/lean/$MODULE.olean" 2>/dev/null && echo "SUCCESS" || echo "FAILED"
