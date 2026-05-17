@@ -92,7 +92,7 @@ lake update lean-graph 2>&1 || echo "  (lake update exited non-zero — expected
 # after v4.27; stub it out so lake build doesn't abort on this linter-only module.
 if [ -f Mathlib/Tactic/Linter/FindDeprecations.lean ]; then
     echo "--- Stubbing FindDeprecations.lean (parseImports absent in v4.27) ---"
-    printf 'namespace Mathlib.Tactic.Linter.FindDeprecations\nend Mathlib.Tactic.Linter.FindDeprecations\n' > Mathlib/Tactic/Linter/FindDeprecations.lean
+    printf 'module\n\n-- Stubbed: parseImports not available in this Lean version\n' > Mathlib/Tactic/Linter/FindDeprecations.lean
 fi
 
 echo "--- Building Mathlib + lean-graph (long) ---"
