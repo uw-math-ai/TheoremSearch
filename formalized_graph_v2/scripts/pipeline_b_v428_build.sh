@@ -75,15 +75,19 @@ if [ -f lakefile.lean ] && grep -q '"importGraph"' lakefile.lean; then
 fi
 
 # Redirect .lake/build to node-local NVMe SSD to avoid slow gscratch I/O during compilation.
+# If a prior build exists on gscratch, move it to SSD so Lake can compile incrementally.
 LOCAL_BUILD="/tmp/mathlib-v428-${SLURM_JOB_ID:-$$}"
 if [ -L "$WORK/.lake/build" ]; then
+    # Stale symlink from an interrupted run — remove and start fresh.
     rm -f "$WORK/.lake/build"
+    mkdir -p "$LOCAL_BUILD"
 elif [ -d "$WORK/.lake/build" ]; then
-    # Rename first (instant on same FS), then delete in background to avoid NFS rm failures.
-    mv "$WORK/.lake/build" "$WORK/.lake/build.old.$$"
-    rm -rf "$WORK/.lake/build.old.$$" &
+    # Prior build synced back to gscratch — move to SSD to resume incrementally.
+    echo "--- Moving existing build from gscratch to SSD for incremental compilation ---"
+    mv "$WORK/.lake/build" "$LOCAL_BUILD"
+else
+    mkdir -p "$LOCAL_BUILD"
 fi
-mkdir -p "$LOCAL_BUILD"
 ln -sfn "$LOCAL_BUILD" "$WORK/.lake/build"
 trap "echo '--- Syncing .lake/build from SSD to gscratch ---'; rm -f '$WORK/.lake/build'; [ -d '$LOCAL_BUILD' ] && mv '$LOCAL_BUILD' '$WORK/.lake/build' || true" EXIT
 
