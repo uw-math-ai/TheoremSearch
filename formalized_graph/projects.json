@@ -30,5 +30,8 @@
   {"name": "misc-yd",                "url": "https://github.com/YaelDillies/misc-yd"},
   {"name": "chandra-furst-lipton",   "url": "https://github.com/YaelDillies/chandra-furst-lipton"},
   {"name": "forbidden-matrix",       "url": "https://github.com/YaelDillies/forbidden-matrix"},
-  {"name": "HarderNarasimhan",       "url": "https://github.com/YijunYuan/HarderNarasimhan"}
+  {"name": "HarderNarasimhan",       "url": "https://github.com/YijunYuan/HarderNarasimhan"},
+  {"name": "FormalBook",                 "url": "https://github.com/mo271/FormalBook"},
+  {"name": "lean-stat-learning-theory",  "url": "https://github.com/YuanheZ/lean-stat-learning-theory"},
+  {"name": "sphere-packing-math-inc",    "url": "https://github.com/math-inc/Sphere-Packing-Lean"}
 ]

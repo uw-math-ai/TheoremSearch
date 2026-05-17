@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=08:00:00
-#SBATCH --array=0-1
+#SBATCH --array=0-3
 #SBATCH --output=/gscratch/amath/simku22/logs/pB_rebuild_%A_%a.out
 #SBATCH --error=/gscratch/amath/simku22/logs/pB_rebuild_%A_%a.err
 #SBATCH --mail-type=END,FAIL
@@ -20,6 +20,8 @@ export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"
 PROJECTS=(
     "sphere-eversion:SphereEversion"
     "PrimeNumberTheoremAnd:PrimeNumberTheoremAnd"
+    "SciLean:SciLean"
+    "sphere-packing-math-inc:SpherePacking"
 )
 
 ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"

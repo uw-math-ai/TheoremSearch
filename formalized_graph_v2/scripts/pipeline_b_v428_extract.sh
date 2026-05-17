@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --time=04:00:00
-#SBATCH --array=0-1
+#SBATCH --array=0-3
 #SBATCH --output=/gscratch/amath/simku22/logs/pB_extract_%A_%a.out
 #SBATCH --error=/gscratch/amath/simku22/logs/pB_extract_%A_%a.err
 #SBATCH --mail-type=END,FAIL
@@ -18,6 +18,8 @@ export ELAN_TOOLCHAIN="leanprover/lean4:v4.28.0"
 PROJECTS=(
     "sphere-eversion:SphereEversion"
     "PrimeNumberTheoremAnd:PrimeNumberTheoremAnd"
+    "SciLean:SciLean"
+    "sphere-packing-math-inc:SpherePacking"
 )
 
 ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"
@@ -30,7 +32,7 @@ PROJ_LIB="$PROJ_DIR/.lake/build/lib/lean"
 OUT_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/generated/ndjson"
 
 mkdir -p "$OUT_DIR"
-[ -d "$PROJ_LIB" ] || { echo "ERROR: No oleans at $PROJ_LIB"; exit 1; }
+[ -d "$PROJ_LIB" ] || { echo "skipping $PROJECT: rebuild produced no oleans (likely toolchain mismatch)"; exit 0; }
 
 PATHS="$PROJ_LIB"
 for pkg in "$PROJ_DIR"/.lake/packages/*/.lake/build/lib/lean; do

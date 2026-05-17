@@ -12,5 +12,5 @@ echo "Pipeline B build job: $BUILD_JOB"
 REBUILD_JOB=$(sbatch --parsable --dependency=afterok:"$BUILD_JOB" "$SCRIPTS/pipeline_b_v428_rebuild.sh")
 echo "Pipeline B rebuild job: $REBUILD_JOB (depends on $BUILD_JOB)"
 
-EXTRACT_JOB=$(sbatch --parsable --dependency=afterok:"$REBUILD_JOB" "$SCRIPTS/pipeline_b_v428_extract.sh")
+EXTRACT_JOB=$(sbatch --parsable --dependency=afterany:"$REBUILD_JOB" "$SCRIPTS/pipeline_b_v428_extract.sh")
 echo "Pipeline B extract job: $EXTRACT_JOB (depends on $REBUILD_JOB)"

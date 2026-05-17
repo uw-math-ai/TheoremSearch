@@ -5,8 +5,9 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=08:00:00
-#SBATCH --output=/gscratch/amath/simku22/logs/pC_rebuild_%j.out
-#SBATCH --error=/gscratch/amath/simku22/logs/pC_rebuild_%j.err
+#SBATCH --array=0-2
+#SBATCH --output=/gscratch/amath/simku22/logs/pC_rebuild_%A_%a.out
+#SBATCH --error=/gscratch/amath/simku22/logs/pC_rebuild_%A_%a.err
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=simku22@uw.edu
 
@@ -16,8 +17,15 @@ export LEAN_CC=/usr/bin/gcc
 TOOLCHAIN_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.27.0"
 export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"
 
-PROJECT="formal-conjectures"
-MODULE="FormalConjecturesForMathlib"
+PROJECTS=(
+    "formal-conjectures:FormalConjecturesForMathlib"
+    "FormalBook:FormalBook"
+    "lean-stat-learning-theory:StatLearningTheory"
+)
+
+ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"
+PROJECT="${ENTRY%%:*}"
+MODULE="${ENTRY##*:}"
 PROJ_DIR="/gscratch/amath/simku22/TheoremSearch/formalized_graph/data/formalization_projects/$PROJECT"
 
 echo "=== Pipeline C rebuild: $PROJECT ($MODULE) ==="
