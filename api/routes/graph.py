@@ -99,7 +99,7 @@ def _traverse(cur, start_ids: list, depth: int, direction: str) -> list:
             SELECT s.statement_id, 0
             FROM statement s
             WHERE s.statement_id = ANY(%s::uuid[])
-            UNION
+            UNION ALL
             {recursive_sql}
         )
         SELECT statement_id, MIN(depth) FROM traversal GROUP BY statement_id
