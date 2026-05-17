@@ -23,7 +23,7 @@ if [ ! -f "$WIDGET_DIR/Types.olean" ]; then
     echo "--- v4.28.0 toolchain corrupt or missing — reinstalling ---"
     elan toolchain uninstall leanprover/lean4:v4.28.0 2>/dev/null || true
 fi
-elan toolchain install leanprover/lean4:v4.28.0
+elan toolchain install leanprover/lean4:v4.28.0 || true
 
 TOOLCHAIN_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.28.0"
 export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"

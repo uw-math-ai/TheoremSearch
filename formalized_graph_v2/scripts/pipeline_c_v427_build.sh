@@ -18,7 +18,7 @@ export PATH="$HOME/.elan/bin:$PATH"
 export LEAN_CC=/usr/bin/gcc
 
 # Install toolchain if missing (idempotent)
-elan toolchain install leanprover/lean4:v4.27.0
+elan toolchain install leanprover/lean4:v4.27.0 || true
 
 TOOLCHAIN_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.27.0"
 export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"
