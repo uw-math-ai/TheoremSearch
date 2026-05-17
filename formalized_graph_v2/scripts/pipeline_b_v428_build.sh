@@ -76,7 +76,13 @@ fi
 
 # Redirect .lake/build to node-local NVMe SSD to avoid slow gscratch I/O during compilation.
 LOCAL_BUILD="/tmp/mathlib-v428-${SLURM_JOB_ID:-$$}"
-rm -rf "$WORK/.lake/build"
+if [ -L "$WORK/.lake/build" ]; then
+    rm -f "$WORK/.lake/build"
+elif [ -d "$WORK/.lake/build" ]; then
+    # Rename first (instant on same FS), then delete in background to avoid NFS rm failures.
+    mv "$WORK/.lake/build" "$WORK/.lake/build.old.$$"
+    rm -rf "$WORK/.lake/build.old.$$" &
+fi
 mkdir -p "$LOCAL_BUILD"
 ln -sfn "$LOCAL_BUILD" "$WORK/.lake/build"
 trap "echo '--- Syncing .lake/build from SSD to gscratch ---'; rm -f '$WORK/.lake/build'; [ -d '$LOCAL_BUILD' ] && mv '$LOCAL_BUILD' '$WORK/.lake/build' || true" EXIT
