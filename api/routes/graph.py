@@ -85,7 +85,7 @@ def _traverse(cur, start_ids: list, depth: int, direction: str) -> list:
             "FROM traversal t "
             "JOIN informal_dependency d ON d.src_id = t.statement_id "
             "WHERE t.depth < %s AND d.dep_id IS NOT NULL "
-            "UNION "
+            "UNION ALL "
             "SELECT d.src_id, t.depth + 1 "
             "FROM traversal t "
             "JOIN informal_dependency d ON d.dep_id = t.statement_id "

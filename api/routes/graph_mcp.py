@@ -1,7 +1,6 @@
 import json
 from fastapi import APIRouter, Request
-from models import SearchRequest
-from routes.search import search
+from routes.search_v2 import search as v2_search
 from routes.graph import _traverse, _build_subgraph
 from db import rds_conn
 
@@ -9,23 +8,22 @@ router = APIRouter()
 
 MCP_SEARCH_TOOL = {
     "name": "theorem_search",
-    "description": "Search for mathematical theorems, lemmas, and definitions using semantic similarity and filters.",
+    "description": (
+        "Search for mathematical theorems, lemmas, and definitions using semantic similarity. "
+        "Returns results with statement_id UUIDs that can be passed directly to "
+        "get_statement or navigate_graph."
+    ),
     "inputSchema": {
         "type": "object",
         "properties": {
             "query": {"type": "string"},
             "n_results": {"type": "integer", "default": 10},
-            "sources": {"type": "array", "items": {"type": "string"}, "default": []},
-            "authors": {"type": "array", "items": {"type": "string"}, "default": []},
-            "types": {"type": "array", "items": {"type": "string"}, "default": []},
-            "tags": {"type": "array", "items": {"type": "string"}, "default": []},
-            "paper_filter": {"type": ["string", "null"], "default": None},
-            "year_range": {"type": ["array", "null"], "items": {"type": "integer"}, "default": None},
-            "citation_range": {"type": ["array", "null"], "items": {"type": "integer"}, "default": None},
-            "citation_weight": {"type": "number", "default": 0.0},
-            "include_unknown_citations": {"type": "boolean", "default": True},
-            "prompt": {"type": ["string", "null"], "default": None, "description": "Instruction prompt prepended to query before embedding."},
-            "db_top_k": {"type": ["integer", "null"], "default": None, "description": "ANN candidates before reranking. Default: 2 * n_results."},
+            "sources": {"type": "array", "items": {"type": "string"}, "default": [], "description": "e.g. 'arXiv', 'Stacks Project'"},
+            "types": {"type": "array", "items": {"type": "string"}, "default": [], "description": "e.g. 'theorem', 'lemma', 'definition'"},
+            "authors": {"type": "array", "items": {"type": "string"}, "default": [], "description": "Author substring filters"},
+            "min_citations": {"type": "integer", "default": 0},
+            "citation_weight": {"type": "number", "default": 0.0, "description": "Boost score by ln(citations) * this weight"},
+            "in_journal": {"type": ["boolean", "null"], "default": None, "description": "Filter to journal-published papers only"},
         },
         "required": ["query"],
     },
@@ -101,8 +99,16 @@ def _mcp_error(request_id, code: int, message: str) -> dict:
 
 
 async def _handle_theorem_search(args: dict) -> dict:
-    payload = SearchRequest(**args)
-    search_response = await search(payload, mcp=True)
+    search_response = await v2_search(
+        query=args["query"],
+        n_results=args.get("n_results", 10),
+        sources=args.get("sources", []),
+        types=args.get("types", []),
+        authors=args.get("authors", []),
+        min_citations=args.get("min_citations", 0),
+        citation_weight=args.get("citation_weight", 0.0),
+        in_journal=args.get("in_journal"),
+    )
     response_payload = search_response.model_dump()
     return {
         "content": [{"type": "text", "text": json.dumps(response_payload)}],
