@@ -176,14 +176,14 @@ display(html`<table style="border-collapse:collapse;font-size:13px;margin:8px 0 
   </tr></thead>
   <tbody>
     ${[
-      {cmp:"B vs T",        d: mc.B_vs_T,        note:"Strong, robust signal"},
-      {cmp:"T-names vs T",  d: mc.Tnames_vs_T,   note:"Signatures matter a lot"},
-      {cmp:"T vs T-random", d: mc.T_vs_Trandom,  note:"CI crosses zero — directional only"},
-      {cmp:"B vs T-names",  d: mc.B_vs_Tnames,   note:"Names add nothing on average"},
-    ].map(({cmp, d, note}) => html`<tr>
+      {cmp:"B vs T",        ci: mc.B_vs_T,        note:"Strong, robust signal"},
+      {cmp:"T-names vs T",  ci: mc.Tnames_vs_T,   note:"Signatures matter a lot"},
+      {cmp:"T vs T-random", ci: mc.T_vs_Trandom,  note:"CI crosses zero — directional only"},
+      {cmp:"B vs T-names",  ci: mc.B_vs_Tnames,   note:"Names add nothing on average"},
+    ].map(({cmp, ci, note}) => html`<tr>
       <td style="padding:7px 12px;border:1px solid #e2e8f0">${cmp}</td>
-      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-weight:600">${d.delta > 0 ? "+" : ""}${d.delta}pp</td>
-      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">[${d.ci_lo > 0 ? "+" : ""}${d.ci_lo}, +${d.ci_hi}]</td>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-weight:600">${ci.delta > 0 ? "+" : ""}${ci.delta}pp</td>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">[${ci.ci_lo > 0 ? "+" : ""}${ci.ci_lo}, +${ci.ci_hi}]</td>
       <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#475569">${note}</td>
     </tr>`)}
   </tbody>
@@ -255,7 +255,7 @@ Stratified by in-degree × signature size:
           order:["T (treatment)","tie","B (baseline)"],tip:true})
       ),
       Plot.text(strata.filter(c=>c.T>0),
-        {x:d=>d.T/2, y:"cell", text:d=>`${d.T}`,
+        {x:r=>r.T/2, y:"cell", text:r=>`${r.T}`,
          fill:"white", fontWeight:"bold", fontSize:13}),
       Plot.ruleX([0]),
     ]
@@ -326,7 +326,7 @@ and don't require transitivity).
       Plot.text(bars.filter(b=>b.n>3),
         Plot.stackX({x:"n", y:"pair", z:"cond",
           order:["T","tie","T-names","T-random"],
-          text: d=>String(d.n), fontWeight:"bold", fontSize:12, fill:"white"})),
+          text: r=>String(r.n), fontWeight:"bold", fontSize:12, fill:"white"})),
       Plot.ruleX([0]),
     ]
   }));
@@ -417,10 +417,10 @@ the one that actually type-checked.
       Plot.text([{x:0.9, y:1.3, text:"wrong types"}],
         {x:"x", y:"y", text:"text", fontSize:10, fill:"#7c3aed", fontStyle:"italic"}),
       Plot.dot(pts, {
-        x: d => d.jx + d.jitter_x,
-        y: d => d.jy + d.jitter_y,
-        stroke: d => verdictColor[d.judge_T_vs_Trandom] ?? "#94a3b8",
-        fill:   d => verdictColor[d.judge_T_vs_Trandom] ?? "#94a3b8",
+        x: r => r.jx + r.jitter_x,
+        y: r => r.jy + r.jitter_y,
+        stroke: r => verdictColor[r.judge_T_vs_Trandom] ?? "#94a3b8",
+        fill:   r => verdictColor[r.judge_T_vs_Trandom] ?? "#94a3b8",
         fillOpacity: 0.7,
         r: 5,
         tip: true,
@@ -579,8 +579,8 @@ const selTC = view(Inputs.checkbox(
 
 - **NL name leakage.** The informalizer was not told to avoid mentioning F's name.
   Post-hoc: 10/60 NLs contain F's last name component verbatim; 9/60 contain a
-  CamelCase part. Sensitivity check on the clean-NL subset (${nl.clean_nl_n}/60):
-  B = ${nl.clean_nl_tc_B_pct}%, T = ${nl.clean_nl_tc_T_pct}% — identical to the
+  CamelCase part. Sensitivity check on the clean-NL subset (46/60):
+  B = 32.6%, T = 63.0% — identical to the
   full sample (33% / 63%), so the finding is robust but gap magnitudes are
   conservative-biased toward zero when the name is present in both prompts.
 
