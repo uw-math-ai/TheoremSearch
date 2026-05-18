@@ -1,87 +1,63 @@
-import json
 import re
-import os
 import sys
-from pathlib import Path
 from collections import defaultdict
-from typing import Iterable, List, Dict, Optional, Tuple
+from pathlib import Path
+from typing import List, Dict, Optional
 from tqdm import tqdm
-from jinja2 import Environment, FileSystemLoader
 from psycopg2.extensions import connection
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
-from .llm_utils import parse_concepts_json, dedup_dep_rows, proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
+from .write import informal_dep_update_expr
+from .llm_utils import proximity_score, proximity_keywords, max_anchor_strength, adjacent_keywords
 
-def _overwrite_method_clause(do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool, alias: str = "informal_dependency") -> str:
-    """Build the AND method IN (...) fragment for the not-overwrite skip condition."""
+
+def _overwrite_method_clause(do_deterministic: bool, do_heuristic: bool,
+                              alias: str = "informal_dependency") -> str:
     m = []
-    if do_deterministic: m += ["'deterministic'", "'deterministic+llm'"]
-    if do_heuristic:     m += ["'heuristic'",     "'heuristic+llm'"]
-    if do_llm:           m += ["'llm'",           "'deterministic+llm'", "'heuristic+llm'"]
-    unique = list(dict.fromkeys(m))
-    return f" AND {alias}.method IN ({', '.join(unique)})" if unique else ""
+    if do_deterministic: m.append("'deterministic'")
+    if do_heuristic:     m.append("'heuristic'")
+    return f" AND {alias}.methods && ARRAY[{', '.join(m)}]::text[]" if m else ""
 
 
-def _reset_methods(cur, source_ids: list, do_deterministic: bool, do_heuristic: bool, do_llm: bool, intra: bool):
-    """Delete/reset rows that are about to be re-generated, preserving untouched halves."""
+def _reset_methods(cur, source_ids: list, do_deterministic: bool, do_heuristic: bool, intra: bool):
     cite_filter = "cite_key IS NULL" if intra else "cite_key IS NOT NULL"
-    if do_deterministic and do_heuristic and do_llm:
-        cur.execute(f"DELETE FROM informal_dependency WHERE {cite_filter} AND src_id = ANY(%s::uuid[])", (source_ids,))
+    methods_to_remove = []
+    if do_deterministic: methods_to_remove.append("deterministic")
+    if do_heuristic:     methods_to_remove.append("heuristic")
+    if not methods_to_remove:
         return
-    base = []
-    if do_deterministic: base.append("'deterministic'")
-    if do_heuristic:     base.append("'heuristic'")
-    if do_llm:           base.append("'llm'")
-    if base:
-        cur.execute(f"DELETE FROM informal_dependency WHERE {cite_filter} AND method IN ({', '.join(base)}) AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_deterministic and not do_llm:
-        cur.execute(f"UPDATE informal_dependency SET method = 'llm' WHERE {cite_filter} AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_heuristic and not do_llm:
-        cur.execute(f"UPDATE informal_dependency SET method = 'llm' WHERE {cite_filter} AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_llm and not do_deterministic:
-        cur.execute(f"UPDATE informal_dependency SET method = 'deterministic' WHERE {cite_filter} AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_llm and not do_heuristic:
-        cur.execute(f"UPDATE informal_dependency SET method = 'heuristic' WHERE {cite_filter} AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_deterministic and do_llm:
-        cur.execute(f"DELETE FROM informal_dependency WHERE {cite_filter} AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
-    if do_heuristic and do_llm:
-        cur.execute(f"DELETE FROM informal_dependency WHERE {cite_filter} AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])", (source_ids,))
+    arr = "ARRAY[" + ", ".join(f"'{m}'" for m in methods_to_remove) + "]::text[]"
+    cur.execute(f"DELETE FROM informal_dependency WHERE {cite_filter} AND src_id = ANY(%s::uuid[]) AND methods <@ {arr}", (source_ids,))
+    remove_expr = "methods"
+    for m in methods_to_remove:
+        remove_expr = f"array_remove({remove_expr}, '{m}')"
+    cur.execute(f"UPDATE informal_dependency SET methods = {remove_expr} WHERE {cite_filter} AND src_id = ANY(%s::uuid[]) AND methods && {arr}", (source_ids,))
 
 
 _REF_RE = re.compile(
-    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref)\*?\s*\{([^}]*)\}'
+    r'\\(?:[a-zA-Z]*[Rr]ef|autoref|cref|Cref|eqref|uses)\*?\s*\{([^}]*)\}'
     r'|\\hyperref\*?\s*\[([^\]]*)\]'
 )
 
-# Matches post_context that opens with an unparsed proof block.
 _PROOF_START_RE = re.compile(
     r'^\s*(?:'
-    r'\{\\(?:bf|it|textbf|textit)\s+Proof[\s.!]*\}'   # {\bf Proof.} / {\bf Proof .}
-    r'|\\(?:textbf|textit)\{Proof[^}]*\}'              # \textbf{Proof...}
-    r'|\\begin\s*\{proof\}'                             # \begin{proof}
-    r'|Proof\s*[.:\[]'                                  # bare "Proof." / "Proof:"
+    r'\{\\(?:bf|it|textbf|textit)\s+Proof[\s.!]*\}'
+    r'|\\(?:textbf|textit)\{Proof[^}]*\}'
+    r'|\\begin\s*\{proof\}'
+    r'|Proof\s*[.:\[]'
     r')',
     re.IGNORECASE,
 )
 
 _PROMPTS_DIR = Path(__file__).parent / "prompts"
-_jinja_env = Environment(loader=FileSystemLoader(_PROMPTS_DIR), keep_trailing_newline=True)
 
-def _render(template_name: str, **kwargs) -> str:
-    return _jinja_env.get_template(template_name).render(**kwargs)
 
 def _truncate(text: Optional[str], max_chars: int, tail: bool = False) -> Optional[str]:
     if text and len(text) > max_chars:
         return ("…" + text[-max_chars:]) if tail else (text[:max_chars] + "…")
     return text
-
-
-def _make_stmt_id(stmt: dict, index: int) -> str:
-    if stmt.get("ref"):
-        return stmt["ref"]
-    return f"{stmt['kind'].capitalize()} {index + 1}"
 
 
 def _process_paper_deterministic(
@@ -95,6 +71,7 @@ def _process_paper_deterministic(
         for s in statements
         if s["label"]
     }
+    stmt_order = {s["statement_id"]: i for i, s in enumerate(statements)}
 
     rows = []
 
@@ -114,22 +91,21 @@ def _process_paper_deterministic(
                     if not content:
                         continue
                     for label in (lbl.strip() for lbl in content.split(',')):
-                        if label in label_to_dep and label not in seen:
+                        dep_id = label_to_dep.get(label)
+                        if dep_id and dep_id != statement["statement_id"] and label not in seen:
                             seen.add(label)
                             rows.append({
                                 "src_id":   statement["statement_id"],
                                 "location": location,
                                 "cite_id":  None,
                                 "cite_key": None,
-                                "dep_id":   label_to_dep[label],
+                                "dep_id":   dep_id,
                                 "dep_key":  label,
                                 "dep_name": None,
-                                "method":   "deterministic",
+                                "methods":  ["deterministic"],
                             })
 
     # ── Part 2: \ref in pre_context / post_context with proximity score ───
-    # For post_context that opens with a proof marker (proof wasn't parsed into
-    # the proof field), all \refs are captured without a proximity requirement.
     if run_heuristic and label_to_dep:
         for statement in statements:
             for location, text in [
@@ -148,7 +124,10 @@ def _process_paper_deterministic(
                         continue
                     kw = "proof" if is_proof_context else proximity_keywords(text, m.start(), proximity_threshold)
                     for label in (lbl.strip() for lbl in content.split(',')):
-                        if label in label_to_dep and label not in seen:
+                        dep_id = label_to_dep.get(label)
+                        if dep_id and dep_id != statement["statement_id"] and label not in seen:
+                            if stmt_order.get(dep_id, -1) >= stmt_order[statement["statement_id"]]:
+                                continue
                             seen.add(label)
                             dep_key = f"{label}|{kw}" if kw else f"{label}|"
                             rows.append({
@@ -156,15 +135,13 @@ def _process_paper_deterministic(
                                 "location": location,
                                 "cite_id":  None,
                                 "cite_key": None,
-                                "dep_id":   label_to_dep[label],
+                                "dep_id":   dep_id,
                                 "dep_key":  dep_key,
                                 "dep_name": None,
-                                "method":   "heuristic",
+                                "methods":  ["heuristic"],
                             })
 
     # ── Part 3: adjacent-statement deps via backward anchor in pre_context ─
-    # Score is decayed by word count: longer pre_context = weaker signal.
-    # Half-life = 30 words (score halved at 30 words).
     _ADJACENT_DECAY_HALFLIFE = 30.0
     if not run_heuristic:
         return rows
@@ -183,12 +160,10 @@ def _process_paper_deterministic(
                 "dep_id":   stmt_a["statement_id"],
                 "dep_key":  "|" + adjacent_keywords(pre, proximity_threshold),
                 "dep_name": None,
-                "method":   "heuristic",
+                "methods":  ["heuristic"],
             })
 
     # ── Part 4: prose name matching ("Theorem 3.2" without any \ref) ─────
-    # Builds a lookup of "Kind Ref" → statement_id for every statement that
-    # has a ref, then scans all text fields for exact matches.
     name_to_dep = {
         f"{s['kind'].capitalize()} {s['ref']}": s["statement_id"]
         for s in statements
@@ -214,6 +189,8 @@ def _process_paper_deterministic(
                     dep_id = name_to_dep[name]
                     if dep_id == statement["statement_id"] or name in seen:
                         continue
+                    if stmt_order.get(dep_id, -1) >= stmt_order[statement["statement_id"]]:
+                        continue
                     seen.add(name)
                     rows.append({
                         "src_id":   statement["statement_id"],
@@ -223,145 +200,10 @@ def _process_paper_deterministic(
                         "dep_id":   dep_id,
                         "dep_key":  name,
                         "dep_name": name,
-                        "method":   "heuristic",
+                        "methods":  ["heuristic"],
                     })
 
     return rows
-
-
-# Statement kinds sent to the LLM when a paper exceeds --max-statements.
-_CONCEPT_KINDS = frozenset({
-    "definition", "theorem", "proposition", "corollary", "lemma", "notation",
-})
-
-# Lower number = preferred when multiple statements define the same item.
-_DEFINITION_PRIORITY: Dict[str, int] = {
-    "definition": 0, "notation": 0, "convention": 0,
-    "axiom": 1, "postulate": 1,
-}
-
-
-def _normalize_item(item: str) -> str:
-    return re.sub(r'\s+', ' ', item.strip())
-
-
-def _extract_concepts_llm(
-    statements: list,
-    client,
-    model: str,
-) -> Tuple[Optional[List[Dict]], int, int]:
-    """One LLM call per paper: extract {defines, uses} per statement.
-
-    Returns (concept_data, in_tokens, out_tokens).
-    concept_data is a list of {statement_id, defines: [...], uses: [...]}.
-    """
-    stmt_items = [
-        {"id": s["statement_id"], "kind": s["kind"], **({"body": s["body"]} if s.get("body") else {})}
-        for s in statements
-    ]
-
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": _render("intrapaper_llm_system.j2")},
-                {"role": "user",   "content": json.dumps(stmt_items, ensure_ascii=False)},
-            ],
-            max_tokens=16384,
-        )
-        usage = response.usage
-        in_tokens  = getattr(usage, "prompt_tokens",     0) or 0
-        out_tokens = getattr(usage, "completion_tokens", 0) or 0
-        text = response.choices[0].message.content.strip()
-    except Exception as e:
-        tqdm.write(f"[concepts llm] error: {e}")
-        return None, 0, 0
-
-    concept_data = parse_concepts_json(text)
-    if concept_data is None:
-        tqdm.write(f"[concepts llm] failed to parse response:\n{text[:300]}")
-        return None, in_tokens, out_tokens
-
-    return concept_data, in_tokens, out_tokens
-
-
-def _match_concepts(statements: list, concept_data: list) -> list:
-    """Deterministic matching: for each 'uses' item, link to the best prior defining statement.
-
-    'Best' means lowest _DEFINITION_PRIORITY, breaking ties by earliest ordinal.
-    Only definitions that appear before the using statement are considered.
-    """
-    stmt_meta = {s["statement_id"]: (i, s["kind"]) for i, s in enumerate(statements)}
-
-    # registry: normalized_item → list of (priority, ordinal, stmt_id, canonical_item)
-    registry: Dict[str, list] = defaultdict(list)
-    for entry in concept_data:
-        stmt_id = entry["statement_id"]
-        if stmt_id not in stmt_meta:
-            continue
-        ordinal, kind = stmt_meta[stmt_id]
-        priority = _DEFINITION_PRIORITY.get(kind, 2)
-        for item in (entry.get("defines") or []):
-            key = _normalize_item(item)
-            if key:
-                registry[key].append((priority, ordinal, stmt_id, item))
-
-    rows = []
-    seen: set = set()
-    for entry in concept_data:
-        stmt_id = entry["statement_id"]
-        if stmt_id not in stmt_meta:
-            continue
-        ordinal, _ = stmt_meta[stmt_id]
-        for item in (entry.get("uses") or []):
-            key = _normalize_item(item)
-            candidates = [t for t in registry.get(key, []) if t[1] < ordinal]
-            if not candidates:
-                continue
-            _, _, dep_id, canonical = min(candidates, key=lambda t: (t[0], t[1]))
-            pair = (stmt_id, dep_id)
-            if pair not in seen:
-                seen.add(pair)
-                rows.append({
-                    "src_id":   stmt_id,
-                    "location": "body",
-                    "cite_id":  None,
-                    "cite_key": None,
-                    "dep_id":   dep_id,
-                    "dep_key":  canonical,
-                    "dep_name": None,
-                })
-    return rows
-
-
-def _merge(det_rows: list, llm_rows: list) -> list:
-    """Merge deterministic/heuristic and LLM rows into one row per (src_id, dep_id).
-
-    - Deduplicates each source by (src_id, dep_id), keeping best location.
-    - Base method ("deterministic" or "heuristic") is preserved from det_rows;
-      "+llm" is appended when the LLM independently found the same dep.
-    - Location preference: body > proof > note > pre_context > post_context.
-    """
-    det_rows = dedup_dep_rows(det_rows)
-    llm_rows = dedup_dep_rows(llm_rows)
-
-    llm_keys = {(r["src_id"], r["dep_id"]) for r in llm_rows}
-
-    merged = []
-    det_keys = set()
-    for r in det_rows:
-        key = (r["src_id"], r["dep_id"])
-        det_keys.add(key)
-        base = r.get("method", "deterministic")
-        method = f"{base}+llm" if key in llm_keys else base
-        merged.append({**r, "method": method})
-
-    for r in llm_rows:
-        key = (r["src_id"], r["dep_id"])
-        if key not in det_keys:
-            merged.append({**r, "method": "llm"})
-
-    return merged
 
 
 def connect_intrapaper_dependencies(
@@ -372,70 +214,53 @@ def connect_intrapaper_dependencies(
     overwrite: bool,
     do_deterministic: bool,
     do_heuristic: bool = True,
-    do_llm: bool = False,
-    model: Optional[str] = None,
-    max_statements: int = 100,
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
+    sample: int = -1,
 ):
-    llm_client = None
-    if do_llm:
-        from openai import OpenAI
-        llm_client = OpenAI(
-            api_key=os.environ["NEBIUS_API_KEY"],
-            base_url="https://api.studio.nebius.ai/v1/",
-        )
-
-    query, params = build_query(
-        base_query=(
-            "SELECT paper_id FROM paper"
-            + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
-            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
-        ),
-        where_clauses=[
-            {
-                "if": True,
-                "condition": """
-                    EXISTS (
-                        SELECT 1 FROM statement
-                        WHERE statement.paper_id = paper.paper_id
-                    )
-                """
-            },
-            {
-                "if": not overwrite,
-                "condition": (
-                    "NOT EXISTS ("
-                    " SELECT 1 FROM statement"
-                    " JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id"
-                    " WHERE statement.paper_id = paper.paper_id"
-                    " AND informal_dependency.cite_key IS NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic, do_llm, intra=True)
-                    + ")"
-                ),
-            },
-            {
-                "if": condition,
-                "condition": condition,
-                "params": condition_params,
-            },
-            {
-                "if": n_shards > 1,
-                "condition": "hashtext(paper_id::text) %% %s = %s",
-                "params": [n_shards, shard],
-            },
-        ]
+    _base = (
+        "SELECT paper.paper_id FROM paper"
+        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
+        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
     )
+    _where = [
+        {
+            "if": True,
+            "condition": "EXISTS (SELECT 1 FROM statement WHERE statement.paper_id = paper.paper_id)",
+        },
+        {
+            "if": not overwrite,
+            "condition": (
+                "NOT EXISTS ("
+                " SELECT 1 FROM statement"
+                " JOIN informal_dependency ON informal_dependency.src_id = statement.statement_id"
+                " WHERE statement.paper_id = paper.paper_id"
+                " AND informal_dependency.cite_key IS NULL"
+                + _overwrite_method_clause(do_deterministic, do_heuristic)
+                + ")"
+            ),
+        },
+        {
+            "if": condition,
+            "condition": condition,
+            "params": condition_params,
+        },
+        {
+            "if": n_shards > 1,
+            "condition": "hashtext(paper.paper_id::text) %% %s = %s",
+            "params": [n_shards, shard],
+        },
+    ]
+
+    query, params = build_query(base_query=_base, where_clauses=_where)
+    if sample > 0:
+        ids    = sample_ids(conn, query, params, sample)
+        query  = "SELECT paper.paper_id FROM paper WHERE paper.paper_id = ANY(%s::uuid[])"
+        params = [ids]
 
     count = get_query_count(conn, query, params)
-
-    total_in_tokens  = 0
-    total_out_tokens = 0
-    total_deps       = 0
-
-    def _fmt_tokens(n: int) -> str:
-        return f"{n/1000:.1f}k" if n >= 1000 else str(n)
+    total_deps = 0
 
     with tqdm(total=count, dynamic_ncols=True, unit=" papers", desc="Intrapaper", file=sys.stdout) as pbar:
         for papers in paginate_query(
@@ -476,226 +301,25 @@ def connect_intrapaper_dependencies(
             for paper in papers:
                 stmts = statements_by_paper[paper["paper_id"]]
                 all_stmt_ids.extend(s["statement_id"] for s in stmts)
-                det_rows = _process_paper_deterministic(stmts, run_pure=do_deterministic, run_heuristic=do_heuristic, proximity_threshold=proximity_threshold) if (do_deterministic or do_heuristic) else []
-                if do_llm:
-                    stmts_for_llm = stmts if len(stmts) <= max_statements else [s for s in stmts if s["kind"] in _CONCEPT_KINDS]
-                    concept_data, in_tok, out_tok = _extract_concepts_llm(stmts_for_llm, llm_client, model)
-                    total_in_tokens  += in_tok
-                    total_out_tokens += out_tok
-                    llm_rows = [{**r, "method": "llm"} for r in _match_concepts(stmts_for_llm, concept_data or [])]
-                else:
-                    llm_rows = []
-                batch_rows.extend(_merge(det_rows, llm_rows))
+                batch_rows.extend(_process_paper_deterministic(
+                    stmts,
+                    run_pure=do_deterministic,
+                    run_heuristic=do_heuristic,
+                    proximity_threshold=proximity_threshold,
+                ))
 
             total_deps += len(batch_rows)
-            postfix = {"deps": total_deps}
-            if do_llm:
-                postfix["in"]  = _fmt_tokens(total_in_tokens)
-                postfix["out"] = _fmt_tokens(total_out_tokens)
-            pbar.set_postfix(postfix)
+            pbar.set_postfix({"deps": total_deps})
 
             if all_stmt_ids:
                 source_ids = list(dict.fromkeys(all_stmt_ids))
                 with conn.cursor() as cur:
-                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, do_llm, intra=True)
+                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, intra=True)
                 if batch_rows:
-                    upsert_rows(conn, table="informal_dependency", rows=batch_rows)
-                with conn.cursor() as cur:
-                    cur.execute("""
-                        UPDATE informal_dependency d SET method = 'deterministic+llm'
-                        WHERE d.cite_key IS NULL AND d.method = 'deterministic'
-                          AND d.src_id = ANY(%s::uuid[])
-                          AND d.dep_id IS NOT NULL
-                          AND EXISTS (
-                              SELECT 1 FROM informal_dependency
-                              WHERE src_id = d.src_id AND dep_id = d.dep_id AND method = 'llm'
-                          )
-                    """, (source_ids,))
-                    cur.execute("""
-                        UPDATE informal_dependency d SET method = 'heuristic+llm'
-                        WHERE d.cite_key IS NULL AND d.method = 'heuristic'
-                          AND d.src_id = ANY(%s::uuid[])
-                          AND d.dep_id IS NOT NULL
-                          AND EXISTS (
-                              SELECT 1 FROM informal_dependency
-                              WHERE src_id = d.src_id AND dep_id = d.dep_id AND method = 'llm'
-                          )
-                    """, (source_ids,))
-                    cur.execute("""
-                        DELETE FROM informal_dependency d
-                        WHERE d.cite_key IS NULL AND d.method = 'llm'
-                          AND d.src_id = ANY(%s::uuid[])
-                          AND d.dep_id IS NOT NULL
-                          AND EXISTS (
-                              SELECT 1 FROM informal_dependency
-                              WHERE src_id = d.src_id AND dep_id = d.dep_id
-                                AND method IN ('deterministic+llm', 'heuristic+llm')
-                          )
-                    """, (source_ids,))
-                    cur.execute("""
-                        DELETE FROM informal_dependency
-                        WHERE cite_key IS NULL
-                          AND src_id = ANY(%s::uuid[])
-                          AND ctid NOT IN (
-                              SELECT DISTINCT ON (src_id, dep_id) ctid
-                              FROM informal_dependency
-                              WHERE cite_key IS NULL AND src_id = ANY(%s::uuid[])
-                              ORDER BY src_id, dep_id,
-                                  CASE method
-                                      WHEN 'deterministic+llm' THEN 1
-                                      WHEN 'deterministic'     THEN 2
-                                      WHEN 'heuristic+llm'     THEN 3
-                                      WHEN 'heuristic'         THEN 4
-                                      ELSE 5
-                                  END,
-                                  CASE location
-                                      WHEN 'body'         THEN 1
-                                      WHEN 'proof'        THEN 2
-                                      WHEN 'note'         THEN 3
-                                      WHEN 'pre_context'  THEN 4
-                                      ELSE 5
-                                  END
-                          )
-                    """, (source_ids, source_ids))
+                    upsert_rows(conn, table="informal_dependency", rows=batch_rows,
+                                on_conflict={"with": ["src_id", "dep_id"],
+                                             "where": "dep_id IS NOT NULL",
+                                             "update_expr": informal_dep_update_expr()})
                 conn.commit()
 
             pbar.update(len(papers))
-
-
-# ------------------------------------------------------------------ #
-# Batch connect entry point (shared with batch/connect.py)            #
-# ------------------------------------------------------------------ #
-
-def connect_intra_llm_results(
-    conn: connection,
-    results: Iterable[Tuple[str, str]],
-    batch_size: int = 256,
-) -> Dict[str, int]:
-    """Write pre-computed LLM intra-paper results (arxiv_id, text) into the DB.
-
-    Always overwrites existing LLM rows. Deterministic rows are never clobbered.
-    """
-    written = failed = 0
-    pending_rows: List[Dict] = []
-    pending_stmt_ids: List[str] = []
-    papers_buffered = 0
-
-    def _flush():
-        nonlocal pending_rows, pending_stmt_ids, papers_buffered
-        if not pending_stmt_ids:
-            return
-        src_ids = list(dict.fromkeys(pending_stmt_ids))
-        with conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM informal_dependency WHERE cite_key IS NULL AND method = 'llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-            cur.execute(
-                "UPDATE informal_dependency SET method = 'deterministic' WHERE cite_key IS NULL AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-            cur.execute(
-                "UPDATE informal_dependency SET method = 'heuristic' WHERE cite_key IS NULL AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-        if pending_rows:
-            upsert_rows(conn, "informal_dependency", pending_rows)
-        with conn.cursor() as cur:
-            cur.execute("""
-                UPDATE informal_dependency d SET method = 'deterministic+llm'
-                WHERE d.cite_key IS NULL AND d.method = 'deterministic'
-                  AND d.src_id = ANY(%s::uuid[])
-                  AND d.dep_id IS NOT NULL
-                  AND EXISTS (
-                      SELECT 1 FROM informal_dependency
-                      WHERE src_id = d.src_id AND dep_id = d.dep_id AND method = 'llm'
-                  )
-            """, (src_ids,))
-            cur.execute("""
-                UPDATE informal_dependency d SET method = 'heuristic+llm'
-                WHERE d.cite_key IS NULL AND d.method = 'heuristic'
-                  AND d.src_id = ANY(%s::uuid[])
-                  AND d.dep_id IS NOT NULL
-                  AND EXISTS (
-                      SELECT 1 FROM informal_dependency
-                      WHERE src_id = d.src_id AND dep_id = d.dep_id AND method = 'llm'
-                  )
-            """, (src_ids,))
-            cur.execute("""
-                DELETE FROM informal_dependency d
-                WHERE d.cite_key IS NULL AND d.method = 'llm'
-                  AND d.src_id = ANY(%s::uuid[])
-                  AND d.dep_id IS NOT NULL
-                  AND EXISTS (
-                      SELECT 1 FROM informal_dependency
-                      WHERE src_id = d.src_id AND dep_id = d.dep_id
-                        AND method IN ('deterministic+llm', 'heuristic+llm')
-                  )
-            """, (src_ids,))
-            cur.execute("""
-                DELETE FROM informal_dependency
-                WHERE cite_key IS NULL
-                  AND src_id = ANY(%s::uuid[])
-                  AND ctid NOT IN (
-                      SELECT DISTINCT ON (src_id, dep_id) ctid
-                      FROM informal_dependency
-                      WHERE cite_key IS NULL AND src_id = ANY(%s::uuid[])
-                      ORDER BY src_id, dep_id,
-                          CASE method
-                              WHEN 'deterministic+llm' THEN 1
-                              WHEN 'deterministic'     THEN 2
-                              WHEN 'heuristic+llm'     THEN 3
-                              WHEN 'heuristic'         THEN 4
-                              ELSE 5
-                          END,
-                          CASE location
-                              WHEN 'body'         THEN 1
-                              WHEN 'proof'        THEN 2
-                              WHEN 'note'         THEN 3
-                              WHEN 'pre_context'  THEN 4
-                              ELSE 5
-                          END
-                  )
-            """, (src_ids, src_ids))
-        conn.commit()
-        pending_rows.clear()
-        pending_stmt_ids.clear()
-        papers_buffered = 0
-
-    for arxiv_id, text in tqdm(results, unit=" papers", desc="Connecting intra", dynamic_ncols=True):
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT s.statement_id, s.kind, im.ref
-                FROM statement s
-                INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
-                INNER JOIN paper p ON p.paper_id = s.paper_id
-                WHERE p.external_id = %s AND p.kind = 'paper'
-                ORDER BY im.ordinal
-            """, (arxiv_id,))
-            statements = [
-                {"statement_id": r[0], "kind": r[1], "ref": r[2]}
-                for r in cur.fetchall()
-            ]
-
-        if not statements:
-            tqdm.write(f"  Warning: no statements for {arxiv_id}, skipping.")
-            failed += 1
-            continue
-
-        concept_data = parse_concepts_json(text)
-        if concept_data is None:
-            tqdm.write(f"  Warning: failed to parse LLM response for {arxiv_id}.")
-            failed += 1
-            continue
-
-        rows = _match_concepts(statements, concept_data)
-        pending_rows.extend({**r, "method": "llm"} for r in rows)
-        pending_stmt_ids.extend(s["statement_id"] for s in statements)
-        written += len(rows)
-        papers_buffered += 1
-
-        if papers_buffered >= batch_size:
-            _flush()
-
-    _flush()
-    return {"written": written, "failed": failed}

@@ -1,0 +1,23 @@
+Write a 1-4 sentence, plain-English standalone summary of the following mathematical statement.
+Use words in ASCII characters only, no LaTeX or Unicode.
+Describe the result without referencing it as "this statement" or similar.
+If you believe this is insufficient context to summarise this statement, respond with exactly "INSUFFICIENT CONTEXT: " followed by a short reason.
+
+Statement to summarize:
+{{ statement.kind | title }}{% if statement.note %} ({{ statement.note }}){% endif %}: {{ statement.body }}
+{% if statement.proof or statement.pre_context or statement.post_context or paper.abstract %}
+
+Additional context:
+{% if statement.proof %}
+Proof: {{ statement.proof }}
+{% endif %}
+{% if statement.pre_context %}
+Pre-context: {{ statement.pre_context }}
+{% endif %}
+{% if statement.post_context %}
+Post-context: {{ statement.post_context }}
+{% endif %}
+{% if paper.abstract %}
+Paper abstract: {{ paper.abstract }}
+{% endif %}
+{% endif %}

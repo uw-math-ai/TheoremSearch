@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>apap slogan pilot — graph viewer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  body { margin:0; font: 13px/1.4 ui-sans-serif, system-ui, sans-serif; color:#222; background:#fafafa; }
+  header { padding: 10px 14px; border-bottom:1px solid #ddd; background:white; display:flex; gap:14px; align-items:center; }
+  header h1 { font-size:14px; margin:0; font-weight:600; }
+  .tab { padding:5px 10px; border:1px solid #bbb; border-radius:4px; background:white; cursor:pointer; }
+  .tab.active { background:#222; color:white; border-color:#222; }
+  #main { display:flex; height: calc(100vh - 47px); }
+  #graph { flex:1; background:#eef2f7; }
+  #side { width: 420px; border-left:1px solid #ddd; background:white; overflow-y:auto; padding:14px; }
+  #side h2 { margin:0 0 6px; font-size:13px; font-weight:600; }
+  #side .name { font-family: ui-monospace, Menlo, monospace; font-size:12px; color:#0a4; word-break: break-all; }
+  #side .meta { color:#777; font-size:11px; margin-bottom:10px; }
+  #side pre { background:#f4f4f4; padding:8px; border-radius:4px; font-size:11px; white-space:pre-wrap; word-break: break-word; max-height:200px; overflow:auto; }
+  .latex-body { background:#fff7e6; border:1px solid #f0d97a; padding:10px; border-radius:4px; font-size:13px; line-height:1.5; max-height:260px; overflow:auto; }
+  .latex-body .katex { font-size:1.0em; }
+  .slogan-block { margin-top:10px; padding:8px; border-left:3px solid #ccc; background:#fafafa; }
+  .slogan-block.isolated { border-color:#888; }
+  .slogan-block.slogan_context { border-color:#3b82f6; }
+  .slogan-block.code_context { border-color:#10b981; }
+  .slogan-block .mode { font-size:10px; text-transform:uppercase; color:#555; letter-spacing:0.05em; }
+  .slogan-block .text { font-size:12.5px; margin-top:2px; }
+  .slogan-block .conf { font-size:10px; color:#888; margin-top:2px; }
+  .conf-high { color:#0a7 !important; } .conf-medium { color:#b80 !important; } .conf-low { color:#c33 !important; }
+  svg { width:100%; height:100%; }
+  .link { stroke:#bbb; stroke-opacity:0.7; }
+  .node circle { stroke:#fff; stroke-width:1.5px; cursor:pointer; }
+  .node text { font: 600 13px ui-sans-serif, system-ui; pointer-events:none; fill:#111; paint-order: stroke; stroke:#eef2f7; stroke-width:3px; stroke-linejoin:round; }
+  .node.unresolved circle { stroke-dasharray:2,2; opacity:0.55; }
+  .node.has-bp circle { stroke:#10b981; stroke-width:2.5px; }
+  .node.flash circle { animation: flashpulse 1.4s ease-out 3; }
+  @keyframes flashpulse { 0% { stroke:#f59e0b; stroke-width:6px; } 100% { stroke:#fff; stroke-width:1.5px; } }
+  a.bp-jump { color:#3b82f6; cursor:pointer; text-decoration:underline; }
+  #placeholder { color:#888; }
+  .legend { font-size:11px; color:#666; padding:6px 14px; background:#fff; border-bottom:1px solid #eee; }
+  .legend span { margin-right:14px; }
+  .swatch { display:inline-block; width:10px; height:10px; border-radius:50%; vertical-align:middle; margin-right:4px; }
+  #explainer { background:#fffbe6; border-bottom:1px solid #f0d97a; padding:10px 14px; font-size:12px; color:#333; position:relative; }
+  #explainer h3 { margin:0 0 4px; font-size:12.5px; font-weight:600; }
+  #explainer p { margin:2px 0; }
+  #explainer code { font-family: ui-monospace, Menlo, monospace; font-size:11px; background:#fff3c4; padding:0 3px; border-radius:2px; }
+  #explainer .dismiss { position:absolute; top:6px; right:10px; background:none; border:none; font-size:16px; cursor:pointer; color:#888; }
+  #explainer .modes b { font-family: ui-monospace, Menlo, monospace; font-size:11px; }
+  #explainer .iso { color:#555; } #explainer .sl { color:#3b82f6; } #explainer .co { color:#10b981; }
+</style>
+</head>
+<body>
+<header>
+  <h1>apap slogan pilot</h1>
+  <button class="tab active" data-view="fl">FL graph (Lean)</button>
+  <button class="tab" data-view="bp">Blueprint graph (LaTeX)</button>
+  <span style="margin-left:auto; color:#666; font-size:11px;" id="counts"></span>
+</header>
+<div id="explainer">
+  <button class="dismiss" title="hide" onclick="document.getElementById('explainer').style.display='none'">×</button>
+  <h3 id="explainer-title">What you're looking at</h3>
+  <div id="explainer-body"></div>
+</div>
+<div class="legend" id="legend"></div>
+<div id="main">
+  <div id="graph"><svg></svg></div>
+  <div id="side"><p id="placeholder">Hover a node.</p></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+const KIND_COLOR = {
+  theorem: "#6366f1", lemma:"#6366f1", definition:"#f59e0b", def:"#f59e0b",
+  structure:"#ec4899", class:"#ec4899", instance:"#a78bfa",
+  proposition:"#6366f1", corollary:"#6366f1", unresolved:"#bbb",
+};
+const colorFor = k => KIND_COLOR[k] || "#888";
+
+let DATA, view = "fl", pendingHighlight = null;
+
+function jumpToBlueprint(label) {
+  pendingHighlight = label;
+  document.querySelectorAll(".tab").forEach(x => {
+    x.classList.toggle("active", x.dataset.view === "bp");
+  });
+  view = "bp";
+  render();
+}
+window.jumpToBlueprint = jumpToBlueprint;
+
+fetch("data.json").then(r => r.json()).then(d => {
+  DATA = d;
+  document.getElementById("counts").textContent =
+    `FL ${d.fl_nodes.length} nodes / ${d.fl_edges.length} edges · BP ${d.bp_nodes.length} nodes / ${d.bp_edges.length} edges`;
+  render();
+});
+
+document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  view = b.dataset.view;
+  document.getElementById("side").innerHTML = '<p id="placeholder">Hover a node.</p>';
+  render();
+}));
+
+function setExplainer() {
+  const body = document.getElementById("explainer-body");
+  const title = document.getElementById("explainer-title");
+  if (view === "fl") {
+    title.textContent = "FL graph — the 38 apap decls tagged with \\lean{} in the blueprint";
+    body.innerHTML = `
+      <p>Each node is a Lean 4 declaration from the <b>apap</b> project (Bloom–Sisask Kelley–Meka bound on Roth numbers). Edges are <code>sig</code>/<code>def</code> dependencies between these 37 decls — only edges <i>among the tagged set</i> are drawn, so the graph is sparse on purpose.</p>
+      <p><b>Hover or click any node</b> to see three model-generated FL slogans for that decl, side-by-side:</p>
+      <p class="modes">
+        <span class="iso">■ <b>isolated</b></span> — signature + docstring only (control arm).
+        <span class="sl">■ <b>slogan_context</b></span> — also sees one-line slogans for that decl's dependencies.
+        <span class="co">■ <b>code_context</b></span> — also sees full signatures of dependencies.
+      </p>
+      <p>The side panel also shows the matching blueprint LaTeX statement (the human-written NL control from apap's teammate-curated blueprint). Compare FL slogans ↔ NL statement to evaluate slogan quality. Dashed nodes are 9 names that don't resolve in the local apap tree (upstream drift to Mathlib) — they still got slogans, but tagged low/medium confidence.</p>`;
+  } else {
+    title.textContent = "Blueprint graph — apap's hand-written LaTeX dependency structure";
+    body.innerHTML = `
+      <p>Each node is a <code>\\begin{theorem|lemma|definition|…}\\label{X}</code> in apap's blueprint. Edges come from <code>\\uses{a, b, …}</code> annotations: <i>X uses Y</i> means proving X depends on Y. This is the math-side graph as the human authors structured it.</p>
+      <p><b>Hover or click any node</b> to see the LaTeX body. If the statement carries a <code>\\lean{decl_name}</code> tag, the panel also shows the three FL slogans we generated for that Lean decl — so you can compare the NL statement against the FL slogans from either direction.</p>
+      <p>This graph has more nodes than the FL one because not every blueprint statement is tagged with a Lean name yet.</p>`;
+  }
+}
+
+function setLegend() {
+  const el = document.getElementById("legend");
+  if (view === "fl") {
+    el.innerHTML = `
+      <span><span class="swatch" style="background:#6366f1"></span>theorem/lemma</span>
+      <span><span class="swatch" style="background:#f59e0b"></span>definition</span>
+      <span><span class="swatch" style="background:#ec4899"></span>structure</span>
+      <span><span class="swatch" style="background:#bbb"></span>unresolved</span>
+      <span style="color:#10b981">green ring = has blueprint match</span>
+      <span style="color:#888">hover for FL slogans (3 modes)</span>`;
+  } else {
+    el.innerHTML = `
+      <span><span class="swatch" style="background:#6366f1"></span>theorem/lemma/prop/cor</span>
+      <span><span class="swatch" style="background:#f59e0b"></span>definition</span>
+      <span style="color:#888">edges: \\uses{} dependencies · hover for LaTeX body</span>`;
+  }
+}
+
+function render() {
+  setExplainer();
+  document.getElementById("explainer").style.display = "block";
+  setLegend();
+  const svg = d3.select("svg");
+  svg.selectAll("*").remove();
+  const { width, height } = svg.node().getBoundingClientRect();
+
+  const nodes = (view === "fl" ? DATA.fl_nodes : DATA.bp_nodes).map(d => ({...d}));
+  const edges = (view === "fl" ? DATA.fl_edges : DATA.bp_edges).map(d => ({...d}));
+  const leanToLabel = DATA.lean_to_label;
+  const labelSet = new Set(DATA.bp_nodes.map(n => n.id));
+
+  const g = svg.append("g");
+  svg.call(d3.zoom().on("zoom", e => g.attr("transform", e.transform)));
+
+  const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(edges).id(d => d.id).distance(70).strength(0.6))
+    .force("charge", d3.forceManyBody().strength(-200))
+    .force("center", d3.forceCenter(width/2, height/2))
+    .force("collide", d3.forceCollide(28));
+
+  const link = g.append("g").selectAll("line")
+    .data(edges).enter().append("line")
+    .attr("class","link")
+    .attr("marker-end","url(#arrow)");
+
+  svg.append("defs").append("marker")
+    .attr("id","arrow").attr("viewBox","0 -5 10 10").attr("refX",24)
+    .attr("markerWidth",6).attr("markerHeight",6).attr("orient","auto")
+    .append("path").attr("d","M0,-5L10,0L0,5").attr("fill","#bbb");
+
+  const node = g.append("g").selectAll("g")
+    .data(nodes).enter().append("g")
+    .attr("class", d => "node" + (view==="fl" && !d.resolved ? " unresolved" : "")
+        + (view==="fl" && d.id in leanToLabel ? " has-bp" : ""))
+    .call(d3.drag()
+      .on("start", (e,d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+      .on("drag",  (e,d) => { d.fx=e.x; d.fy=e.y; })
+      .on("end",   (e,d) => { if (!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; }));
+
+  node.append("circle")
+    .attr("r", 13)
+    .attr("fill", d => colorFor(d.kind));
+
+  node.append("title")
+    .text(d => {
+      if (view === "fl") {
+        const bp = DATA.lean_to_label[d.id];
+        return bp ? `${d.id}\nblueprint: ${bp}` : `${d.id}\n(no blueprint match)`;
+      }
+      return d.leans && d.leans.length ? `${d.id}\n\\lean{${d.leans.join(", ")}}` : d.id;
+    });
+
+  node.append("text")
+    .attr("x", 17).attr("y", 4)
+    .text(d => d.id.length > 32 ? d.id.slice(0,30)+"…" : d.id);
+
+  node.on("mouseenter", (e,d) => showDetail(d))
+      .on("click", (e,d) => showDetail(d, true));
+
+  if (pendingHighlight) {
+    const target = pendingHighlight; pendingHighlight = null;
+    setTimeout(() => {
+      const sel = node.filter(d => d.id === target);
+      sel.classed("flash", true);
+      const dd = sel.datum();
+      if (dd) showDetail(dd, true);
+    }, 400);
+  }
+
+  sim.on("tick", () => {
+    link.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+  });
+}
+
+function showDetail(d, pinned) {
+  const side = document.getElementById("side");
+  if (view === "fl") {
+    const slogans = DATA.slogans[d.id] || {};
+    const bpLabel = DATA.lean_to_label[d.id];
+    const bpNode = bpLabel ? DATA.bp_nodes.find(n => n.id === bpLabel) : null;
+    side.innerHTML = `
+      <h2 class="name">${escape(d.id)}</h2>
+      <div class="meta">kind: ${d.kind} · ${d.resolved ? "resolved in DB" : "<span style='color:#c33'>unresolved (upstream drift)</span>"}${bpLabel ? ` · blueprint: <a class="bp-jump" onclick="jumpToBlueprint('${escape(bpLabel)}')">${escape(bpLabel)} →</a>` : " · <span style='color:#c33'>no blueprint match</span>"}</div>
+      ${renderSlogan("isolated", slogans.isolated)}
+      ${renderSlogan("slogan_context", slogans.slogan_context)}
+      ${renderSlogan("code_context", slogans.code_context)}
+      ${bpNode ? `<h2 style="margin-top:14px">Blueprint (NL control)</h2><div class="latex-body">${renderLatex(bpNode.body)}</div>` : ""}
+      ${d.signature ? `<h2 style="margin-top:14px">Signature</h2><pre>${escape(d.signature)}</pre>` : ""}
+      ${d.docstring ? `<h2 style="margin-top:14px">Docstring</h2><pre>${escape(d.docstring)}</pre>` : ""}
+    `;
+  } else {
+    const leanNames = d.leans || [];
+    side.innerHTML = `
+      <h2 class="name">${escape(d.id)}</h2>
+      <div class="meta">${d.kind} · chapter: ${d.chapter}${leanNames.length ? " · \\lean{" + leanNames.map(escape).join(", ") + "}" : ""}</div>
+      <div class="latex-body">${renderLatex(d.body)}</div>
+      ${leanNames.length ? `<div style="margin-top:10px; font-size:11px; color:#666">FL slogans for matching decl(s):</div>` : ""}
+      ${leanNames.map(n => {
+        const s = DATA.slogans[n];
+        if (!s) return `<div class="slogan-block"><div class="mode">${escape(n)}</div><div class="text" style="color:#999">no slogans generated</div></div>`;
+        return `<div style="margin-top:6px; font-family:ui-monospace,Menlo,monospace; font-size:11px; color:#0a4">${escape(n)}</div>` +
+               renderSlogan("isolated", s.isolated) +
+               renderSlogan("slogan_context", s.slogan_context) +
+               renderSlogan("code_context", s.code_context);
+      }).join("")}
+    `;
+  }
+}
+
+function renderSlogan(mode, obj) {
+  if (!obj || !obj.slogan) return `<div class="slogan-block ${mode}"><div class="mode">${mode}</div><div class="text" style="color:#999">(none)</div></div>`;
+  return `<div class="slogan-block ${mode}">
+    <div class="mode">${mode}</div>
+    <div class="text">${escape(obj.slogan)}</div>
+    <div class="conf conf-${obj.confidence}">confidence: ${obj.confidence}</div>
+  </div>`;
+}
+
+function renderLatex(src) {
+  // Escape HTML first, then let KaTeX auto-render scan for $...$ / \( \) / $$ $$.
+  const esc = escape(src);
+  // Render after the DOM insertion via requestAnimationFrame.
+  const id = "ltx" + (Math.random().toString(36).slice(2));
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id);
+    if (el && window.renderMathInElement) {
+      try {
+        window.renderMathInElement(el, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+          ],
+          macros: DATA.katex_macros || {},
+          throwOnError: false,
+          errorColor: "#c33",
+          trust: true,
+          strict: "ignore",
+        });
+      } catch (e) { /* leave raw */ }
+    }
+  });
+  return `<span id="${id}" style="white-space:pre-wrap">${esc}</span>`;
+}
+
+function escape(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>

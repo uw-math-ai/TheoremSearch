@@ -1,27 +1,18 @@
 import re
-import os
 import sys
 import traceback
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterable, List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple
 from tqdm import tqdm
-import yaml
-from jinja2 import Environment, FileSystemLoader
 from psycopg2.extensions import connection
 
-from rds.utils.query import build_query, get_query_count
+from rds.utils.query import build_query, get_query_count, sample_ids
 from rds.utils.paginate import paginate_query
 from rds.utils.upsert import upsert_rows
 from ..constants import STATEMENT_KINDS
-from .llm_utils import build_stmt_id_map, parse_inter_llm_text, proximity_score, proximity_keywords
+from .llm_utils import proximity_score, proximity_keywords
 from .intrapaper import _overwrite_method_clause, _reset_methods, _PROOF_START_RE
-
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
-_jinja_env = Environment(loader=FileSystemLoader(_PROMPTS_DIR), keep_trailing_newline=True)
-
-def _render(template_name: str, **kwargs) -> str:
-    return _jinja_env.get_template(template_name).render(**kwargs)
 
 _KINDS_RE = "|".join(re.escape(k) for k in sorted(STATEMENT_KINDS, key=len, reverse=True))
 
@@ -46,6 +37,7 @@ _DEP_NAME_PATTERN = re.compile(
     re.IGNORECASE
 )
 
+
 def _truncate(text: Optional[str], max_chars: int, tail: bool = False) -> Optional[str]:
     if text and len(text) > max_chars:
         return ("…" + text[-max_chars:]) if tail else (text[:max_chars] + "…")
@@ -53,7 +45,6 @@ def _truncate(text: Optional[str], max_chars: int, tail: bool = False) -> Option
 
 
 def _parse_dep_name(dep_name: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
-    """Parse 'Theorem 3.2' → ('theorem', '3.2'). Returns (None, None) if unrecognized."""
     if not dep_name:
         return None, None
     m = _DEP_NAME_PATTERN.match(dep_name.strip())
@@ -63,7 +54,6 @@ def _parse_dep_name(dep_name: Optional[str]) -> Tuple[Optional[str], Optional[st
 
 
 def _iter_cites(field: str):
-    """Yield (match_start, verbatim, cite_dict) for each \\cite occurrence in field."""
     for m in _CITE_PATTERN.finditer(field):
         raw = m.group(0)
         bracket_args = re.findall(r'\[([^\]]*)\]', raw[raw.find('\\'):raw.rfind('{')])
@@ -101,13 +91,6 @@ def _resolve_bib_keys(
     bibtex: bool = True,
     reference_ids: Optional[List[str]] = None,
 ) -> Dict[str, str]:
-    """Resolve bib_key → paper_id (UUID) via arXiv ID match then title match.
-
-    When bibtex=False the 'title' field is raw bibitem text that contains the
-    real title somewhere inside it, so we check whether the candidate paper's
-    clean title is a substring of the query string instead of using trigram
-    similarity.
-    """
     resolved: Dict[str, str] = {}
 
     arxiv_to_key = {
@@ -134,9 +117,6 @@ def _resolve_bib_keys(
     if unresolved_with_title:
         keys_arr   = list(unresolved_with_title)
         titles_arr = [unresolved_with_title[k]["title"] for k in keys_arr]
-        # Use Semantic Scholar reference_ids as the candidate pool when available;
-        # they cover all references regardless of whether the bib entry has an arXiv ID.
-        # Strip the "ARXIV:" prefix to match paper.external_id format.
         if reference_ids:
             all_arxiv_ids = [
                 rid[len("ARXIV:"):] for rid in reference_ids
@@ -164,9 +144,6 @@ def _resolve_bib_keys(
                     (keys_arr, titles_arr, all_arxiv_ids, similarity_threshold),
                 )
             else:
-                # title field is raw bibitem text; the paper's clean title is a
-                # substring of it, so use word_similarity (best-matching substring)
-                # rather than full-string similarity or exact LIKE.
                 cur.execute(
                     """
                     SELECT bib_key, p.paper_id
@@ -192,9 +169,8 @@ def _resolve_bib_keys(
 
 def _resolve_dep_ids(
     conn: connection,
-    lookups: List[Tuple[str, str, str]],  # (paper_id, theorem_type, theorem_ref)
+    lookups: List[Tuple[str, str, str]],
 ) -> Dict[Tuple, Optional[str]]:
-    """Batch-resolve (paper_id, type, ref) → statement_id."""
     dep_id_cache: Dict[tuple, Optional[str]] = {}
     if not lookups:
         return dep_id_cache
@@ -229,13 +205,11 @@ def _resolve_dep_ids(
 def _build_rows(
     conn: connection,
     bib: Dict[str, Dict],
-    # stmt_id → list of (cite_key, theorem_type, theorem_ref, location, dep_key_or_phrase)
     statement_cites: Dict[str, List[Tuple]],
     similarity_threshold: float,
     bibtex: bool = True,
     reference_ids: Optional[List[str]] = None,
 ) -> List[Dict]:
-    """Resolve bib keys and dep IDs, then build dependency rows."""
     needed_keys = {t[0] for cites in statement_cites.values() for t in cites}
     needed_bib  = {k: v for k, v in bib.items() if k in needed_keys}
     if not needed_bib:
@@ -290,7 +264,6 @@ def _get_deterministic_deps(
     for stmt in statements:
         seen: set = set()
 
-        # ── body / note / proof: all \cite hits → regular ─────────────────
         if run_pure:
             for location, field in [
                 ("body",  stmt["body"]),
@@ -305,9 +278,6 @@ def _get_deterministic_deps(
                         seen.add(quad[:4])
                         regular_cites[stmt["statement_id"]].append(quad)
 
-        # ── pre_context / post_context: proximity-filtered → heuristic ────
-        # post_context that opens with a proof marker is treated as a proof:
-        # all \cite hits are captured without a proximity requirement.
         if run_heuristic:
             for location, field in [
                 ("pre_context",  stmt.get("pre_context")),
@@ -326,39 +296,9 @@ def _get_deterministic_deps(
                         seen.add(quad[:4])
                         heuristic_cites[stmt["statement_id"]].append(quad)
 
-    regular_rows   = [{**r, "method": "deterministic"} for r in _build_rows(conn, bib, regular_cites,   similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_pure      else []
-    heuristic_rows = [{**r, "method": "heuristic"}     for r in _build_rows(conn, bib, heuristic_cites, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_heuristic  else []
+    regular_rows   = [{**r, "methods": ["deterministic"]} for r in _build_rows(conn, bib, regular_cites,   similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_pure      else []
+    heuristic_rows = [{**r, "methods": ["heuristic"]}     for r in _build_rows(conn, bib, heuristic_cites, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)] if run_heuristic  else []
     return regular_rows + heuristic_rows
-
-
-# ------------------------------------------------------------------ #
-# Merge                                                               #
-# ------------------------------------------------------------------ #
-
-def _merge(det_rows: list, llm_rows: list) -> list:
-    """Merge deterministic/heuristic and LLM rows, assigning final method to each.
-
-    Two rows are the same citation if they share (src_id, cite_key).
-    Base method ("deterministic" or "heuristic") is preserved from det_rows;
-    "+llm" is appended when the LLM independently found the same citation.
-    """
-    llm_keys = {(r["src_id"], r["cite_key"]) for r in llm_rows}
-
-    merged = []
-    det_keys = set()
-    for r in det_rows:
-        key = (r["src_id"], r["cite_key"])
-        det_keys.add(key)
-        base = r.get("method", "deterministic")
-        method = f"{base}+llm" if key in llm_keys else base
-        merged.append({**r, "method": method})
-
-    for r in llm_rows:
-        key = (r["src_id"], r["cite_key"])
-        if key not in det_keys:
-            merged.append({**r, "method": "llm"})
-
-    return merged
 
 
 # ------------------------------------------------------------------ #
@@ -377,48 +317,67 @@ def connect_interpaper_dependencies(
     proximity_threshold: float = 0.5,
     shard: int = 0,
     n_shards: int = 1,
+    sample: int = -1,
 ):
+    _aps_join = " LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else ""
+    _where = [
+        {
+            "if": condition,
+            "condition": condition,
+            "params": condition_params,
+        },
+        {
+            "if": not overwrite,
+            "condition": (
+                "NOT EXISTS ("
+                " SELECT 1 FROM informal_dependency d"
+                " INNER JOIN statement s ON s.statement_id = d.src_id"
+                " WHERE s.paper_id = paper.paper_id"
+                " AND d.cite_key IS NOT NULL"
+                + _overwrite_method_clause(do_deterministic, do_heuristic, alias="d")
+                + ")"
+            ),
+        },
+        {
+            "if": True,
+            "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = paper.paper_id)",
+        },
+        {
+            "if": True,
+            "condition": "paper.kind = 'paper'",
+        },
+        {
+            "if": n_shards > 1,
+            "condition": "hashtext(paper.paper_id::text) %% %s = %s",
+            "params": [n_shards, shard],
+        },
+    ]
 
-    query, params = build_query(
-        base_query=(
-            "SELECT p.paper_id, p.external_id"
-            " FROM paper p"
-            " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = p.external_id"
-            + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = p.external_id" if condition and "aps." in condition else "")
-        ),
-        where_clauses=[
-            {
-                "if": condition,
-                "condition": condition,
-                "params": condition_params,
-            },
-            {
-                "if": not overwrite,
-                "condition": (
-                    "NOT EXISTS ("
-                    " SELECT 1 FROM informal_dependency d"
-                    " INNER JOIN statement s ON s.statement_id = d.src_id"
-                    " WHERE s.paper_id = p.paper_id"
-                    " AND d.cite_key IS NOT NULL"
-                    + _overwrite_method_clause(do_deterministic, do_heuristic, False, intra=False, alias="d")
-                    + ")"
-                ),
-            },
-            {
-                "if": True,
-                "condition": "EXISTS (SELECT 1 FROM statement s WHERE s.paper_id = p.paper_id)"
-            },
-            {
-                "if": True,
-                "condition": "p.kind = 'paper'"
-            },
-            {
-                "if": n_shards > 1,
-                "condition": "hashtext(p.paper_id::text) %% %s = %s",
-                "params": [n_shards, shard],
-            },
-        ]
-    )
+    if sample > 0:
+        id_query, id_params = build_query(
+            base_query=(
+                "SELECT paper.paper_id FROM paper"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
+                + _aps_join
+            ),
+            where_clauses=_where,
+        )
+        ids    = sample_ids(conn, id_query, id_params, sample)
+        query  = (
+            "SELECT paper.paper_id, paper.external_id FROM paper"
+            " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
+            " WHERE paper.paper_id = ANY(%s::uuid[])"
+        )
+        params = [ids]
+    else:
+        query, params = build_query(
+            base_query=(
+                "SELECT paper.paper_id, paper.external_id FROM paper"
+                " INNER JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id"
+                + _aps_join
+            ),
+            where_clauses=_where,
+        )
 
     count = get_query_count(conn, query, params)
     total_deps = 0
@@ -436,7 +395,6 @@ def connect_interpaper_dependencies(
             for paper in papers:
                 arxiv_id = paper["external_id"]
                 try:
-                    # Fetch shared data once per paper
                     with conn.cursor() as cur:
                         cur.execute(
                             "SELECT bibliography, bibtex, reference_ids FROM arxiv_paper_metadata WHERE arxiv_id = %s",
@@ -454,8 +412,8 @@ def connect_interpaper_dependencies(
                                    im.ref, im.note, im.pre_context, im.post_context
                             FROM statement s
                             INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
-                            INNER JOIN paper p ON p.paper_id = s.paper_id
-                            WHERE p.kind = 'paper' AND p.external_id = %s
+                            INNER JOIN paper ON paper.paper_id = s.paper_id
+                            WHERE paper.kind = 'paper' AND paper.external_id = %s
                             """,
                             (arxiv_id,),
                         )
@@ -488,194 +446,19 @@ def connect_interpaper_dependencies(
             if batch_rows:
                 source_ids = list({row["src_id"] for row in batch_rows})
                 with conn.cursor() as cur:
-                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, False, intra=False)
-                upsert_rows(conn, table="informal_dependency", rows=batch_rows)
-                with conn.cursor() as cur:
-                    cur.execute("""
-                        UPDATE informal_dependency d SET method = 'deterministic+llm'
-                        WHERE d.cite_key IS NOT NULL AND d.method = 'deterministic'
-                          AND d.src_id = ANY(%s::uuid[])
-                          AND EXISTS (
-                              SELECT 1 FROM informal_dependency
-                              WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
-                          )
-                    """, (source_ids,))
-                    cur.execute("""
-                        UPDATE informal_dependency d SET method = 'heuristic+llm'
-                        WHERE d.cite_key IS NOT NULL AND d.method = 'heuristic'
-                          AND d.src_id = ANY(%s::uuid[])
-                          AND EXISTS (
-                              SELECT 1 FROM informal_dependency
-                              WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
-                          )
-                    """, (source_ids,))
-                    # Dedup inter: keep one row per (src_id, cite_key)
-                    cur.execute("""
-                        DELETE FROM informal_dependency
-                        WHERE cite_key IS NOT NULL
-                          AND src_id = ANY(%s::uuid[])
-                          AND ctid NOT IN (
-                              SELECT DISTINCT ON (src_id, cite_key) ctid
-                              FROM informal_dependency
-                              WHERE cite_key IS NOT NULL AND src_id = ANY(%s::uuid[])
-                              ORDER BY src_id, cite_key,
-                                  CASE method
-                                      WHEN 'deterministic+llm' THEN 1
-                                      WHEN 'deterministic'     THEN 2
-                                      WHEN 'heuristic+llm'     THEN 3
-                                      WHEN 'heuristic'         THEN 4
-                                      ELSE 5
-                                  END,
-                                  CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
-                                  CASE location
-                                      WHEN 'body'         THEN 1
-                                      WHEN 'proof'        THEN 2
-                                      WHEN 'note'         THEN 3
-                                      WHEN 'pre_context'  THEN 4
-                                      ELSE 5
-                                  END
-                          )
-                    """, (source_ids, source_ids))
+                    _reset_methods(cur, source_ids, do_deterministic, do_heuristic, intra=False)
+                resolved   = [r for r in batch_rows if r["dep_id"] is not None]
+                unresolved = [r for r in batch_rows if r["dep_id"] is None]
+                if resolved:
+                    upsert_rows(conn, table="informal_dependency", rows=resolved,
+                                on_conflict={"with": ["src_id", "dep_id"],
+                                             "where": "dep_id IS NOT NULL",
+                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
+                if unresolved:
+                    upsert_rows(conn, table="informal_dependency", rows=unresolved,
+                                on_conflict={"with": ["src_id", "cite_key"],
+                                             "where": "dep_id IS NULL AND cite_key IS NOT NULL",
+                                             "update_expr": "methods = ARRAY(SELECT DISTINCT unnest(informal_dependency.methods || EXCLUDED.methods))"})
                 conn.commit()
 
             pbar.update(len(papers))
-
-
-# ------------------------------------------------------------------ #
-# Batch connect entry point (shared with batch/connect.py)            #
-# ------------------------------------------------------------------ #
-
-def connect_inter_llm_results(
-    conn: connection,
-    results: Iterable[Tuple[str, str]],
-    similarity_threshold: float,
-    batch_size: int = 256,
-) -> Dict[str, int]:
-    """Write pre-computed LLM inter-paper results (arxiv_id, text) into the DB.
-
-    Always overwrites existing LLM rows. Deterministic rows are never clobbered.
-    """
-    written = failed = 0
-    pending_rows: List[Dict] = []
-    pending_stmt_ids: List[str] = []
-    papers_buffered = 0
-
-    def _flush():
-        nonlocal pending_rows, pending_stmt_ids, papers_buffered
-        if not pending_stmt_ids:
-            return
-        src_ids = list(dict.fromkeys(pending_stmt_ids))
-        with conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM informal_dependency WHERE cite_key IS NOT NULL AND method = 'llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-            cur.execute(
-                "UPDATE informal_dependency SET method = 'deterministic' WHERE cite_key IS NOT NULL AND method = 'deterministic+llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-            cur.execute(
-                "UPDATE informal_dependency SET method = 'heuristic' WHERE cite_key IS NOT NULL AND method = 'heuristic+llm' AND src_id = ANY(%s::uuid[])",
-                (src_ids,),
-            )
-        if pending_rows:
-            upsert_rows(conn, "informal_dependency", pending_rows)
-        with conn.cursor() as cur:
-            cur.execute("""
-                UPDATE informal_dependency d SET method = 'deterministic+llm'
-                WHERE d.cite_key IS NOT NULL AND d.method = 'deterministic'
-                  AND d.src_id = ANY(%s::uuid[])
-                  AND EXISTS (
-                      SELECT 1 FROM informal_dependency
-                      WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
-                  )
-            """, (src_ids,))
-            cur.execute("""
-                UPDATE informal_dependency d SET method = 'heuristic+llm'
-                WHERE d.cite_key IS NOT NULL AND d.method = 'heuristic'
-                  AND d.src_id = ANY(%s::uuid[])
-                  AND EXISTS (
-                      SELECT 1 FROM informal_dependency
-                      WHERE src_id = d.src_id AND cite_key = d.cite_key AND method = 'llm'
-                  )
-            """, (src_ids,))
-            cur.execute("""
-                DELETE FROM informal_dependency
-                WHERE cite_key IS NOT NULL
-                  AND src_id = ANY(%s::uuid[])
-                  AND ctid NOT IN (
-                      SELECT DISTINCT ON (src_id, cite_key) ctid
-                      FROM informal_dependency
-                      WHERE cite_key IS NOT NULL AND src_id = ANY(%s::uuid[])
-                      ORDER BY src_id, cite_key,
-                          CASE method
-                              WHEN 'deterministic+llm' THEN 1
-                              WHEN 'deterministic'     THEN 2
-                              WHEN 'heuristic+llm'     THEN 3
-                              WHEN 'heuristic'         THEN 4
-                              ELSE 5
-                          END,
-                          CASE WHEN dep_name IS NOT NULL THEN 1 ELSE 2 END,
-                          CASE location
-                              WHEN 'body'         THEN 1
-                              WHEN 'proof'        THEN 2
-                              WHEN 'note'         THEN 3
-                              WHEN 'pre_context'  THEN 4
-                              ELSE 5
-                          END
-                  )
-            """, (src_ids, src_ids))
-        conn.commit()
-        pending_rows.clear()
-        pending_stmt_ids.clear()
-        papers_buffered = 0
-
-    for arxiv_id, text in tqdm(results, unit=" papers", desc="Connecting inter", dynamic_ncols=True):
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT bibliography, bibtex, reference_ids FROM arxiv_paper_metadata WHERE arxiv_id = %s",
-                (arxiv_id,),
-            )
-            row = cur.fetchone()
-        if not row:
-            tqdm.write(f"  Warning: no metadata for {arxiv_id}, skipping.")
-            failed += 1
-            continue
-        bib, bibtex, reference_ids = row[0] or {}, bool(row[1]), row[2]
-
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT s.statement_id, s.kind, im.ref
-                FROM statement s
-                INNER JOIN informal_metadata im ON im.statement_id = s.statement_id
-                INNER JOIN paper p ON p.paper_id = s.paper_id
-                WHERE p.external_id = %s AND p.kind = 'paper'
-            """, (arxiv_id,))
-            statements = [
-                {"statement_id": r[0], "kind": r[1], "ref": r[2]}
-                for r in cur.fetchall()
-            ]
-
-        if not statements:
-            tqdm.write(f"  Warning: no statements for {arxiv_id}, skipping.")
-            failed += 1
-            continue
-
-        id_to_stmt = build_stmt_id_map(statements)
-        statement_cites = parse_inter_llm_text(text, bib, id_to_stmt)
-        if statement_cites is None:
-            tqdm.write(f"  Warning: failed to parse LLM response for {arxiv_id}.")
-            failed += 1
-            continue
-
-        rows = _build_rows(conn, bib, statement_cites, similarity_threshold, bibtex=bibtex, reference_ids=reference_ids)
-        pending_rows.extend({**r, "method": "llm"} for r in rows)
-        pending_stmt_ids.extend(s["statement_id"] for s in statements)
-        written += len(rows)
-        papers_buffered += 1
-
-        if papers_buffered >= batch_size:
-            _flush()
-
-    _flush()
-    return {"written": written, "failed": failed}

@@ -1,186 +1,265 @@
 """
-Phase 3: Write concept-extraction batch results into the database.
+Phase 4: Read Nebius batch results and write deps to the database.
 
-Run:
-    python -m pipeline.parse_dependencies.batch.connect
-    python -m pipeline.parse_dependencies.batch.connect -i s3://bucket/concepts/output/results.jsonl
-    python -m pipeline.parse_dependencies.batch.connect -i results.jsonl
+--method llm:   custom_id = statement_id → group by paper → match_paper → write
+--method judge: custom_id = paper_id    → parse judge JSON → write
 
-Input file format: Nebius Batch API output JSONL. Each line:
-    {"custom_id": "<arxiv_id>", "response": {"status_code": 200, "body": {"choices": [...]}}, "error": null}
-
-Errors from prior steps raise immediately with a clear message. Per-paper parse
-failures are logged as warnings and skipped without aborting the run.
+Usage:
+    python -m pipeline.parse_dependencies --method llm   --batch connect
+    python -m pipeline.parse_dependencies --method judge --batch connect
+    python -m pipeline.parse_dependencies --method llm   --batch connect -i results.jsonl
 """
 
-import json
+import re
 import sys
-import tempfile
 from argparse import ArgumentParser
+from collections import defaultdict
 from pathlib import Path
-from typing import Iterator, List, Tuple
+from typing import Dict, List
 
-import boto3
+from tqdm import tqdm
 
-from .prepare import _parse_s3_uri, _list_s3_files, _S3_BUCKET, _S3_FOLDER
-from ...printing import print_script_header
-from ..intrapaper import connect_intra_llm_results
 from rds.utils.connect import get_rds_connection
+from rds.utils.upsert import upsert_rows
+from s3.utils.io import list_files
+from s3.utils.batch import iter_batch_results
+from ...printing import print_script_header
+from ..extract import parse_extraction_batch
+from ..write import _write_paper_deps
+from .prepare import _s3_output_dir, _fetch_judge_statements, _fetch_paper_info
+
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
-def _default_output_dir() -> str:
-    return f"s3://{_S3_BUCKET}/{_S3_FOLDER}/output/"
+def _default_output_dir(method: str) -> str:
+    return _s3_output_dir(method)
 
 
-def _iter_results(paths: List[str]) -> Iterator[Tuple[str, str]]:
-    """Yield (arxiv_id, llm_text) from one or more batch result JSONL paths."""
-    skipped = yielded = 0
+# ------------------------------------------------------------------ #
+# LLM connect helpers                                                  #
+# ------------------------------------------------------------------ #
 
-    for path in paths:
-        is_s3 = path.startswith("s3://")
-        if is_s3:
-            bucket, key = _parse_s3_uri(path)
-            tmp = tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False)
-            tmp.close()
+def _fetch_stmts_by_id(conn, statement_ids: List[str]) -> Dict[str, dict]:
+    if not statement_ids:
+        return {}
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT s.statement_id, s.paper_id, s.kind, im.note, s.body, s.proof, im.ordinal
+            FROM statement s
+            JOIN informal_metadata im ON im.statement_id = s.statement_id
+            WHERE s.statement_id = ANY(%s::uuid[])
+            """,
+            (statement_ids,),
+        )
+        rows = cur.fetchall()
+    result = {}
+    for row in rows:
+        d = dict(zip(["statement_id", "paper_id", "kind", "note", "body", "proof", "ordinal"], row))
+        d["statement_id"] = str(d["statement_id"])
+        d["paper_id"]     = str(d["paper_id"])
+        result[d["statement_id"]] = d
+    return result
+
+
+def _fetch_all_paper_stmt_ids(conn, paper_ids: List[str]) -> Dict[str, List[str]]:
+    if not paper_ids:
+        return {}
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT statement_id::text, paper_id::text FROM statement"
+            " WHERE paper_id = ANY(%s::uuid[])",
+            (paper_ids,),
+        )
+        result: Dict[str, List[str]] = defaultdict(list)
+        for sid, pid in cur.fetchall():
+            result[pid].append(sid)
+    return result
+
+
+def _process_llm_file(conn, path: str, batch_size: int) -> dict:
+    label = Path(path).stem
+    print(f"\nBatch {label}")
+
+    stmts_by_paper: Dict[str, List[dict]] = defaultdict(list)
+    total_in = total_out = 0
+    api_stats: dict = {}
+    ok_parse = total_parse = 0
+    buf_ids:     List[str]       = []
+    buf_results: Dict[str, dict] = {}
+
+    def flush():
+        meta_map = _fetch_stmts_by_id(conn, buf_ids)
+        for sid in buf_ids:
+            if sid in meta_map:
+                meta = meta_map[sid]
+                stmts_by_paper[meta["paper_id"]].append({**meta, **buf_results[sid]})
+        buf_ids.clear()
+        buf_results.clear()
+
+    with tqdm(desc="  parse", unit=" stmts", dynamic_ncols=True) as pbar:
+        for statement_id, text, usage in iter_batch_results([path], stats=api_stats):
+            extractions = parse_extraction_batch(text, expected_ids=[statement_id])
+            result = extractions.get(statement_id) or {"defines": [], "uses": []}
+            total_parse += 1
+            if result.get("defines") or result.get("uses"):
+                ok_parse += 1
+            total_in  += usage.get("prompt_tokens", 0)
+            total_out += usage.get("completion_tokens", 0)
+            buf_ids.append(statement_id)
+            buf_results[statement_id] = result
+            if len(buf_ids) >= batch_size:
+                flush()
+            pct = 100.0 * ok_parse / total_parse if total_parse else 0.0
+            pbar.update()
+            pbar.set_postfix({"ok": f"{pct:.1f}%", "api_skip": api_stats.get("skipped", 0)})
+        flush()
+
+    parse_pct = 100.0 * ok_parse / total_parse if total_parse else 0.0
+    paper_ids        = list(stmts_by_paper.keys())
+    all_ids_by_paper = _fetch_all_paper_stmt_ids(conn, paper_ids)
+
+    total_deps = total_notations = failed = 0
+    with tqdm(total=len(paper_ids), desc="  connect", dynamic_ncols=True, unit=" papers") as pbar:
+        for pid in paper_ids:
             try:
-                boto3.client("s3").download_file(bucket, key, tmp.name)
+                stmts   = sorted(stmts_by_paper[pid], key=lambda s: s["ordinal"])
+                all_ids = all_ids_by_paper.get(pid, [s["statement_id"] for s in stmts])
+                deps, notations  = _write_paper_deps(conn, all_ids, stmts)
+                total_deps      += deps
+                total_notations += notations
             except Exception as e:
-                Path(tmp.name).unlink(missing_ok=True)
-                raise FileNotFoundError(
-                    f"Could not download results from {path}: {e}\n"
-                    "Run 'python -m pipeline.parse_dependencies.batch.run' first."
+                failed += 1
+                print(f"\n[error] paper {pid}: {e}", file=sys.stderr)
+            pbar.update()
+            pbar.set_postfix({
+                "ok": f"{parse_pct:.1f}%",
+                "deps": total_deps,
+                "notations": total_notations,
+                "failed": failed,
+            })
+
+    return {
+        "deps": total_deps, "notations": total_notations, "failed": failed,
+        "total_in": total_in, "total_out": total_out,
+    }
+
+
+# ------------------------------------------------------------------ #
+# Judge connect helpers                                                #
+# ------------------------------------------------------------------ #
+
+def _process_judge_file(conn, path: str, batch_size: int) -> dict:
+    from ..judge import _parse_judge_json
+    label = Path(path).stem
+    print(f"\nBatch {label}")
+
+    paper_results: List[tuple] = []  # (paper_id, text, usage)
+    api_stats: dict = {}
+    total_in = total_out = 0
+
+    with tqdm(desc="  parse", unit=" papers", dynamic_ncols=True) as pbar:
+        for paper_id, text, usage in iter_batch_results([path], stats=api_stats):
+            paper_results.append((paper_id, text, usage))
+            total_in  += usage.get("prompt_tokens", 0)
+            total_out += usage.get("completion_tokens", 0)
+            pbar.update()
+            pbar.set_postfix({"api_skip": api_stats.get("skipped", 0)})
+
+    paper_ids = [r[0] for r in paper_results]
+    stmts_by_paper = _fetch_judge_statements(conn, paper_ids)
+
+    total_deps = failed = 0
+    with tqdm(total=len(paper_results), desc="  connect", dynamic_ncols=True, unit=" papers") as pbar:
+        for paper_id, text, _ in paper_results:
+            stmts = stmts_by_paper.get(paper_id, [])
+            if not stmts:
+                failed += 1
+                pbar.update()
+                continue
+            text = _THINK_RE.sub("", text).strip()
+            valid_ids = {str(s["statement_id"]) for s in stmts}
+            rows = _parse_judge_json(text, valid_ids)
+            if rows is None:
+                tqdm.write(f"[judge] failed to parse response for {paper_id}: {text[:200]}")
+                failed += 1
+                pbar.update()
+                continue
+            stmt_ids = [s["statement_id"] for s in stmts]
+            with conn.cursor() as cur:
+                cur.execute(
+                    "DELETE FROM informal_dependency"
+                    " WHERE cite_key IS NULL AND methods = ARRAY['judge'] AND src_id = ANY(%s::uuid[])",
+                    (stmt_ids,),
                 )
-            local_path = Path(tmp.name)
-        else:
-            local_path = Path(path)
-            if not local_path.exists():
-                raise FileNotFoundError(
-                    f"Results file not found: {path}\n"
-                    "Run 'python -m pipeline.parse_dependencies.batch.run' first."
-                )
-            if local_path.stat().st_size == 0:
-                raise ValueError(
-                    f"Results file is empty: {path}\n"
-                    "The batch may have produced no output — check run logs."
-                )
+            if rows:
+                upsert_rows(conn, "informal_dependency", rows)
+            conn.commit()
+            total_deps += len(rows)
+            pbar.update()
+            pbar.set_postfix({"deps": total_deps, "failed": failed})
 
-        try:
-            with local_path.open(encoding="utf-8") as f:
-                for lineno, line in enumerate(f, 1):
-                    line = line.strip()
-                    if not line:
-                        continue
+    return {
+        "deps": total_deps, "notations": 0, "failed": failed,
+        "total_in": total_in, "total_out": total_out,
+    }
 
-                    try:
-                        obj = json.loads(line)
-                    except json.JSONDecodeError:
-                        print(f"  Warning: line {lineno} in {path} is not valid JSON, skipping.", file=sys.stderr)
-                        skipped += 1
-                        continue
 
-                    arxiv_id = obj.get("custom_id", "").strip()
-                    if not arxiv_id:
-                        print(f"  Warning: line {lineno} in {path} has no custom_id, skipping.", file=sys.stderr)
-                        skipped += 1
-                        continue
+# ------------------------------------------------------------------ #
+# Top-level                                                            #
+# ------------------------------------------------------------------ #
 
-                    error = obj.get("error")
-                    if error:
-                        msg = error.get("message") or error if isinstance(error, str) else error
-                        print(f"  Warning: {arxiv_id} — API error: {msg}", file=sys.stderr)
-                        skipped += 1
-                        continue
-
-                    response = obj.get("response") or {}
-                    status   = response.get("status_code")
-                    # OpenAI batch format wraps in {"status_code": 200, "body": {...}};
-                    # Nebius Token Factory returns the completion object directly.
-                    if status is not None:
-                        if status != 200:
-                            print(f"  Warning: {arxiv_id} returned status {status}, skipping.", file=sys.stderr)
-                            skipped += 1
-                            continue
-                        body = response.get("body") or {}
-                    else:
-                        body = response
-
-                    try:
-                        text = body["choices"][0]["message"]["content"]
-                    except (KeyError, IndexError, TypeError):
-                        print(f"  Warning: {arxiv_id} has malformed response body, skipping.", file=sys.stderr)
-                        skipped += 1
-                        continue
-
-                    yield arxiv_id, text, body.get("usage") or {}
-                    yielded += 1
-
-        finally:
-            if is_s3:
-                local_path.unlink(missing_ok=True)
-
-    if yielded == 0:
-        detail = f"{skipped} entries were skipped due to errors." if skipped else "Files may be empty."
-        raise ValueError(f"No valid results found. {detail}")
-
-    if skipped:
-        print(f"  {skipped} failed/malformed entries skipped.", file=sys.stderr)
+def connect_batch_results(conn, method: str, paths: List[str], batch_size: int) -> dict:
+    process_fn = _process_llm_file if method == "llm" else _process_judge_file
+    totals: dict = {"deps": 0, "notations": 0, "failed": 0, "total_in": 0, "total_out": 0}
+    for path in paths:
+        stats = process_fn(conn, path, batch_size)
+        for k in totals:
+            totals[k] += stats[k]
+    return totals
 
 
 if __name__ == "__main__":
-    arg_parser = ArgumentParser(
-        description="Write concept-extraction batch results into the database."
-    )
-    arg_parser.add_argument(
-        "-i", "--input",
-        type=str,
-        nargs="+",
-        default=None,
-        dest="input_paths",
-        help=f"Results JSONL file(s) or S3 directory (default: {_default_output_dir()}).",
-    )
-    arg_parser.add_argument(
-        "-b", "--batch-size",
-        type=int,
-        default=256,
-        dest="batch_size",
-        help="Papers flushed to DB per transaction (default: 256).",
-    )
+    parser = ArgumentParser(description="Write batch results to the database.")
+    parser.add_argument("-M", "--method", required=True, choices=["llm", "judge"])
+    parser.add_argument("-i", "--input", type=str, nargs="+", default=None, dest="input_paths")
+    parser.add_argument("-b", "--batch-size", type=int, default=256, dest="batch_size")
+    parser.add_argument("--shard", type=int, default=0, dest="shard_index")
+    parser.add_argument("--n-shards", type=int, default=1, dest="n_shards")
 
-
-    args = arg_parser.parse_args()
+    args = parser.parse_args()
 
     if args.input_paths:
         input_paths = args.input_paths
     else:
-        output_dir  = _default_output_dir()
-        input_paths = _list_s3_files(output_dir)
+        output_dir  = _default_output_dir(args.method)
+        input_paths = list_files(output_dir)
         if not input_paths:
             print(f"No result files found in {output_dir}.")
             sys.exit(1)
 
+    input_paths = sorted(input_paths)
+    if args.n_shards > 1:
+        input_paths = input_paths[args.shard_index::args.n_shards]
+        if not input_paths:
+            print(f"Shard {args.shard_index}/{args.n_shards}: no files assigned.")
+            sys.exit(0)
+
     print_script_header(
-        action="Connecting concept-extraction batch results",
+        action=f"Connecting {args.method} batch results",
         params={
-            "input":      args.input_paths or _default_output_dir(),
+            "input":      args.input_paths or _default_output_dir(args.method),
             "batch size": args.batch_size,
+            **({"shard": f"{args.shard_index}/{args.n_shards}"} if args.n_shards > 1 else {}),
         },
     )
 
-    conn = get_rds_connection("v2")
+    conn  = get_rds_connection("v2")
+    stats = connect_batch_results(conn, args.method, input_paths, args.batch_size)
 
-    token_totals = {"input": 0, "output": 0}
-
-    def _results_with_tokens():
-        for arxiv_id, text, usage in _iter_results(input_paths):
-            token_totals["input"]  += usage.get("prompt_tokens", 0)
-            token_totals["output"] += usage.get("completion_tokens", 0)
-            yield arxiv_id, text
-
-    stats = connect_intra_llm_results(conn=conn, results=_results_with_tokens(), batch_size=args.batch_size)
-
+    extra = f", {stats['notations']} notations" if args.method == "llm" else ""
     print(
-        f"\nDone. {stats['written']} dep rows written, "
-        f"{stats['failed']} papers failed to parse."
-        f"\n  Input tokens:  {token_totals['input']:,}"
-        f"\n  Output tokens: {token_totals['output']:,}"
+        f"\nDone. {stats['deps']} deps{extra} written ({stats['failed']} papers failed)."
+        f"\n  Input tokens:  {stats['total_in']:,}"
+        f"\n  Output tokens: {stats['total_out']:,}"
     )

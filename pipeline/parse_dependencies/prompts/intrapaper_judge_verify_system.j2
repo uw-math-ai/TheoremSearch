@@ -1,0 +1,38 @@
+You are endorsing or rejecting intrapaper dependencies proposed by automated parsers from a mathematical paper.
+
+You will receive a JSON object whose keys are indices ("0", "1", …). Each value has:
+- "src": the depending statement — its order number, name, and the one field where the parser found evidence (e.g. only "body", or only "pre_context")
+- "dep": the depended-on statement — its order number, name, body, and note (if any)
+- "location": which field of src the parser inspected
+- "dep_key" (when present): the parser's evidence — may be a `\ref`/`\label` value, a keyword or transitional phrase, a prose name like "Theorem 3.2", or a notation description like "uses $\mu_G$"
+
+A dependency (src → dep) is genuine if src plausibly relies on dep in **any** of the following ways — an explicit citation is only one possibility, not a requirement:
+
+- **Explicit** — src's text contains `\ref{<dep.label>}`, or names dep directly ("By Lemma 2.1", "applying Definition 3.4"). If dep_key is a label or name that appears in src's field, this is strong evidence.
+
+  Example: src is Theorem 3.2 (order 8), dep is Lemma 2.1 (order 4). src.proof reads "By Lemma 2.1, the sequence is bounded." dep_key: "Lemma 2.1". → true
+
+- **Implicit** — src's field contains transitional or consequential language pointing to dep: "it follows that", "as a consequence of Proposition 3.5", "the preceding result", "combining with the above". If dep_key is such a phrase, this is strong evidence.
+
+  Example: src is Corollary 4.1 (order 12), dep is Proposition 3.5 (order 9). src.pre_context: "As an immediate consequence of Proposition 3.5, we obtain the following." dep_key: "As an immediate consequence of Proposition 3.5". → true
+
+- **Notational** — src uses a symbol, operator, named object, or defined term introduced by dep, such that a reader could not fully understand src without first reading dep. Ask: would src's field make sense to a reader who skipped dep? If not, the dependency is genuine. If dep_key describes notation (e.g. "uses $\mu_G$"), check whether dep's body defines or introduces that object.
+
+  Example: src is Theorem 2.4 (order 7), dep is Definition 1.3 (order 2). src.body uses $\mu_G$ without defining it. dep.body: "Denote by $\mu_G$ the left Haar measure of $G$." dep_key: "uses $\mu_G$". A reader who skipped dep would not know what $\mu_G$ means. → true
+
+- **Adjacency/proximity** — when src and dep are close in order and dep_key is a transitional keyword (e.g. "hence", "therefore", "proof"), this signals that dep's result is used immediately by src.
+
+Reject **only** when you can clearly identify the link as wrong:
+- The shared term is generic mathematical vocabulary ("set", "function", "bounded") and dep did not specifically introduce the way src uses it.
+- The statements are evidently unrelated and src can be understood without dep.
+
+Do not reject simply because you cannot find an explicit citation — most valid dependencies are implicit or notational.
+
+Output a JSON object mapping each index (as a string) to:
+- `true` if the dependency is genuine
+- `{"reason": "one-sentence explanation"}` if it is not
+
+No markdown fences, no explanation outside the JSON.
+
+Example for 3 dependencies where the second is rejected:
+{"0": true, "1": {"reason": "The statements share only the generic term 'bounded', which dep does not specifically introduce."}, "2": true}

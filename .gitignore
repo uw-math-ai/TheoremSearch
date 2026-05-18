@@ -12,6 +12,10 @@
 downloaded_sources/
 parsed_papers/
 !requirements.txt
+!pipeline/parse_dependencies/models.json
+!pipeline/generate_slogans/models.json
+!formalized_graph/projects.json
+!pipeline/generate_embeddings/models.json
 *pyc
 *.csv
 
@@ -19,6 +23,9 @@ parsed_papers/
 !experiments/matlas-comparison/data/*.json
 !experiments/matlas-comparison/results/*.csv
 !experiments/matlas-comparison/results/*.json.gz
+
+# Allow failure-modes experiment summary CSV
+!experiments/failure-modes/failure_modes.csv
 data/sources/
 DEBUG/
 external/stacks-project/
@@ -28,7 +35,7 @@ external/stacks-project/
 # --- Mathlib Graph / Formalized Graph ---
 # Project-specific data and DBs
 formalized_graph/data/
-formalized_graph/docs/
+!formalized_graph/docs/*.md
 formalized_graph/**/*.db
 formalized_graph/**/*.ast.json
 
@@ -43,3 +50,13 @@ formalized_graph/**/__pycache__/
 formalized_graph/**/.venv/
 formalized_graph/**/.mypy_cache/
 formalized_graph/**/.ruff_cache/
+
+# --- Formalized Graph V2 ---
+formalized_graph_v2/data/
+formalized_graph_v2/**/*.db
+formalized_graph_v2/**/.lake/
+formalized_graph_v2/**/build/
+formalized_graph_v2/**/*.olean
+formalized_graph_v2/**/*.ilean
+formalized_graph_v2/**/__pycache__/
+formalized_graph/data/
