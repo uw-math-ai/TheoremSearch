@@ -805,15 +805,53 @@ display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0
 </div>`);
 ```
 
-The effect replicates: T is preferred at very similar rates (82% vs. 77%), with
-significance well below 1e-8 in both. The edit-distance gap is proportionally
+The B vs T effect replicates: T preferred at very similar rates (82% vs. 77%),
+with significance well below 1e-8 in both. The edit-distance gap is proportionally
 similar despite different absolute magnitudes. **This is not Mathlib-specific.**
+
+### Ablation on combinatorial-games
+
+We also ran the T-names and T-random ablations on the same 60 candidates
+(reusing the NLs, swapping only the formalizer's context). Comparing
+ablation-judge counts side-by-side:
+
+```js
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:12px 0">
+  <thead><tr style="background:#f1f5f9">
+    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:left">Comparison</th>
+    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right">Mathlib</th>
+    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right">combinatorial-games</th>
+    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:left">Verdict</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0">T vs T-names (T wins / tie / T-names wins)</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace">33 / 16 / 11</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#16a34a;font-weight:700">33 / 14 / 13</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#16a34a">Replicates exactly — signatures are load-bearing in both projects</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0">T vs T-random (T wins / tie / T-random wins)</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace">27 / 11 / 22</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#dc2626">20 / 18 / 22</td>
+      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#dc2626">Does <em>not</em> replicate — T-random edges T here (within Mathlib pilot CI [−8.3, +25.0]pp)</td>
+    </tr>
+  </tbody>
+</table>`);
+```
+
+**This sharpens the story.** The structural finding — that knowing *type signatures*
+of relevant declarations is essential, while knowing just their *names* adds nothing —
+is robust across both projects, with identical T-wins counts (33/60). The further
+claim that *actual predecessor* signatures beat *random same-module* signatures
+was already marginal at n=60 (CI [−8.3, +25.0]pp in Mathlib) and doesn't replicate
+on combinatorial-games. The formal graph buys you *signatures*, but choosing
+predecessor signatures over arbitrary same-module signatures is not a reliable win.
 
 What was *not* tested here:
 - **Typecheck signal**: skipped for non-Mathlib because each project pins its own
   Lean dependencies. To run typecheck against combinatorial-games, we'd need
   `import CombinatorialGames` plus its own lakefile.
-- **Ablation**: B vs T only; T-names and T-random not run on the new project.
 - **Stratified breakdown**: combinatorial-games' eligible pool is heavily
   small-signature, so the dense×large cell can't be populated.
 
