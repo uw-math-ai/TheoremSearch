@@ -62,6 +62,14 @@ display(html`<table style="width:100%;border-collapse:collapse;font-size:13px;ma
 </table>`);
 ```
 
+**Signature** of a Lean declaration is the *typed API* — everything before the
+`:=` (definition body) or `by` (tactic proof). For a theorem it's the statement
+itself; for a definition it's the type. It does **not** include the proof or
+the implementation. So the signature of `ack_injective_left` is
+`(n : ℕ) : Function.Injective fun m => ack m n` — enough to know how to invoke
+it, but not how it's proved. Throughout this page, "T provides dep signatures"
+means the formalizer sees the typed API of each predecessor, not its proof.
+
 **Predecessors** of F are the nodes F directly depends on — the declarations whose
 names and types appear in F's signature or proof. They are the 1-hop outgoing
 neighbors of F in the formal graph (`source_id = F`, across all edge types:
