@@ -1,0 +1,1013 @@
+node_id,full_name,F_signature,NL,F_T,dep_count,F_Tnames,dep_names_count,judge_T_vs_Tnames,judge_T_vs_Tnames_notes,vacuous_Tnames,edit_dist_Tnames,F_Trandom,rand_count,judge_T_vs_Trandom,judge_T_vs_Trandom_notes,vacuous_Trandom,edit_dist_Trandom
+1485891,MeasureTheory.lcondExp_const,"MeasureTheory.lcondExp_const.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) (c : ENNReal) [MeasureTheory.IsFiniteMeasure μ] :
+  (MeasureTheory.lcondExp m μ fun x => c) = fun x => c","The conditional expectation (with respect to a sub-σ-algebra) of a constant extended non-negative real-valued function is equal to that same constant function, provided the sub-σ-algebra is contained in the original σ-algebra and the measure is sigma-finite and finite.","```lean
+theorem MeasureTheory.lcondExp_const {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  (hm : m ≤ m₀) [MeasureTheory.SigmaFinite μ] [MeasureTheory.IsFiniteMeasure μ] (c : ENNReal) :
+  MeasureTheory.lcondExp m μ (fun _ => c) = fun _ => c := by sorry
+```",18,"```lean
+theorem lcondExp_const {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α) (m : MeasurableSpace α) (hm : m ≤ ‹MeasurableSpace α›) [MeasureTheory.SigmaFinite μ] [MeasureTheory.IsFiniteMeasure μ] (c : ℝ≥0∞) : MeasureTheory.lcondExp m μ (fun _ : α => c) = fun _ : α => c := by sorry
+```",18,T,"Candidate A uses two MeasurableSpaces (m, m₀) matching target structure. Candidate B incorrectly uses anonymous instance ‹MeasurableSpace α› instead of explicit m₀.",False,31,"```lean
+theorem MeasureTheory.lcondExp_const {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+  (c : ENNReal) : MeasureTheory.lcondExp m μ (fun _ : α => c) =ᵐ[μ] fun _ : α => c
+```",18,T,B matches target exactly with definitional equality; A uses a.e. equality and different sigma-finite assumption.,False,17
+1361495,Specification.isssdFun,"Specification.isssdFun.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (ν : MeasureTheory.Measure E)
+  (Λ : Finset S) : ProbabilityTheory.Kernel (S → E) (S → E)","The term `Specification.isssdFun` is a probability kernel from the space of functions `S → E` to itself, parameterized by a measure `ν` on `E` and a finite set `Λ` of elements from `S`, where `E` is equipped with a measurable space structure.","```lean
+def Specification.isssdFun {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (ν : MeasureTheory.Measure E) (Λ : Finset S) :
+  ProbabilityTheory.Kernel (S → E) (S → E) := by sorry
+```",27,"```lean
+def Specification.isssdFun {S E : Type*} [MeasurableSpace E] (ν : MeasureTheory.Measure E) (Λ : Finset S) :
+    ProbabilityTheory.Kernel (S → E) (S → E) :=
+  sorry
+```",27,T,"Both match the target signature semantically. A preserves explicit universe variables and type class notation exactly as in target, while B uses Type* and square brackets.",False,14,"```lean
+def Specification.isssdFun {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (ν : MeasureTheory.Measure E) (Λ : Finset S) : ProbabilityTheory.Kernel (S → E) (S → E)
+```",27,tie,Both match the target signature exactly; neither is vacuous as both define a non-trivial kernel type.,False,2
+1342145,juxt_apply_of_mem,"juxt_apply_of_mem.{u_1, u_2} {S : Type u_1} {E : Type u_2} {Λ : Set S} {η : S → E} {x : S} (hx : x ∈ Λ) (ζ : ↑Λ → E) :
+  juxt Λ η ζ x = ζ ⟨x, hx⟩","When $x$ is an element of the set $\Lambda$, applying the juxtaposition function `juxt` with respect to $\Lambda$, $\eta$, and $\zeta$ at the point $x$ equals $\zeta$ evaluated at the pair consisting of $x$ and the proof that $x$ belongs to $\Lambda$.","```lean
+theorem juxt_mem {S : Type u_1} {E : Type u_2} (Λ : Set S) (η : S → E) (ζ : ↑Λ → E) (x : S) (hx : x ∈ Λ) :
+  juxt Λ η ζ x = ζ ⟨x, hx⟩ := by sorry
+```",21,"```lean
+theorem juxt_mem {α : Type*} {Λ : Set α} {η : ∀ a, Prop} {ζ : Σ a, a ∈ Λ → η a} 
+    (x : α) (hx : x ∈ Λ) : juxt Λ η ζ x = ζ.2 hx := by sorry
+```",21,T,"Candidate A matches the target signature closely with correct types for E, η, and ζ. Candidate B uses incorrect dependent types.",False,32,"```lean
+theorem juxt_apply_of_mem {S : Type u_1} {E : Type u_2} {Λ : Set S} {η : S → E} {x : S} (h : x ∈ Λ) (ζ : ↑Λ → E) : juxt Λ η ζ x = ζ ⟨x, h⟩ := by sorry
+```",4,Trandom,"B matches target signature exactly with same argument order and implicit/explicit patterns. A differs in argument order (Λ, η, ζ, x, hx vs target pattern).",False,7
+1504430,MeasureTheory.Integrable.fun_mul_of_top_right,"MeasureTheory.Integrable.fun_mul_of_top_right.{u_1, u_3} {α : Type u_1} {𝕜 : Type u_3} {mα : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [NormedField 𝕜] {f φ : α → 𝕜} (hf : MeasureTheory.Integrable f μ)
+  (hφ : MeasureTheory.MemLp φ ⊤ μ) : MeasureTheory.Integrable (fun x => φ x * f x) μ","Looking at this Lean 4 declaration:
+
+The theorem states that if $f$ is an integrable function with respect to a measure $\mu$ on a measurable space $\alpha$ (taking values in a normed field $\mathbb{k}$), and if $\phi$ belongs to $L^\infty(\mu)$ (that is, $\phi$ is essentially bounded), then the pointwise product function $x \mapsto \phi(x) \cdot f(x)$ is also integrable with respect to $\mu$.","```lean
+theorem MeasureTheory.Integrable.mul_of_top_left {α : Type*} {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} {𝕜 : Type*} [NormedField 𝕜] {f : α → 𝕜} (hf : MeasureTheory.Integrable f μ) {φ : α → 𝕜} (hφ : MeasureTheory.MemLp φ ⊤ μ) : MeasureTheory.Integrable (fun x => φ x * f x) μ := by sorry
+```",56,"```lean
+theorem MeasureTheory.Integrable.mul_of_mem_Linfty {α : Type*} {𝕜 : Type*} [MeasurableSpace α] 
+    (μ : MeasureTheory.Measure α) [NormedField 𝕜] 
+    {f : α → 𝕜} (hf : MeasureTheory.Integrable f μ) 
+    {φ : α → 𝕜} (hφ : MeasureTheory.MemLp φ ∞ μ) : 
+    MeasureTheory.Integrable (fun x => φ x * f x) μ := by sorry
+```",56,T,Both match the target semantically. A uses ⊤ matching target exactly; B uses ∞ (equivalent). A's structure is slightly closer.,False,22,"```lean
+theorem MeasureTheory.Integrable.mul_of_top_right {α : Type u_1} {𝕜 : Type u_3} {mα : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [NormedField 𝕜] {f φ : α → 𝕜} (hf : MeasureTheory.Integrable f μ)
+  (hφ : MeasureTheory.MemLp φ ∞ μ) : MeasureTheory.Integrable (fun x => φ x * f x) μ := by sorry
+```",2,Trandom,"Both match semantically; A uses ∞ notation matching ⊤, but B's name says 'left' when φ is on the right of f in hypothesis order.",False,6
+1403200,MeasureTheory.Integrable.induction',"MeasureTheory.Integrable.induction'.{u_1, u_2} {α : Type u_1} {E : Type u_2} {mα : MeasurableSpace α}
+  [NormedAddCommGroup E] {μ : MeasureTheory.Measure α} (P : (f : α → E) → MeasureTheory.Integrable f μ → Prop)
+  (indicator : ∀ (c : E) (s : Set α) (hs : MeasurableSet s) (hμs : μ s ≠ ⊤), P (Set.indicator s fun x => c) ⋯)
+  (add :
+    ∀ (f g : α → E) (hf : MeasureTheory.Integrable f μ) (hg : MeasureTheory.Integrable g μ),
+      Disjoint (Function.support f) (Function.support g) → P f hf → P g hg → P (f + g) ⋯)
+  (isClosed : IsClosed {f | P ↑↑f ⋯})
+  (ae_congr : ∀ (f g : α → E) (hf : MeasureTheory.Integrable f μ) (hfg : f =ᵐ[μ] g), P f hf → P g ⋯) (f : α → E)
+  (hf : MeasureTheory.Integrable f μ) : P f hf","The theorem states that to prove a property P holds for all integrable functions with respect to a measure μ, it suffices to verify four conditions: (1) P holds for indicator functions of measurable sets with finite measure multiplied by a constant, (2) P is preserved under addition of functions with disjoint supports, (3) the set of integrable functions satisfying P is closed in the appropriate topology, and (4) P is preserved under almost everywhere equivalence of functions.","```lean
+theorem MeasureTheory.Integrable.induction_on
+  {α : Type u_1} {E : Type u_2} {mα : MeasurableSpace α}
+  [NormedAddCommGroup E] {μ : MeasureTheory.Measure α}
+  (P : (f : α → E) → MeasureTheory.Integrable f μ → Prop)
+  (indicator : ∀ (c : E) (s : Set α) (hs : MeasurableSet s) (hμs : μ s ≠ ⊤), 
+    P (Set.indicator s fun x => c) (by sorry))
+  (add : ∀ (f g : α → E) (hf : MeasureTheory.Integrable f μ) (hg : MeasureTheory.Integrable g μ),
+    Disjoint (Function.support f) (Function.support g) → P f hf → P g hg → 
+    P (f + g) (by sorry))
+  (isClosed : IsClosed {f : α →ₘ[μ] E | P ↑↑f (by sorry)})
+  (ae_congr : ∀ (f g : α → E) (hf : MeasureTheory.Integrable f μ) (hfg : f =ᵐ[μ] g), 
+    P f hf → P g (by sorry))
+  (f : α → E) (hf : MeasureTheory.Integrable f μ) : P f hf :=
+  by sorry
+```",173,"```lean
+theorem MeasureTheory.Integrable.induction_on {α : Type*} {E : Type*} [MeasurableSpace α] [NormedAddCommGroup E] (μ : MeasureTheory.Measure α) (P : (α → E) → Prop) (h_ind : ∀ (c : E) (s : Set α), MeasurableSet s → μ s ≠ ∞ → P (c • Set.indicator s fun _ => 1)) (h_add : ∀ (f g : α → E), Disjoint (Function.support f) (Function.support g) → P f → P g → P (f + g)) (h_closed : IsClosed {f : MeasureTheory.Lp E 1 μ | P f.toFun}) (h_ae : ∀ (f g : α → E), MeasureTheory.Integrable f μ → MeasureTheory.Integrable g μ → f =ᵐ[μ] g → (P f ↔ P g)) (f : α → E) (hf : MeasureTheory.Integrable f μ) : P f := by sorry
+```",173,T,"B matches target signature structure: P takes both function and integrability proof. A only has P take function, losing key dependent structure.",False,78,"```lean
+theorem integrable_induction {α E : Type*} {mα : MeasurableSpace α} [NormedAddCommGroup E]
+  {μ : MeasureTheory.Measure α} (P : (f : α → E) → Prop)
+  (h_ind : ∀ (c : E) {s : Set α}, MeasurableSet s → μ s ≠ ∞ → P (c • ↑(Set.indicator s 1)))
+  (h_add : ∀ {f g : α → E}, Disjoint (Function.support f) (Function.support g) → P f → P g → P (f + g))
+  (h_closed : IsClosed {f : α →L∞[μ] E | P f})
+  (h_ae : ∀ {f g : α → E}, f =ᶠ[ae μ] g → P f → P g)
+  {f : α → E} (hf : Integrable f μ) : P f := by sorry
+```",1,T,B matches signature exactly with dependent P taking integrable proof; A drops dependency and changes indicator to scalar multiplication form.,False,74
+1392542,MeasureTheory.Measure.eq_prod_of_dirac_left,"MeasureTheory.Measure.eq_prod_of_dirac_left.{u_1, u_2} (X : Type u_1) (Y : Type u_2) [MeasurableSpace X]
+  [MeasurableSpace Y] (x : X) (ν : MeasureTheory.Measure Y) (μ : MeasureTheory.Measure (X × Y))
+  (marg_X : MeasureTheory.Measure.map Prod.fst μ = MeasureTheory.Measure.dirac x)
+  (marg_Y : MeasureTheory.Measure.map Prod.snd μ = ν) : μ = MeasureTheory.Measure.prod (MeasureTheory.Measure.dirac x) ν","If $\mu$ is a measure on $X \times Y$ whose marginal on $X$ is the Dirac measure at a point $x$ and whose marginal on $Y$ is $\nu$, then $\mu$ equals the product measure of the Dirac measure at $x$ and $\nu$.","```lean
+theorem dirac_prod_of_marginals {α β : Type*} [MeasurableSpace α] [MeasurableSpace β] 
+    (x : α) (ν : MeasureTheory.Measure β) (μ : MeasureTheory.Measure (α × β))
+    (hfst : MeasureTheory.Measure.map Prod.fst μ = MeasureTheory.Measure.dirac x)
+    (hsnd : MeasureTheory.Measure.map Prod.snd μ = ν) :
+    μ = MeasureTheory.Measure.prod (MeasureTheory.Measure.dirac x) ν := by sorry
+```",23,"```lean
+theorem MeasureTheory.measure_eq_dirac_prod {X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y] 
+    {x : X} {ν : MeasureTheory.Measure Y} {μ : MeasureTheory.Measure (X × Y)}
+    (hX : μ.map Prod.fst = MeasureTheory.Measure.dirac x)
+    (hY : μ.map Prod.snd = ν) :
+    μ = MeasureTheory.Measure.dirac x |>.prod (fun _ => ν) := by sorry
+```",23,T,A uses Measure.prod directly matching target; B incorrectly uses prod with function argument instead of measure.,False,31,"```lean
+theorem eq_prod_of_dirac_left (X : Type u_1) (Y : Type u_2) [MeasurableSpace X]
+  [MeasurableSpace Y] (x : X) (ν : MeasureTheory.Measure Y) (μ : MeasureTheory.Measure (X × Y))
+  (marg_X : MeasureTheory.Measure.map Prod.fst μ = MeasureTheory.Measure.dirac x)
+  (marg_Y : MeasureTheory.Measure.map Prod.snd μ = ν) :
+  μ = MeasureTheory.Measure.prod (MeasureTheory.Measure.dirac x) ν
+```",1,Trandom,"A matches target signature exactly; B has different parameter names (α/β vs X/Y, hfst/hsnd vs marg_X/marg_Y).",False,2
+1386695,Specification.isssd,"Specification.isssd.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (ν : MeasureTheory.Measure E) :
+  Specification S E","The theorem states that given a measurable space $E$ with a measure $\nu$, there exists a specification from a state space $S$ to the event space $E$.","```lean
+theorem Specification.exists_specification {S E : Type*} [MeasurableSpace E] (ν : MeasureTheory.Measure E) :
+  ∃ (π : Specification S E), True
+```",49,"```lean
+theorem specification_exists (E : Type*) [MeasurableSpace E] (ν : MeasureTheory.Measure E) :
+    ∃ (S : Type*), Specification S E
+```",49,T,Target is a constant returning a Specification instance. B matches by existentially quantifying it; A changes S to existential wrongly.,False,16,"```lean
+theorem exists_specification (S E : Type*) [MeasurableSpace E] (ν : MeasureTheory.Measure E) : 
+  ∃ (γ : Specification S E), True := by sorry
+```",49,tie,"Both are vacuous (∃x, True is trivial). Neither matches target which returns a specific Specification term, not an existence claim.",True,21
+1367729,IsConsistent,"IsConsistent.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) : Prop",A family of probability kernels γ indexed by finite subsets Λ of S is **consistent** if it satisfies certain compatibility conditions that allow these kernels to be pieced together into a coherent infinite-dimensional probability measure on the product space S → E.,"```lean
+def IsConsistent {S : Type u_1} {E : Type u_2} [MeasurableSpace E]
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) : Prop := by sorry
+```",24,"```lean
+def IsConsistentFamily {S : Type*} {E : Type*} [MeasurableSpace E] (γ : Finset S → ProbabilityTheory.Kernel (S → E) E) : Prop
+```",24,T,A matches target signature exactly (type and universe levels); B has wrong kernel codomain (E vs S→E) and different name.,False,16,"```lean
+def Specification.IsConsistent {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) : Prop
+```",24,T,B matches target exactly; A has wrong namespace (Specification.IsConsistent vs IsConsistent),False,2
+1537841,Specification.modification_one',"Specification.modification_one'.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) : Specification.modification γ (fun _Λ _η => 1) ⋯ = γ","The theorem states that for a specification γ on a measurable space with state space S and sample space E, applying the modification operation with the constant function equal to 1 (returning 1 for all inputs) yields the original specification γ unchanged.","```lean
+theorem Specification.modification_one {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E) :
+  Specification.modification γ (fun _Λ _η => 1) Specification.IsModifier.one' = γ
+```",63,"```lean
+theorem Specification.modification_one (γ : Specification S E) :
+    γ.modification (fun _ => 1) = γ := by sorry
+```",63,T,"Candidate B matches the target signature exactly, including the IsModifier.one' constraint. Candidate A uses a different (simpler) function signature.",False,22,"```lean
+theorem Specification.modification_one' {S : Type u_1} {E : Type u_2} [MeasurableSpace E] (γ : Specification S E) :
+  Specification.modification γ (fun _Λ _η => 1) (Specification.IsModifier.one' : Specification.IsModifier γ fun _Λ _η => 1) = γ := by sorry
+```",61,T,"Both match the target signature closely. B uses explicit binder {mE} matching the target exactly, while A uses instance notation. Neither is vacuous.",False,18
+1361494,Specification.isssdFun_apply,"Specification.isssdFun_apply.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (ν : MeasureTheory.Measure E) (Λ : Finset S) :
+  ⇑(Specification.isssdFun ν Λ) = fun η => MeasureTheory.Measure.map (juxt (↑Λ) η) (MeasureTheory.Measure.pi fun x => ν)","The function `Specification.isssdFun` applied to a measure `ν` on `E` and a finite set `Λ` of indices in `S`, when evaluated at a function `η`, equals the pushforward (map) of the product measure (where each factor is `ν`) under the map that takes a function and restricts it to the indices in `Λ` combined with `η`.","```lean
+theorem Specification.isssdFun_eq (S : Type*) (E : Type*) [MeasurableSpace E] (ν : MeasureTheory.Measure E)
+  (Λ : Finset S) (η : S → E) :
+  (Specification.isssdFun ν Λ) η =
+  MeasureTheory.Measure.map (fun (ζ : ↑Λ → E) => juxt (↑Λ) η ζ)
+    (MeasureTheory.Measure.pi fun (_ : ↑Λ) => ν)
+```",34,"```lean
+theorem Specification.isssdFun_eq_map (ν : MeasureTheory.Measure E) (Λ : Finset S) (η : ∀ i : S, E) :
+  Specification.isssdFun ν Λ η = MeasureTheory.Measure.map (fun f : ∀ i : S, E => (fun i : Λ => f i, η)) (MeasureTheory.Measure.pi fun _ => ν)
+```",34,tie,"Both candidates state the application of isssdFun equals a measure map, but neither directly matches the target's coercion-to-function form. A expands juxt, B keeps it but changes argument order.",False,36,"```lean
+theorem Specification.isssdFun_eq_map (ν : MeasureTheory.Measure E) (Λ : Finset S) (η : S → E) :
+  (Specification.isssdFun ν Λ) η = MeasureTheory.Measure.map (fun f => (fun i => if i ∈ Λ then f i else η i)) (MeasureTheory.Measure.prod fun _ => ν)
+```",34,T,A matches target structure with juxt and pi measure; B uses prod and if-then-else instead of juxt,False,36
+1489126,Specification.modification_apply,"Specification.modification_apply.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ) (Λ : Finset S)
+  (η : S → E) : ((Specification.modification γ ρ hρ) Λ) η = MeasureTheory.Measure.withDensity ((γ Λ) η) (ρ Λ)","The theorem states that for a specification γ from S to E, a function ρ (which is a modifier of γ), and given a finite set Λ of elements from S and a function η from S to E, the modified specification applied to Λ and η equals the original specification γ applied to Λ and η, but with density given by ρ(Λ).","```lean
+theorem Specification.modification_apply {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} 
+    (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ)
+    (Λ : Finset S) (η : S → E) :
+    (Specification.modification γ ρ hρ) Λ η = 
+    (γ Λ η).withDensity (ρ Λ) := by sorry
+```",33,"```lean
+theorem Specification.modification_eq (γ : Specification S E) (ρ : Specification.IsModifier γ) (Λ : Finset S) (η : S → E) :
+  (ρ.modification Λ η) = (γ Λ η).withDensity (ρ Λ) := by sorry
+```",33,T,"A matches target signature closely; B changes type of hρ and ρ (makes ρ a predicate), altering semantics significantly.",False,38,"```lean
+theorem Specification.modificationKer_apply_eta
+  {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E))
+  (ρ : Finset S → (S → E) → ENNReal)
+  (hρ : ∀ (Λ : Finset S), Measurable (ρ Λ))
+  (Λ : Finset S) (η : S → E) :
+  (Specification.modificationKer γ ρ hρ Λ) η = MeasureTheory.Measure.withDensity ((γ Λ) η) (ρ Λ) := by sorry
+```",33,T,"B matches target signature exactly in name, types, and structure. A uses different names (modificationKer vs modification, IsModifier condition differs).",False,26
+1520267,Specification.isGibbsMeasure_isssd_infinitePi,"Specification.isGibbsMeasure_isssd_infinitePi.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (ν : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure ν] :
+  Specification.IsGibbsMeasure (Specification.isssd ν) (MeasureTheory.Measure.infinitePi fun x => ν)","The statement asserts that for a probability measure ν on a measurable space E, the infinite product measure (constructed by taking the product of ν with itself infinitely many times indexed by a set S) is a Gibbs measure with respect to the independent and identically distributed specification (isssd) determined by ν.","```lean
+theorem infiniteProduct_isGibbs_isssd {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (ν : MeasureTheory.Measure E) (hν : MeasureTheory.IsProbabilityMeasure ν) :
+    Specification.IsGibbsMeasure (Specification.isssd ν) (MeasureTheory.Measure.infinitePi fun _ : S => ν)
+```",24,"```lean
+theorem infinitePi_isGibbsMeasure {E : Type*} [MeasurableSpace E] {ν : MeasureTheory.Measure E} (hν : MeasureTheory.IsProbabilityMeasure ν) (S : Type*) :
+    Specification.IsGibbsMeasure (MeasureTheory.Measure.infinitePi fun _ : S => ν) (Specification.isssd ν) := by sorry
+```",24,T,A matches argument order and structure; B has swapped IsGibbsMeasure arguments (measure vs specification reversed).,False,26,"```lean
+theorem Specification.isssd.isGibbsMeasure_piMeasure {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (ν : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure ν] :
+  Specification.IsGibbsMeasure (Specification.isssd ν) (MeasureTheory.Measure.pi fun _ : S => ν)
+```",24,T,"infinitePi vs pi: A uses infinitePi matching target, B uses pi. Both have same conclusion type and intro forms.",False,6
+1448779,Specification.IsGibbsMeasure,"Specification.IsGibbsMeasure.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E)
+  (μ : MeasureTheory.Measure (S → E)) : Prop","A measure μ on the space of functions from S to E is a Gibbs measure for a specification γ if it satisfies the consistency condition: for every finite subset Λ of S, the conditional distribution of μ given the values outside Λ agrees with the specification γ at Λ.","```lean
+def IsGibbsMeasure {S : Type u_1} {E : Type u_2} [MeasurableSpace E] 
+    (μ : MeasureTheory.Measure (S → E)) (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S), 
+    μ.condDistrib (fun _ => (S → E)) (MeasureTheory.cylinderEvents (↑Λ.compl)) = γ Λ
+```",13,"```lean
+def IsGibbsMeasure (S : Type*) (E : Type*) [MeasurableSpace E] (μ : MeasureTheory.Measure (S → E)) (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S), ∀ (A : Set (S → E)), MeasurableSet A →
+    μ (A ∩ {ω | ∀ i ∈ Λ, ω i = (γ Λ ω) i}) =
+    μ {ω | ∀ i ∈ Λ, ω i = (γ Λ ω) i} * (γ Λ) {ω' | ∀ i ∈ Λ, ω' i = (γ Λ ω) i | ∃ ω, ∀ i ∉ Λ, ω i = (γ Λ ω) i}
+```",13,T,A matches signature order (μ then γ) and uses conditional distribution; B misorders parameters and has malformed syntax.,False,90,"```lean
+def Specification.IsGibbsMeasure (S E : Type*) [MeasurableSpace E] (μ : MeasureTheory.Measure (S → E))
+    (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S), MeasureTheory.Kernel.eq_of_restricted_eq
+    (MeasureTheory.Kernel.condMeasure μ (fun σ => σ ∘ (↑Λ : Finset S → S)))
+    (γ Λ)
+```",13,tie,Both candidates define IsGibbsMeasure but use different formalizations of the Gibbs property (conditional measure vs conditional distribution). Neither is vacuous.,False,36
+1353841,Specification.IsModifier.measurable,"Specification.IsModifier.measurable.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (self : Specification.IsModifier γ ρ) (Λ : Finset S) :
+  Measurable (ρ Λ)","The theorem states that if `self` is a modifier for a specification `γ` with respect to a function `ρ`, then for any finite set `Λ` of sites `S`, the function `ρ Λ` is measurable (where `ρ Λ` maps configurations `S → E` to extended non-negative real numbers).","```lean
+theorem Specification.IsModifier.measurable {S : Type u_1} {E : Type u_2} [MeasurableSpace E] {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (self : γ.IsModifier ρ) (Λ : Finset S) : Measurable (ρ Λ) := by sorry
+```",9,"```lean
+theorem Specification.IsModifier.measurable {E S : Type*} [MeasurableSpace E] {γ : Specification S E} {ρ : Finset S → (S → E) → ℝ≥0∞} (self : IsModifier γ ρ) (Λ : Finset S) : Measurable (ρ Λ) := by sorry
+```",9,T,"B uses γ.IsModifier ρ matching target's dot notation, and preserves universe variables. A uses bare IsModifier without namespace.",False,18,"```lean
+theorem Specification.IsModifier.measurable {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (self : Specification.IsModifier γ ρ) (Λ : Finset S) : Measurable (ρ Λ)
+```",9,Trandom,Both match semantically; A uses explicit {mE : MeasurableSpace E} while B uses instance [MeasurableSpace E]. A is closer to target signature style.,False,2
+1477152,Specification.coe_modification,"Specification.coe_modification.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E)
+  (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ) :
+  ⇑(Specification.modification γ ρ hρ) = Specification.modificationKer (⇑γ) ρ ⋯",The theorem states that the coercion of a modification of a specification γ by a modifier ρ equals the modification kernel of the coerced specification γ with the same modifier ρ.,"```lean
+theorem Specification.coe_modification {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ)
+  (Λ : Finset S) : ⇑(Specification.modification γ ρ hρ) Λ = Specification.modificationKer ⇑γ ρ (fun Λ => (hρ.measurable Λ)) Λ
+```",31,"```lean
+theorem Specification.coe_modification {α : Type*} {β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (γ : Specification α β) (ρ : ProbabilityTheory.Kernel α β) (hρ : Specification.IsModifier ρ) :
+    ↑(γ.modification ρ hρ) = γ.modificationKer ρ := by sorry
+```",31,T,"A correctly matches the target signature with S, E, Finset S → (S → E) → ENNReal for ρ. B has incompatible types (Kernel α β instead of function type).",False,30,"```lean
+theorem Specification.coe_modification (S : Type u_1) (E : Type u_2) {mE : MeasurableSpace E}
+  (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ) :
+  ⇑(Specification.modification γ ρ hρ) = Specification.modificationKer (⇑γ) ρ hρ.measurable
+```",31,Trandom,"Candidate B exactly matches the target equality signature, while A adds an extra parameter Λ and applies both sides to it unnecessarily.",False,7
+1426197,MeasureTheory.Integrable.measurable,"MeasureTheory.Integrable.measurable.{u_1, u_2} {α : Type u_1} {β : Type u_2} {mα : MeasurableSpace α}
+  {mβ : MeasurableSpace β} {μ : MeasureTheory.Measure α} [TopologicalSpace β] [TopologicalSpace.PseudoMetrizableSpace β]
+  [ContinuousENorm β] [MeasureTheory.Measure.IsComplete μ] {f : α → β} [BorelSpace β]
+  (hf : MeasureTheory.Integrable f μ) : Measurable f","If a function \( f : \alpha \to \beta \) is integrable with respect to a complete measure \( \mu \) on \( \alpha \), where \( \beta \) is a pseudo-metrizable topological space with continuous extended norm and equipped with its Borel \(\sigma\)-algebra, then \( f \) is measurable.","```lean
+theorem Integrable.measurable {α β : Type*} [MeasurableSpace α] [TopologicalSpace β] [ContinuousENorm β] [MeasurableSpace β] [BorelSpace β] [TopologicalSpace.PseudoMetrizableSpace β] {μ : MeasureTheory.Measure α} [MeasureTheory.Measure.IsComplete μ] {f : α → β} (hf : MeasureTheory.Integrable f μ) : Measurable f
+```",12,"```lean
+theorem integrable_implies_measurable {α β : Type*} [MeasurableSpace α] [μ : MeasureTheory.Measure α] [hμ : μ.IsComplete] [TopologicalSpace β] [PseudoMetrizableSpace β] [ContinuousENorm β] [BorelSpace β] {f : α → β} (hf : MeasureTheory.Integrable f μ) : Measurable f
+```",12,T,B matches the dotted notation and namespace structure of the target theorem more closely than A's flat naming.,False,23,"```lean
+theorem Integrable.aestronglyMeasurable {α β : Type*} {mα : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [PseudoMetricSpace β] [BorelSpace β] [ContinuousNorm β] [CompleteSpace β]
+  {f : α → β} (hf : MeasureTheory.Integrable f μ) : AEStronglyMeasurable f μ :=
+  sorry
+```",2,T,"B exactly matches the target signature (theorem name, conclusion, and hypotheses). A has different conclusion (AEStronglyMeasurable vs Measurable) and different assumptions.",False,23
+1342146,juxt,"juxt.{u_1, u_2} {S : Type u_1} {E : Type u_2} (Λ : Set S) (η : S → E) (ζ : ↑Λ → E) (x : S) : E","The juxt function takes a set Λ of elements from type S, a function η from S to E, a function ζ from the subtype of Λ to E, and an element x of S, and returns an element of E. Specifically, it returns ζ(x) if x is in Λ, and η(x) otherwise, effectively defining a piecewise function that combines η and ζ based on membership in Λ.","```lean
+def juxt {S E : Type*} (Λ : Set S) (η : S → E) (ζ : Λ → E) (x : S) : E :=
+  dite (x ∈ Λ) (fun h => ζ ⟨x, h⟩) (fun h => η x)
+```",9,"```lean
+def juxt {S E : Type*} (Λ : Set S) (η : S → E) (ζ : Λ → E) (x : S) : E :=
+  dite (x ∈ Λ) (fun h => ζ ⟨x, h⟩) (fun _ => η x)
+```",9,tie,Both candidates are semantically identical; the unused hypothesis name difference is irrelevant.,False,25,"```lean
+def juxt {S E : Type*} (Λ : Set S) (η : S → E) (ζ : ↥Λ → E) (x : S) : E :=
+  if h : x ∈ Λ then ζ ⟨x, h⟩ else η x
+```",4,tie,"Both use dite/if for dependent case split on x ∈ Λ, correctly applying ζ or η. Semantically equivalent.",False,23
+1539751,MeasureTheory.SimpleFunc.«term_→ₛ[_]_»,MeasureTheory.SimpleFunc.«term_→ₛ[_]_» : Lean.TrailingParserDescr,This defines a notation for the type of simple functions (measurable functions taking finitely many values) with respect to a given measurability structure. The notation `α →ₛ[m] β` represents simple functions from α to β that are measurable with respect to the measurability structure m.,"```lean
+notation:25 α "" →ₛ["" m ""] "" β => SimpleFunc m α β
+```",9,"```lean
+notation:25 α "" →ₛ["" m ""] "" β => SimpleFunc.{u_1, u_2} α β
+```",9,T,"A includes the measure parameter m while B omits it, making A more semantically accurate to the target signature.",False,13,"```lean
+notation:25 α "" →ₛ["" m ""] "" β => MeasureTheory.SimpleFunc α β
+```",1,T,"A correctly includes the measure `m` parameter in SimpleFunc, matching the notation's intent; B ignores the `m` parameter making it semantically incorrect.",False,12
+1516715,Specification.isModifier_iff_ae_eq,"Specification.isModifier_iff_ae_eq.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (hγ : Specification.IsProper γ) :
+  Specification.IsModifier γ ρ ↔
+    (∀ (Λ : Finset S), Measurable (ρ Λ)) ∧
+      ∀ ⦃Λ₁ Λ₂ : Finset S⦄,
+        Λ₁ ⊆ Λ₂ →
+          ∀ (η : S → E),
+            ρ Λ₂ =ᵐ[(γ Λ₂) η] fun η => ∫⁻ (ζ : S → E), ρ Λ₂ ζ ∂MeasureTheory.Measure.withDensity ((γ Λ₁) η) (ρ Λ₁)","The theorem states that for a proper specification γ and a function ρ from finite sets of sites and configurations to extended non-negative reals, ρ is a modifier for γ if and only if two conditions hold: first, for every finite set Λ, the function ρ(Λ, ·) is measurable, and second, for any two finite sets Λ₁ and Λ₂ with Λ₁ contained in Λ₂ and any configuration η, the function ρ(Λ₂, ·) is equal almost everywhere (with respect to the measure γ(Λ₂)(η)) to its integral with respect to the measure obtained by taking γ(Λ₁)(η) and weighting it by the density ρ(Λ₁, ·).","```lean
+theorem modifier_iff_measurable_and_ae_eq {S : Type u_1} {E : Type u_2} [MeasurableSpace E] 
+    (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) 
+    (hγ : Specification.IsProper γ) :
+    Specification.IsModifier γ ρ ↔ 
+    (∀ Λ : Finset S, Measurable (ρ Λ)) ∧ 
+    ∀ Λ₁ Λ₂ : Finset S, Λ₁ ⊆ Λ₂ → ∀ η : S → E,
+    Filter.EventuallyEq (MeasureTheory.ae (γ Λ₂ η))
+      (fun σ => ∫⁻ σ', ρ Λ₁ σ' ∂(MeasureTheory.Measure.withDensity (γ Λ₁ η) (ρ Λ₁)))
+      (ρ Λ₂) := by sorry
+```",94,"```lean
+theorem Specification.isModifier_iff' {γ : Specification} (hγ : γ.IsProper) 
+    (ρ : ∀ (Λ : Finset), γ.σ Λ → ℝ≥0∞) :
+    γ.IsModifier ρ ↔ 
+    (∀ Λ, Measurable (ρ Λ)) ∧ 
+    (∀ Λ₁ Λ₂ η, Λ₁ ⊆ Λ₂ → 
+      (γ Λ₂ η) = (γ Λ₁ η).withDensity (ρ Λ₁) ∨ 
+      Filter.EventuallyEq (MeasureTheory.ae (γ Λ₂ η)) (ρ Λ₂) 
+        (fun ω => ∫⁻ ω', ρ Λ₁ ω' ∂(γ Λ₁ η))) := by sorry
+```",94,T,A's structure closely matches target with measurability plus ae_eq condition. B introduces spurious disjunction and uses different types (γ.σ vs S→E).,False,69,"```lean
+theorem isModifier_iff_measurable_and_ae_eq_integral {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (hγ : Specification.IsProper γ) :
+  Specification.IsModifier γ ρ ↔
+    (∀ (Λ : Finset S), Measurable (ρ Λ)) ∧
+    (∀ ⦃Λ₁ Λ₂ : Finset S⦄, Λ₁ ⊆ Λ₂ → ∀ (η : S → E),
+      ∀ᵐ (ζ : S → E) ∂((γ Λ₂) η), ρ Λ₂ ζ = ∫⁻ (ξ : S → E), (ρ Λ₁ (fun s => if s ∈ Λ₁ then ξ s else ζ s)) ∂(((γ Λ₁) (fun s => if s ∈ Λ₂ \ Λ₁ then ζ s else η s)))) := by sorry
+```",61,Trandom,"Both differ from target, but B captures modifier property more accurately with gluing structure for Λ₁/Λ₂. A has swapped integral arguments.",False,49
+1386693,Specification.IsPremodifier.isModifier_div,"Specification.IsPremodifier.isModifier_div.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {ρ : Finset S → (S → E) → ENNReal} (hρ : Specification.IsPremodifier ρ) (ν : MeasureTheory.Measure E)
+  [MeasureTheory.IsProbabilityMeasure ν] :
+  Specification.IsModifier (Specification.isssd ν) fun Λ σ =>
+    ρ Λ σ / ∫⁻ (x : S → E), ρ Λ x ∂((Specification.isssd ν) Λ) σ","Let $S$ and $E$ be types with $E$ equipped with a measurable structure, let $\rho$ be a function from finite sets of $S$ and functions $S \to E$ to extended non-negative reals that is a premodifier, and let $\nu$ be a probability measure on $E$. Then the function that takes a finite set $\Lambda$ and a function $\sigma: S \to E$ to the ratio $\rho(\Lambda, \sigma) / \int \rho(\Lambda, x) \, d(\text{isssd}(\nu)(\Lambda))(\sigma)(x)$ is a modifier with respect to the independent and identically distributed specification $\text{isssd}(\nu)$.","```lean
+theorem premodifier_div_by_integral_is_modifier {S E : Type*} [MeasurableSpace E] 
+    (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsPremodifier ρ)
+    (ν : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure ν] :
+    Specification.IsModifier (Specification.isssd ν) 
+      (fun Λ σ => ρ Λ σ / ∫⁻ x, ρ Λ (Function.update σ · x) ∂ν) : by sorry
+```",68,"```lean
+theorem premodifier_div_integral_is_modifier {S E : Type*} [MeasurableSpace E] 
+    {ρ : Finset S → (S → E) → ℝ≥0∞} (hρ : Specification.IsPremodifier ρ)
+    (ν : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure ν] :
+    Specification.IsModifier (fun Λ σ => ρ Λ σ / ∫⁻ x, ρ Λ (fun _ => x) ∂(Specification.isssd ν Λ) σ)
+      (Specification.isssd ν) := by sorry
+```",68,Tnames,"B matches argument order (modifier, spec) and uses explicit ENNReal; A has wrong argument order and unclear integral measure.",False,31,"```lean
+theorem Specification.IsModifier.isssd {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    (ν : MeasureTheory.Measure E) [MeasureTheory.IsProbabilityMeasure ν]
+    (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsPremodifier ρ) :
+    Specification.IsModifier (Specification.isssd ν) fun Λ σ =>
+      ρ Λ σ / ∫⁻ x, ρ Λ x ∂(Specification.isssdFun ν Λ) σ := by sorry
+```",61,Trandom,B's integral measure term matches target structure more closely; A uses Function.update pattern not in target,False,26
+1386696,Specification.IsPremodifier.measurable,"Specification.IsPremodifier.measurable.{u_1, u_2} {S : Type u_1} {E : Type u_2} [MeasurableSpace E]
+  {ρ : Finset S → (S → E) → ENNReal} (self : Specification.IsPremodifier ρ) (Λ : Finset S) : Measurable (ρ Λ)","Looking at this declaration, we have a specification premodifier ρ that maps a finite set of indices and a function from indices to a measurable space E to an extended non-negative real number. The theorem states that for any finite set of indices Λ, the partially applied function ρ(Λ) (which takes functions from S to E and returns ENNReal values) is measurable.","```lean
+theorem Specification.IsPremodifier.measurable {S : Type u_1} {E : Type u_2} [MeasurableSpace E] 
+    {ρ : Finset S → (S → E) → ENNReal} (hρ : Specification.IsPremodifier ρ) 
+    (Λ : Finset S) : Measurable (ρ Λ) := by sorry
+```",8,"```lean
+theorem Specification.IsPremodifier.measurable_apply {ι : Type*} {E : ι → Type*} [∀ i, MeasurableSpace (E i)] {ρ : Finset ι → (∀ i, E i) → ENNReal} (hρ : Specification.IsPremodifier ρ) (Λ : Finset ι) : Measurable (ρ Λ) := by sorry
+```",8,T,"Candidate A matches the target signature exactly with S→E, while B uses ∀i,E i (dependent function) which is semantically different.",False,23,"```lean
+theorem Specification.measurable_partial_apply {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (ρ : Finset S → (S → E) → ENNReal) (Λ : Finset S) : Measurable (ρ Λ) := by sorry
+```",8,T,"B matches target signature exactly with hypothesis hρ : IsPremodifier ρ. A lacks this hypothesis entirely, making it unprovable in general.",False,15
+1440958,MeasureTheory.«term_⁻[_|_]»,MeasureTheory.«term_⁻[_|_]» : Lean.TrailingParserDescr,"This defines a trailing parser descriptor for the notation `⁻[ _ | _ ]` in the MeasureTheory namespace, which is used to denote conditional negative parts of functions in measure theory (specifically, the negative part of a function with respect to a given measure).","```lean
+def MeasureTheory.conditionalNegPart_trailingParserDescr : Lean.TrailingParserDescr
+```",9,"```lean
+def MeasureTheory.trailingParser_cneg : Lean.TrailingParserDescr
+```",9,T,A matches notation meaning (conditional negative part) better than B's generic name.,False,2,"```lean
+namespace MeasureTheory
+
+scoped notation:100 ""⁻["" f "" | "" μ ""]"" => fun (f : α → ℝ) (μ : Measure α) => (f⁻)
+```",9,T,"Target requires TrailingParserDescr type. A defines notation returning a function, B correctly returns TrailingParserDescr.",False,23
+1479443,MeasureTheory.Measure.measurable_setLIntegral,"MeasureTheory.Measure.measurable_setLIntegral.{u_1} {α : Type u_1} {mα : MeasurableSpace α} {s : Set α}
+  {f : α → ENNReal} (hf : Measurable f) (hs : MeasurableSet s) : Measurable fun μ => ∫⁻ (x : α) in s, f x ∂μ","The Lebesgue integral of a measurable function over a measurable set is a measurable function of the measure; specifically, if $f$ is a measurable function from $\alpha$ to the extended non-negative reals and $s$ is a measurable subset of $\alpha$, then the map taking a measure $\mu$ to the integral $\int_s f \, d\mu$ is measurable.","```lean
+theorem MeasureTheory.Measure.measurable_lintegral_restrict {α : Type*} {mα : MeasurableSpace α} {f : α → ENNReal} {s : Set α}
+    (hf : Measurable f) (hs : MeasurableSet s) :
+    Measurable fun μ => ∫⁻ x in s, f x ∂μ := by sorry
+```",21,"```lean
+theorem MeasureTheory.measurable_lintegral_restrict {α : Type*} [MeasurableSpace α] 
+    {f : α → ENNReal} (hf : Measurable f) {s : Set α} (hs : MeasurableSet s) :
+    Measurable fun μ : MeasureTheory.Measure α => ∫⁻ x in s, f x ∂μ := by sorry
+```",21,tie,"Both match the target semantically; differ only in inessential syntactic choices (implicit vs explicit MeasurableSpace, μ type annotation).",False,25,"```lean
+theorem MeasureTheory.measurable_integral_of_measurable_function {α : Type*} [MeasurableSpace α] 
+    (f : α → ℝ≥0∞) (s : Set α) (hf : Measurable f) (hs : MeasurableSet s) :
+    Measurable fun μ : MeasureTheory.Measure α => ∫ x in s, f x ∂μ := by sorry
+```",2,T,"A uses lintegral (∫⁻) matching the target, while B uses integral (∫) which is for real-valued functions, not ENNReal.",False,25
+1514031,Specification.isGibbsMeasure_iff_frequently_bind_eq,"Specification.isGibbsMeasure_iff_frequently_bind_eq.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {μ : MeasureTheory.Measure (S → E)} (hγ : Specification.IsProper γ)
+  [MeasureTheory.IsFiniteMeasure μ] [Specification.IsMarkov γ] :
+  Specification.IsGibbsMeasure γ μ ↔ ∃ᶠ (Λ : Finset S) in Filter.atTop, MeasureTheory.Measure.bind μ ⇑(γ Λ) = μ","The proposition states that for a proper specification γ on a probability space with index set S and state space E, and a finite measure μ, assuming γ is a Markov specification, the following are equivalent: μ is a Gibbs measure for γ, and there exist frequently (in the filter of large finite subsets of S) finite subsets Λ such that binding μ with the specification kernel γ(Λ) yields μ again.","```lean
+theorem Specification.isGibbsMeasure_iff_frequently_bind_eq {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} {γ : Specification S E} {μ : MeasureTheory.Measure (S → E)} (hγ : Specification.IsProper γ) (hγ_markov : Specification.IsMarkov γ) [MeasureTheory.IsFiniteMeasure μ] : Specification.IsGibbsMeasure γ μ ↔ ∃ᶠ (Λ : Finset S) in Filter.atTop, MeasureTheory.Measure.bind μ ⇑(γ Λ) = μ := by sorry
+```",71,"```lean
+theorem proper_markov_gibbs_iff_frequently_bind {S : Type*} {E : Type*} [Countable S] [Nonempty E] [MeasurableSpace E] (γ : Specification S E) (μ : MeasureTheory.Measure (Pi.{u_3} fun _ : S => E)) (hγ : Specification.IsProper γ) (hmarkov : Specification.IsMarkov γ) [MeasureTheory.IsFiniteMeasure μ] : Specification.IsGibbsMeasure γ μ ↔ Filter.Frequently (fun Λ : Finset S => MeasureTheory.Measure.bind μ (γ Λ) = μ) Filter.atTop := by sorry
+```",71,T,B matches target exactly; A has extra type constraints [Countable S] [Nonempty E] and wrong universe for Pi type.,False,39,"```lean
+theorem Specification.isGibbsMeasure_iff_frequently_bind_eq {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {μ : MeasureTheory.Measure (S → E)} (hγ : Specification.IsProper γ)
+  (hγ_markov : Specification.IsMarkov γ) [MeasureTheory.IsFiniteMeasure μ] :
+  Specification.IsGibbsMeasure γ μ ↔ 
+    ∃ᶠ Λ in Filter.atTop, MeasureTheory.Measure.bind μ ⇑(γ Λ) = μ :=
+  sorry
+```",61,T,Both match the target signature. B preserves the explicit binder (Λ : Finset S) exactly as in target.,False,14
+1465707,Specification.IsProper.inter_eq_indicator_mul,"Specification.IsProper.inter_eq_indicator_mul.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  Specification.IsProper γ →
+    ∀ (Λ : Finset S) ⦃A : Set (S → E)⦄ (_hA : MeasurableSet A) ⦃B : Set (S → E)⦄ (_hB : MeasurableSet B) (η : S → E),
+      ((γ Λ) η) (A ∩ B) = Set.indicator B 1 η * ((γ Λ) η) A","Given a proper specification γ from S to E (with E a measurable space), for any finite set Λ of elements of S, any two measurable sets A and B in the space of functions from S to E, and any function η from S to E, the measure of the intersection A ∩ B under the specification (γ Λ) η equals the product of the indicator function of B evaluated at η and the measure of A under (γ Λ) η.","```lean
+theorem specification_proper_inter_eq {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} (hγ : Specification.IsProper γ) (Λ : Finset S) {A : Set (S → E)}
+  (hA : MeasurableSet A) {B : Set (S → E)} (hB : MeasurableSet B) (η : S → E) :
+  ((γ Λ) η) (A ∩ B) = Set.indicator B 1 η * ((γ Λ) η) A :=
+  (Specification.isProper_iff_inter_eq_indicator_mul.mp hγ) Λ hA hB η
+```",73,"```lean
+theorem Specification.isProper_iff_inter_eq_indicator_mul {S E : Type*} [MeasurableSpace E] 
+    (γ : Specification S E) :
+    γ.IsProper ↔ ∀ (Λ : Finset S) (A B : Set (S → E)) (η : S → E),
+      MeasurableSet A → MeasurableSet B →
+      (γ Λ η (A ∩ B) = Set.indicator B η * γ Λ η A) := by sorry
+```",73,T,Candidate A matches the target signature exactly (extraction from iff). B is a biconditional and has incorrect indicator syntax.,False,46,"```lean
+theorem Specification.IsProper.inter_eq_indicator_mul {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} (hγ : Specification.IsProper γ) (Λ : Finset S) ⦃A B : Set (S → E)⦄
+  (hA : MeasurableSet A) (hB : MeasurableSet B) (η : S → E) :
+  ((γ Λ) η) (A ∩ B) = Set.indicator B 1 η * ((γ Λ) η) A
+```",61,Trandom,"B matches target signature exactly with correct name, autoImplicit binders, and parameter order. A has wrong name and explicit binders.",False,17
+1382718,Specification.modificationKer_apply,"Specification.modificationKer_apply.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) (ρ : Finset S → (S → E) → ENNReal)
+  (hρ : ∀ (Λ : Finset S), Measurable (ρ Λ)) (Λ : Finset S) (η : S → E) :
+  (Specification.modificationKer γ ρ hρ Λ) η = MeasureTheory.Measure.withDensity ((γ Λ) η) (ρ Λ)","For a given kernel γ indexed by finite subsets of S, a density function ρ (also indexed by finite subsets of S), a proof that ρ is measurable for each finite subset Λ, and given a finite subset Λ and a configuration η, the modified kernel (obtained by applying the modification procedure to γ, ρ, and the measurability proof) evaluated at Λ and η equals the measure obtained by taking the kernel γ at Λ and η and weighting it by the density ρ at Λ.","```lean
+theorem Specification.modificationKer_apply {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) 
+  (ρ : Finset S → (S → E) → ENNReal)
+  (hρ : ∀ (Λ : Finset S), Measurable (ρ Λ)) 
+  (Λ : Finset S) (η : S → E) :
+  (Specification.modificationKer γ ρ hρ Λ) η = (γ Λ η).withDensity (ρ Λ) := by sorry
+```",33,"```lean
+def modificationKerEval {S : Type*} [Fintype S] {γ : ∀ Λ : Finset S, ProbabilityTheory.Kernel (ProbabilityTheory.Cylinder S Λ) (S → ℝ)} {ρ : ∀ Λ : Finset S, (ProbabilityTheory.Cylinder S Λ) → ℝ≥0∞} (hρ : ∀ Λ : Finset S, Measurable (ρ Λ)) (Λ : Finset S) (η : S → ℝ) : Specification.modificationKer γ ρ hρ Λ η = MeasureTheory.withDensity (γ Λ η) (ρ Λ)
+```",33,T,"A matches target signature closely with correct types and structure. B uses wrong types (Cylinder, ℝ) and incorrect withDensity syntax.",False,37,"```lean
+theorem Specification.modificationKer_apply {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal}
+    (hρ : ∀ (Λ : Finset S), Measurable (ρ Λ)) (Λ : Finset S) (η : S → E) :
+    Specification.modificationKer (⇑γ) ρ hρ Λ η = ρ Λ η • (γ Λ) η
+```",33,T,A matches the target signature exactly with MeasureTheory.Measure.withDensity application. B has wrong types (γ as Specification vs function) and different RHS (scalar multiplication vs withDensity).,False,26
+1486480,MeasureTheory.SimpleFunc.«term_→ₛ_»,MeasureTheory.SimpleFunc.«term_→ₛ_» : Lean.TrailingParserDescr,"The notation `→ₛ` is defined as a type constructor for simple functions in measure theory. It represents the type of simple functions from an element of type α to an element of type β, where α is typically a measurable space and β is typically a measurable codomain. This notation provides a convenient syntactic way to denote the type `SimpleFunc α β`.","```lean
+infixr:25 ""→ₛ"" => SimpleFunc
+```",9,"```lean
+notation:25 α "" →ₛ "" β => SimpleFunc α β
+```",9,Tnames,"Candidate A matches the expected binary notation format with explicit type parameters, while B uses infixr which may not align with the intended TrailingParserDescr structure.",False,10,"```lean
+notation:25 α "" →ₛ "" β => MeasureTheory.SimpleFunc α β
+```",1,Trandom,"A uses full path MeasureTheory.SimpleFunc matching target namespace, B uses unqualified SimpleFunc which may not resolve correctly in all contexts",False,10
+1516716,Specification.isModifier_iff,"Specification.isModifier_iff.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E)
+  (ρ : Finset S → (S → E) → ENNReal) :
+  Specification.IsModifier γ ρ ↔
+    ∃ (measurable : ∀ (Λ : Finset S), Measurable (ρ Λ)), IsConsistent (Specification.modificationKer (⇑γ) ρ measurable)","A specification γ is a modifier for a function ρ if and only if there exists a proof that ρ is measurable in its second argument for each finite set Λ, and the modification kernel constructed from γ, ρ, and this measurability proof is consistent.","```lean
+theorem Specification.isModifier_iff {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} 
+  (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal) :
+  Specification.IsModifier γ ρ ↔ 
+  ∃ (hρ : ∀ (Λ : Finset S), Measurable (ρ Λ)), 
+  IsConsistent (Specification.modificationKer (DFunLike.coe γ) ρ hρ)
+```",37,"```lean
+def Specification.IsModifier (γ : Specification) (ρ : ProbabilityTheory.Kernel) : Prop :=
+  ∃ (h : ∀ Λ : Finset, Measurable fun x => ρ x), IsConsistent (Specification.modificationKer γ ρ h)
+```",37,T,A matches the target theorem signature (iff-statement with correct types). B is a def with wrong types and structure.,False,40,"```lean
+def Specification.IsModifier {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E)
+    (ρ : Finset S → (S → E) → ENNReal) : Prop :=
+  (∀ (Λ : Finset S), Measurable (ρ Λ)) ∧
+    IsConsistent (Specification.modificationKer ⇑γ ρ (fun Λ => by sorry))
+```",37,T,B is a theorem matching the target signature; A is a def that partially unpacks the RHS of the iff into a def body.,False,18
+1426146,MeasureTheory.toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq,"MeasureTheory.toReal_ae_eq_indicator_condExp_iff_forall_meas_inter_eq.{u_1} {α : Type u_1} {m m0 : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ] (hm : m ≤ m0)
+  [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] {g : α → ENNReal} {s : Set α} :
+  (fun a => ENNReal.toReal (g a)) =ᵐ[μ] μ[Set.indicator s 1 | m] ↔
+    ∀ (t : Set α), MeasurableSet t → μ (s ∩ t) = ∫⁻ (a : α) in t, g a ∂μ","This theorem states that for a finite measure μ on a measurable space with two σ-algebras m and m0 where m is contained in m0, and for a function g from α to the extended non-negative reals and a set s, the following are equivalent: (1) the real-valued function obtained by converting g to real numbers equals almost everywhere the conditional expectation of the indicator function of s (which takes value 1 on s and 0 elsewhere) with respect to the sub-σ-algebra m, and (2) for every measurable set t, the measure of the intersection of s and t equals the Lebesgue integral of g over t with respect to μ.","```lean
+theorem condExp_indicator_eq_iff {α : Type*} {m m0 : MeasurableSpace α} (μ : MeasureTheory.Measure α)
+    [MeasureTheory.IsFiniteMeasure μ] (hm : m ≤ m0) (g : α → ℝ) (s : Set α) :
+    (fun x => (g x).toReal) =ᵐ[MeasureTheory.ae μ] MeasureTheory.condExp m μ (Set.indicator s 1) ↔
+    ∀ t, MeasurableSet[m] t → μ (s ∩ t) = ∫⁻ x in t, ENNReal.ofReal (g x) ∂μ := by
+  sorry
+```",71,"```lean
+theorem condExp_indicator_eq_iff {α : Type*} [MeasurableSpace α] [MeasurableSpace α] {m m0 : MeasurableSpace α} (hm : m ≤ m0) {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ] (g : α → ℝ) (s : Set α) :
+  (fun x => g x) =ᵐ[MeasureTheory.ae μ] fun x => ENNReal.toReal (MeasureTheory.condExp m μ (Set.indicator s 1) x) ↔
+  ∀ t ∈ MeasurableSet, μ (s ∩ t) = ∫⁻ x in t, g x ∂μ := by sorry
+```",71,tie,"Both candidates have significant structural mismatches with the target. A has wrong types (ℝ vs ENNReal, wrong measurability condition). B has syntax errors and type mismatches.",False,50,"```lean
+theorem MeasureTheory.toReal_ae_eq_indicator_condExp_iff_forall_setLIntegral_eq
+    {α : Type u_1} {m m0 : MeasurableSpace α}
+    {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ] (hm : m ≤ m0)
+    {g : α → ENNReal} {s : Set α}
+    (hs₀ : MeasurableSet s) (hgm : MeasureTheory.AEStronglyMeasurable g μ) :
+    ((fun a => ENNReal.toReal (g a)) =ᵐ[μ] μ[Set.indicator s 1 | m]) ↔
+    (∀ t : Set α, MeasurableSet t → ∫⁻ a in t, g a ∂μ = μ (s ∩ t)) := by sorry
+```",1,Trandom,"B matches target signature closely: same types (α → ENNReal), same LHS pattern, RHS flipped equality but equivalent. A uses g: α → ℝ which mismatches target's ENNReal.",False,35
+1531415,MeasureTheory.measurable_lcondExp,"MeasureTheory.measurable_lcondExp.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f : α → ENNReal} : Measurable (MeasureTheory.lcondExp m μ f)","Looking at this Lean 4 declaration:
+
+The function `lcondExp m μ f` (which represents the lower conditional expectation of an extended non-negative real-valued function `f` with respect to a sub-σ-algebra `m` and a σ-finite measure `μ`) is measurable (with respect to the appropriate σ-algebra structure).","```lean
+theorem MeasureTheory.measurable_lcondExp {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] {f : α → ENNReal} : Measurable (MeasureTheory.lcondExp m μ f) := by sorry
+```",77,"```lean
+theorem MeasureTheory.measurable_lcondExp {α : Type*} [MeasurableSpace α] {m : MeasurableSpace α}
+    {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] {f : α → ℝ≥0∞} :
+    Measurable (MeasureTheory.lcondExp m μ f) := by sorry
+```",77,T,B matches target signature exactly including m₀ parameter; A omits m₀ and uses redundant MeasurableSpace instance,False,10,"```lean
+theorem MeasureTheory.measurable_lcondExp {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (f : α → ENNReal) : Measurable (MeasureTheory.lcondExp m μ f) := by sorry
+```",23,T,"Target has `{f : α → ENNReal}` (implicit), A matches exactly, B incorrectly makes f explicit.",False,7
+1435664,MeasureTheory.lcondExp_add,"MeasureTheory.lcondExp_add.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal} :
+  MeasureTheory.lcondExp m μ (f + g) =ᵐ[μ] MeasureTheory.lcondExp m μ f + MeasureTheory.lcondExp m μ g",The conditional expectation of the sum of two extended non-negative real-valued functions equals almost everywhere the sum of their individual conditional expectations with respect to a sigma-finite measure.,"```lean
+theorem MeasureTheory.lcondExp_add {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (f g : α → ENNReal) :
+  MeasureTheory.lcondExp m μ (f + g) =ᶠ[MeasureTheory.ae μ] MeasureTheory.lcondExp m μ f + MeasureTheory.lcondExp m μ g
+```",67,"```lean
+theorem MeasureTheory.lcondExp_add {α : Type*} {m₀ : MeasurableSpace α} (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ] (f g : α → ENNReal) :
+  MeasureTheory.lcondExp m₀ μ (f + g) =ᵐ[μ] MeasureTheory.lcondExp m₀ μ f + MeasureTheory.lcondExp m₀ μ g
+```",67,T,A correctly has m implicit and m₀ implicit as in target; B incorrectly makes m₀ explicit and omits m variable entirely.,False,13,"```lean
+theorem MeasureTheory.lcondExp_add {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (f g : α → ENNReal) :
+  MeasureTheory.lcondExp m μ (f + g) =ᵐ[μ] MeasureTheory.lcondExp m μ f + MeasureTheory.lcondExp m μ g
+```",23,Trandom,"Both match semantically. A uses =ᵐ[μ] (exact notation), B uses =ᶠ[ae μ] (equivalent but different notation). A matches target notation exactly.",False,4
+1515852,ProbabilityTheory.Kernel.IsCondExp.condExp_ae_eq_kernel_apply,"ProbabilityTheory.Kernel.IsCondExp.condExp_ae_eq_kernel_apply.{u_1} {X : Type u_1} {𝓑 𝓧 : MeasurableSpace X}
+  {π : ProbabilityTheory.Kernel X X} {μ : MeasureTheory.Measure X} [self : ProbabilityTheory.Kernel.IsCondExp π μ]
+  ⦃A : Set X⦄ : MeasurableSet A → μ[Set.indicator A 1 | 𝓑] =ᵐ[μ] fun a => ENNReal.toReal ((π a) A)","If $A$ is a measurable set in $X$ and $\pi$ is a conditional expectation kernel for $\mu$ with respect to the sub-$\sigma$-algebra $\mathcal{B}$, then the conditional expectation of the indicator function of $A$ (times 1) with respect to $\mathcal{B}$ is almost everywhere equal to the function that maps each point $a$ to the real-valued probability $\pi(a)(A)$ (converted from extended non-negative real to real).","```lean
+theorem condExp_indicator_eq_kernel_apply {α : Type*} [MeasurableSpace α] {𝓑 : MeasurableSpace α}
+    (μ : MeasureTheory.Measure α) (π : ProbabilityTheory.Kernel α α)
+    (hπ : ProbabilityTheory.Kernel.IsCondExp π μ) (A : Set α) (hA : MeasurableSet A) :
+    MeasureTheory.condExp 𝓑 μ (Set.indicator A (fun _ : α => (1 : ℝ))) =ᵐ[MeasureTheory.ae μ]
+      fun a => (π a A).toReal :=
+  sorry
+```",28,"```lean
+theorem condExp_indicator_eq_kernel_apply {X : Type*} [MeasurableSpace X] {μ : MeasureTheory.Measure X} {ℬ : MeasurableSpace X} {π : ProbabilityTheory.Kernel X ℝ} (hπ : ProbabilityTheory.Kernel.IsCondExp π μ ℬ) {A : Set X} (hA : MeasurableSet A) : MeasureTheory.condExp ℬ μ (Set.indicator A 1) =ᵐ[μ] fun a => (π a A).toReal
+```",28,T,"B matches target signature more closely: includes all implicit arguments, uses correct types (α), and matches MeasurableSpace structure.",False,32,"```lean
+theorem ProbabilityTheory.Kernel.condExp_indicator_ae_eq_kernel_apply
+    {X : Type*} {𝓑 𝓧 : MeasurableSpace X}
+    {π : ProbabilityTheory.Kernel X X} {μ : MeasureTheory.Measure X}
+    [ProbabilityTheory.Kernel.IsCondExp π μ]
+    {A : Set X} (hA : MeasurableSet A) :
+    μ[Set.indicator A (fun _ => (1 : ℝ)) | 𝓑] =ᵐ[μ] fun a => ENNReal.toReal ((π a) A) := by sorry
+```",5,Trandom,Both match semantics but A uses implicit binder ⦃A⦄ matching target exactly; B uses explicit (A : Set α).,False,21
+1535632,Specification.IsProper.restrict_eq_indicator_smul,"Specification.IsProper.restrict_eq_indicator_smul.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  Specification.IsProper γ →
+    ∀ (Λ : Finset S) ⦃B : Set (S → E)⦄ (hB : MeasurableSet B) (x : S → E),
+      (ProbabilityTheory.Kernel.restrict (γ Λ) ⋯) x = Set.indicator B 1 x • (γ Λ) x","When a specification γ is proper, for any finite set Λ of sites, any measurable set B in the configuration space, and any configuration x, the restriction of the kernel γ(Λ) to the set B evaluated at x equals the product of the indicator function of B evaluated at x (taking values 0 or 1) and the measure γ(Λ)(x).","```lean
+theorem isProper_restrict_eq_indicator_smul {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} (hγ : Specification.IsProper γ)
+  (Λ : Finset S) {B : Set (S → E)} (hB : MeasurableSet B) (x : S → E) :
+  (ProbabilityTheory.Kernel.restrict (γ Λ) hB) x = Set.indicator B 1 x • (γ Λ) x := by sorry
+```",71,"```lean
+theorem Specification.isProper_restrict_eq_indicator_smul {α : Type*} [MeasurableSpace α] (γ : Specification α) (h : γ.IsProper) (Λ : Finset α) (B : Set (α → ENNReal)) (hB : MeasurableSet B) (x : α → ENNReal) :
+  γ Λ B x = Set.indicator B (fun _ => 1) x • γ Λ x := by sorry
+```",71,T,"A matches parameter order (Λ, B, hB, x), kernel.restrict call, and smul structure. B has wrong parameter order and missing kernel.restrict.",False,39,"```lean
+theorem Specification.IsProper.restrict_eq_indicator_mul_measure {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} (hγ : Specification.IsProper γ) (Λ : Finset S) {B : Set (S → E)}
+  (hB : MeasurableSet B) (x : S → E) :
+  (ProbabilityTheory.Kernel.restrict (γ Λ) hB) x = Set.indicator B 1 x • (γ Λ) x
+```",61,T,B matches target name 'restrict_eq_indicator_smul' exactly while A uses 'mul_measure'. Both formalize same content correctly.,False,11
+1340533,MeasureTheory.lcondExp_bot',"MeasureTheory.lcondExp_bot'.{u_1} {α : Type u_1} {m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] [hμ : NeZero μ] (f : α → ENNReal) :
+  MeasureTheory.lcondExp ⊥ μ f = fun x => (ENNReal.toNNReal (μ Set.univ))⁻¹ • ∫⁻ (x : α), f x ∂μ",The conditional expectation of an extended non-negative real-valued function $f$ with respect to the trivial $\sigma$-algebra (bottom) equals the constant function whose value at each point is the Lebesgue integral of $f$ scaled by the reciprocal of the total measure (converted to a non-negative real number).,"```lean
+theorem MeasureTheory.lcondExp_bot {α : Type u_1} {m₀ : MeasurableSpace α} (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ] (f : α → ENNReal) :
+  MeasureTheory.lcondExp ⊥ μ f = fun _ => (MeasureTheory.lintegral μ f).toNNReal / μ Set.univ.toNNReal := by sorry
+```",109,"```lean
+theorem MeasureTheory.lcondExp_of_bot {α : Type*} [MeasurableSpace α] {μ : MeasureTheory.Measure α} 
+    {f : α → ENNReal} (hf : AEStronglyMeasurable f μ) :
+    MeasureTheory.lcondExp ⊥ μ f = fun _ => (μ Set.univ).toNNReal⁻¹ • MeasureTheory.lintegral μ f := by sorry
+```",109,Tnames,A matches target's scalar mult semantics; B uses division. Both assume integrability differently from target which assumes sigma-finite + nonzero measure.,False,28,"```lean
+theorem lcondExp_bot_general {α : Type*} {m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+    [MeasureTheory.SigmaFinite μ] (f : α → ENNReal) :
+    MeasureTheory.lcondExp ⊥ μ f =ᵐ[μ] fun _ => (ENNReal.toNNReal (μ Set.univ))⁻¹ • ∫⁻ x, f x ∂μ := by sorry
+```",23,tie,A uses =ᵐ[μ] (ae equality) vs pointwise; B uses division instead of inverse-smul but mathematically equivalent. Both differ meaningfully from target's pointwise equality.,False,16
+1378626,Specification.modification_one,"Specification.modification_one.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) : Specification.modification γ 1 ⋯ = γ","The theorem states that for a specification γ from a state space S to a measurable space E, the modification of γ with parameter 1 (where the instance ensures that 1 is a valid parameter for modification) is equal to γ itself.","```lean
+theorem modification_one {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E) :
+    Specification.modification γ (fun _ => 1) Specification.IsModifier.one = γ := by sorry
+```",43,"```lean
+theorem Specification.modification_one {S : Type*} {E : Type*} [MeasurableSpace E] (γ : Specification S E) :
+    γ.modification 1 = γ := by sorry
+```",43,Tnames,"A uses explicit fun _ => 1 and IsModifier.one, making it more verbose. B matches the target's implicit 1 notation better.",False,16,"```lean
+theorem Specification.modification_one {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) : Specification.modification γ 1 ⋯ = γ := by sorry
+```",43,Trandom,"B matches the target signature exactly including namespace, while A expands implicit arguments differently.",False,5
+1515627,ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel,"ProbabilityTheory.Kernel.condExp_ae_eq_integral_kernel.{u_1} {X : Type u_1} {𝓑 𝓧 : MeasurableSpace X}
+  {π : ProbabilityTheory.Kernel X X} {μ : MeasureTheory.Measure X} [ProbabilityTheory.Kernel.IsCondExp π μ]
+  [MeasureTheory.IsFiniteMeasure μ] [ProbabilityTheory.IsFiniteKernel π] (f : X → ℝ) :
+  μ[f | 𝓑] =ᵐ[μ] fun x₀ => ∫ (x : X), f x ∂π x₀","The conditional expectation of a real-valued function $f$ with respect to a sub-σ-algebra $\mathcal{B}$ is almost everywhere equal (with respect to the measure $\mu$) to the function that maps each point $x_0$ to the integral of $f(x)$ with respect to the kernel $\pi(x_0, \cdot)$.","```lean
+theorem condExp_eq_integral_kernel {α : Type*} {mα m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+    (π : ProbabilityTheory.Kernel α α) (f : α → ℝ) (hπ : π.IsCondExp μ) :
+    Filter.EventuallyEq (MeasureTheory.ae μ) (MeasureTheory.condExp m₀ μ f)
+      (fun x₀ => MeasureTheory.integral (π x₀) f) :=
+  sorry
+```",42,"```lean
+theorem condExp_eq_kernel_integral {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {μ : MeasureTheory.Measure α} {ℬ : MeasurableSpace α}
+    (f : α → ℝ) (κ : ProbabilityTheory.Kernel α β)
+    (hf : MeasureTheory.Integrable f μ)
+    (hκ : ProbabilityTheory.IsFiniteKernel κ) :
+    MeasureTheory.condExp ℬ μ f =ᵐ[μ] fun x => ∫ y, f y ∂κ x
+```",42,T,"B matches target structure: IsCondExp typeclass, kernel α→α, integral over kernel. A uses unrelated kernel α→β and lacks IsCondExp.",False,44,"```lean
+theorem ProbabilityTheory.Kernel.condExp_ae_eq_kernel_integral {X : Type u_1} {𝓑 𝓧 : MeasurableSpace X}
+    {π : ProbabilityTheory.Kernel X X} {μ : MeasureTheory.Measure X}
+    (h : ProbabilityTheory.Kernel.IsCondExp π μ)
+    (f : X → ℝ) (f_mble : Measurable f) (f_bdd : Bornology.IsBounded (Set.range f)) :
+    μ[f | 𝓑] =ᵐ[μ] fun x₀ => ∫ x, f x ∂π x₀ := by sorry
+```",5,T,A matches the target structure better without extra unnecessary hypotheses like measurability and boundedness that appear in B.,False,24
+1414040,Specification.isProper_iff_inter_eq_indicator_mul,"Specification.isProper_iff_inter_eq_indicator_mul.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  Specification.IsProper γ ↔
+    ∀ (Λ : Finset S) ⦃A : Set (S → E)⦄,
+      MeasurableSet A →
+        ∀ ⦃B : Set (S → E)⦄, MeasurableSet B → ∀ (η : S → E), ((γ Λ) η) (A ∩ B) = Set.indicator B 1 η * ((γ Λ) η) A","A specification γ is proper if and only if for every finite set Λ of indices, every pair of measurable sets A and B in the space of functions from S to E, and every function η from S to E, the measure (γ Λ) η applied to the intersection A ∩ B equals the product of the indicator function of B evaluated at η and the measure (γ Λ) η applied to A.","```lean
+def Specification.IsProper {S E : Type*} {mE : MeasurableSpace E} (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S) (A B : Set (S → E)) (hA : MeasurableSet A) (hB : MeasurableSet B) (η : S → E),
+    (γ Λ) η (A ∩ B) = Set.indicator B 1 η * (γ Λ) η A
+```",73,"```lean
+def Specification.IsProper (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S) (A B : Set (S → E)) (η : S → E),
+    MeasurableSet A → MeasurableSet B →
+    (γ Λ) η (A ∩ B) = Set.indicator B η * (γ Λ) η A
+```",73,T,"B matches the RHS exactly with `Set.indicator B 1 η`, while A has `Set.indicator B η` missing the constant `1`.",False,41,"```lean
+def Specification.IsProper {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E) : Prop :=
+  ∀ (Λ : Finset S) ⦃A : Set (S → E)⦄, MeasurableSet A →
+    ∀ ⦃B : Set (S → E)⦄, MeasurableSet B → ∀ (η : S → E), ((γ Λ) η) (A ∩ B) = Set.indicator B 1 η * ((γ Λ) η) A
+```",61,Trandom,"B exactly matches target signature with implicit binders (⦃⦄) for sets A and B, while A uses explicit binders incorrectly.",False,7
+1540406,MeasureTheory.lcondExp_smul,"MeasureTheory.lcondExp_smul.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (c : NNReal) (f : α → ENNReal) :
+  MeasureTheory.lcondExp m μ (c • f) =ᵐ[μ] c • MeasureTheory.lcondExp m μ f","The conditional expectation of a scalar multiple of a function equals (almost everywhere with respect to μ) the scalar multiple of the conditional expectation: specifically, for any non-negative real number c and any extended non-negative real-valued function f, the conditional expectation of c • f with respect to a sub-σ-algebra m equals c times the conditional expectation of f with respect to m, almost everywhere.","```lean
+theorem MeasureTheory.lcondExp_smul {α : Type*} (m m₀ : MeasurableSpace α) (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ] (c : ℝ≥0) (f : α → ENNReal) :
+  MeasureTheory.lcondExp m μ (c • f) =ᶠ[MeasureTheory.ae μ] c • MeasureTheory.lcondExp m μ f
+```",78,"```lean
+theorem MeasureTheory.lcondExp_smul (α : Type*) (m : MeasurableSpace α) (μ : MeasureTheory.Measure α) (c : ℝ≥0∞) (f : α → ℝ≥0∞) :
+    MeasureTheory.lcondExp m μ (c • f) =ᵐ[μ] c • MeasureTheory.lcondExp m μ f
+```",78,T,"B matches target types (NNReal for c, ENNReal for f) and implicit binders. A uses wrong type ENNReal for c and explicit α.",False,14,"```lean
+theorem MeasureTheory.lcondExp_smul_const {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (c : ℝ≥0) (f : α → ENNReal) : MeasureTheory.lcondExp m μ (fun x => c • f x) =ᵐ[μ] fun x => c • MeasureTheory.lcondExp m μ f x
+```",23,T,"Both match semantically, but B preserves the exact notation (=ᵐ[μ] and c • f) from target while A eta-expands unnecessarily.",False,13
+1375640,integrableOn_toReal,"integrableOn_toReal.{u_1} {α : Type u_1} {m m0 : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.IsFiniteMeasure μ] {g : α → ENNReal} (t : Set α) (hm : m ≤ m0)
+  (hgm : MeasureTheory.AEStronglyMeasurable g μ)
+  (hg_int_finite : ∀ (t : Set α), MeasurableSet t → μ t < ⊤ → ∫⁻ (a : α) in t, g a ∂μ ≠ ⊤) :
+  MeasureTheory.IntegrableOn (fun x => ENNReal.toReal (g x)) t μ","Let $\alpha$ be a type with measurable space structures $m$ and $m_0$ where $m \leq m_0$, and let $\mu$ be a finite measure on $\alpha$. Given a function $g: \alpha \to \overline{\mathbb{R}}_{\geq 0}$ (extended non-negative reals) and a set $t \subseteq \alpha$, if $g$ is almost everywhere strongly measurable with respect to $\mu$ and for every measurable set $s$ with finite measure, the integral $\int_s g \, d\mu$ is finite, then the real-valued function $x \mapsto \text{toReal}(g(x))$ is integrable on $t$ with respect to $\mu$.","```lean
+theorem integrableOn_toReal_of_ae_strongly_measurable {α : Type u_1} {m m₀ : MeasurableSpace α}
+    (hm : m ≤ m₀) {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ]
+    {g : α → ENNReal} (hg : MeasureTheory.AEStronglyMeasurable g μ)
+    (hfi : ∀ s : Set α, MeasurableSet s → μ s < ⊤ → ∫⁻ x in s, g x ∂μ ≠ ⊤) (t : Set α) :
+    MeasureTheory.IntegrableOn (fun x => ENNReal.toReal (g x)) t μ := by sorry
+```",82,"```lean
+theorem aestronglyMeasurable_toReal_integrable_on
+    {α : Type*} (m m₀ : MeasurableSpace α) (hm : m ≤ m₀)
+    (μ : MeasureTheory.Measure α) [MeasureTheory.IsFiniteMeasure μ]
+    (g : α → ENNReal) (t : Set α)
+    (hg : MeasureTheory.AEStronglyMeasurable g μ)
+    (hg_fin : ∀ s, MeasurableSet s → μ s < ∞ → (∫⁻ x in s, g x ∂μ) < ∞) :
+    MeasureTheory.IntegrableOn (fun x => g.toReal x) t μ
+```",82,T,A matches target signature more closely; B changes final hypothesis from ≠ ⊤ to < ∞ and has minor syntactic differences.,False,42,"```lean
+theorem aestronglyMeasurable_toReal_integrable_of_integral_lt_top
+    {α : Type*} [MeasurableSpace α] {m m₀ : MeasurableSpace α} (hm : m ≤ m₀)
+    {μ : Measure α} [IsLocallyFiniteMeasure μ] (g : α → ℝ≥0∞)
+    (hg : AEStronglyMeasurable g μ)
+    (h_int : ∀ s, MeasurableSet s → μ s < ∞ → ∫⁻ x in s, g x ∂μ < ∞)
+    (t : Set α) :
+    Integrable (fun x => g.toReal x) μ := by sorry
+```",0,T,B matches target signature exactly; A uses Integrable instead of IntegrableOn and has different type class assumptions,False,51
+1517402,measurable_coordinate_projection_2,"measurable_coordinate_projection_2.{u_1, u_2} {S : Type u_1} {E : Type u_2} {𝓔 : MeasurableSpace E} {Δ : Set S} {x : S}
+  (h : x ∈ Δ) : Measurable fun σ => σ x","The theorem states that for a measurable space structure on $E$, a set $\Delta$ of indices $S$, and an element $x$ belonging to $\Delta$, the coordinate projection function that maps each function $\sigma$ (from $S$ to $E$) to its value at $x$ is measurable.","```lean
+theorem measurable_proj {ι : Type u_1} {X : ι → Type u_2} [∀ i, MeasurableSpace (X i)] {Δ : Set ι} {x : ι} (hx : x ∈ Δ) : Measurable (fun σ : (i : ι) → X i => σ x) := by sorry
+```",20,"```lean
+theorem measurable_proj {E : Type*} [MeasurableSpace E] {S : Type*} {Δ : S → Set E} {x : S} (hx : x ∈ Set.univ) :
+    Measurable (fun (σ : ∀ s : S, Δ s) => σ x) := by sorry
+```",20,T,A matches target structure: measures projection from dependent function. B incorrectly treats Δ as function to sets rather than set of indices.,False,30,"```lean
+theorem measurable_pi_proj (S : Type*) (E : Type*) [MeasurableSpace E] (Δ : Set S) (x : S) (hx : x ∈ Δ) :
+    Measurable fun (σ : Δ → E) => σ ⟨x, hx⟩ := by sorry
+```",4,Trandom,"B correctly models σ as Δ → E matching target's restricted domain structure, while A uses unrestricted ι → X i",False,27
+1498643,ProbabilityTheory.Kernel.IsProper.integral_bdd_mul,"ProbabilityTheory.Kernel.IsProper.integral_bdd_mul.{u_1} {X : Type u_1} {𝓑 𝓧 : MeasurableSpace X}
+  {π : ProbabilityTheory.Kernel X X} {f g : X → ℝ} {x₀ : X} [ProbabilityTheory.IsFiniteKernel π] (h𝓑𝓧 : 𝓑 ≤ 𝓧)
+  (hπ : ProbabilityTheory.Kernel.IsProper π) (hf : MeasureTheory.Integrable f (π x₀))
+  (hg : MeasureTheory.StronglyMeasurable g) (hgbdd : ∃ C > 0, ∀ (x : X), ‖g x‖ ≤ C) :
+  ∫ (x : X), g x * f x ∂π x₀ = g x₀ * ∫ (x : X), f x ∂π x₀","The integral of the product of two functions $g$ and $f$ with respect to a proper kernel $\pi$ at a point $x_0$ equals the product of $g(x_0)$ and the integral of $f$ with respect to $\pi$ at $x_0$, provided that $f$ is integrable with respect to $\pi(x_0)$, $g$ is strongly measurable, and $g$ is bounded (i.e., there exists a positive constant $C$ such that $\|g(x)\| \leq C$ for all $x$).","```lean
+theorem integral_mul_const_of_integrable_left_of_bounded_of_stronglyMeasurable
+  {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α)
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+  {π : α → MeasureTheory.Measure E}
+  (x₀ : α)
+  {f : α → E} (hf : MeasureTheory.Integrable f (π x₀))
+  {g : α → E} (hg : MeasureTheory.StronglyMeasurable g)
+  (hg_bound : ∃ C : ℝ, 0 < C ∧ ∀ x : α, ‖g x‖ ≤ C) :
+  ∫ x, g x • f x ∂(π x₀) = g x₀ • ∫ x, f x ∂(π x₀) := by sorry
+```",445,"```lean
+theorem integral_mul_g_bounded {α β : Type*} [MeasureTheory.MeasureSpace α] [NormedAddCommGroup β] [NormedSpace ℝ β]
+    (π : ProbabilityTheory.Kernel α β) [ProbabilityTheory.IsFiniteKernel π]
+    (g : α → ℝ) (f : β → ℝ) (x₀ : α) (C : ℝ) (hC : 0 < C)
+    (hg_bounded : ∀ x, ‖g x‖ ≤ C)
+    (hg_measurable : MeasureTheory.StronglyMeasurable g)
+    (hf_integrable : MeasureTheory.Integrable f (π x₀)) :
+    MeasureTheory.integral (π x₀) (fun y => g x₀ * f y) = g x₀ * MeasureTheory.integral (π x₀) f :=
+  by sorry
+```",445,tie,"Both candidates fail to capture the IsProper hypothesis which is central to the target. A uses smul instead of multiplication, B has wrong kernel types.",False,69,"```lean
+theorem integral_mul_g_f_eq_g_mul_integral_f 
+    {α β : Type*} [MeasurableSpace α] [NormedAddCommGroup β] [NormedSpace ℝ β]
+    (π : α → Measure β) (x₀ : α) (f : β → ℝ) (g : α → β)
+    (hf : Integrable f (π x₀))
+    (hg_meas : StronglyMeasurable g)
+    (hg_bound : ∃ C > 0, ∀ x, ‖g x‖ ≤ C) :
+    ∫ y, (g x₀) * f y ∂(π x₀) = (g x₀) * ∫ y, f y ∂(π x₀) := by sorry
+```",0,Trandom,A uses scalar multiplication (•) and wrong types; B correctly uses real multiplication (*) matching target's g x * f x pattern,False,56
+1519505,MeasureTheory.lcondExp_of_sigmaFinite,"MeasureTheory.lcondExp_of_sigmaFinite.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f : α → ENNReal} (hm : m ≤ m₀)
+  [hμm : MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] :
+  MeasureTheory.lcondExp m μ f =
+    if Measurable f then f
+    else
+      if hf : Measurable f then
+        ENNReal.ofReal ∘ ⨆ n, μ[ENNReal.toReal ∘ ⇑(MeasureTheory.FinStronglyMeasurable.approx ⋯ n) | m]
+      else 0","This theorem states that for a measure space with a sigma-finite measure μ on a measurable space (α, m₀), a sub-sigma-algebra m contained in m₀, and a function f from α to the extended non-negative reals, the lower conditional expectation of f with respect to m and μ equals: if f is measurable (with respect to m), then f itself; otherwise, if f is measurable (with respect to m₀), then it equals the composition of ENNReal.ofReal with the supremum over n of the conditional expectations (with respect to m) of the real parts of an approximating sequence of finitely strongly measurable functions; and if f is not even m₀-measurable, then it equals zero.","```lean
+theorem lcondExp_eq {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) (f : α → ENNReal) :
+  MeasureTheory.lcondExp m μ f = 
+    dite (Measurable f)
+      (fun _ => f)
+      (fun _ => dite (Measurable[m₀] f)
+        (fun _ => ENNReal.ofReal ∘ (fun x => ⨆ n, MeasureTheory.condExp m μ (fun y => (MeasureTheory.FinStronglyMeasurable.approx (Measurable.stronglyMeasurable f).finStronglyMeasurable n y).toReal) x)
+        (fun _ => 0)) := by
+  sorry
+```",96,"```lean
+theorem lcondExp_eq_of_measurable {α : Type*} {m₀ : MeasurableSpace α} {m : MeasurableSpace α}
+    (hm : m ≤ m₀) {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ]
+    (f : α → ℝ≥0∞) :
+    MeasureTheory.lcondExp m μ f =
+      if hf : Measurable[m] f then f
+      else if hf' : Measurable[m₀] f then
+        ENNReal.ofReal ∘ fun x => ⨆ n, MeasureTheory.condExp m μ
+          (fun y => ((f y).toReal : ℝ)) x
+      else 0 := by sorry
+```",96,Tnames,"B matches target structure better with correct if-then-else branching and measurability checks, though both have approximation details wrong.",False,46,"```lean
+theorem lcondExp_eq_ite {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀)
+  [hμm : MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+  {f : α → ENNReal} :
+  MeasureTheory.lcondExp m μ f = if Measurable f then f
+  else if AEMeasurable f μ then ENNReal.ofReal ∘ (⨆ n, MeasureTheory.condExp m μ (toReal ∘ f))
+  else 0 := by sorry
+```",23,T,B better mirrors the target structure with nested dites and FinStronglyMeasurable.approx; A wrongly uses AEMeasurable and lacks the approx sequence.,False,27
+1509211,MeasureTheory.lcondExp_lcondExp_of_le,"MeasureTheory.lcondExp_lcondExp_of_le.{u_1} {α : Type u_1} {f : α → ENNReal} {m₁ m₂ m₀ : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (hm₁₂ : m₁ ≤ m₂) (hm₂ : m₂ ≤ m₀)
+  [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm₂)] :
+  MeasureTheory.lcondExp m₁ μ (MeasureTheory.lcondExp m₂ μ f) =ᵐ[μ] MeasureTheory.lcondExp m₁ μ f","The conditional expectation of a conditional expectation is equal almost everywhere to a single conditional expectation: specifically, if $m_1 \leq m_2 \leq m_0$ are sigma-algebras and $\mu$ is a sigma-finite measure (with the trimmed measure also being sigma-finite), then conditioning a function $f$ first with respect to $m_2$ and then with respect to $m_1$ gives the same result almost everywhere as conditioning $f$ directly with respect to $m_1$.","```lean
+theorem lcondExp_lcondExp {α : Type*} {m₁ m₂ m₀ : MeasurableSpace α} (hm : m₁ ≤ m₂) (hm' : m₂ ≤ m₀)
+    {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ]
+    [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm')]
+    (f : α → ENNReal) :
+    MeasureTheory.lcondExp m₁ μ (MeasureTheory.lcondExp m₂ μ f) =ᶠ[MeasureTheory.ae μ]
+    MeasureTheory.lcondExp m₁ μ f
+```",43,"```lean
+theorem condExp_condExp {α : Type*} {m₀ m₁ m₂ : MeasurableSpace α} (hm : m₁ ≤ m₂ ∧ m₂ ≤ m₀) 
+    {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] 
+    [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ (le_refl m₀))]
+    (f : α → ℝ) : 
+    MeasureTheory.lcondExp m₁ μ (MeasureTheory.lcondExp m₂ μ f) =ᵐ[MeasureTheory.ae μ] 
+    MeasureTheory.lcondExp m₁ μ f := by sorry
+```",43,T,"B matches target signature exactly: ENNReal, separate hypotheses hm₁₂/hm₂, correct trim condition. A uses ℝ and bundled hypothesis.",False,34,"```lean
+theorem MeasureTheory.lcondExp_lcondExp {α : Type*} {m₁ m₂ m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+    [MeasureTheory.SigmaFinite μ] (h₁ : m₁ ≤ m₂) (h₂ : m₂ ≤ m₀)
+    [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ h₁)]
+    [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ h₂)]
+    (f : α → ENNReal) :
+    MeasureTheory.lcondExp m₁ μ (MeasureTheory.lcondExp m₂ μ f) =ᵐ[μ] MeasureTheory.lcondExp m₁ μ f :=
+  by sorry
+```",23,T,Both match the target semantically. A is closer: =ᶠ[ae μ] vs =ᵐ[μ] are equivalent. B incorrectly requires sigma-finiteness of trim μ h₁ instead of h₂.,False,24
+1425473,Measurable.juxt,"Measurable.juxt.{u_1, u_2} {S : Type u_1} {E : Type u_2} {𝓔 : MeasurableSpace E} {Λ : Set S} {η : S → E} :
+  Measurable (juxt Λ η)",The function `juxt Λ η` (which maps each element of a type to the function that takes elements of `Λ` to their images under `η`) is measurable.,"```lean
+theorem measurable_juxt {S E : Type*} [MeasurableSpace S] [MeasurableSpace E] (Λ : Set S) (η : S → E) :
+  Measurable fun (ζ : ↑Λ → E) => fun (x : S) => juxt Λ η ζ x := by sorry
+```",30,"```lean
+theorem measurable_juxt {α β : Type*} {Λ : Type*} [MeasurableSpace α] [MeasurableSpace β] (η : Λ → α → β) (hη : ∀ l, Measurable (η l)) : Measurable (juxt η) := by sorry
+```",30,tie,Both candidates misinterpret the target. A has wrong argument order/type; B changes the type signature of juxt entirely.,False,29,"```lean
+theorem measurable_juxt {S : Type u_1} {E : Type u_2} {𝓔 : MeasurableSpace E} {Λ : Set S} {η : S → E} :
+  Measurable (juxt Λ η) := by sorry
+```",4,Trandom,Candidate A matches the target signature exactly: proving Measurable (juxt Λ η). Candidate B changes the goal to measurability of a different function.,False,5
+1353842,Specification.IsModifier.isConsistent,"Specification.IsModifier.isConsistent.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (self : Specification.IsModifier γ ρ) :
+  IsConsistent (Specification.modificationKer (⇑γ) ρ ⋯)","Here is the English statement of the Lean 4 declaration:
+
+If γ is a specification on a state space S and sample space E (equipped with a measurable space structure), and ρ is a modifier for γ (meaning γ satisfies the IsModifier property with respect to ρ), then the modified kernel obtained by applying ρ to γ is consistent (in the sense that it satisfies the IsConsistent property).","```lean
+theorem modificationKer_isConsistent {S : Type*} {E : Type*} {mE : MeasurableSpace E}
+  (γ : Specification S E) (ρ : Finset S → (S → E) → ENNReal)
+  (h : Specification.IsModifier γ ρ) :
+  IsConsistent (Specification.modificationKer γ ρ (fun Λ => h.measurable Λ)) := by sorry
+```",19,"```lean
+theorem Specification.IsModifier.consistent {S E : Type*} [MeasurableSpace S] [MeasurableSpace E]
+    {γ : Specification S E} {ρ : Specification S E} (hρ : γ.IsModifier ρ) :
+    IsConsistent (γ.modificationKer ρ)
+```",19,T,A correctly models ρ as Finset S → (S → E) → ENNReal and includes the measurability proof argument; B incorrectly types ρ as Specification.,False,26,"```lean
+theorem Specification.IsModifier.isConsistent {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (h : Specification.IsModifier γ ρ) :
+    IsConsistent (Specification.modificationKer (⇑γ) ρ (by exact h.1) : _) := by sorry
+```",19,Trandom,"B matches the target signature exactly with the dependent proof term, while A uses an explicit function argument instead of the auto-implicit.",False,11
+1417144,Specification.IsPremodifier.comm_of_subset,"Specification.IsPremodifier.comm_of_subset.{u_1, u_2} {S : Type u_1} {E : Type u_2} [MeasurableSpace E]
+  {ρ : Finset S → (S → E) → ENNReal} (self : Specification.IsPremodifier ρ) ⦃Λ₁ Λ₂ : Finset S⦄ ⦃ζ η : S → E⦄
+  (hΛ : Λ₁ ⊆ Λ₂) (hrestrict : ∀ s ∉ Λ₁, ζ s = η s) : ρ Λ₂ ζ * ρ Λ₁ η = ρ Λ₁ ζ * ρ Λ₂ η","Looking at this Lean 4 declaration, it states a commutativity property for pre-modifiers in probability theory:
+
+If ρ is a pre-modifier specification on a finite set of sites S with values in a measurable space E, and if Λ₁ is a subset of Λ₂ (both finite subsets of S), and if two configurations ζ and η agree outside of Λ₁ (that is, ζ(s) = η(s) for all s not in Λ₁), then the product of ρ(Λ₂, ζ) and ρ(Λ₁, η) equals the product of ρ(Λ₁, ζ) and ρ(Λ₂, η).","```lean
+theorem premodifier_commutativity {S : Type*} {E : Type*} [MeasurableSpace E]
+    {ρ : Finset S → (S → E) → ENNReal}
+    (h : Specification.IsPremodifier ρ)
+    {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
+    {ζ η : S → E} (hagree : ∀ s ∉ Λ₁, ζ s = η s) :
+    ρ Λ₂ ζ * ρ Λ₁ η = ρ Λ₁ ζ * ρ Λ₂ η := by sorry
+```",20,"```lean
+theorem Specification.IsPremodifier.commutativity {S : Type*} {E : Type*} [MeasurableSpace E]
+    {ρ : Specification S E} (hρ : ρ.IsPremodifier) {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂)
+    {ζ η : S → E} (h : ∀ s ∉ Λ₁, ζ s = η s) :
+    ρ Λ₂ ζ * ρ Λ₁ η = ρ Λ₁ ζ * ρ Λ₂ η := by sorry
+```",20,T,"A matches target's parameter structure: ρ as explicit function, self as IsPremodifier. B changes ρ to Specification type.",False,32,"```lean
+theorem Specification.IsPremodifier.mul_comm {S : Type u_1} {E : Type u_2} [MeasurableSpace E]
+  {ρ : Finset S → (S → E) → ENNReal} (hρ : Specification.IsPremodifier ρ)
+  {Λ₁ Λ₂ : Finset S} (hΛ : Λ₁ ⊆ Λ₂) {ζ η : S → E} (h_agree : ∀ s ∉ Λ₁, ζ s = η s) :
+  ρ Λ₂ ζ * ρ Λ₁ η = ρ Λ₁ ζ * ρ Λ₂ η := by sorry
+```",20,Trandom,"B uses dot notation matching target (self vs hρ minor), A omits it entirely. Both capture semantics correctly.",False,19
+1416218,MeasureTheory.lcondExp_mono,"MeasureTheory.lcondExp_mono.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (f g : α → ENNReal) : MeasureTheory.lcondExp m μ f ≤ᵐ[μ] MeasureTheory.lcondExp m μ g","The conditional expectation of a function \( f \) from \( \alpha \) to the extended non-negative reals with respect to a sub-σ-algebra \( m \) and measure \( μ \) is almost everywhere less than or equal to the conditional expectation of another function \( g \) with respect to the same sub-σ-algebra and measure, whenever \( f \) is pointwise less than or equal to \( g \).","```lean
+theorem MeasureTheory.lcondExp_mono {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal} (h : f ≤ᶠ[MeasureTheory.ae μ] g) : MeasureTheory.lcondExp m μ f ≤ᶠ[MeasureTheory.ae (MeasureTheory.Measure.trim μ (le_refl m₀))] MeasureTheory.lcondExp m μ g
+```",44,"```lean
+theorem MeasureTheory.lcondExp_mono {α : Type*} [MeasurableSpace α] {m : MeasurableSpace α} (μ : MeasureTheory.Measure α) {f g : α → ENNReal} (hfg : f ≤ g) : MeasureTheory.ae (μ.trim (le_refl _)) (fun x => MeasureTheory.lcondExp m μ f x ≤ MeasureTheory.lcondExp m μ g x)
+```",44,T,Candidate B matches the target signature more closely. Both require an implicit hypothesis (≤ vs ≤ᵐ). Neither appears vacuous.,False,27,"```lean
+theorem MeasureTheory.lcondExp_mono {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal} (h : f ≤ᵐ[μ] g) : MeasureTheory.lcondExp m μ f ≤ᵐ[μ] MeasureTheory.lcondExp m μ g := by sorry
+```",23,Trandom,"A matches target conclusion exactly. B has different conclusion measure (trim μ). Both add hypothesis h not in target, neither vacuous.",False,12
+1401387,MeasureTheory.Filtration.IsConsistentKernel,"MeasureTheory.Filtration.IsConsistentKernel.{u_1, u_2} {X : Type u_1} {P : Type u_2} {mX : MeasurableSpace X}
+  [PartialOrder P] (mXs : MeasureTheory.Filtration P mX) (γ : (p : P) → ProbabilityTheory.Kernel X X) : Prop","A filtration indexed by a partially ordered type $P$ on a measurable space $X$ is consistent with a family of kernels $\gamma : (p : P) \to \text{Kernel}\ X\ X$ if for all $p, q \in P$ with $p \leq q$, the kernel $\gamma_q$ is equal to the composition of $\gamma_p$ with $\gamma_q$, meaning that the kernels compose consistently along the order structure of $P$.","```lean
+def MeasureTheory.Filtration.IsConsistentKernel {X : Type u_1} {P : Type u_2} {mX : MeasurableSpace X}
+  [PartialOrder P] (mXs : MeasureTheory.Filtration P mX) (γ : (p : P) → ProbabilityTheory.Kernel X X) : Prop :=
+  ∀ p q : P, p ≤ q → γ q = ProbabilityTheory.Kernel.comp (γ q) (γ p)
+```",15,"```lean
+def MeasureTheory.Filtration.IsConsistentKernel {X : Type*} [MeasurableSpace X] {P : Type*} [PartialOrder P]
+    (ℱ : Filtration P (MeasurableSpace X)) (γ : (p : P) → ProbabilityTheory.Kernel X X) : Prop :=
+  ∀ p q : P, p ≤ q → γ q = ProbabilityTheory.Kernel.comp (γ p) (γ q)
+```",15,tie,"Both define consistency but swap kernel composition order, making them semantically incompatible with each other; neither is clearly correct without context.",False,33,"```lean
+def ConsistentFiltrationWithKernels {P : Type*} [Preorder P] {X : Type*} [MeasurableSpace X]
+    (f : Filtration P (Set X)) (γ : (p : P) → Kernel X X) : Prop :=
+  ∀ p q : P, p ≤ q → γ q = Kernel.comp (γ p) (γ q)
+```",0,T,"A matches target signature exactly. B has wrong name, different types (Set X vs X), and reversed kernel composition order.",False,37
+1345140,Specification.IsProper.of_restrict_eq_indicator_smul,"Specification.IsProper.of_restrict_eq_indicator_smul.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  (∀ (Λ : Finset S) ⦃B : Set (S → E)⦄ (hB : MeasurableSet B) (x : S → E),
+      (ProbabilityTheory.Kernel.restrict (γ Λ) ⋯) x = Set.indicator B 1 x • (γ Λ) x) →
+    Specification.IsProper γ","The theorem states that a specification γ is proper if, for every finite set Λ of indices and every measurable set B in the space of functions from S to E, the restriction of the kernel γ(Λ) to the set B equals the indicator function of B (taking values 0 or 1) times the measure γ(Λ) evaluated at any point x.","```lean
+theorem Specification.isProper_iff_restrict_eq_indicator_smul {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  Specification.IsProper γ ↔
+    ∀ (Λ : Finset S) ⦃B : Set (S → E)⦄ (hB : MeasurableSet B) (x : S → E),
+      (ProbabilityTheory.Kernel.restrict (γ Λ) hB) x = Set.indicator B 1 x • (γ Λ) x := by sorry
+```",71,"```lean
+theorem Specification.isProper_iff_restrict_eq_indicator_smul {S E : Type*} [MeasurableSpace S] [MeasurableSpace E] (γ : Specification S E) : γ.IsProper ↔ ∀ (Λ : Finset S) (B : Set (S → E)), MeasurableSet B → (γ Λ).restrict B = Set.indicator B 1 • (γ Λ) := by sorry
+```",71,T,A matches target's instance-binder and pointwise structure; B changes parameter order and omits pointwise application.,False,35,"```lean
+theorem Specification.isProper_iff_restrict_eq_indicator_smul' {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} :
+  Specification.IsProper γ ↔
+    ∀ (Λ : Finset S) ⦃B : Set (S → E)⦄ (hB : MeasurableSet B) (x : S → E),
+      (ProbabilityTheory.Kernel.restrict (γ Λ) hB) x = Set.indicator B 1 x • (γ Λ) x
+```",61,tie,Both candidates formalize the biconditional version of the target implication; neither is vacuous.,False,11
+1437653,MeasureTheory.ae_eq_lcondExp_of_forall_setLIntegral_eq,"MeasureTheory.ae_eq_lcondExp_of_forall_setLIntegral_eq.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀)
+  [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] {f g : α → ENNReal}
+  (hg_eq : ∀ (s : Set α), MeasurableSet s → μ s < ⊤ → ∫⁻ (x : α) in s, g x ∂μ = ∫⁻ (x : α) in s, f x ∂μ)
+  (hgm : MeasureTheory.AEStronglyMeasurable g μ) : g =ᵐ[μ] MeasureTheory.lcondExp m μ f","The theorem states that if two extended non-negative real-valued functions $f$ and $g$ on a measure space $(\alpha, m_0, \mu)$ satisfy the condition that their Lebesgue integrals agree on all measurable sets of finite measure (with respect to a sub-$\sigma$-algebra $m$), and if $g$ is almost everywhere strongly measurable, then $g$ is almost everywhere equal to the lower conditional expectation of $f$ with respect to the sub-$\sigma$-algebra $m$.","```lean
+theorem lcondExp_ae_eq_of_setLIntegral_eq {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] {f g : α → ENNReal} (hfg_eq : ∀ s : Set α, MeasurableSet s → μ s < ⊤ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) (hgm : MeasureTheory.AEStronglyMeasurable g μ) : g =ᵐ[μ] MeasureTheory.lcondExp m μ f
+```",58,"```lean
+theorem MeasureTheory.ae_eq_lcondExp_of_forall_setLIntegral_eq
+    {α : Type*} [MeasurableSpace α] {m : MeasurableSpace α} (hm : m ≤ ‹MeasurableSpace α›)
+    {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite (μ.trim hm)]
+    {f g : α → ℝ≥0∞} (hf : ∀ s, MeasurableSet s → μ s < ⊤ →
+      ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂(μ.trim hm))
+    (hg : MeasureTheory.AEStronglyMeasurable g (μ.trim hm)) :
+    g =ᵐ[μ.trim hm] MeasureTheory.lcondExp hm μ f := by sorry
+```",58,T,"B matches target signature exactly: same argument names, order, and constraints. A has wrong hf condition (swaps f/g, uses trim in RHS) and wrong ae measure (trim vs μ).",False,42,"```lean
+theorem lcondExp_eq_of_lintegral_eq {α : Type*} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+    [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+    {f g : α → ENNReal} (hg : AEStronglyMeasurable g μ)
+    (h : ∀ s : Set α, MeasurableSet s → μ s < ⊤ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+    g =ᵐ[μ] MeasureTheory.lcondExp m μ f := by sorry
+```",23,T,B matches target exactly: same hypothesis order and names. A swaps order of hg and h hypotheses.,False,28
+1364100,MeasureTheory.Measure.measurable_of_measurable_coe',"MeasureTheory.Measure.measurable_of_measurable_coe'.{u_1, u_2} {α : Type u_1} {β : Type u_2} [MeasurableSpace β]
+  (t : Set (Set α)) (μ : β → MeasureTheory.Measure α) [∀ (b : β), MeasureTheory.IsProbabilityMeasure (μ b)]
+  (h : ∀ s ∈ t, Measurable fun b => (μ b) s) : Measurable μ","If $\mu: \beta \to \text{Measure}(\alpha)$ is a family of probability measures indexed by $\beta$ (where $\beta$ has a measurable structure), and if for every set $s$ in a collection $t$ of subsets of $\alpha$, the function $b \mapsto \mu(b)(s)$ is measurable, then the function $\mu: \beta \to \text{Measure}(\alpha)$ is measurable (with respect to the appropriate $\sigma$-algebra on the space of measures).","```lean
+theorem MeasureTheory.Measure.measurable_of_measurable_coe_prob {α : Type u_1} {β : Type u_2} {mα : MeasurableSpace α} {mβ : MeasurableSpace β} (f : β → MeasureTheory.Measure α) (t : Set (Set α)) [Countable ι] (ht : ∀ s ∈ t, MeasurableSet s) (h : ∀ s ∈ t, Measurable fun b => (f b) s) [∀ b, MeasureTheory.IsProbabilityMeasure (f b)] : Measurable f := by sorry
+```",85,"```lean
+theorem MeasureTheory.measurable_of_measurable_coe_family {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    (μ : β → MeasureTheory.Measure α) (t : Set (Set α))
+    (ht : ∀ s ∈ t, Measurable fun b => μ b s) :
+    Measurable μ := by sorry
+```",85,Tnames,"A adds unnecessary hypothesis (Countable ι, ht measurability, extra instances). B matches target exactly except missing probability measure instance.",False,26,"```lean
+theorem Measure.measurable_of_measurable_setLIntegral {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {μ : β → Measure α} {t : Set (Set α)}
+    (h : ∀ s ∈ t, Measurable fun b => (μ b) s) : Measurable μ := by sorry
+```",2,tie,"Both candidates differ significantly from target: A lacks IsProbabilityMeasure, B adds unnecessary Countable ι and MeasurableSet assumptions",False,26
+1439373,Specification.modificationKer_one',"Specification.modificationKer_one'.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) :
+  Specification.modificationKer γ (fun _Λ _η => 1) ⋯ = γ",The modification kernel of a specification γ with respect to the constant function 1 (which takes any finite set Λ and any configuration η to 1) equals the original specification γ.,"```lean
+theorem modificationKer_one {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    (γ : (Λ : Finset S) → ProbabilityTheory.Kernel (S → E) (S → E)) (Λ : Finset S) :
+    Specification.modificationKer γ (fun _ _ => 1) (fun _ => measurable_const) Λ = γ Λ := by sorry
+```",71,"```lean
+theorem modificationKer_one (γ : Specification Λ S) : 
+  Specification.modificationKer γ (fun _ _ => 1) = γ := by sorry
+```",71,T,"A matches the target signature structure with explicit type parameters and kernel type, while B uses undefined Specification Λ S type and lacks required parameters.",False,31,"```lean
+theorem Specification.modificationKer_one' {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    (γ : Specification S E) :
+    Specification.modificationKer (⇑γ) (fun _Λ _η => 1) ⋯ = ⇑γ := by sorry
+```",61,Trandom,"B matches target signature exactly with γ as Specification and coercion, A uses explicit function type and differs in quantifiers.",False,18
+1437654,MeasureTheory.ae_eq_of_forall_setLIntegral_eq_of_sigmaFinite',"MeasureTheory.ae_eq_of_forall_setLIntegral_eq_of_sigmaFinite'.{u_1} {α : Type u_1} {m m0 : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} (hm : m ≤ m0) [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+  {f g : α → ENNReal}
+  (hfg_eq : ∀ (s : Set α), MeasurableSet s → μ s < ⊤ → ∫⁻ (x : α) in s, f x ∂μ = ∫⁻ (x : α) in s, g x ∂μ)
+  (hfm : MeasureTheory.AEStronglyMeasurable f μ) (hgm : MeasureTheory.AEStronglyMeasurable g μ) : f =ᵐ[μ] g","This theorem states that if two extended non-negative real-valued functions $f$ and $g$ have equal Lebesgue integrals over every measurable set of finite measure, and both functions are almost everywhere strongly measurable with respect to a sigma-finite measure $\mu$, then $f$ and $g$ are equal almost everywhere with respect to $\mu$.","```lean
+theorem ae_eq_of_lintegral_eq_finite_measure {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α) 
+    [MeasureTheory.SigmaFinite μ] (f g : α → ENNReal) 
+    (hf : MeasureTheory.AEStronglyMeasurable f μ) (hg : MeasureTheory.AEStronglyMeasurable g μ)
+    (h : ∀ s : Set α, MeasurableSet s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+    f =ᶠ[MeasureTheory.ae μ] g
+```",53,"```lean
+theorem lintegral_eq_of_ae_strongly_measurable_of_sigmaFinite
+  {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ]
+  {f g : α → ENNReal}
+  (hf : MeasureTheory.AEStronglyMeasurable f μ)
+  (hg : MeasureTheory.AEStronglyMeasurable g μ)
+  (h : ∀ s : Set α, MeasurableSet s → μ s < ⊤ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+  f =ᵐ[μ] g
+```",53,Tnames,B matches target conclusion f =ᵐ[μ] g and μ s < ⊤ condition. A uses different notation f =ᶠ[ae μ] g and μ s ≠ ∞.,False,44,"```lean
+theorem ae_eq_of_integral_eq_of_strongly_measurable {α : Type*} [MeasurableSpace α]
+    {μ : Measure α} [SigmaFinite μ] {f g : α → ℝ≥0∞}
+    (hf : AEStronglyMeasurable f μ) (hg : AEStronglyMeasurable g μ)
+    (h : ∀ s, MeasurableSet s → μ s < ∞ → ∫⁻ x in s, f x ∂μ = ∫⁻ x in s, g x ∂μ) :
+    f =ᵐ[μ] g := by sorry
+```",0,Trandom,B uses `μ s < ∞` matching target exactly; A uses `μ s ≠ ∞` which is weaker. Target has trim/hm parameter that neither captures.,False,47
+1382558,MeasureTheory.lcondExp_congr_ae,"MeasureTheory.lcondExp_congr_ae.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal} (h : f =ᵐ[μ] g) :
+  MeasureTheory.lcondExp m μ f =ᵐ[μ] MeasureTheory.lcondExp m μ g",The conditional expectation of two functions from α to the extended non-negative real numbers that are equal almost everywhere with respect to a sigma-finite measure μ are themselves equal almost everywhere with respect to μ.,"```lean
+theorem MeasureTheory.lcondExp_ae_eq_of_ae_eq {α : Type*} {m m₀ : MeasurableSpace α}
+    (μ : MeasureTheory.Measure α) [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal}
+    (h : f =ᶠ[MeasureTheory.ae μ] g) :
+    MeasureTheory.lcondExp m μ f =ᶠ[MeasureTheory.ae μ] MeasureTheory.lcondExp m μ g :=
+  sorry
+```",38,"```lean
+theorem MeasureTheory.lcondExp_ae_eq {α : Type*} {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} [MeasureTheory.SigmaFinite μ] {f g : α → ℝ≥0∞} (h : f =ᵐ[μ] g) : MeasureTheory.lcondExp m μ f =ᵐ[μ] MeasureTheory.lcondExp m μ g
+```",38,Tnames,Both match target signature well. A is more concise; B has explicit ae notation and extra m₀ parameter but matches. Neither vacuous.,False,6,"```lean
+theorem MeasureTheory.lcondExp_ae_eq {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f g : α → ENNReal} (hfg : f =ᵐ[μ] g) :
+  MeasureTheory.lcondExp m μ f =ᵐ[μ] MeasureTheory.lcondExp m μ g := by sorry
+```",23,Trandom,"Both match the target semantically. A uses =ᵐ[μ] notation matching target exactly, B uses =ᶠ[ae μ] which is equivalent but less direct.",False,6
+1441330,Specification.IsMarkov.isMarkovKernel,"Specification.IsMarkov.isMarkovKernel.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} [self : Specification.IsMarkov γ] (Λ : Finset S) : ProbabilityTheory.IsMarkovKernel (γ Λ)","The statement asserts that for any finite set Λ of sites in a specification γ that satisfies the Markov property, the kernel γ(Λ) is a Markov kernel in the sense of probability theory.","```lean
+theorem Specification.isMarkovKernel {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} 
+    (γ : Specification S E) (hγ : γ.IsMarkov) (Λ : Finset S) :
+    ProbabilityTheory.IsMarkovKernel (γ Λ) := by sorry
+```",15,"```lean
+theorem Specification.isMarkovKernel_of_isMarkov {α : Type*} [MeasurableSpace α] {γ : Specification α} (hγ : γ.IsMarkov) (Λ : Finset α) : IsMarkovKernel (γ Λ)
+```",15,T,A matches target signature more closely with explicit type universes and all parameters; B omits type E and uses α for S.,False,20,"```lean
+theorem Specification.IsMarkov.isMarkovKernel {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} 
+  {γ : Specification S E} (hγ : Specification.IsMarkov γ) (Λ : Finset S) : 
+  ProbabilityTheory.IsMarkovKernel (γ Λ)
+```",15,Trandom,"B uses typeclass [IsMarkov γ] via explicit hγ parameter matching target's [self : IsMarkov γ], while A makes IsMarkov an explicit hypothesis instead of typeclass.",False,4
+1479423,Specification.modification_modification,"Specification.modification_modification.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  (γ : Specification S E) (ρ₁ ρ₂ : Finset S → (S → E) → ENNReal) (hρ₁ : Specification.IsModifier γ ρ₁)
+  (hρ₂ : Specification.IsModifier (Specification.modification γ ρ₁ hρ₁) ρ₂) :
+  Specification.modification (Specification.modification γ ρ₁ hρ₁) ρ₂ hρ₂ = Specification.modification γ (ρ₁ * ρ₂) ⋯","The theorem states that modifying a specification twice in succession is equivalent to a single modification by the product of the two modification functions: given a specification γ on a state space S with values in E, and two modification functions ρ₁ and ρ₂ (where ρ₁ is a modifier of γ and ρ₂ is a modifier of the already-modified specification), the result of first modifying γ by ρ₁ and then modifying the result by ρ₂ equals the result of directly modifying γ by the product ρ₁ · ρ₂.","```lean
+theorem modification_composition {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} 
+    (γ : Specification S E)
+    (ρ₁ : Finset S → (S → E) → ENNReal) (hρ₁ : Specification.IsModifier γ ρ₁)
+    (ρ₂ : Finset S → (S → E) → ENNReal) (hρ₂ : Specification.IsModifier (Specification.modification γ ρ₁ hρ₁) ρ₂) :
+    Specification.modification (Specification.modification γ ρ₁ hρ₁) ρ₂ hρ₂ = 
+    Specification.modification γ (ρ₁ * ρ₂) (Specification.IsModifier.mul hρ₁ hρ₂) := by sorry
+```",54,"```lean
+theorem Specification.modification_modification {S E : Type*} [MeasurableSpace S] [MeasurableSpace E] 
+    (γ : Specification S E) (ρ₁ ρ₂ : Specification.IsModifier γ) :
+    Specification.modification (Specification.modification γ ρ₁) ρ₂ = 
+    Specification.modification γ (ρ₁ * ρ₂) := by sorry
+```",54,T,A matches target signature closely with explicit modifiers and proofs. B changes signature by making modifiers types instead of parameters.,False,38,"```lean
+theorem Specification.modification_modification {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+    {γ : Specification S E} {ρ₁ ρ₂ : Finset S → (S → E) → ENNReal}
+    (hρ₁ : Specification.IsModifier γ ρ₁)
+    (hρ₂ : Specification.IsModifier (Specification.modification γ ρ₁ hρ₁) ρ₂) :
+    Specification.modification (Specification.modification γ ρ₁ hρ₁) ρ₂ hρ₂ =
+    Specification.modification γ (ρ₁ * ρ₂) (Specification.IsModifier.mul hρ₁ hρ₂) := by sorry
+```",54,Trandom,B matches target name and uses implicit γ matching the target signature exactly. A uses wrong name and explicit γ.,False,12
+1375635,MeasureTheory.toReal_ae_eq_indicator_condExp_of_forall_setLIntegral_eq,"MeasureTheory.toReal_ae_eq_indicator_condExp_of_forall_setLIntegral_eq.{u_1} {α : Type u_1} {m m0 : MeasurableSpace α}
+  {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ] (hm : m ≤ m0) {g : α → ENNReal} {s : Set α}
+  (hs₀ : MeasurableSet s) (hgm : MeasureTheory.AEStronglyMeasurable g μ)
+  (hg_int_finite : ∀ (t : Set α), MeasurableSet t → μ t < ⊤ → ∫⁻ (a : α) in t, g a ∂μ ≠ ⊤)
+  (hg_eq : ∀ (t : Set α), MeasurableSet t → μ t < ⊤ → ∫⁻ (a : α) in t, g a ∂μ = μ (s ∩ t)) :
+  (fun a => ENNReal.toReal (g a)) =ᵐ[μ] μ[Set.indicator s 1 | m]","The theorem states that if $g$ is an almost everywhere strongly measurable function from $\alpha$ to the extended non-negative reals, and if for every measurable set $t$ with finite measure, the integral of $g$ over $t$ equals the measure of $s \cap t$ (where $s$ is a measurable set), and these integrals are always finite, then the real-valued function obtained by applying `toReal` to $g$ is almost everywhere equal (with respect to $\mu$) to the conditional expectation of the indicator function of $s$ with respect to the sub-$\sigma$-algebra $m$.","```lean
+theorem ae_eq_condExp_of_forall_setIntegral_eq_indicator {α : Type*} {m m₀ : MeasurableSpace α}
+    {μ : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure μ]
+    (hm : m ≤ m₀) {g : α → ENNReal} {s : Set α}
+    (hgm : MeasureTheory.AEStronglyMeasurable g μ)
+    (hg_int_finite : ∀ (t : Set α), MeasurableSet t → μ t < ⊤ → ∫⁻ (a : α) in t, g a ∂μ ≠ ⊤)
+    (hg_eq : ∀ (t : Set α), MeasurableSet t → μ t < ⊤ → ∫ (x : α) in t, ENNReal.toReal (g x) ∂μ = (μ (s ∩ t)).toReal)
+    (hs : MeasurableSet s) :
+    (fun x => ENNReal.toReal (g x)) =ᵐ[μ] μ[Set.indicator s fun _ => (1 : ℝ) | m]
+```",186,"```lean
+theorem ae_eq_condExp_indicator_of_forall_setLintegral_eq
+    {α : Type*} [MeasureSpace α] {m : MeasureSpace.MeasurableSpace α}
+    {s : Set α} (hs : MeasurableSet s)
+    {g : α → ℝ≥0∞} (hg : AEStronglyMeasurable g μ)
+    (h_integral : ∀ t : Set α, MeasurableSet t → μ t ≠ ∞ →
+      (∫⁻ x in t, g x ∂μ = (μ (s ∩ t) : ℝ≥0∞)) ∧ ∫⁻ x in t, g x ∂μ ≠ ∞) :
+    (fun x => (g x).toReal) =ᵐ[μ] condExp m μ (Set.indicator s (1 : α → ℝ))
+```",186,tie,A uses lintegral in h_integral matching target hg_eq; B uses integral (Real-valued) which differs. Both have structural issues vs target.,False,73,"```lean
+theorem toReal_ae_eq_indicator_condExp_of_forall_meas_inter_eq
+    {α : Type u_1} {m m0 : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+    [MeasureTheory.IsFiniteMeasure μ] (hm : m ≤ m0)
+    [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+    {g : α → ENNReal} {s : Set α}
+    (hg : AEStronglyMeasurable g μ)
+    (h_integral : ∀ (t : Set α), MeasurableSet t → μ t < ∞ → 
+      (∫⁻ a in t, g a ∂μ < ∞) ∧ (μ (s ∩ t) = ∫⁻ a in t, g a ∂μ)) :
+    (fun a => ENNReal.toReal (g a)) =ᵐ[μ] μ[Set.indicator s 1 | m]
+```",1,Trandom,"B matches target exactly: same ENNReal g, same lintegral conditions. A changes to Real with integral and different hg_eq format.",False,44
+1489125,Specification.IsProper.modification,"Specification.IsProper.modification.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E}
+  {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (hγ : Specification.IsProper γ)
+  {hρ : Specification.IsModifier γ ρ} : Specification.IsProper (Specification.modification γ ρ hρ)","The statement asserts that if a specification γ is proper, then the modification of γ by any modifier ρ (that is, the specification obtained by modifying γ according to ρ) is also proper.","```lean
+theorem Specification.IsProper.modification {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} {γ : Specification S E} {ρ : Finset S → (S → E) → ENNReal} (hγ : Specification.IsProper γ) (hρ : Specification.IsModifier γ ρ) : Specification.IsProper (Specification.modification γ ρ hρ)
+```",54,"```lean
+theorem Specification.IsProper.modification {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {γ : Specification α β} (hγ : γ.IsProper) {ρ : Specification α β} (hρ : ρ.IsModifier) :
+    (γ.modification ρ).IsProper := by sorry
+```",54,T,B matches target signature exactly; A changes modifier to Specification type and omits key arguments like hρ dependency.,False,37,"```lean
+theorem Specification.IsProper.modification {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} {γ : Specification S E} (hγ : Specification.IsProper γ) (ρ : Finset S → (S → E) → ENNReal) (hρ : Specification.IsModifier γ ρ) : Specification.IsProper (Specification.modification γ ρ hρ)
+```",54,T,B makes ρ implicit matching target's {ρ : ...} while A makes it explicit. Both have same semantic content otherwise.,False,14
+1413949,Specification.isConsistent,"Specification.isConsistent.{u_1, u_2} {S : Type u_1} {E : Type u_2} {mE : MeasurableSpace E} (γ : Specification S E) :
+  IsConsistent ⇑γ","A specification γ from a state space S to a measurable space E is always consistent, meaning that the family of kernels defined by γ satisfies the consistency property required for specifications.","```lean
+theorem Specification.isConsistent {S : Type u_1} {E : Type u_2} [MeasurableSpace E] (self : Specification S E) :
+  IsConsistent (Specification.toFun self) := Specification.isConsistent' self
+```",15,"```lean
+theorem Specification.isConsistent {S : Type*} {E : Type*} [MeasurableSpace S] [MeasurableSpace E] (γ : Specification S E) : IsConsistent γ
+```",15,T,A matches target signature with explicit coercion ⇑γ and provides proof. B lacks the coercion and has extra MeasurableSpace S assumption not in target.,False,11,"```lean
+theorem Specification.isConsistent (S : Type u_1) (E : Type u_2) {mE : MeasurableSpace E} (γ : Specification S E) :
+  IsConsistent ⇑γ
+```",15,T,A provides implementation via isConsistent' while B is just signature. A matches semantics with concrete proof term.,True,6
+1409837,MeasureTheory.lintegral_lcondExp,"MeasureTheory.lintegral_lcondExp.{u_1} {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f : α → ENNReal} (hm : m ≤ m₀)
+  [hμm : MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] :
+  ∫⁻ (x : α), MeasureTheory.lcondExp m μ f x ∂μ = ∫⁻ (x : α), f x ∂μ","The Lebesgue integral of the conditional expectation of a non-negative measurable function with respect to a sub-σ-algebra equals the Lebesgue integral of the original function, provided that the measure is sigma-finite on both the original and the trimmed measure space.","```lean
+theorem MeasureTheory.lintegral_lcondExp {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] {f : α → ENNReal} (hm : m ≤ m₀)
+  [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)] :
+  ∫⁻ x, MeasureTheory.lcondExp m μ f x ∂μ = ∫⁻ x, f x ∂μ := by sorry
+```",24,"```lean
+theorem MeasureTheory.lintegral_lcondExp {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α)
+    (m : MeasurableSpace α) (f : α → ENNReal) [MeasureTheory.SigmaFinite μ]
+    [MeasureTheory.SigmaFinite (μ.trim (le_refl _))] (hf : AEStronglyMeasurable f μ) :
+    ∫⁻ a, MeasureTheory.lcondExp m μ f a ∂μ = ∫⁻ a, f a ∂μ := by sorry
+```",24,T,Candidate B matches target signature exactly with correct sub-σ-algebra assumption hm : m ≤ m₀. Candidate A incorrectly uses le_refl.,False,37,"```lean
+theorem lintegral_lcondExp {α : Type u_1} {m m₀ : MeasurableSpace α} {μ : MeasureTheory.Measure α}
+  [MeasureTheory.SigmaFinite μ] (hm : m ≤ m₀) [MeasureTheory.SigmaFinite (MeasureTheory.Measure.trim μ hm)]
+  (f : α → ENNReal) : ∫⁻ x, MeasureTheory.lcondExp m μ f x ∂μ = ∫⁻ x, f x ∂μ := by sorry
+```",23,T,"Candidate A uses implicit {f} matching target, while B uses explicit (f). Both have same semantic content otherwise.",False,22

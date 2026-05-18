@@ -1,0 +1,730 @@
+node_id,full_name,project,module,indeg,sig_len,NL,F_signature,F_B,F_T,dep_count,dep_truncated,judge_prefer,judge_notes,vacuous_B,vacuous_T,edit_dist_B,edit_dist_T
+727938,GrowthInGroups.Lecture3.lemma_3_7,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,163,"Let $G$ be a group and let $A$ and $B$ be symmetric subsets of $G$ (i.e., $A^{-1} = A$ and $B^{-1} = B$). For any elements $x$ and $y$ in $G$, there exists an element $z$ in $G$ such that the intersection of the left translate $xA$ and the left translate $yB$ is contained in the left translate $z(A^2 \cap B^2)$, where $A^2$ and $B^2$ denote the product sets $A \cdot A$ and $B \cdot B$ respectively.","GrowthInGroups.Lecture3.lemma_3_7.{u_1} {G : Type u_1} [Group G] {A B : Set G} (hA : A⁻¹ = A) (hB : B⁻¹ = B) (x y : G) :
+  ∃ z, x • A ∩ y • B ⊆ z • (A ^ 2 ∩ B ^ 2)","```lean
+theorem symmetric_subsets_intersection (G : Type*) [Group G] (A B : Set G)
+    (hA : A⁻¹ = A) (hB : B⁻¹ = B) (x y : G) :
+    ∃ z : G, (x • A) ∩ (y • B) ⊆ z • (A * A ∩ B * B) := by sorry
+```","```lean
+theorem exists_translate_inter_translate_subset_translate_sq_inter_sq {G : Type u} [Group G] (A B : Set G) (x y : G) :
+  ∃ z : G, x • A ∩ y • B ⊆ z • (A ^ 2 ∩ B ^ 2) := by sorry
+```",71,0,B,"A includes symmetry hypotheses hA and hB which match the target; B omits them, making it weaker/different.",False,False,21,21
+677770,FirstOrder.Language.Theory.not_isStable,cam-combi,LeanCamCombi.StableCombi.Formula,1,197,A first-order theory $T$ is not stable if and only if $T$ has the order property.,"FirstOrder.Language.Theory.not_isStable.{u_1, u_2} {L : FirstOrder.Language} {T : FirstOrder.Language.Theory L} :
+  ¬FirstOrder.Language.Theory.IsStable T ↔ FirstOrder.Language.Theory.IsOrderProp T","```lean
+theorem theory_unstable_iff_has_order_property (T : FirstOrderTheory L) :
+  ¬Stable T ↔ HasOrderProperty T
+```","```lean
+theorem FirstOrder.Language.Theory.not_isStable {L : FirstOrder.Language} (T : FirstOrder.Language.Theory L) :
+  ¬T.IsStable ↔ T.IsOrderProp := by sorry
+```",34,0,T,"A uses correct namespace and theorem name matching target; B uses undefined types FirstOrderTheory, Stable, HasOrderProperty",False,False,10,10
+847498,not_isAddStable,cam-combi,LeanCamCombi.StableCombi.AddSet,0,97,A subset $A$ of an additive group $G$ fails to be additively stable if and only if $A$ has the additive order property.,not_isAddStable.{u_1} {G : Type u_1} [AddGroup G] {A : Set G} : ¬IsAddStable A ↔ IsAddOrderProp A,"```lean
+theorem not_add_stable_iff_has_add_order_property {G : Type*} [AddGroup G] (A : Set G) :
+    ¬(∀ a b ∈ A, a + b ∈ A) ↔ ∃ n : ℕ, ∃ a ∈ A, a + a + ... + a (n times) ∉ A := by sorry
+```","```lean
+theorem not_isAddStable_iff_isAddOrderProp {G : Type u_1} [AddGroup G] (A : Set G) : ¬IsAddStable A ↔ IsAddOrderProp A
+```",17,0,T,Candidate A matches the target signature exactly with correct naming and types. Candidate B uses unfolded definitions and incorrect syntax.,False,False,37,4
+748089,Finset.mem_certificator,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,5,217,"The theorem states that an element `a` belongs to the certificator of two finsets `s` and `t` (in a Boolean algebra) if and only if there exist complementary elements `x` and `y` such that: (1) any element `b` whose meet with `x` equals `a`'s meet with `x` must be in `s`, and (2) any element `b` whose meet with `y` equals `a`'s meet with `y` must be in `t`.","Finset.mem_certificator.{u_1} {α : Type u_1} [BooleanAlgebra α] {s t : Finset α} {a : α} :
+  a ∈ Finset.certificator s t ↔
+    ∃ x y, IsCompl x y ∧ (∀ ⦃b : α⦄, a ⊓ x = b ⊓ x → b ∈ s) ∧ ∀ ⦃b : α⦄, a ⊓ y = b ⊓ y → b ∈ t","```lean
+theorem mem_certificator_iff {α : Type*} [BooleanAlgebra α] {s t : Finset α} {a : α} :
+  a ∈ certificator s t ↔ ∃ x y : α, isCompl x y ∧
+    (∀ b : α, b ⊓ x = a ⊓ x → b ∈ s) ∧
+    (∀ b : α, b ⊓ y = a ⊓ y → b ∈ t) := by sorry
+```","```lean
+theorem Finset.mem_certificator {α : Type*} [BooleanAlgebra α] {s t : Finset α} {a : α} :
+  a ∈ Finset.certificator s t ↔ ∃ x y, IsCompl x y ∧ (∀ b, a ⊓ x = b ⊓ x → b ∈ s) ∧ (∀ b, a ⊓ y = b ⊓ y → b ∈ t)
+```",50,0,T,B matches target order (a ⊓ x = b ⊓ x); A reverses it (b ⊓ x = a ⊓ x). Both semantically equivalent but B is syntactically closer.,False,False,22,12
+735182,GraphTheory.ES1.q6,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,211,"Looking at this Lean 4 declaration, here is the mathematical statement in plain English:
+
+For a finite type α and a multiset s of natural numbers with the same cardinality as α and containing no zeros, the sum of s equals 2 times the cardinality of α minus 2 if and only if there exists a graph G on vertex type α and an element x such that the degree sequence of G equals s.","GraphTheory.ES1.q6.{u_2} {α : Type u_2} [Fintype α] (s : Multiset ℕ) (hs : Multiset.card s = Fintype.card α)
+  (h₀ : 0 ∉ s) : Multiset.sum s = 2 * Fintype.card α - 2 ↔ ∃ G x, GraphTheory.ES1.degreeSequence G = s","```lean
+theorem sum_eq_two_card_sub_two_iff_exists_graph [Fintype α] (s : Multiset ℕ) 
+    (h_card : s.card = Fintype.card α) (h_nonzero : ∀ n ∈ s, n ≠ 0) :
+    s.sum id = 2 * Fintype.card α - 2 ↔ 
+    ∃ (G : SimpleGraph α) (x : α), G.degreeSequence = s
+```","```lean
+theorem degreeSequence_sum_eq_iff {α : Type*} [Fintype α] (s : Multiset ℕ) 
+    (h_card : Multiset.card s = Fintype.card α) 
+    (h_noZ : ∀ n ∈ s, n ≠ 0) :
+    Multiset.sum s = 2 * Fintype.card α - 2 ↔ 
+    ∃ (G : SimpleGraph α) (x : α), GraphTheory.ES1.degreeSequence G = s := by sorry
+```",49,0,tie,"Both match target semantics; A uses Multiset.sum, B uses s.sum id (equivalent); h_noZ vs h_nonzero are equivalent to h₀ condition",False,False,26,23
+873737,GrowthInGroups.Lecture1.theorem_1_2,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,176,"Claude 3.5 Sonnet (2025-01-22)
+
+<thinking>
+Let me parse this Lean 4 declaration carefully.
+
+The theorem is named `GrowthInGroups.Lecture1.theorem_1_2`.
+
+The statement is:
+```lean
+{G : Type u_1} [Group G] [DecidableEq G] [Group.FG G] :
+  GrowthInGroups.Lecture1.HasPolynomialGrowth G ↔ Group.IsVirtuallyNilpotent G
+```
+
+This says:
+- We have a type `G` with a group structure
+- `G` has decidable equality
+- `G` is finitely generated (that's what `Group.FG G` means)
+- The theorem states that `G` has polynomial growth if and only if `G` is virtually nilpotent
+
+This is actually a famous theorem in geometric group theory - Gromov's theorem on groups of polynomial growth!
+
+Let me write this in clear mathematical English without mentioning Lean syntax.
+</thinking>
+
+A finitely generated group has polynomial growth if and only if it is virtually nilpotent (meaning it contains a nilpotent subgroup of finite index).","GrowthInGroups.Lecture1.theorem_1_2.{u_1} {G : Type u_1} [Group G] [DecidableEq G] [Group.FG G] :
+  GrowthInGroups.Lecture1.HasPolynomialGrowth G ↔ Group.IsVirtuallyNilpotent G","```lean
+theorem GrowthInGroups.Lecture1.theorem_1_2 {G : Type u_1} [Group G] [DecidableEq G] [Group.FG G] :
+  GrowthInGroups.Lecture1.HasPolynomialGrowth G ↔ Group.IsVirtuallyNilpotent G := by sorry
+```","```lean
+theorem GrowthInGroups.Lecture1.theorem_1_2 {G : Type u_1} [Group G] [DecidableEq G] [Group.FG G] :
+  GrowthInGroups.Lecture1.HasPolynomialGrowth G ↔ Group.IsVirtuallyNilpotent G := by sorry
+```",10,0,tie,Both candidates are syntactically identical to the target signature and to each other.,False,False,5,5
+702050,not_isStableRelWith,cam-combi,LeanCamCombi.StableCombi.Rel,4,137,The relation `r` between types `α` and `β` is not stable at level `n` if and only if `r` is an order-propagating relation at level `n`.,"not_isStableRelWith.{u_1, u_2} {α : Type u_1} {β : Type u_2} {n : ℕ} {r : α → β → Prop} :
+  ¬IsStableRelWith n r ↔ IsOrderPropRelWith n r","```lean
+theorem not_stable_iff_order_propagating (r : α → β → Prop) (n : ℕ) : 
+  ¬Stable r n ↔ OrderPropagating r n := by sorry
+```","```lean
+theorem not_isStableRelWith_iff_isOrderPropRelWith {α : Type u_1} {β : Type u_2} {n : ℕ} {r : α → β → Prop} : ¬IsStableRelWith n r ↔ IsOrderPropRelWith n r := by sorry
+```",20,0,T,B matches target signature exactly; A uses undefined predicates Stable and OrderPropagating instead of IsStableRelWith and IsOrderPropRelWith,False,False,24,5
+873252,not_isAddStableWith,cam-combi,LeanCamCombi.StableCombi.AddSet,0,123,The negation of the property that a set $A$ in an additive group $G$ is add-stable with parameter $n$ is equivalent to the property that $A$ satisfies the add-order property with parameter $n$.,"not_isAddStableWith.{u_1} {G : Type u_1} [AddGroup G] {n : ℕ} {A : Set G} :
+  ¬IsAddStableWith n A ↔ IsAddOrderPropWith n A","```lean
+theorem not_addStable_iff_addOrder {G : Type*} [AddGroup G] {A : Set G} {n : ℕ} :
+  ¬(∀ a b : G, a ∈ A → b ∈ A → a + b ∈ A) ↔ 
+  (∃ a b : G, a ∈ A ∧ b ∈ A ∧ a + b ∉ A) := by sorry
+```","```lean
+theorem not_isAddStableWith {G : Type u_1} [AddGroup G] (n : ℕ) (A : Set G) :
+  ¬IsAddStableWith n A ↔ IsAddOrderPropWith n A
+```",18,0,T,A matches the target signature exactly with correct type class predicates; B replaces named predicates with expanded logical formulas.,False,False,45,6
+701250,IsStableRelWith,cam-combi,LeanCamCombi.StableCombi.Rel,11,90,"A relation `r : α → β → Prop` is stable relative to a natural number `n` if for any element `a : α` and any element `b : β`, the proposition `r a b` holds if and only if `r a b` remains true after applying the relation `n` times in a certain iterative sense.
+
+However, more precisely, `IsStableRelWith n r` asserts that the relation `r` satisfies a stability condition with respect to the parameter `n`, where the specific meaning depends on the definition's implementation details in the formalization.","IsStableRelWith.{u_1, u_2} {α : Type u_1} {β : Type u_2} (n : ℕ) (r : α → β → Prop) : Prop","```lean
+def IsStableRelWith (n : ℕ) (r : α → β → Prop) : Prop := by sorry
+```","```lean
+def IsStableRelWith (n : ℕ) (r : α → β → Prop) : Prop := by sorry
+```",4,0,tie,Both candidates are identical and match the target signature exactly.,False,False,13,13
+838771,FinsetFamily.«term_□_»,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,0,49,"This defines a notation `□` in the `FinsetFamily` namespace, which is a trailing parser descriptor used for syntactic sugar in expressions involving finset families.",FinsetFamily.«term_□_» : Lean.TrailingParserDescr,"```lean
+namespace FinsetFamily
+
+syntax:max ""□"" : term
+
+end FinsetFamily
+```","```lean
+namespace FinsetFamily
+
+notation:max ""□"" => Lean.ParserDescr.trailingNode (Lean.Name.mkStr2 ""FinsetFamily"" ""box"") 1024 1024 (Lean.ParserDescr.symbol ""□"")
+
+end FinsetFamily
+```",9,0,B,A declares the syntax notation correctly for term_□_; B attempts lower-level parser construction incorrectly.,False,False,7,15
+867509,FirstOrder.Language.Theory.not_isOrderProp,cam-combi,LeanCamCombi.StableCombi.Formula,0,200,The negation of a first-order theory T being an order property is equivalent to T being stable.,"FirstOrder.Language.Theory.not_isOrderProp.{u_1, u_2} {L : FirstOrder.Language} {T : FirstOrder.Language.Theory L} :
+  ¬FirstOrder.Language.Theory.IsOrderProp T ↔ FirstOrder.Language.Theory.IsStable T","```lean
+theorem not_order_property_iff_stable (T : FirstOrderTheory L) : ¬(T.IsOrderProperty) ↔ T.IsStable
+```","```lean
+theorem FirstOrder.Language.Theory.not_isOrderProp_iff_isStable {L : FirstOrder.Language} {T : FirstOrder.Language.Theory L} : ¬FirstOrder.Language.Theory.IsOrderProp T ↔ FirstOrder.Language.Theory.IsStable T := by sorry
+```",19,0,T,B matches target signature exactly with full qualified names and explicit parameters. A uses shortened names and implicit context.,False,False,12,5
+862725,GraphTheory.ES1.q10,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,189,"Looking at this theorem, I need to parse what it says about graphs, regularity, and clique numbers.
+
+The theorem states: For a finite type α and a natural number n, there exists a regular simple graph G on α with some vertex x and degree k (where G is k-regular) such that the clique number of G equals n, if and only if either n ≤ (card α)/2 or n = card α.
+
+In other words: **A natural number n can be realized as the clique number of some regular graph on a finite vertex set α if and only if n is at most half the number of vertices, or n equals the total number of vertices.**","GraphTheory.ES1.q10.{u_2} {α : Type u_2} [Fintype α] (n : ℕ) :
+  (∃ G x k, SimpleGraph.IsRegularOfDegree G k ∧ SimpleGraph.cliqueNum G = n) ↔
+    n ≤ Fintype.card α / 2 ∨ n = Fintype.card α","```lean
+theorem regular_graph_clique_number (α : Type*) [Fintype α] (n : ℕ) :
+  (∃ (G : SimpleGraph α) (x : α) (k : ℕ), G.IsRegularOfDegree k ∧ G.cliqueNumber = n) ↔
+  n ≤ Fintype.card α / 2 ∨ n = Fintype.card α := by sorry
+```","```lean
+theorem regularGraphCliqueNumCharacterization {α : Type*} [Fintype α] (n : ℕ) :
+  (∃ (G : SimpleGraph α) (k : ℕ), SimpleGraph.IsRegularOfDegree G k ∧ SimpleGraph.cliqueNum G = n) ↔ 
+  (n ≤ Fintype.card α / 2 ∨ n = Fintype.card α)
+```",39,0,tie,"Both match semantically; A omits unused x, B includes it as in target. Both valid.",False,False,21,13
+813160,GrowthInGroups.Lecture2.remark_2_6_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture2,1,92,"The closed interval $[-k, k]$ in the additive group of real numbers is a $(2, 2)$-approximate additive subgroup for any natural number $k$.",GrowthInGroups.Lecture2.remark_2_6_1 (k : ℕ) : IsApproximateAddSubgroup 2 (Set.Icc (-↑k) ↑k),"```lean
+theorem closedInterval_approxAddSubgroup (k : ℕ) : 
+  ApproxAddSubgroup 2 2 (Set.Icc (-↑k : ℝ) ↑k) := by sorry
+```","```lean
+theorem closedInterval_isApproximateAddSubgroup (k : ℕ) : IsApproximateAddSubgroup 2 (Set.Icc (-↑k : ℝ) ↑k) := by sorry
+```",175,0,T,A matches return type IsApproximateAddSubgroup; B uses different predicate ApproxAddSubgroup with extra parameter.,False,False,10,8
+692259,GrowthInGroups.Lecture2.def_2_5,cam-combi,LeanCamCombi.GrowthInGroups.Lecture2,0,89,"Looking at the identifier path `GrowthInGroups.Lecture2.def_2_5`, this appears to be Definition 2.5 from Lecture 2 of a formalization about growth in groups.
+
+The statement asserts a property (returns `Prop`) of a subset `S` of a group `G` with respect to a real number `K`. Without seeing the actual definition body, based on the context of growth in groups and the typical content of such lectures, this likely defines what it means for a set `S` in a group `G` to have a certain growth property characterized by the constant `K` (such as having bounded doubling, satisfying an inequality involving products of the set with itself, or similar growth conditions common in additive combinatorics and geometric group theory).",GrowthInGroups.Lecture2.def_2_5.{u_1} {G : Type u_1} [Group G] (S : Set G) (K : ℝ) : Prop,"```lean
+def GrowthInGroups.Lecture2.def_2_5 {G : Type*} [Group G] (S : Set G) (K : ℝ) : Prop := by sorry
+```","```lean
+def GrowthInGroups.Lecture2.def_2_5 {G : Type*} [Group G] (S : Set G) (K : ℝ) : Prop := by sorry
+```",4,0,tie,"Both candidates are identical and use sorry, matching the target signature exactly.",False,False,7,7
+825792,not_isMulOrderProp,cam-combi,LeanCamCombi.StableCombi.AddSet,0,97,"The statement asserts that for a group $G$ and a subset $A$ of $G$, $A$ is not a multiplicative order property if and only if $A$ is multiplicatively stable.",not_isMulOrderProp.{u_1} {G : Type u_1} [Group G] {A : Set G} : ¬IsMulOrderProp A ↔ IsMulStable A,"```lean
+theorem not_multiplicative_order_iff_multiplicatively_stable {G : Type*} [Group G] (A : Set G) :
+    ¬(∀ a ∈ A, ∃ n : ℕ, n > 0 ∧ a ^ n = 1) ↔ ∀ a b ∈ A, a * b ∈ A := by sorry
+```","```lean
+theorem not_isMulOrderProp_iff_isMulStable {G : Type u} [Group G] (A : Set G) : ¬IsMulOrderProp A ↔ IsMulStable A := by sorry
+```",17,0,T,A uses the correct type classes IsMulOrderProp and IsMulStable; B attempts to unfold them manually but doesn't match the target signature's named predicates.,False,False,35,8
+791028,not_isAddOrderProp,cam-combi,LeanCamCombi.StableCombi.AddSet,0,100,"The theorem states that for an additive group $G$ and a subset $A$ of $G$, the negation of $A$ being an additive order property is equivalent to $A$ being additively stable.",not_isAddOrderProp.{u_1} {G : Type u_1} [AddGroup G] {A : Set G} : ¬IsAddOrderProp A ↔ IsAddStable A,"```lean
+theorem neg_isAdditiveOrderProperty_iff_isAdditivelyStable {G : Type*} [AddGroup G] (A : Set G) :
+  ¬ IsAdditiveOrderProperty A ↔ IsAdditivelyStable A := by sorry
+```","```lean
+theorem not_isAddOrderProp_iff_isAddStable {G : Type u_1} [AddGroup G] (A : Set G) : ¬IsAddOrderProp A ↔ IsAddStable A
+```",17,0,T,B exactly matches target signature; A uses different names for the same concepts,False,False,12,4
+677771,FirstOrder.Language.Theory.IsStable,cam-combi,LeanCamCombi.StableCombi.Formula,4,114,"A first-order theory T in a language L is called stable if for every cardinal κ, every model of T with cardinality κ has at most κ-many complete types over sets of parameters of size at most κ.","FirstOrder.Language.Theory.IsStable.{u_1, u_2} {L : FirstOrder.Language} (T : FirstOrder.Language.Theory L) : Prop","```lean
+def Stable (T : FirstOrderTheory L) : Prop :=
+  ∀ κ : Cardinal, ∀ M : Model T, 
+    Cardinality M = κ → 
+    (∃ A : Set M, Cardinality A ≤ κ → 
+      Cardinality {p : CompleteType L M | ∃ (params : Finset (M ∪ A)), True} ≤ κ)
+```","```lean
+def FirstOrder.Language.Theory.IsStable {L : FirstOrder.Language} (T : FirstOrder.Language.Theory L) : Prop
+```",7,0,T,A has wrong namespace/name and malformed definition; B matches target signature exactly as a declaration stub.,False,False,47,2
+873417,IsApproximateSubgroup.pi,cam-combi,LeanCamCombi.Mathlib.Combinatorics.Additive.ApproximateSubgroup,0,254,"If for each index $i$ in a finite index set $\iota$, the set $A_i$ is a $K_i$-approximate subgroup of a group $G_i$, then the product set $\prod_{i \in \iota} A_i$ (viewed as a subset of the product group $\prod_{i \in \iota} G_i$) is a $(\prod_{i \in \iota} K_i)$-approximate subgroup.","IsApproximateSubgroup.pi.{u_2, u_3} {ι : Type u_2} {G : ι → Type u_3} [Fintype ι] [(i : ι) → Group (G i)]
+  {A : (i : ι) → Set (G i)} {K : ι → ℝ} (hA : ∀ (i : ι), IsApproximateSubgroup (K i) (A i)) :
+  IsApproximateSubgroup (∏ i, K i) (Set.pi Set.univ A)","```lean
+theorem approxSubgroup_prod {ι : Type*} [Fintype ι] {G : ι → Type*} [∀ i, Group (G i)] {A : ∀ i, Set (G i)} {K : ι → ℕ} (h : ∀ i, ApproxSubgroup K (A i) (G i)) : ApproxSubgroup (∏ i, K i) (Set.pi univ A) (∀ i, G i)
+```","```lean
+theorem isApproximateSubgroup_pi {ι : Type u} [Fintype ι] {G : ι → Type v} [(i : ι) → Group (G i)] {K : ι → ℝ} {A : ι → Set (G i)}
+    (hA : ∀ i, IsApproximateSubgroup (K i) (A i)) :
+    IsApproximateSubgroup (∏ i, K i) (Set.pi Set.univ A) := by sorry
+```",125,0,T,"B matches signature exactly: IsApproximateSubgroup with ℝ types and correct syntax. A uses wrong predicate name, ℕ instead of ℝ, wrong arity.",False,False,31,25
+864494,GraphTheory.ES1.q14_part2,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,304,"The theorem states that for a set relation $r$ between countable types $\alpha$ and $\beta$ (where $\beta$ has decidable equality), if for every finite subset $A$ of $\alpha$ the cardinality of $A$ is at most the cardinality of the image of $A$ under $r$, and if the image of each singleton set under $r$ is finite, then there exists an injective function $f : \alpha \to \beta$ such that for every element $a$ in $\alpha$, the pair $(a, f(a))$ belongs to the relation $r$.","GraphTheory.ES1.q14_part2.{u_2, u_3} {α : Type u_2} {β : Type u_3} [DecidableEq β] [Countable α] [Countable β]
+  (r : SetRel α β) [(a : α) → Fintype ↑(SetRel.image r {a})]
+  (hr : ∀ (A : Finset α), Finset.card A ≤ Fintype.card ↑(SetRel.image r ↑A)) :
+  ∃ f, Function.Injective f ∧ ∀ (a : α), (a, f a) ∈ r","```lean
+theorem exists_injective_of_relation_card_le [Countable α] [Countable β] [DecidableEq β] 
+  (r : α → β → Prop) 
+  (h1 : ∀ A : Set α, A.Finite → Nat.card A ≤ Nat.card (r '' A)) 
+  (h2 : ∀ a : α, (Set.range (r a)).Finite) : 
+  ∃ f : α → β, Function.Injective f ∧ ∀ a : α, r a (f a) := by sorry
+```","```lean
+theorem exists_injective_function_of_relation {α β : Type*} [Countable α] [DecidableEq β]
+    (r : SetRel α β)
+    (h1 : ∀ A : Finset α, (A.card : ℕ) ≤ Fintype.card ↑(SetRel.image r ↑A))
+    (h2 : ∀ a : α, Fintype.card ↑(SetRel.image r {a}) < ω) :
+    ∃ (f : α → β), Function.Injective f ∧ ∀ a : α, (a, f a) ∈ r := by sorry
+```",50,0,tie,Both differ significantly from target: A uses incorrect type for h1 and adds h2; B changes from SetRel to Prop and alters hypotheses structure.,False,False,51,43
+714635,Finset.OrderShatters,cam-combi,LeanCamCombi.PlainCombi.OrderShatter,4,109,"Looking at the definition, `Finset.OrderShatters` is a predicate that takes a finite set of finite sets (of type `Finset (Finset α)`) and a list (of type `List α`) where `α` has decidable equality and a linear order. The predicate asserts that the given finite set of finite sets ""order-shatters"" the given list, meaning that for every possible way of selecting elements from the list while respecting the linear order, there exists a corresponding set in the collection that matches that selection pattern.
+
+Token count: 110",Finset.OrderShatters.{u_1} {α : Type u_1} [DecidableEq α] [LinearOrder α] : Finset (Finset α) → List α → Prop,"```lean
+def Finset.OrderShatters {α : Type*} [DecidableEq α] [LinearOrder α] (S : Finset (Finset α)) (l : List α) : Prop := by sorry
+```","```lean
+def Finset.OrderShatters {α : Type u_1} [DecidableEq α] [LinearOrder α] : Finset (Finset α) → List α → Prop
+```",24,0,T,"A uses explicit args with := by sorry (definition body), B uses → Prop (declaration only). B matches target signature structure exactly.",False,False,13,2
+733783,Finset.certificator_subset_inter,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,2,141,The certificator of two finsets $s$ and $t$ (over a type with a Boolean algebra structure) is a subset of the intersection $s \cap t$.,"Finset.certificator_subset_inter.{u_1} {α : Type u_1} [BooleanAlgebra α] {s t : Finset α} [DecidableEq α] :
+  Finset.certificator s t ⊆ s ∩ t","```lean
+theorem certificator_subset_inter {α : Type*} [BooleanAlgebra α] (s t : Finset α) : certificator s t ⊆ s ∩ t := by sorry
+```","```lean
+theorem Finset.certificator_subset_inter {α : Type u_1} [BooleanAlgebra α] (s t : Finset α) :
+    Finset.certificator s t ⊆ s ∩ t
+```",38,0,T,A uses explicit braces for BooleanAlgebra and DecidableEq matching target; B omits DecidableEq and uses Type*.,False,False,12,6
+807539,GraphTheory.ES1.q13,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,182,"The theorem states that given a finite type α, an embedding g from β to α, and a function f from β to α → α that is Latin (meaning each f(b) is a bijection), there exists a function f' from α to α → α such that f' composed with g equals f, and f' is also Latin.","GraphTheory.ES1.q13.{u_2, u_3} {α : Type u_2} {β : Type u_3} [Finite α] (g : β ↪ α) (f : β → α → α)
+  (hf : GraphTheory.ES1.IsLatin f) : ∃ f', f' ∘ ⇑g = f ∧ GraphTheory.ES1.IsLatin f","```lean
+theorem latin_extension {α β : Type*} [Fintype α] (g : β ↪ α) (f : β → α → α)
+    (hf : ∀ b, Function.Bijective (f b)) :
+    ∃ f' : α → α → α, (∀ b, f' (g b) = f b) ∧ (∀ a, Function.Bijective (f' a))
+```","```lean
+theorem latinExtension {α β : Type*} [Finite α] (g : β ↪ α) (f : β → α → α) 
+  (hf : GraphTheory.ES1.IsLatin f) : 
+  ∃ (f' : α → α → α), Function.comp f' g = f ∧ GraphTheory.ES1.IsLatin f' := by sorry
+```",20,0,T,"A correctly uses IsLatin twice; B expands IsLatin to Bijective and changes composition form, deviating more from target.",False,False,31,22
+826635,GraphTheory.ES1.q15_part1,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,173,"This theorem states that there exists a positive constant ε such that for any finite type α, there exists a specific element x (depending on α) with the property that for every function f from α to the plane (ℝ × ℝ), the distortion of f is at least ε times the square root of the cardinality of α.","GraphTheory.ES1.q15_part1.{u_5} :
+  ∃ ε,
+    0 < ε ∧
+      ∀ (α : Type u_5) [inst : Fintype α], ∃ x, ∀ (f : α → ℝ × ℝ), ε * √↑(Fintype.card α) ≤ GraphTheory.ES1.distortion f","```lean
+theorem exists_positive_epsilon_distortion : ∃ ε > 0, ∀ (α : Type*) [Fintype α], ∃ x, ∀ (f : α → ℝ × ℝ), ε * (Fintype.card α).sqrt ≤ distortion f
+```","```lean
+theorem exists_eps_distortion_lower_bound : ∃ (ε : ℝ), 0 < ε ∧ ∀ {α : Type*}, Fintype α → ∃ (x : α), ∀ (f : α → ℝ × ℝ), ε * Real.sqrt (Fintype.card α) ≤ GraphTheory.ES1.distortion f
+```",48,0,tie,"Both match semantically: ε>0, forall α[Fintype α], exists x, forall f, ε√|α|≤distortion f. Different sugaring only.",False,False,15,16
+860017,GraphTheory.ES1.q12,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,324,"For any simple graph $G$ on a type $α$ (with decidable equality and adjacency) and any finite set $s$ of vertices, there exist two disjoint sets $u$ and $v$ whose union is $s$, such that every vertex in $u$ has an even number of neighbors in $u$, and every vertex in $v$ has an even number of neighbors in $v$.","GraphTheory.ES1.q12.{u_2} {α : Type u_2} [DecidableEq α] (G : SimpleGraph α) [DecidableRel (SimpleGraph.Adj G)]
+  (s : Finset α) :
+  ∃ u v,
+    Disjoint u v ∧
+      u ∪ v = s ∧
+        (∀ a ∈ u, Even (Cardinal.mk ↥({b ∈ u | SimpleGraph.Adj G a b}))) ∧
+          ∀ a ∈ v, Even (Cardinal.mk ↥({b ∈ v | SimpleGraph.Adj G a b}))","```lean
+def SimpleGraph.evenNeighborhoodPartition {α : Type*} [DecidableEq α] (G : SimpleGraph α) (s : Finset α) :
+    ∃ (u v : Finset α), Disjoint u v ∧ u ∪ v = s ∧
+    (∀ a ∈ u, Even (G.neighborFinset a |>.filter (· ∈ u) |>.card)) ∧
+    (∀ b ∈ v, Even (G.neighborFinset b |>.filter (· ∈ v) |>.card)) := by sorry
+```","```lean
+theorem exists_disjoint_partition_even_neighbors {α : Type*} [DecidableEq α] (G : SimpleGraph α) (s : Finset α) [DecidableRel G.Adj] : ∃ (u v : Finset α), Disjoint u v ∧ u ∪ v = s ∧ (∀ x ∈ u, Even (Finset.card (Finset.filter (G.Adj x) u))) ∧ (∀ x ∈ v, Even (Finset.card (Finset.filter (G.Adj x) v))) := by sorry
+```",45,0,T,A uses Finset.card matching target's Cardinal.mk better; B uses def instead of theorem and neighborFinset differs from set comprehension.,False,False,33,35
+818925,GrowthInGroups.Lecture3.lemma_3_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,232,"Here is the English statement of the theorem:
+
+If $G$ is a group, $A$ is a finite subset of $G$ containing the identity element, $A$ is symmetric (i.e., $A^{-1} = A$), and the size of $A^3$ is at most $K$ times the size of $A$ for some real number $K$, then $A^2$ is an approximate subgroup with constant $K^3$.","GrowthInGroups.Lecture3.lemma_3_1.{u_1} {G : Type u_1} [Group G] {K : ℝ} [DecidableEq G] {A : Finset G} (hA₁ : 1 ∈ A)
+  (hAsymm : A⁻¹ = A) (hA : ↑(Finset.card (A ^ 3)) ≤ K * ↑(Finset.card A)) : IsApproximateSubgroup (K ^ 3) (↑A ^ 2)","```lean
+theorem approximate_subgroup_from_doubling : ∀ (G : Type*) [Group G] (A : Finset G) (K : ℝ),
+    (1 : G) ∈ A →
+    (∀ a ∈ A, a⁻¹ ∈ A) →
+    (Finset.card (A * A * A) : ℝ) ≤ K * Finset.card A →
+    ∃ (X : Finset G), Finset.card X ≤ (K ^ 3) * Finset.card (A * A) ∧
+      (∀ a b ∈ A * A, a * b ∈ A * X ∨ a * b ∈ X * A) ∧
+      (∀ x ∈ X, x ∈ A * A * A)
+```","```lean
+theorem approximate_subgroup_from_tripling {G : Type*} [Group G] [DecidableEq G] {K : ℝ} {A : Finset G}
+    (hA₁ : 1 ∈ A) (hAsymm : A⁻¹ = A) (hA : ↑(Finset.card (A ^ 3)) ≤ K * ↑(Finset.card A)) :
+    IsApproximateSubgroup (K ^ 3) (↑A ^ 2)
+```",67,0,T,B matches target signature exactly; A uses different notation and existential formulation,False,False,82,8
+714296,IsMulOrderProp,cam-combi,LeanCamCombi.StableCombi.AddSet,2,64,"The property `IsMulOrderProp` for a subset $A$ of a group $G$ asserts that $A$ is closed under multiplication, contains the identity element, and is closed under taking inverses; moreover, if an element $g$ in $G$ has the property that all its positive powers lie in $A$, then $g$ itself must be in $A$.",IsMulOrderProp.{u_1} {G : Type u_1} [Group G] (A : Set G) : Prop,"```lean
+def IsMulOrderProp {G : Type*} [Group G] (A : Set G) : Prop :=
+  (∀ a b ∈ A, a * b ∈ A) ∧
+  (1 ∈ A) ∧
+  (∀ a ∈ A, a⁻¹ ∈ A) ∧
+  (∀ g : G, (∀ n : ℕ, n > 0 → g ^ n ∈ A) → g ∈ A)
+```","```lean
+def IsMulOrderProp {G : Type*} [Group G] (A : Set G) : Prop :=
+  (∀ a b ∈ A, a * b ∈ A) ∧
+  (1 ∈ A) ∧
+  (∀ a ∈ A, a⁻¹ ∈ A) ∧
+  (∀ g : G, (∀ n : ℕ, 0 < n → g ^ n ∈ A) → g ∈ A)
+```",13,0,tie,Both definitions are semantically identical; 0 < n and n > 0 are equivalent conditions in ℕ.,False,False,49,49
+845040,exists_isApproximateAddSubgroup_of_small_doubling,cam-combi,LeanCamCombi.Mathlib.Combinatorics.Additive.ApproximateSubgroup,0,428,"The theorem states that if $A$ is a nonempty finite subset of an additive group $G$ with small doubling (meaning the size of $2A$ is at most $K$ times the size of $A$), then there exists a subset $S$ contained in $2(-A + A)$ such that: (1) $S$ is an approximate additive subgroup with constant $2^{12} \cdot K^{36}$, (2) the cardinality of $S$ is at most $16 \cdot K^{12}$ times the cardinality of $A$, and (3) there exists an element $a \in A$ such that the intersection of $A$ with the translate $a + S$ has cardinality at least $|A|/(2K)$.","exists_isApproximateAddSubgroup_of_small_doubling.{u_1} {G : Type u_1} [AddGroup G] {K : ℝ} [DecidableEq G]
+  {A : Finset G} (hA₀ : Finset.Nonempty A) (hA : ↑(Finset.card (2 • A)) ≤ K * ↑(Finset.card A)) :
+  ∃ S ⊆ 2 • (-A + A),
+    IsApproximateAddSubgroup (2 ^ 12 * K ^ 36) ↑S ∧
+      ↑(Finset.card S) ≤ 16 * K ^ 12 * ↑(Finset.card A) ∧
+        ∃ a ∈ A, ↑(Finset.card A) / (2 * K) ≤ ↑(Finset.card (A ∩ (AddOpposite.op a +ᵥ S)))","```lean
+theorem small_doubling_approx_subgroup {G : Type*} [AddCommGroup G] (A : Finset G) (K : ℕ) 
+    (hA : A.Nonempty) (h_doubling : (Finset.image₂ (· + ·) A A).card ≤ K * A.card) :
+    ∃ S : Finset G, 
+      S ⊆ Finset.image₂ (· + ·) (Finset.image (· - ·) A A) (Finset.image Neg.neg A) ∧
+      (∀ x y : G, x ∈ S → y ∈ S → ∃ z ∈ S, x + y - z ∈ S) ∧
+      S.card ≤ 16 * K ^ 12 * A.card ∧
+      ∃ a ∈ A, (Finset.filter (fun g => g ∈ a + S) A).card ≥ A.card / (2 * K)
+```","```lean
+theorem exists_approx_additive_subgroup_of_small_doubling {G : Type*} [AddGroup G] [DecidableEq G] 
+    {K : ℝ} {A : Finset G} (hA : A.Nonempty) 
+    (hK : (Finset.card (2 • A) : ℝ) ≤ K * Finset.card A) :
+    ∃ S : Finset G, S ⊆ (2 • (-A + A)) ∧ 
+    IsApproximateAddSubgroup (2^12 * K^36) S ∧
+    (Finset.card S : ℝ) ≤ 16 * K^12 * Finset.card A ∧
+    ∃ a ∈ A, (Finset.card (A ∩ (a +ᵥ S)) : ℝ) ≥ Finset.card A / (2 * K)
+```",326,65,T,"A matches target signature much better: correct type classes (AddGroup vs AddCommGroup), uses IsApproximateAddSubgroup, AddOpposite.op, proper coercions, and correct doubling constant 2^12*K^36.",False,False,84,55
+835951,GraphTheory.ES1.q14_part3,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,274,"Looking at this Lean 4 declaration, it states:
+
+Given a set relation `r` between types `α` and `β` (where `β` has decidable equality and the image of any singleton under `r` is finite), if for every finite set `A` of elements from `α`, the cardinality of `A` is at most the cardinality of the image of `A` under `r`, then there exists an injective function `f` from `α` to `β` such that for every element `a` in `α`, the pair `(a, f(a))` belongs to the relation `r`.
+
+This is a statement about the existence of an injective matching or selection from a set relation, provided the relation satisfies a certain Hall-type condition where the image of every finite set is at least as large as the set itself.","GraphTheory.ES1.q14_part3.{u_2, u_3} {α : Type u_2} {β : Type u_3} [DecidableEq β] (r : SetRel α β)
+  [(a : α) → Fintype ↑(SetRel.image r {a})] (hr : ∀ (A : Finset α), Finset.card A ≤ Fintype.card ↑(SetRel.image r ↑A)) :
+  ∃ f, Function.Injective f ∧ ∀ (a : α), (a, f a) ∈ r","```lean
+theorem exists_injective_of_finite_image_of_card_le_card_image
+    {α β : Type*} [DecidableEq β] (r : α → β → Prop)
+    (h_finite : ∀ a : α, Set.Finite {b | r a b})
+    (h_card : ∀ A : Finset α, A.card ≤ (Finset.image (fun a => {b | r a b}) A).card)
+    : ∃ f : α → β, Function.Injective f ∧ ∀ a : α, r a (f a) := by sorry
+```","```lean
+theorem setRel_injective_of_hall_condition {α β : Type*} [DecidableEq β] (r : SetRel α β)
+    [(a : α) → Fintype ↑(SetRel.image r {a})]
+    (hall : ∀ (A : Finset α), Finset.card A ≤ Fintype.card ↑(SetRel.image r ↑A)) :
+    ∃ (f : α → β), Function.Injective f ∧ ∀ (a : α), (a, f a) ∈ r := by sorry
+```",49,0,T,Candidate B exactly matches the target signature including SetRel type and finiteness assumptions; A uses plain binary relation and different finiteness encoding.,False,False,50,17
+843653,GrowthInGroups.Lecture3.proposition_3_3,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,410,"Here is the English statement of the theorem:
+
+Let G be a group with decidable equality, let A be a nonempty finite subset of G, and suppose that the cardinality of A² is at most K times the cardinality of A for some real number K. Then there exists a finite subset S of (A⁻¹A)² such that: (1) S is an approximate subgroup with constant at most 2¹² · K³⁶; (2) the cardinality of S is at most 16K¹² times the cardinality of A; and (3) there exists an element a in A such that the intersection of A with the left translate of S by a (viewed as a right action via the opposite group) has cardinality at least |A|/(2K).","GrowthInGroups.Lecture3.proposition_3_3.{u_1} {G : Type u_1} [Group G] {K : ℝ} [DecidableEq G] {A : Finset G}
+  (hA₀ : Finset.Nonempty A) (hA : ↑(Finset.card (A ^ 2)) ≤ K * ↑(Finset.card A)) :
+  ∃ S ⊆ (A⁻¹ * A) ^ 2,
+    IsApproximateSubgroup (2 ^ 12 * K ^ 36) ↑S ∧
+      ↑(Finset.card S) ≤ 16 * K ^ 12 * ↑(Finset.card A) ∧
+        ∃ a ∈ A, ↑(Finset.card A) / (2 * K) ≤ ↑(Finset.card (A ∩ MulOpposite.op a • S))","```lean
+theorem approximate_subgroup_exists {G : Type*} [Group G] [DecidableEq G] 
+    {A : Set G} (hA_nonempty : A.Nonempty) (hA_finite : Set.Finite A) 
+    {K : ℝ} (hK_pos : 0 < K) (hK_card : Nat.card (A * A) ≤ K * Nat.card A) :
+    ∃ (S : Set G), 
+      Set.Finite S ∧ 
+      S ⊆ (A⁻¹ * A) * (A⁻¹ * A) ∧ 
+      ApproximateSubgroup (2^12 * K^36) S ∧ 
+      Nat.card S ≤ 16 * K^12 * Nat.card A ∧ 
+      ∃ (a : G), a ∈ A ∧ Nat.card (A ∩ (fun x ↦ a * x) '' S) ≥ Nat.card A / (2 * K) := by sorry
+```","```lean
+theorem exists_isApproximateSubgroup_of_small_doubling {G : Type u_1} [Group G] {K : ℝ} [DecidableEq G] {A : Finset G}
+  (hA₀ : Finset.Nonempty A) (hA : ↑(Finset.card (A ^ 2)) ≤ K * ↑(Finset.card A)) :
+  ∃ S ⊆ (A⁻¹ * A) ^ 2,
+    IsApproximateSubgroup (2 ^ 12 * K ^ 36) ↑S ∧
+      ↑(Finset.card S) ≤ 16 * K ^ 12 * ↑(Finset.card A) ∧
+        ∃ a ∈ A, ↑(Finset.card A) / (2 * K) ≤ ↑(Finset.card (A ∩ MulOpposite.op a • S)) := by sorry
+```",80,0,T,"B is syntactically identical to target; A uses Set/Nat.card instead of Finset, different scalar action, and different squaring notation.",False,False,77,5
+863204,GrowthInGroups.Lecture2.lemma_2_3_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture2,0,214,"This lemma states that if $A$ is a finite subset of a group $G$ and the cardinality of $A^2$ (the set of all products of two elements from $A$) is bounded by $K$ times the cardinality of $A$, then the cardinality of $A \cdot A^{-1}$ (the set of all products of an element from $A$ with the inverse of an element from $A$) is bounded by $K^2$ times the cardinality of $A$.","GrowthInGroups.Lecture2.lemma_2_3_1.{u_1} {G : Type u_1} [DecidableEq G] [Group G] {A : Finset G} {K : ℝ}
+  (hA : ↑(Finset.card (A ^ 2)) ≤ K * ↑(Finset.card A)) : ↑(Finset.card (A * A⁻¹)) ≤ K ^ 2 * ↑(Finset.card A)","```lean
+lemma card_mul_inv_le_sq_mul_card [Group G] [Fintype A] (hA : (A * A : Set G).ncard ≤ K * A.ncard) :
+  (A * A⁻¹ : Set G).ncard ≤ K ^ 2 * A.ncard
+```","```lean
+lemma card_mul_inv_le_sq {G : Type u_1} [DecidableEq G] [Group G] (A : Finset G) (K : ℕ) 
+    (h : Finset.card (A * A) ≤ K * Finset.card A) : 
+    Finset.card (A * A⁻¹) ≤ K ^ 2 * Finset.card A := by sorry
+```",192,0,tie,Both candidates have significant type mismatches with the target. A uses ℕ instead of ℝ for K; B uses Set G and ncard instead of Finset G and card.,False,False,28,19
+788670,GrowthInGroups.Lecture1.fact_1_3,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,205,"Looking at this Lean 4 declaration, it states a fundamental fact about growth in groups:
+
+If $G$ is a finite group with a finite generating set $X$, and if the $n$-th power of $X$ (the set of all products of at most $n$ elements from $X$) equals all of $G$, then the ratio of the logarithm of the cardinality of $G$ to the logarithm of the cardinality of $X$ is at most $n$.","GrowthInGroups.Lecture1.fact_1_3.{u_1} {G : Type u_1} [Group G] [DecidableEq G] {X : Finset G} {n : ℕ} [Fintype G]
+  (hn : X ^ n = Finset.univ) : Real.log ↑(Fintype.card G) / Real.log ↑(Finset.card X) ≤ ↑n","```lean
+theorem growth_bound_in_finite_group (G : Type*) [Group G] [Fintype G] (X : Finset G) (n : ℕ)
+    (h : Finset.image (fun s : List G => s.prod) (Finset.filter (fun l => l.length ≤ n) (List.range (Fintype.card G))) = Finset.univ) :
+    Real.log (Fintype.card G) / Real.log (Finset.card X) ≤ n := by sorry
+```","```lean
+theorem group_growth_bound {G : Type*} [Group G] [Fintype G] {X : Finset G} (hX : X.Nonempty) 
+    {n : ℕ} (h : X ^ n = Finset.univ) : 
+    Real.log (Fintype.card G) ≤ n * Real.log (Finset.card X) := by sorry
+```",161,0,T,"A correctly uses X^n = univ; B's hypothesis doesn't involve X at all, making it semantically wrong.",False,False,35,19
+871578,GrowthInGroups.Lecture1.fact_1_1_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,197,"Here is the English statement of the theorem:
+
+In an infinite group G with a finite generating set X containing the identity element, for any natural number n, the cardinality of the n-th power of X (the set of products of n elements from X) is at least n + 1.","GrowthInGroups.Lecture1.fact_1_1_1.{u_1} {G : Type u_1} [Group G] [DecidableEq G] {X : Finset G} [Infinite G]
+  (hX₁ : 1 ∈ X) (hXgen : Subgroup.closure ↑X = ⊤) (n : ℕ) : n + 1 ≤ Finset.card (X ^ n)","```lean
+theorem power_set_cardinality {G : Type*} [Group G] {X : Set G} (hX : Set.Finite X) (hX_gen : Subgroup.closure X = ⊤) (hX_id : (1 : G) ∈ X) (hG : Infinite G) (n : ℕ) : n + 1 ≤ Nat.card (X ^ n)
+```","```lean
+theorem infinite_group_power_set_card {G : Type u_1} [Group G] [DecidableEq G] {X : Finset G}
+  (hX₁ : 1 ∈ X) (hG : Infinite G) (n : ℕ) : n + 1 ≤ Finset.card (X ^ n) := by sorry
+```",59,0,T,A uses Finset and matches target structure better; B switches to Set/Nat.card instead of Finset.card,False,False,26,12
+791031,not_isOrderPropRel,cam-combi,LeanCamCombi.StableCombi.Rel,3,114,The statement asserts that a binary relation `r` between types `α` and `β` is not an order property relation if and only if it is a stable relation.,"not_isOrderPropRel.{u_1, u_2} {α : Type u_1} {β : Type u_2} {r : α → β → Prop} : ¬IsOrderPropRel r ↔ IsStableRel r","```lean
+theorem not_is_order_property_iff_is_stable {α β : Type*} (r : α → β → Prop) :
+  ¬IsOrderProperty r ↔ IsStable r := by sorry
+```","Looking at this statement, I need to formalize: ""a binary relation `r` is not an order property relation if and only if it is a stable relation.""
+
+This can be expressed as: `¬IsOrderPropRel r ↔ IsStableRel r`
+
+The dependencies include `not_isStableRel` which states `¬IsStableRel r ↔ IsOrderPropRel r`, suggesting the relationship between these concepts.
+
+```lean
+theorem not_isOrderPropRel_iff_isStableRel {α : Type u_1} {β : Type u_2} {r : α → β → Prop} : ¬IsOrderPropRel r ↔ IsStableRel r := by sorry
+```",16,0,T,A uses correct type names IsOrderPropRel and IsStableRel matching dependencies; B uses non-existent IsOrderProperty and IsStable,False,False,15,60
+862261,GrowthInGroups.Lecture3.lemma_3_8_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,262,The cardinality of the image of $A^m$ under the quotient map to $G/H$ multiplied by the cardinality of the set of elements in $A^n$ that belong to the normal subgroup $H$ is at most the cardinality of $A^{m+n}$.,"GrowthInGroups.Lecture3.lemma_3_8_1.{u_1} {G : Type u_1} [Group G] {m n : ℕ} {H : Subgroup G} [Subgroup.Normal H]
+  {A : Finset G} :
+  Finset.card (Finset.image (⇑(QuotientGroup.mk' H)) (A ^ m)) * Finset.card ({x ∈ A ^ n | x ∈ H}) ≤
+    Finset.card (A ^ (m + n))","```lean
+theorem cardinality_quotient_image_times_stabilizer_le (A : Type*) (G : Type*) (H : Subgroup G) 
+    (m n : ℕ) (hH : H.Normal) :
+    Nat.card (Set.image (fun (a : A^m) => Subgroup.Quotient.mk (a : G)) (Set.univ : Set (A^m))) * 
+    Nat.card {x : A^n | (x : G) ∈ H} ≤ Nat.card (A^(m+n)) := by sorry
+```","```lean
+theorem card_pow_quotient_mul_pow_inter_subgroup_le {G : Type*} [Group G] [DecidableEq G] {H : Subgroup G} [DecidablePred fun x => x ∈ H] [Subgroup.Normal H] {A : Finset G} {m n : ℕ} : Finset.card (Finset.image (⇑(QuotientGroup.mk' H)) (A ^ m)) * Finset.card ({x ∈ A ^ n | x ∈ H}) ≤ Finset.card (A ^ (m + n)) := by sorry
+```",46,0,T,"A matches target signature closely using Finset operations and correct types. B uses wrong types (Set vs Finset, Nat.card vs Finset.card) and introduces unnecessary parameters.",False,False,45,22
+872281,GrowthInGroups.Lecture3.proposition_3_6_2,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,278,"Lean 4 declaration:
+
+```lean4
+theorem GrowthInGroups.Lecture3.proposition_3_6_2 : 
+  ∀ {G : Type u_1} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ},
+  IsApproximateSubgroup K A → 
+  IsApproximateSubgroup L B → 
+  2 ≤ m → 
+  2 ≤ n → 
+  IsApproximateSubgroup (K ^ (2 * m - 1) * L ^ (2 * n - 1)) (A ^ m ∩ B ^ n)
+```
+
+English statement:
+
+If $A$ is a $K$-approximate subgroup of a group $G$ and $B$ is an $L$-approximate subgroup of $G$, and if $m$ and $n$ are natural numbers each at least 2, then the intersection $A^m \cap B^n$ is a $(K^{2m-1} \cdot L^{2n-1})$-approximate subgroup of $G$.","GrowthInGroups.Lecture3.proposition_3_6_2.{u_1} {G : Type u_1} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ}
+  (hA : IsApproximateSubgroup K A) (hB : IsApproximateSubgroup L B) (hm : 2 ≤ m) (hn : 2 ≤ n) :
+  IsApproximateSubgroup (K ^ (2 * m - 1) * L ^ (2 * n - 1)) (A ^ m ∩ B ^ n)","```lean4
+theorem GrowthInGroups.Lecture3.proposition_3_6_2 : 
+  ∀ {G : Type u_1} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ},
+  IsApproximateSubgroup K A → 
+  IsApproximateSubgroup L B → 
+  2 ≤ m → 
+  2 ≤ n → 
+  IsApproximateSubgroup (K ^ (2 * m - 1) * L ^ (2 * n - 1)) (A ^ m ∩ B ^ n) := by sorry
+```","```lean4
+theorem GrowthInGroups.Lecture3.proposition_3_6_2 : 
+  ∀ {G : Type u_1} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ},
+  IsApproximateSubgroup K A → 
+  IsApproximateSubgroup L B → 
+  2 ≤ m → 
+  2 ≤ n → 
+  IsApproximateSubgroup (K ^ (2 * m - 1) * L ^ (2 * n - 1)) (A ^ m ∩ B ^ n) := by sorry
+```",38,0,tie,Both candidates are identical and match the target signature exactly.,False,False,22,22
+663440,GrowthInGroups.Lecture1.proposition_1_7,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,263,"There exists a positive real number ε such that for every finite set X of 2×2 real special linear matrices, if the size of X² is at most 1000 times the size of X and all entries of all matrices in X have absolute value at most ε, then there exists a subset A that is commutative under multiplication and a collection of cosets such that X is contained in the union of these cosets of A.","GrowthInGroups.Lecture1.proposition_1_7 :
+  ∃ ε > 0,
+    ∀ (X : Finset (Matrix.SpecialLinearGroup (Fin 2) ℝ)),
+      Finset.card (X ^ 2) ≤ 1000 * Finset.card X →
+        (∀ M ∈ X, ∀ (i j : Fin 2), |↑M i j| ≤ ε) → ∃ A, IsMulCommutative ↥A ∧ ∃ a, ↑X ⊆ ⋃ i, a i • ↑A","```lean
+theorem exists_epsilon_sl2_cosets : ∃ ε > 0, ∀ X : Finset (Matrix (Fin 2) (Fin 2) ℝ),
+  (∀ M ∈ X, M.det = 1) →
+  (∀ M ∈ X, ∀ i j, |M i j| ≤ ε) →
+  (Finset.card (X * X) ≤ 1000 * Finset.card X) →
+  ∃ (A : Subgroup (Matrix (Fin 2) (Fin 2) ℝ)) (hcomm : ∀ a b ∈ A, a * b = b * a)
+    (cosets : Finset (Subgroup.LeftCosets A)),
+    X ⊆ Set.iUnion fun c : cosets => (c : Set (Matrix (Fin 2) (Fin 2) ℝ)) := by sorry
+```","```lean
+theorem sl2_growth_bound : ∃ ε > 0, ∀ (X : Finset (Matrix.SpecialLinearGroup (Fin 2) ℝ)),
+  (∀ m ∈ X, ∀ i j : Fin 2, |((m : Matrix (Fin 2) (Fin 2) ℝ) i j)| ≤ ε) →
+  (Finset.card (X * X) ≤ 1000 * Finset.card X) →
+  ∃ (A : Subgroup (Matrix.SpecialLinearGroup (Fin 2) ℝ)),
+    (∀ a b ∈ A, a * b = b * a) ∧
+    ∃ (cosets : Finset (Set (Matrix.SpecialLinearGroup (Fin 2) ℝ))),
+    (↑X : Set (Matrix.SpecialLinearGroup (Fin 2) ℝ)) ⊆ Set.iUnion fun c ∈ cosets => c
+```",115,0,T,A uses SL₂(ℝ) correctly; B uses raw matrices losing group structure and det constraint.,False,False,76,71
+706726,IsOrderPropRelWith,cam-combi,LeanCamCombi.StableCombi.Rel,6,93,"The property `IsOrderPropRelWith n r` asserts that a binary relation `r : α → β → Prop` preserves order with respect to a natural number `n`, meaning that for any function `f : Fin n → α` and any element `b : β`, if `r (f i) b` holds for all `i : Fin n`, then there exists an element `a : α` such that `r a b` and `f i ≤ a` for all `i : Fin n` (where the order on `α` is given by its preorder structure).","IsOrderPropRelWith.{u_1, u_2} {α : Type u_1} {β : Type u_2} (n : ℕ) (r : α → β → Prop) : Prop","```lean
+def IsOrderPropRelWith (n : ℕ) {α β : Type*} [Preorder α] (r : α → β → Prop) : Prop :=
+  ∀ (f : Fin n → α) (b : β), (∀ i : Fin n, r (f i) b) → ∃ a : α, r a b ∧ ∀ i : Fin n, f i ≤ a
+```","```lean
+def IsOrderPropRelWith (n : ℕ) (r : α → β → Prop) [Preorder α] : Prop :=
+  ∀ (f : Fin n → α) (b : β), (∀ i : Fin n, r (f i) b) → ∃ a : α, r a b ∧ ∀ i : Fin n, f i ≤ a
+```",3,0,T,A matches target's implicit {α β}; B explicitly declares them conflicting with target signature.,False,False,49,48
+850829,GrowthInGroups.Lecture1.conjecture_1_4,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,313,"There exist non-negative constants $C_u$ and $d_u$ such that for any finite simple group $G$ with decidable equality, and any symmetric generating set $X$ containing the identity element, there exists a natural number $m$ such that $m \leq C_u \cdot (\log |G|)^{d_u}$ and $X^m = G$ (i.e., the $m$-fold product of $X$ with itself equals the entire group).","GrowthInGroups.Lecture1.conjecture_1_4.{u_2} :
+  ∃ Cᵤ ≥ 0,
+    ∃ dᵤ ≥ 0,
+      ∀ {G : Type u_2} [inst : Group G] [IsSimpleGroup G] [inst_2 : Fintype G] [inst_3 : DecidableEq G] (X : Finset G),
+        1 ∈ X → X⁻¹ = X → Subgroup.closure ↑X = ⊤ → ∃ m, ↑m ≤ Cᵤ * Real.log ↑(Fintype.card G) ^ dᵤ ∧ X ^ m = Finset.univ","```lean
+theorem finite_simple_group_generation : ∃ (C_u d_u : ℕ), ∀ (G : Type*) [Group G] [Fintype G] [DecidableEq G],
+  (∀ g h : G, Decidable (g = h)) →
+  ∀ (X : Set G), X.Symmetric → (1 : G) ∈ X →
+  ∃ (m : ℕ), m ≤ C_u * (Nat.log (Fintype.card G)) ^ d_u ∧
+  Subgroup.closure X = ⊤ := by sorry
+```","```lean
+theorem exists_constants_covering_simple_groups :
+  ∃ (C_u d_u : ℝ), ∀ (G : Type) [Group G] [DecidableEq G] [Fintype G],
+    IsSimpleGroup G →
+    ∀ (X : Finset G), (1 : G) ∈ X →
+      (∀ x ∈ X, x⁻¹ ∈ X) →
+      ∃ (m : ℕ), m ≤ C_u * (Real.log (Fintype.card G)) ^ d_u ∧
+        X ^ m = Finset.univ
+```",95,0,T,"B matches target structure better: existentials for C_u, d_u outside, includes IsSimpleGroup, X^m = univ conclusion, Finset operations",False,False,53,44
+860538,Finset.IsUpperSet.certificator_eq_inter,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,0,190,"When $s$ and $t$ are finite sets in a Boolean algebra, with $s$ being an upper set and $t$ being a lower set, the certificator of $s$ and $t$ equals their intersection $s \cap t$.","Finset.IsUpperSet.certificator_eq_inter.{u_1} {α : Type u_1} [BooleanAlgebra α] (s t : Finset α) [DecidableEq α]
+  (hs : IsUpperSet ↑s) (ht : IsLowerSet ↑t) : Finset.certificator s t = s ∩ t","```lean
+theorem certificator_eq_inter {α : Type*} [BooleanAlgebra α] {s t : Finset α} (hs : IsUpperSet (↑s : Set α)) (ht : IsLowerSet (↑t : Set α)) : certificator s t = s ∩ t := by sorry
+```","```lean
+theorem Finset.certificator_eq_inter {α : Type u_1} [BooleanAlgebra α] [DecidableEq α] {s t : Finset α} (hs : IsUpperSet (↑s : Set α)) (ht : IsLowerSet (↑t : Set α)) : Finset.certificator s t = s ∩ t
+```",83,0,T,B includes DecidableEq α instance which is present in target signature; A omits it and uses sorry proof.,False,False,20,16
+757842,Finset.certificator_subset_disjSups,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,1,142,"Looking at this theorem, it states that the certificator of two finsets `s` and `t` in a Boolean algebra is a subset of the disjoint suprema (disjSups) of `s` and `t`.
+
+In other words, for any two finite sets `s` and `t` of elements in a Boolean algebra, the certificator finset is contained within the finset of all disjoint suprema formed from elements of `s` and `t`.","Finset.certificator_subset_disjSups.{u_1} {α : Type u_1} [BooleanAlgebra α] {s t : Finset α} :
+  Finset.certificator s t ⊆ Finset.disjSups s t","```lean
+theorem Finset.certificator_subset_disjSups {α : Type*} [BooleanAlgebra α] (s t : Finset α) :
+  Finset.certificator s t ⊆ disjSups s t
+```","```lean
+theorem Finset.certificator_subset_disjSups {α : Type*} [BooleanAlgebra α] (s t : Finset α) :
+  Finset.certificator s t ⊆ Finset.disjSups s t
+```",72,0,T,"Candidate A fully qualifies disjSups with Finset., matching target exactly. B omits namespace qualification.",False,False,7,6
+846848,GrowthInGroups.Lecture3.theorem_4_4,cam-combi,LeanCamCombi.GrowthInGroups.Lecture4,0,316,"Theorem (Growth in Groups, Lecture 3, Theorem 4.4): For any positive real constant K, there exists a constant C > 0 such that for every group G with decidable equality and every subset A of G that is a K-approximate subgroup, there exist subgroups H and N of G, where N is a normal subgroup, and a finite set F, such that the following three conditions hold: (1) the C-th term of the upper central series of the quotient H/N equals the whole quotient group H/N, (2) the image of N (as a subset of G) is contained in the fourth power of the commutator set A/A, and (3) A is contained in the product F · H.","GrowthInGroups.Lecture3.theorem_4_4.{u_2} {K : ℝ} :
+  ∃ C > 0,
+    ∀ {G : Type u_2} [inst : Group G] [DecidableEq G] (A : Set G),
+      IsApproximateSubgroup K A →
+        ∃ H N,
+          ∃ (_hD : Subgroup.Normal N),
+            ∃ F, upperCentralSeries (↥H ⧸ N) C = ⊤ ∧ Subtype.val '' ↑N ⊆ (A / A) ^ 4 ∧ A ⊆ ↑F * ↑H","```lean
+theorem growth_in_groups_lecture3_theorem44 (K : ℝ) (hK : K > 0) :
+  ∃ C > 0, ∀ (G : Type*) [Group G] [DecidableEq G],
+    ∀ (A : Set G), IsKApproximateSubgroup K A →
+    ∃ (H : Subgroup G) (N : Subgroup G) (hN : N.Normal) (F : Set G) (hF : Set.Finite F),
+      (1) upperCentralSeriesAt H N C = ⊤ ∧
+      (2) (N : Set G) ⊆ ((A / A) / A) / A ∧
+      (3) A ⊆ F * ↑H
+```","```lean
+theorem growth_in_groups_theorem_4_4 {G : Type*} [Group G] [DecidableEq G] (K : ℝ) (hK : 0 < K) (A : Set G) (hA : IsApproximateSubgroup K A) :
+  ∃ (C : ℕ) (hC : 0 < C) (H : Subgroup G) (N : Subgroup G) (hN : Subgroup.Normal N) (F : Finset G),
+    (upperCentralSeries (H ⧸ N) C = ⊤) ∧
+    (Set.image (Subtype.val : N → G) (Set.univ : Set N) ⊆ (A / A) ^ 4) ∧
+    (A ⊆ Set.image (fun p : F × H => (p.1 : G) * (p.2 : G)) (Set.univ : Set (F × H)))
+```",88,0,T,"B matches the target structure much more closely: nested existentials, `upperCentralSeries (H ⧸ N) C = ⊤`, `Subtype.val '' ↑N ⊆ (A / A) ^ 4`, and correct quantifier order. A uses wrong predicates and different structure.",False,False,52,79
+706725,IsAddOrderPropWith,cam-combi,LeanCamCombi.StableCombi.AddSet,2,79,"Looking at the Lean 4 declaration, `IsAddOrderPropWith n A` is a property that holds for a natural number `n` and a subset `A` of an additive group `G`. This predicate asserts that the set `A` satisfies a certain ""order property"" with respect to `n`, which typically relates to how elements of `A` combine under repeated addition (specifically, considering sums of `n` elements from `A`).",IsAddOrderPropWith.{u_1} {G : Type u_1} [AddGroup G] (n : ℕ) (A : Set G) : Prop,"```lean
+def IsAddOrderPropWith (n : ℕ) {G : Type*} [AddMonoid G] (A : Set G) : Prop := sorry
+```","```lean
+def IsAddOrderPropWith {G : Type u} [AddGroup G] (n : ℕ) (A : Set G) : Prop :=
+  IsOrderPropRelWith n (· ∈ A)
+```",14,0,T,A provides actual definition with matching universe/typeclass; B uses AddMonoid instead of AddGroup and includes sorry.,False,False,12,9
+858737,Finset.exists_littlewood_offord_partition,cam-combi,LeanCamCombi.PlainCombi.LittlewoodOfford,1,469,"The Littlewood-Offord partition theorem states that given a finite set $s$ indexed by $\iota$, a function $f : \iota \to E$ into a normed real vector space, and a positive real number $r$ such that $\|f(i)\| \geq r$ for all $i \in s$, there exists a partition $P$ of subsets of $s$ with the following properties: the number of parts in the partition equals the binomial coefficient $\binom{|s|}{\lfloor |s|/2 \rfloor}$, every subset in every part is contained in $s$, and for any part in the partition, the distance between the sums $\sum_{i \in u} f(i)$ and $\sum_{i \in v} f(i)$ is at least $r$ for any two distinct subsets $u$ and $v$ in that part.","Finset.exists_littlewood_offord_partition.{u_1, u_2} {ι : Type u_1} {E : Type u_2} [NormedAddCommGroup E]
+  [NormedSpace ℝ E] {s : Finset ι} {f : ι → E} {r : ℝ} [DecidableEq ι] (hr : 0 < r) (hf : ∀ i ∈ s, r ≤ ‖f i‖) :
+  ∃ P,
+    Finset.card (Finpartition.parts P) = Nat.choose (Finset.card s) (Finset.card s / 2) ∧
+      (∀ 𝒜 ∈ Finpartition.parts P, ∀ t ∈ 𝒜, t ⊆ s) ∧
+        ∀ 𝒜 ∈ Finpartition.parts P, Set.Pairwise ↑𝒜 fun u v => r ≤ dist (∑ i ∈ u, f i) (∑ i ∈ v, f i)","```lean
+theorem littlewood_offord_partition {ι : Type*} [Fintype ι] (s : Finset ι) (f : ι → ℝ) (r : ℝ) 
+    (hr : 0 < r) (hf : ∀ i ∈ s, r ≤ |f i|) :
+  ∃ (P : Finset (Finset (Finset ι))), 
+    (∀ p ∈ P, ∀ u ∈ p, u ⊆ s) ∧
+    (Finset.card P = Nat.choose s.card (s.card / 2)) ∧
+    (∀ p ∈ P, ∀ u ∈ p, ∀ v ∈ p, u ≠ v → 
+      r ≤ |(∑ i in u, f i) - (∑ i in v, f i)|)
+```","```lean
+theorem littlewood_offord_partition {ι : Type*} {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (s : Finset ι) (f : ι → E) (r : ℝ) (hr : 0 < r) (hf : ∀ i ∈ s, r ≤ ‖f i‖) :
+    ∃ P : Finpartition (s.powerset : Finset (Finset ι)),
+      (Finpartition.parts P).card = Nat.choose s.card (s.card / 2) ∧
+      (∀ p ∈ Finpartition.parts P, p ⊆ s.powerset) ∧
+      (∀ p ∈ Finpartition.parts P, Set.Pairwise (↑p) fun u v =>
+        r ≤ dist (∑ i in u, f i) (∑ i in v, f i))
+```",200,0,T,"A uses Finpartition matching target structure and NormedSpace. B uses plain Finset and restricts to ℝ, diverging significantly.",False,False,67,40
+841442,GraphTheory.ES1.q7,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,292,"If $G$ is an acyclic simple graph and $f$ is a function mapping elements of a finite set $s$ to subgraphs of $G$ such that each subgraph $f(i)$ is acyclic and any two subgraphs $f(i)$ and $f(j)$ (for $i, j \in s$) have a non-empty intersection (their infimum is not bottom), then the infimum of all subgraphs $f(i)$ over $i \in s$ is also non-empty (not bottom).","GraphTheory.ES1.q7.{u_1, u_2} {ι : Type u_1} {α : Type u_2} (G : SimpleGraph α) (hG : SimpleGraph.IsAcyclic G)
+  (s : Finset ι) (f : ι → SimpleGraph.Subgraph G) (hf : ∀ i ∈ s, SimpleGraph.IsAcyclic (SimpleGraph.Subgraph.coe (f i)))
+  (h : ∀ i ∈ s, ∀ j ∈ s, f i ⊓ f j ≠ ⊥) : Finset.inf s f ≠ ⊥","```lean
+theorem acyclic_graph_subgraph_intersection {G : SimpleGraph α} (hG : Acyclic G) (s : Finset ι) 
+    (f : ι → Subgraph G) (h_acyclic : ∀ i ∈ s, Acyclic (f i)) 
+    (h_pairwise : ∀ i ∈ s, ∀ j ∈ s, (f i ⊓ f j : Subgraph G) ≠ ⊥) : 
+    (⨅ i ∈ s, f i : Subgraph G) ≠ ⊥ := by sorry
+```","```lean
+theorem acyclic_subgraph_infimum {V : Type*} (G : SimpleGraph V) (s : Finset (SimpleGraph.Subgraph G))
+    (hG : G.IsAcyclic) (f : s → SimpleGraph.Subgraph G)
+    (hf_acyclic : ∀ i, (f i).coe.IsAcyclic)
+    (hf_intersecting : ∀ i j : s, f i ⊓ f j ≠ ⊥) :
+    Finset.inf s f ≠ ⊥ := by sorry
+```",54,0,B,A matches target structure: indexed family f : ι → Subgraph with membership conditions. B incorrectly uses s as Finset of subgraphs instead of index set.,False,False,34,33
+865143,GrowthInGroups.Lecture1.lemma_1_11,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,268,"If $G$ is a group with decidable equality, and $A$ is a finite subset of $G$ such that $|A \cdot A| < \frac{3}{2}|A|$, then there exists a subgroup $H$ and an element $x$ such that $|H| < \frac{3}{2}|A|$, and for all $a \in A$, the set $A$ is contained in the left coset $aH$ and moreover $aH = Ha$ (i.e., every element of $A$ normalizes $H$ when viewed as acting by left and right multiplication).","GrowthInGroups.Lecture1.lemma_1_11.{u_1} {G : Type u_1} [Group G] [DecidableEq G] {A : Finset G}
+  (hA : ↑(Finset.card (A * A)) < 3 / 2 * ↑(Finset.card A)) :
+  ∃ H x, ↑(Fintype.card ↥H) < 3 / 2 * ↑(Finset.card A) ∧ ∀ a ∈ A, ↑A ⊆ a • ↑H ∧ a • ↑H = MulOpposite.op a • ↑H","```lean
+theorem growth_implies_coset (G : Type*) [Group G] [DecidableEq G] (A : Finset G) 
+    (h : (A * A).card < (3 * A.card) / 2) : 
+    ∃ (H : Subgroup G) (x : G), 
+      H.carrier.ncard < (3 * A.card) / 2 ∧ 
+      A ⊆ (fun a => a • H.carrier) x ∧ 
+      ∀ a ∈ A, (fun a => a • H.carrier) a = H.carrier • a := by sorry
+```","```lean
+theorem Finset.doubling_lt_three_halves' {G : Type*} [Group G] [DecidableEq G] {A : Finset G}
+  (h : ↑(Finset.card (A * A)) < 3 / 2 * ↑(Finset.card A)) :
+  ∃ (H : Subgroup G) (x : G), ↑(Fintype.card ↥H) < 3 / 2 * ↑(Finset.card A) ∧
+    ∀ a ∈ A, (A : Set G) ⊆ a • (H : Set G) ∧ a • (H : Set G) = MulOpposite.op a • (H : Set G)
+```",94,0,T,"B matches target signature almost exactly with correct coercions and MulOpposite. A uses wrong types (ncard vs Fintype.card, different coset notation).",False,False,48,28
+859548,GrowthInGroups.Lecture3.fact_4_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture4,0,176,"Looking at this Lean 4 declaration, it states:
+
+For any two invertible complex matrices S and T of size n×n (where n is a finite type), the operator norm of the commutator [S,T] = STS⁻¹T⁻¹ minus the identity matrix is bounded above by 2 times the product of four factors: the norm of S⁻¹, the norm of T⁻¹, the norm of (S - I), and the norm of (T - I), where I denotes the identity matrix.","GrowthInGroups.Lecture3.fact_4_1.{u_1} {n : Type u_1} [Fintype n] [DecidableEq n] (S T : GL n ℂ) :
+  ‖↑S * ↑T * ↑S⁻¹ * ↑T⁻¹ - 1‖ ≤ 2 * ‖(↑S)⁻¹‖ * ‖(↑T)⁻¹‖ * ‖↑S - 1‖ * ‖↑T - 1‖","```lean
+theorem commutator_norm_bound {n : Type*} [Fintype n] [DecidableEq n] (S T : Matrix n n ℂ) (hS : IsUnit S.det) (hT : IsUnit T.det) :
+  ‖(S * T * S⁻¹ * T⁻¹ - 1) ‖ ≤ 2 * ‖S⁻¹‖ * ‖T⁻¹‖ * ‖S - 1‖ * ‖T - 1‖ := by sorry
+```","```lean
+theorem norm_commutator_matrix_units_sub_one_le {n : Type u_1} [Fintype n] [DecidableEq n]
+    (S T : Matrix.GeneralLinearGroup n ℂ) :
+    ‖(↑S * ↑T * ↑S⁻¹ * ↑T⁻¹ : Matrix n n ℂ) - 1‖ ≤
+      2 * ‖(↑S⁻¹ : Matrix n n ℂ)‖ * ‖(↑T⁻¹ : Matrix n n ℂ)‖ * ‖(↑S : Matrix n n ℂ) - 1‖ * ‖(↑T : Matrix n n ℂ) - 1‖ := by
+  sorry
+```",127,0,T,B uses GL n ℂ matching target exactly; A uses Matrix with det conditions instead of GL type,False,False,27,36
+767053,GrowthInGroups.Lecture3.proposition_3_6_1,cam-combi,LeanCamCombi.GrowthInGroups.Lecture3,0,293,"If $A$ and $B$ are approximate subgroups in a group $G$ with constants $K$ and $L$ respectively, and $m, n \geq 2$ are natural numbers, then there exists a finite set $F$ such that the cardinality of $F$ is at most $K^{m-1} \cdot L^{n-1}$ and the intersection $A^m \cap B^n$ is contained in $F \cdot (A^2 \cap B^2)$.","GrowthInGroups.Lecture3.proposition_3_6_1.{u_1} {G : Type u_1} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ}
+  (hA : IsApproximateSubgroup K A) (hB : IsApproximateSubgroup L B) (hm : 2 ≤ m) (hn : 2 ≤ n) :
+  ∃ F, ↑(Finset.card F) ≤ K ^ (m - 1) * L ^ (n - 1) ∧ A ^ m ∩ B ^ n ⊆ ↑F * (A ^ 2 ∩ B ^ 2)","```lean
+theorem approximate_subgroup_intersection (G : Type*) [Group G] (A B : Set G) (K L : ℕ) (m n : ℕ)
+    (hm : 2 ≤ m) (hn : 2 ≤ n)
+    (hA : IsApproximateSubgroup A K) (hB : IsApproximateSubgroup B L) :
+    ∃ (F : Set G), Set.Finite F ∧ Fintype.card F ≤ K ^ (m - 1) * L ^ (n - 1) ∧
+    A ^ m ∩ B ^ n ⊆ F * (A ^ 2 ∩ B ^ 2) := by sorry
+```","```lean
+theorem approximate_subgroup_intersection_covering {G : Type*} [Group G] {A B : Set G} {K L : ℝ} {m n : ℕ}
+    (hA : IsApproximateSubgroup K A) (hB : IsApproximateSubgroup L B) (hm : 2 ≤ m) (hn : 2 ≤ n) :
+    ∃ F : Finset G, (Finset.card F : ℝ) ≤ K ^ (m - 1) * L ^ (n - 1) ∧ A ^ m ∩ B ^ n ⊆ F • (A ^ 2 ∩ B ^ 2) := by sorry
+```",50,0,T,"A correctly uses ℝ for K,L and Finset; B incorrectly uses ℕ for K,L and wrong cardinality operator",False,False,40,17
+701249,IsMulStableWith,cam-combi,LeanCamCombi.StableCombi.AddSet,5,73,"A natural number $n$ is multiplicatively stable with respect to a set $A$ in a group $G$ if for any element $x$ in the group, the $n$-th power of $x$ belongs to $A$ if and only if $x$ itself belongs to $A$.",IsMulStableWith.{u_1} {G : Type u_1} [Group G] (n : ℕ) (A : Set G) : Prop,"```lean
+def MultiplicativelyStable (n : ℕ) (A : Set G) (G : Type*) [Group G] : Prop :=
+  ∀ x : G, x ^ n ∈ A ↔ x ∈ A
+```","```lean
+def IsMultiplicativelyStable {G : Type u} [Group G] (n : ℕ) (A : Set G) : Prop :=
+  ∀ x : G, x ^ n ∈ A ↔ x ∈ A
+```",14,0,T,"B matches target arg order (n, A implicit G); A has wrong order and explicit G",False,False,26,17
+762993,GraphTheory.ES1.q8,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,0,201,"Looking at this Lean 4 declaration:
+
+This theorem states that for any finite simple graph G with decidable adjacency relation, there exists a subgraph H and an element x such that for all vertices a in the graph, half of the average degree of G is less than or equal to the degree of vertex a in the subgraph H.","GraphTheory.ES1.q8.{u_2} {α : Type u_2} [Fintype α] (G : SimpleGraph α) [DecidableRel (SimpleGraph.Adj G)] :
+  ∃ H x, ∀ (a : α), GraphTheory.ES1.averageDegree G / 2 ≤ ↑(SimpleGraph.Subgraph.degree H a)","```lean
+theorem exists_subgraph_half_avg_degree {α : Type*} [Fintype α] (G : SimpleGraph α) [DecidableRel G.Adj] :
+    ∃ (H : SimpleGraph α) (x : α), ∀ a : α, (∑ v : α, G.degree v : ℚ) / (2 * Fintype.card α) ≤ H.degree a := by sorry
+```","```lean
+theorem GraphTheory.ES1.exists_subgraph_half_average_degree {α : Type*} [Fintype α] (G : SimpleGraph α) [DecidableRel (SimpleGraph.Adj G)] :
+  ∃ (H : SimpleGraph.Subgraph G) (x : α), ∀ a : α, GraphTheory.ES1.averageDegree G / 2 ≤ ↑(H.degree a) := by sorry
+```",51,0,T,B uses SimpleGraph.Subgraph G matching target's H type and averageDegree matching target's RHS; A uses SimpleGraph α and different RHS formula.,False,False,32,18
+760089,GrowthInGroups.Lecture3.corollary_4_3,cam-combi,LeanCamCombi.GrowthInGroups.Lecture4,0,231,"There exists a positive constant $C$ such that for any set $A$ in the special linear group $\text{SL}_2(\mathbb{C})$ that is a $K$-approximate subgroup, there exist a commutative subset $Z$ and a finite set $F$ with cardinality at most $C$ such that $A$ is contained in the product $F \cdot Z$.","GrowthInGroups.Lecture3.corollary_4_3 (K C₀ : ℝ) :
+  ∃ C > 0,
+    ∀ (A : Set (Matrix.SpecialLinearGroup (Fin 2) ℂ)),
+      IsApproximateSubgroup K A → ∃ Z, ∃ (_ : ∀ x ∈ Z, ∀ y ∈ Z, Commute x y), ∃ F, Finset.card F ≤ C ∧ A ⊆ ↑F * ↑Z","```lean
+theorem approximate_subgroup_in_product_commutative :
+    ∃ C : ℝ, C > 0 ∧ ∀ (A : Set (SL(2, ℂ))) (K : ℝ),
+      IsKApproximateSubgroup K A →
+      ∃ (Z : Set (SL(2, ℂ))) (F : Set (SL(2, ℂ))),
+        CommutativeSet Z ∧ Finite F ∧ Nat.card F ≤ C ∧ A ⊆ F * Z := by sorry
+```","```lean
+theorem sl2_approximate_subgroup_coverage (K : ℝ) (A : Set (Matrix.SpecialLinearGroup (Fin 2) ℂ)) 
+    (hA : IsApproximateSubgroup K A) : 
+    ∃ (C : ℕ), C > 0 ∧ ∃ (Z : Subgroup (Matrix.SpecialLinearGroup (Fin 2) ℂ)) (F : Finset (Matrix.SpecialLinearGroup (Fin 2) ℂ)),
+    (∀ z₁ z₂ ∈ Z, Commute z₁ z₂) ∧ Finset.card F ≤ C ∧ A ⊆ (F : Set (Matrix.SpecialLinearGroup (Fin 2) ℂ)) * Z
+```",64,0,T,B correctly places K and C₀ as function parameters and returns existential on C; A reverses the existential structure and changes types.,False,False,37,49
+855602,GrowthInGroups.Lecture3.theorem_4_5,cam-combi,LeanCamCombi.GrowthInGroups.Lecture4,0,265,"Looking at this theorem, I need to parse its hypotheses and conclusion:
+
+The theorem states that if $G$ is a group and $S$ is a finite subset of $G$ that is symmetric (equals its own inverse), generates $G$ (as a group), and has polynomial growth in the sense that the cardinality of the $n$-th power $S^n$ is bounded by $C \cdot n^d$ for all natural numbers $n$ (for some constants $C$ and $d$), then $G$ is virtually nilpotent (meaning $G$ contains a nilpotent subgroup of finite index).","GrowthInGroups.Lecture3.theorem_4_5.{u_2} {C : ℝ} {G : Type u_2} [Group G] [DecidableEq G] {S : Finset G}
+  (hSsymm : S⁻¹ = S) (hSgen : ↑(Subgroup.closure ↑S) = Set.univ) {d : ℕ}
+  (hS : ∀ (n : ℕ), ↑(Finset.card (S ^ n)) ≤ C * ↑n ^ d) : Group.IsVirtuallyNilpotent G","```lean
+theorem polynomial_growth_implies_virtually_nilpotent {G : Type*} [Group G] {S : Set G}
+    (hfinite : S.Finite) (hsymmetric : ∀ s ∈ S, s⁻¹ ∈ S) (hgenerates : Subgroup.closure S = ⊤)
+    (hpoly : ∃ C d : ℕ, ∀ n : ℕ, (Set.card ((S ^ n : Set G))) ≤ C * n ^ d) :
+    ∃ H : Subgroup G, [H : Subgroup.Quotient H].NilpotentGroup ∧ (H : Set G).ncard < Set.infinite :=
+  sorry
+```","```lean
+theorem polynomial_growth_implies_virtually_nilpotent
+  {G : Type*} [Group G] [DecidableEq G]
+  (S : Finset G)
+  (hSymmetric : S.inv = S)
+  (hGenerates : Subgroup.closure (↑S : Set G) = ⊤)
+  (C d : ℝ)
+  (hC : 0 < C)
+  (hPolynomial : ∀ n : ℕ, (Finset.card (S ^ n) : ℝ) ≤ C * (n : ℝ) ^ d) :
+  Group.IsVirtuallyNilpotent G := by sorry
+```",79,0,T,"B matches target exactly: uses Finset, DecidableEq, same types and bounds. A uses Set, wrong conclusion structure.",False,False,55,38
+740467,Finset.card_certificator_le,cam-combi,LeanCamCombi.PlainCombi.VanDenBergKesten,0,197,"The cardinality of the certificator of two finsets $\mathcal{A}$ and $\mathcal{B}$ (which are themselves finsets of finsets of $\alpha$) satisfies the inequality: $2^{|\alpha|} \cdot |\text{certificator}(\mathcal{A}, \mathcal{B})| \leq |\mathcal{A}| \cdot |\mathcal{B}|$, where $|\alpha|$ denotes the cardinality of the finite type $\alpha$.","Finset.card_certificator_le.{u_1} {α : Type u_1} [DecidableEq α] [Fintype α] {𝒜 ℬ : Finset (Finset α)} :
+  2 ^ Fintype.card α * Finset.card (Finset.certificator 𝒜 ℬ) ≤ Finset.card 𝒜 * Finset.card ℬ","```lean
+theorem certificator_cardinality_bound {α : Type*} [Fintype α] (𝒜 ℬ : Finset (Finset α)) :
+  2 ^ Fintype.card α * (certificator 𝒜 ℬ).card ≤ 𝒜.card * ℬ.card := by sorry
+```","```lean
+theorem certificator_card_inequality {α : Type*} [Fintype α] [DecidableEq α] 
+    (A B : Finset (Finset α)) :
+    2 ^ Fintype.card α * Finset.card (Finset.certificator A B) ≤ Finset.card A * Finset.card B := by
+  sorry
+```",40,0,T,B includes DecidableEq α which is present in target; A omits it. Both otherwise match semantically.,False,False,17,16
+677772,FirstOrder.Language.Theory.IsOrderProp,cam-combi,LeanCamCombi.StableCombi.Formula,4,117,"A theory $T$ in a first-order language $L$ is an order property (IsOrderProp) if for every model $M$ of $T$ and every ordered pair of elements $(a, b)$ in $M$, there exists a formula $\phi$ in the language such that $\phi$ holds for $(a, b)$ in $M$ if and only if $a$ is less than or equal to $b$ according to some canonical ordering on the model.","FirstOrder.Language.Theory.IsOrderProp.{u_1, u_2} {L : FirstOrder.Language} (T : FirstOrder.Language.Theory L) : Prop","```lean
+structure Theory (L : Language) where
+  sentences : Set (Formula L)
+
+def IsOrderProp (L : Language) (T : Theory L) : Prop :=
+  ∀ (M : Model L T) (a b : M),
+    ∃ (φ : Formula L),
+      (∃ (x y : Variable), φ.freeVars ⊆ {x, y}) ∧
+      ((M ⊨ φ.substitute ![a, b]) ↔ a ≤ b)
+```","```lean
+def FirstOrder.Language.Theory.IsOrderProp {L : FirstOrder.Language} (T : FirstOrder.Language.Theory L) : Prop :=
+  ∀ (M : Type*) [FirstOrder.Language.Structure L M] (_ : M ⊨ T),
+    ∃ (φ : FirstOrder.Language.Formula L (Fin 2)), FirstOrder.Language.Formula.IsOrderProp M φ
+```",7,0,T,"B uses correct namespace and structure; A invents undefined structures (Model, substitute) and lacks proper typing.",False,False,51,25
+793416,GrowthInGroups.Lecture1.fact_1_1_2,cam-combi,LeanCamCombi.GrowthInGroups.Lecture1,0,148,"Looking at this Lean 4 declaration, I need to understand what it says about finsets in a group.
+
+The theorem states that for a group $G$ with decidable equality, a finite subset $X$ of $G$ (represented as a `Finset`), and a natural number $n$, the cardinality of the $n$-fold product $X^n$ (the set of all products of $n$ elements from $X$) is at most the $n$-th power of the cardinality of $X$. In other words, $|X^n| \leq |X|^n$.","GrowthInGroups.Lecture1.fact_1_1_2.{u_1} {G : Type u_1} [Group G] [DecidableEq G] {X : Finset G} {n : ℕ} :
+  Finset.card (X ^ n) ≤ Finset.card X ^ n","```lean
+theorem Finset.card_nsmul_le {G : Type*} [Group G] [DecidableEq G] (X : Finset G) (n : ℕ) :
+  (X ^ n).card ≤ X.card ^ n
+```","```lean
+theorem Finset.card_pow_le {G : Type*} [DecidableEq G] [Group G] {X : Finset G} {n : ℕ} :
+  Finset.card (X ^ n) ≤ Finset.card X ^ n
+```",27,0,T,Both semantically match the target. A uses implicit binders matching target style; B makes them explicit. Both are non-vacuous and correct.,False,False,12,6
+813159,IsApproximateAddSubgroup.pi,cam-combi,LeanCamCombi.Mathlib.Combinatorics.Additive.ApproximateSubgroup,1,266,"Looking at this declaration, it states that if for each index `i` in a finite index set `ι`, a set `A i` is an approximate additive subgroup of an additive group `G i` with constant `K i`, then the product set `∏ᵢ A i` (the set of all tuples where the `i`-th component lies in `A i`) is an approximate additive subgroup of the product group `∏ᵢ G i` with constant equal to the product `∏ᵢ K i`.","IsApproximateAddSubgroup.pi.{u_2, u_3} {ι : Type u_2} {G : ι → Type u_3} [Fintype ι] [(i : ι) → AddGroup (G i)]
+  {A : (i : ι) → Set (G i)} {K : ι → ℝ} (hA : ∀ (i : ι), IsApproximateAddSubgroup (K i) (A i)) :
+  IsApproximateAddSubgroup (∏ i, K i) (Set.pi Set.univ A)","```lean
+theorem ApproximateAddSubgroup.pi {ι : Type*} [Fintype ι] {G : ι → Type*} [∀ i, AddGroup (G i)] {A : ∀ i, Set (G i)} {K : ι → ℝ} (h : ∀ i, ApproximateAddSubgroup (A i) (K i)) : ApproximateAddSubgroup (Set.pi Set.univ A) (∏ i, K i)
+```","```lean
+theorem isApproximateAddSubgroup_pi {ι : Type*} [Fintype ι] {G : ι → Type*} [∀ i, AddGroup (G i)] {K : ι → ℝ} {A : ι → Set (G i)} (h : ∀ i, IsApproximateAddSubgroup (K i) (A i)) : IsApproximateAddSubgroup (∏ i, K i) (Set.pi Set.univ A)
+```",125,0,T,A uses correct predicate IsApproximateAddSubgroup; B uses non-existent ApproximateAddSubgroup class and swaps parameter order,False,False,31,28
+702048,FirstOrder.Language.Formula.IsStableWith,cam-combi,LeanCamCombi.StableCombi.Formula,5,194,"Looking at this definition, `FirstOrder.Language.Formula.IsStableWith n M φ` is a property that holds when a first-order formula φ (in language L with two free variables, indexed by Fin 2) is ""stable"" with respect to a structure M and a natural number parameter n.
+
+In model theory, this typically means that for the formula φ evaluated in the structure M, there exists a bound n such that certain combinatorial properties hold—specifically, that φ does not witness complexity beyond what n allows in terms of indiscernibility or pattern-matching behavior in M.","FirstOrder.Language.Formula.IsStableWith.{u_1, u_2, u_3} {L : FirstOrder.Language} (n : ℕ) (M : Type u_1)
+  [FirstOrder.Language.Structure L M] (φ : FirstOrder.Language.Formula L (Fin 2)) : Prop","```lean
+def FirstOrder.Language.Formula.IsStableWith (n : ℕ) (M : Type u) [L.Structure M] 
+    (φ : L.Formula (Fin 2)) : Prop := by sorry
+```","```lean
+def FirstOrder.Language.Formula.IsStableWith {L : FirstOrder.Language} {M : Type w}
+    [FirstOrder.Language.Structure L M] (n : ℕ) (φ : FirstOrder.Language.Formula L (Fin 2)) : Prop :=
+  IsStableRelWith n fun (a b : M) => FirstOrder.Language.Formula.Realize φ (Matrix.vecCons a (Matrix.vecCons b Matrix.vecEmpty))
+```",14,0,T,A provides concrete semantic definition using IsStableRelWith; B is a sorry placeholder with no content.,True,False,14,27
+834898,not_isMulStableWith,cam-combi,LeanCamCombi.StableCombi.AddSet,0,118,"The statement asserts that for a group $G$, a natural number $n$, and a subset $A$ of $G$, the negation of the property ""is multiplicatively stable with $n$"" is equivalent to the property ""is multiplicatively order-preserving with $n$"" for the set $A$.",not_isMulStableWith.{u_1} {G : Type u_1} [Group G] {n : ℕ} {A : Set G} : ¬IsMulStableWith n A ↔ IsMulOrderPropWith n A,"```lean
+theorem not_isMultiplicativelyStable_iff_isMultiplicativelyOrderPreserving {G : Type*} [Group G] (n : ℕ) (A : Set G) :
+  ¬(isMultiplicativelyStable n A) ↔ isMultiplicativelyOrderPreserving n A := by sorry
+```","```lean
+theorem not_isMulStableWith_iff_isMulOrderPropWith {G : Type u_1} [Group G] (n : ℕ) (A : Set G) :
+  ¬IsMulStableWith n A ↔ IsMulOrderPropWith n A := by sorry
+```",18,0,T,A matches target names and types; B uses undefined predicates and wrong universe syntax,False,False,14,9
+685061,GrowthInGroups.Lecture2.lemma_2_2,cam-combi,LeanCamCombi.GrowthInGroups.Lecture2,2,185,"Here is the English statement of the theorem:
+
+For any group $G$ and any finite subsets $U$, $V$, and $W$ of $G$, the product of the cardinality of $U$ and the cardinality of $V^{-1}W$ is at most the product of the cardinality of $UV$ and the cardinality of $UW$.","GrowthInGroups.Lecture2.lemma_2_2.{u_1} {G : Type u_1} [DecidableEq G] [Group G] (U V W : Finset G) :
+  Finset.card U * Finset.card (V⁻¹ * W) ≤ Finset.card (U * V) * Finset.card (U * W)","```lean
+theorem finite_set_product_inequality (G : Type*) [Group G] (U V W : Set G) (hU : Set.Finite U) (hV : Set.Finite V) (hW : Set.Finite W) : 
+  Nat.card U * Nat.card (V⁻¹ * W) ≤ Nat.card (U * V) * Nat.card (U * W) := by sorry
+```","```lean
+theorem ruzsa_triangle_inequality {G : Type*} [DecidableEq G] [Group G] (U V W : Finset G) :
+  Finset.card U * Finset.card (V⁻¹ * W) ≤ Finset.card (U * V) * Finset.card (U * W) :=
+  sorry
+```",24,0,T,"B matches the target signature exactly (types, decidability, Finset). A uses Set and Nat.card instead of Finset.",False,False,27,6
+754647,IsAddStableWith.isAddTreeBoundedWith,cam-combi,LeanCamCombi.StableCombi.AddSet,0,156,"If a set $A$ in an additive group $G$ is additively stable with parameter $n$, then $A$ is additively tree-bounded with parameter $2^n + 1$.","IsAddStableWith.isAddTreeBoundedWith.{u_1} {G : Type u_1} [AddGroup G] {n : ℕ} {A : Set G} (hr : IsAddStableWith n A) :
+  IsAddTreeBoundedWith (2 ^ n + 1) A","```lean
+theorem additive_stable_implies_tree_bounded {G : Type*} [AddGroup G] {A : Set G} {n : ℕ} 
+    (h : AdditivelyStable A n) : AdditivelyTreeBounded A (2^n + 1) := by sorry
+```","```lean
+theorem isAddStableWith_imp_isAddTreeBoundedWith {G : Type*} [AddGroup G] {n : ℕ} {A : Set G} 
+    (h : IsAddStableWith n A) : IsAddTreeBoundedWith (2 ^ n + 1) A
+```",26,0,T,"B uses exact predicate names IsAddStableWith and IsAddTreeBoundedWith matching target, A uses different names AdditivelyStable and AdditivelyTreeBounded",False,False,21,5
+762994,GraphTheory.ES1.averageDegree,cam-combi,LeanCamCombi.GraphTheory.ExampleSheet1,2,123,"The average degree of a simple graph G with vertices of a fintype α is a rational number, defined as the sum of all vertex degrees divided by the number of vertices.","GraphTheory.ES1.averageDegree.{u_2} {α : Type u_2} [Fintype α] (G : SimpleGraph α) [DecidableRel (SimpleGraph.Adj G)] :
+  ℚ","```lean
+def SimpleGraph.avgDegree {α : Type*} [Fintype α] (G : SimpleGraph α) : ℚ :=
+  (∑ v : α, G.degree v) / Fintype.card α
+```","```lean
+def SimpleGraph.averageDegree {α : Type*} [Fintype α] (G : SimpleGraph α) [DecidableRel G.Adj] : ℚ :=
+  (Finset.sum Finset.univ (fun v => (G.degree v : ℚ))) / (Fintype.card α : ℚ)
+```",18,0,T,"B matches target signature exactly: name averageDegree, includes DecidableRel instance, explicit casts to ℚ. A uses wrong name avgDegree, missing DecidableRel.",False,False,15,21

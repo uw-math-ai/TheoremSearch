@@ -1,0 +1,981 @@
+node_id,full_name,F_signature,NL,F_T,dep_count,F_Tnames,dep_names_count,judge_T_vs_Tnames,judge_T_vs_Tnames_notes,vacuous_Tnames,edit_dist_Tnames,F_Trandom,rand_count,judge_T_vs_Trandom,judge_T_vs_Trandom_notes,vacuous_Trandom,edit_dist_Trandom
+1790934,Dual.DirectSumDecomposition.RefinementMap,"Dual.DirectSumDecomposition.RefinementMap.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J : Dual.DirectSumDecomposition M)
+  (h : Dual.DirectSumDecomposition.IsRefinement J I) : ↥J → ↥I","Looking at this declaration, I need to translate the Lean 4 type signature into plain mathematical English.
+
+This defines a function called `RefinementMap` that takes as input:
+- A category C
+- A division ring K  
+- A functor M from C to the category of K-modules
+- Two direct sum decompositions I and J of the dual of M
+- A proof h that J is a refinement of I
+
+The function then produces a map from the underlying type of J to the underlying type of I.
+
+In plain mathematical English:
+
+Given a functor M from a category C to the category of modules over a division ring K, and given two direct sum decompositions I and J (in the dual sense) of M where J is a refinement of I, the `RefinementMap` produces a function from the index set of J to the index set of I, associating to each summand in the refined decomposition J a corresponding summand in the coarser decomposition I.","```lean
+def Dual.DirectSumDecomposition.RefinementMap {C : Type} [CategoryTheory.Category C]
+  {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)}
+  (I J : Dual.DirectSumDecomposition M)
+  (h : Dual.DirectSumDecomposition.IsRefinement J I) : ↥J → ↥I := by sorry
+```",32,"```lean
+def RefinementMap {C : Type u} [CategoryTheory.Category C] (K : Type v) [DivisionRing K]
+    (M : C ⥤ ModuleCat K) (I J : Dual.DirectSumDecomposition M)
+    (h : Dual.DirectSumDecomposition.IsRefinement M I J) : J → I
+```",32,T,B exactly matches target signature including argument order and coercions. A has different parameter implicits and swapped IsRefinement arguments.,False,18,"```lean
+def Dual.DirectSumDecomposition.RefinementMap {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J : Dual.DirectSumDecomposition M) (h : Dual.DirectSumDecomposition.IsRefinement J I) (N : ↥J) : ↥I := by sorry
+```",28,Trandom,"Both match the signature exactly, but A explicitly names the input argument (N : ↥J) which is semantically clearer than B's anonymous function type.",False,8
+1770349,EndRing,"EndRing.{u_1, u_2} (C R : Type) [CategoryTheory.Category.{u_1, 0} C] [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) : Type u_2","An `EndRing` is a type that represents the endomorphism ring structure on a functor from a category C to the category of modules over a division ring R, where the endomorphism ring is formed by the natural transformations from the functor to itself with composition as multiplication.","```lean
+def EndRing {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] (R : Type u) [DivisionRing R] 
+    (F : CategoryTheory.Functor C (ModuleCat R)) : Type (max v₁ u) :=
+  Quiver.Hom F F
+```",12,"```lean
+def EndRing (C : Type u) [CategoryTheory.Category C] (R : Type v) [DivisionRing R] (F : C ⥤ ModuleCat R) : Ring :=
+  { carrier := F ⟶ F
+    add := fun f g => f + g
+    add_assoc := by sorry
+    zero := 0
+    add_zero := by sorry
+    zero_add := by sorry
+    neg := fun f => -f
+    add_left_neg := by sorry
+    add_comm := by sorry
+    mul := fun f g => g ≫ f
+    mul_assoc := by sorry
+    one := 𝟙 F
+    mul_one := by sorry
+    one_mul := by sorry
+    mul_left_distrib := by sorry
+    mul_right_distrib := by sorry
+    zero_mul := by sorry
+    mul_zero := by sorry }
+```",12,Tnames,"Target returns Type u_2, candidate B returns Ring (a Type), candidate A returns Quiver.Hom which is just morphisms without ring structure",False,102,"```lean
+structure EndRing (C : Type) [CategoryTheory.Category C] (R : Type) [DivisionRing R]
+    (F : CategoryTheory.Functor C (ModuleCat R)) where
+  toNatTrans : CategoryTheory.NatTrans F F
+```",12,Trandom,"A is a structure defining an endomorphism ring via natural transformations. B is just a type alias to Quiver.Hom, which is semantically shallow and potentially vacuous.",False,13
+1828911,ZeroEndomorphism,"ZeroEndomorphism.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) : EndRing C R F",The zero endomorphism is an element of the endomorphism ring of a functor from a category $C$ to the category of modules over a division ring $R$.,"```lean
+def zeroEndomorphismMem {C R : Type} [CategoryTheory.Category.{0, 0} C] [DivisionRing R]
+    (F : CategoryTheory.Functor C (ModuleCat R)) :
+    (0 : EndRing C R F) ∈ Set.univ := by sorry
+```",28,"```lean
+def zeroEndomorphismInEndRing {C : Type*} [CategoryTheory.Category C] (R : Type*) [DivisionRing R] (F : C ⥤ ModuleCat R) : EndRing F := 0
+```",28,Tnames,"A returns an EndRing element (zero), matching return type. B returns a membership proof, wrong type entirely.",False,14,"```lean
+theorem ZeroEndomorphismInEndRing (C : Type) [CategoryTheory.Category C] (R : Type) [DivisionRing R]
+    (F : CategoryTheory.Functor C (ModuleCat R)) :
+    ZeroEndomorphism C R F ∈ (⊤ : Submodule R (EndRing C R F)) := by sorry
+```",28,tie,"Both candidates change the target signature completely: A proves set membership, B proves submodule membership. Neither matches the target type EndRing C R F.",False,17
+1821526,IsIndecomposable,"IsIndecomposable.{u_1, u_2} (R : Type) [DivisionRing R] (C : Type) [CategoryTheory.Category.{u_1, 0} C]
+  (M : CategoryTheory.Functor C (ModuleCat R)) : Prop","A functor M from a category C to the category of modules over a division ring R is indecomposable if, for any decomposition of M as a direct sum of two subfunctors M₁ and M₂, at least one of M₁ or M₂ must be the zero functor.","```lean
+def IsIndecomposable (R : Type u) [DivisionRing R] (C : Type u') [CategoryTheory.Category C]
+  (M : CategoryTheory.Functor C (ModuleCat R)) : Prop :=
+  ∀ (M₁ M₂ : Subfunctor R C M), SubmodDecomp R C M M₁ M₂ →
+    (M₁.baseFunctor = 0) ∨ (M₂.baseFunctor = 0)
+```",10,"```lean
+def IsIndecomposable (R : Type*) [DivisionRing R] (C : Type*) [CategoryTheory.Category C]
+    (M : CategoryTheory.Functor C (ModuleCat R)) : Prop :=
+  ∀ (M₁ M₂ : CategoryTheory.Functor C (ModuleCat R)),
+    (∀ c : C, M.obj c = M₁.obj c ⊕ M₂.obj c) →
+    (∀ c : C, M.map = M₁.map + M₂.map) →
+    (∀ c : C, M₁.obj c = ⊥) ∨ (∀ c : C, M₂.obj c = ⊥)
+```",10,T,"B uses proper subfunctor and decomposition infrastructure; A has type errors (M.map equality, direct sum on types) and malformed constraints.",False,55,"```lean
+def Indecomposable.{u_1, u_2} (C : Type u_1) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (M : CategoryTheory.Functor C (ModuleCat R)) : Prop :=
+  ∀ (M₁ M₂ : Subfunctor R C M),
+    SubmodDecomp R C M M₁ M₂ →
+    (Subfunctor.baseFunctor M₁ = ZeroModule C R ∨ Subfunctor.baseFunctor M₂ = ZeroModule C R)
+```",10,T,B matches target name exactly and uses standard 0 notation for zero; A has wrong name and verbose ZeroModule notation,False,41
+1811068,PtwiseFinitePersMod.toFunctor,"PtwiseFinitePersMod.toFunctor.{u_1, u_2, u_3} {C : Type u_1} [CategoryTheory.Category.{u_3, u_1} C] {K : Type u_2}
+  [DivisionRing K] (self : PtwiseFinitePersMod C K) : CategoryTheory.Functor C (ModuleCat K)",The function `toFunctor` converts a pointwise finite persistence module over a category C with coefficients in a division ring K into a functor from C to the category of K-modules.,"```lean
+def PtwiseFinitePersMod.toFunctor {C : Type u₁} [CategoryTheory.Category.{u₃, u₁} C] {K : Type u₂} [DivisionRing K] (M : PtwiseFinitePersMod C K) : CategoryTheory.Functor C (ModuleCat K)
+```",7,"```lean
+def PtwiseFinitePersMod.toFunctor {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] (M : PtwiseFinitePersMod C K) : C ⥤ ModuleCat K
+```",7,T,"B matches target universes u_1=u₁, u_2=u₂, u_3=u₃ explicitly; A uses implicit * which may differ from target constraints.",False,14,"```lean
+def toFunctor {C : Type u_1} [CategoryTheory.Category.{u_1, 0} C] {R : Type u_2} [DivisionRing R]
+    (M : PointwiseFinitePersistenceModule C R) : CategoryTheory.Functor C (ModuleCat R) :=
+  sorry
+```",7,T,"B matches target exactly (names, universe levels, parameter order). A has wrong universe constraints, wrong names, and wrong parameter name.",False,13
+1793054,PersistenceSubmodule.coe_top,"PersistenceSubmodule.coe_top.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} : ⇑⊤ = ⊤",The statement asserts that the coercion (or canonical map) of the top element in the lattice of persistence submodules equals the top element in the target structure (which is likely the lattice of functions or submodules being coerced to).,"```lean
+theorem PersistenceSubmodule.coe_top {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} :
+  ⇑(⊤ : PersistenceSubmodule M) = ⊤ := by sorry
+```",44,"```lean
+theorem PersistenceSubmodule.coe_top {R : Type*} {M : Type*} [DivisionRing R] [AddCommGroup M] [Module R M] :
+    ↑(⊤ : PersistenceSubmodule R M) = ⊤ := by sorry
+```",44,T,"A matches the target's categorical context with Functor C (ModuleCat K), while B uses different types R, M not matching the target.",False,23,"```lean
+PersistenceSubmodule.coe_top : ∀ {C : Type u_1} [inst : CategoryTheory.Category C] {K : Type u_2} [inst : DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)}, ⇑(⊤ : PersistenceSubmodule M) = ⊤
+```",31,Trandom,A correctly uses u_1 for Category and u_2 for DivisionRing matching target; B reverses them to u_1 and u_2.,False,17
+1790932,Dual.DirectSumDecomposition.RefinementMapLE,"Dual.DirectSumDecomposition.RefinementMapLE.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J : Dual.DirectSumDecomposition M)
+  (h : Dual.DirectSumDecomposition.IsRefinement J I) (N : ↥J) :
+  ↑N ≤ ↑(Dual.DirectSumDecomposition.RefinementMap I J h N)","Looking at this declaration, it states that for a refinement $h$ between two direct sum decompositions $J$ and $I$ of a functor $M$ (where $J$ refines $I$), and for any summand $N$ in the decomposition $J$, the summand $N$ is less than or equal to the image of $N$ under the refinement map from $I$ to $J$ induced by $h$.","```lean
+theorem Dual.DirectSumDecomposition.RefinementMapLe {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J : Dual.DirectSumDecomposition M) (h : Dual.DirectSumDecomposition.IsRefinement J I) (N : ↥J) : ↑N ≤ ↑(Dual.DirectSumDecomposition.RefinementMap I J h N) := by sorry
+```",57,"```lean
+theorem Dual.DirectSumDecomposition.le_refinementMap
+    {𝒞 : Type*} [CategoryTheory.Category 𝒞] {R : Type*} [DivisionRing R]
+    {M : ModuleCat R} {I J : Dual.DirectSumDecomposition M}
+    (h : Dual.DirectSumDecomposition.IsRefinement I J)
+    (N : J) :
+    (N : PersistenceSubmodule R M) ≤ (Dual.DirectSumDecomposition.RefinementMap h N : PersistenceSubmodule R M) := by sorry
+```",57,T,B matches target exactly; A has wrong argument order (I J vs J I) and different types (M : ModuleCat vs M : Functor).,False,34,"```lean
+theorem Dual.DirectSumDecomposition.refinement_le_refinement_map {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J : Dual.DirectSumDecomposition M) (h : Dual.DirectSumDecomposition.IsRefinement J I) (N : ↥J) : ↑N ≤ ↑(Dual.DirectSumDecomposition.RefinementMap I J h N) := by sorry
+```",28,T,B uses RefinementMapLe matching target RefinementMapLE exactly; A uses refinement_le_refinement_map which differs.,False,5
+1906549,sSup_eq_top',"sSup_eq_top'.{u_1} {α : Type u_1} [CompleteLattice α] [DistribLattice α] [BoundedOrder α] {S : Set α}
+  (R : refinement S) : sSup (decomposition_of_refinement R) = sSup S","Looking at this declaration, it states that for a complete distributive lattice α with a bounded order, given a set S and a refinement R of S, the supremum of the decomposition derived from the refinement R equals the supremum of the original set S.","```lean
+theorem sSup_decomposition_of_refinement {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (R : refinement S) :
+  sSup (decomposition_of_refinement R) = sSup S
+```",34,"```lean
+theorem sSup_decomposition_of_refinement {α : Type*} [CompleteLattice α] [BoundedOrder α] (S : Set α) (R : Set (Set α)) (hR : refinement R S) : ⨆ (t : Set α) (ht : t ∈ decomposition_of_refinement R), ⨆ (a : α) (ha : a ∈ t), a = ⨆ (a : α) (ha : a ∈ S), a := by sorry
+```",34,T,"A matches target signature closely; B has wrong parameter order (R,S swapped) and uses explicit indexed supremum instead of sSup.",False,48,"```lean
+theorem sSup_decomposition_of_refinement {α : Type*} [CompleteLattice α] [BoundedOrder α] {S : Set α} (R : refinement S) :
+  sSup (decomposition_of_refinement R) = sSup S
+```",24,tie,Both candidates are identical except for explicit vs. implicit universe polymorphism; both match the target signature (DistribLattice is redundant with CompleteLattice).,False,6
+1783910,refinement.carrier_indep,"refinement.carrier_indep.{u_1} {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (self : refinement S)
+  (D : Set α) : D ∈ refinement.carrier self → sSupIndep D","I need to understand what this Lean 4 declaration is stating about refinements in a complete lattice.
+
+The declaration states: Let α be a type with a complete lattice structure and bounded order, let S be a set in α, and let `self` be a refinement of S. Then for any set D in α, if D is in the carrier of the refinement `self`, then D is supremum-independent (sSupIndep).
+
+In other words, every set in the carrier of a refinement has the property that its elements are supremum-independent, meaning that for any element in D, that element is disjoint from the supremum of all other elements in D.","```lean
+theorem refinement.sSupIndep_of_mem_carrier {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (self : refinement S) {D : Set α} (hD : D ∈ self.carrier) : sSupIndep D
+```",17,"```lean
+theorem refinement.carrier_sSupIndep {α : Type*} [CompleteLattice α] [BoundedOrder α] {S : Set α}
+    (self : refinement S) {D : Set α} (hD : D ∈ self.carrier) : sSupIndep D
+```",17,tie,Both match the target signature semantically with minor stylistic differences in naming and universe polymorphism syntax.,False,10,"```lean
+theorem refinement.sSupIndep_of_mem {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (self : refinement S) (D : Set α) (hD : D ∈ refinement.carrier self) : sSupIndep D
+```",17,Trandom,B matches the target signature exactly with explicit D argument; A makes D implicit which differs from target.,False,5
+1871136,Step2_2,"Step2_2.{u_1} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R] (X : C) (n : ℕ) (Y : C)
+  (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R (PtwiseFinitePersMod.toFunctor M)) :
+  CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+      (CategoryTheory.NatTrans.app (η ^ n) Y) =
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (η ^ n) X)
+      (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)","The theorem states that for a category $C$, a division ring $R$, objects $X$ and $Y$ in $C$, a morphism $\alpha : X \to Y$, a pointwise finite persistence module $M$, and an endomorphism $\eta$ of the underlying functor of $M$, the following diagram commutes: the composition of the functor map of $M$ applied to $\alpha$ followed by the $n$-th power of $\eta$ applied at $Y$ equals the composition of the $n$-th power of $\eta$ applied at $X$ followed by the functor map of $M$ applied to $\alpha$.","```lean
+theorem Step2_power (C : Type) [CategoryTheory.Category C] (R : Type) [DivisionRing R] (X Y : C) (α : X ⟶ Y)
+  (M : PtwiseFinitePersMod C R) (η : EndRing C R (PtwiseFinitePersMod.toFunctor M)) (n : ℕ) :
+  CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+      (CategoryTheory.NatTrans.app (η ^ n) Y) =
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (η ^ n) X)
+      (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α) := by sorry
+```",37,"```lean
+theorem commute_functor_map_and_pow_eta {C : Type*} [CategoryTheory.Category C] {R : Type*} [DivisionRing R] {X Y : C} (α : X ⟶ Y) (M : PtwiseFinitePersMod R C) (η : M.toFunctor ⟶ M.toFunctor) (n : ℕ) : M.toFunctor.map α ≫ (η ^ n).app Y = (η ^ n).app X ≫ M.toFunctor.map α := by sorry
+```",37,T,"A matches target signature exactly. B has different parameter order/structure (e.g., PtwiseFinitePersMod R C vs C R) and uses ≫ notation.",False,41,"```lean
+theorem Step2_pow (C : Type) [CategoryTheory.Category.{0} C] (R : Type) [DivisionRing R] (X Y : C) (α : X ⟶ Y)
+    (M : PtwiseFinitePersMod C R) (η : EndRing C R (PtwiseFinitePersMod.toFunctor M)) (n : ℕ) :
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+        (CategoryTheory.NatTrans.app (η ^ n) Y) =
+      CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (η ^ n) X)
+        (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α) := by sorry
+```",37,T,"Both match target semantically. A omits universe level constraint that target specifies, making it more general.",False,16
+1770359,OneDef,"OneDef.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_2, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) : 1 = CategoryTheory.CategoryStruct.id F","The theorem states that in the context of a category C, a division ring R, and a functor F from C to the category of R-modules, the multiplicative identity element 1 equals the identity morphism of F.","```lean
+theorem one_eq_id {u_1 u_2 : Level} {C : Type u_1} [CategoryTheory.Category.{u_1, 0} C] {R : Type u_2} [DivisionRing R] (F : CategoryTheory.Functor C (ModuleCat R)) : (1 : EndRing C R F) = CategoryTheory.CategoryStruct.id F
+```",21,"```lean
+theorem div_ring_functor_one_eq_id {C : Type*} [CategoryTheory.Category C] (R : Type*) [DivisionRing R] (F : C ⥤ ModuleCat R) : (1 : EndRing F) = CategoryTheory.CategoryStruct.id F := by sorry
+```",21,T,A matches target's explicit universes and uses proper categorical id. B omits universe vars and may have incorrect EndRing arity.,False,18,"```lean
+theorem one_eq_id (C : Type) [CategoryTheory.Category C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) :
+  (1 : EndRing C R F) = CategoryTheory.NatTrans.id F := by sorry
+```",21,T,A matches CategoryStruct.id exactly; B uses NatTrans.id which differs despite potential definitional equality,False,14
+1770356,MulDef,"MulDef.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing C R F) : e * f = CategoryTheory.CategoryStruct.comp f e","Looking at this declaration, it states that in the definition of multiplication for the endomorphism ring of a functor from a category C to the category of R-modules (where R is a division ring), the product of two endomorphisms e and f is defined to be the composition f followed by e (in that order).
+
+In other words, this defines the multiplication operation on endomorphisms by setting e * f equal to the categorical composition f ∘ e, establishing the convention that multiplication corresponds to composition read from right to left.","```lean
+def EndRing.mul_def {C : Type u_1} [CategoryTheory.Category.{u_1, 0} C] {R : Type u_2} [DivisionRing R]
+  {F : CategoryTheory.Functor C (ModuleCat R)} (e f : EndRing C R F) :
+  e * f = CategoryTheory.CategoryStruct.comp f e := Eq.refl _
+```",21,"```lean
+theorem EndRing.mul_eq_comp {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C]
+    (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing F) :
+    e * f = f ∘ e := Eq.refl _
+```",21,T,B matches target signature exactly including def vs theorem and explicit universe levels. Both are vacuous (refl).,True,18,"```lean
+theorem CompIsCommutative : ∀ (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing C R F),
+  e * f = CategoryTheory.CategoryStruct.comp f e := by sorry
+```",21,T,B matches the target signature exactly; A unnecessarily quantifies all parameters and uses sorry,False,9
+1783911,refinement.carrier,"refinement.carrier.{u_1} {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (self : refinement S) :
+  Set (Set α)","Looking at this declaration, `refinement.carrier` is a function that takes a refinement structure on a subset S of a complete bounded lattice α, and returns a set of subsets of α.
+
+In other words, given a refinement of S (where α is a complete lattice with top and bottom elements), the carrier is the underlying collection of sets that constitutes this refinement.","```lean
+def refinement.carrier {α : Type u_1} [CompleteLattice α] [BoundedOrder α] {S : Set α} (r : refinement S) : Set (Set α)
+```",13,"```lean
+def refinement.carrier {α : Type*} [CompleteLattice α] {S : Set α} (r : refinement S) : Set (Set α)
+```",13,T,"Candidate A matches the target signature exactly with explicit universe u_1 and BoundedOrder constraint, while B omits BoundedOrder and uses Type*.",False,7,"```lean
+def refinement.carrier {α : Type*} [CompleteLattice α] [BoundedOrder α] {S : Set α} (R : refinement S) : Set (Set α)
+```",13,tie,Both match the target signature; only differ in parameter name (self vs R vs r) which is semantically irrelevant.,False,5
+1809998,PersistenceSubmodule.coe_iSup,"PersistenceSubmodule.coe_iSup.{u_1, u_2, u_3} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {ι : Sort u_1} (f : ι → PersistenceSubmodule M) :
+  ⇑(⨆ i, f i) = ⨆ i, ⇑(f i)","The coercion of the supremum of a family of persistence submodules equals the supremum of the coercions of those persistence submodules: for any indexed family of persistence submodules `f` over an index type `ι`, the coercion of `⨆ i, f i` equals `⨆ i, ⇑(f i)`.","```lean
+theorem PersistenceSubmodule.coe_iSup {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+    {M : CategoryTheory.Functor C (ModuleCat K)} {ι : Sort u_2} (f : ι → PersistenceSubmodule M) :
+    ⇑(⨆ i, f i) = ⨆ i, ⇑(f i) := by sorry
+```",70,"```lean
+theorem PersistenceSubmodule.coe_iSup {R : Type*} {M : Type*} [DivisionRing R] [AddCommGroup M] [Module R M] {ι : Type*} (f : ι → PersistenceSubmodule R M) : ⇑(⨆ i, f i) = ⨆ i, ⇑(f i) := by sorry
+```",70,T,"Candidate A matches the target signature structure with categorical functors and correct universe levels, while B uses unrelated types R and M instead of the required category theory context.",False,23,"```lean
+PersistenceSubmodule.coe_iSup : PersistenceSubmodule.coe_iSup.{u_1, u_2, u_3} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {ι : Sort u_1} (f : ι → PersistenceSubmodule M) :
+  ⇑(⨆ i, f i) = ⨆ i, ⇑(f i)
+```",31,Trandom,"A matches target signature exactly including universe levels u_1,u_2,u_3. B has mismatched universe levels (u_1,u_2 instead of u_2,u_1).",False,2
+1815772,IsZero_Bump_apply_of_not_mem,"IsZero_Bump_apply_of_not_mem.{u, v, u_1, u_2} {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z) (hS : good S)
+  {x : C} (hx : x ∉ S) : CategoryTheory.Limits.IsZero (CategoryTheory.Functor.obj (Bump e hz hS) x)","Looking at this theorem, it states that for a category $A$ with an object $e$, a category $C$, a zero object $z$ in $A$, a ""good"" set $S$ of objects in $C$, and an object $x$ in $C$ that is not in $S$, the functor ""Bump"" (which depends on $e$, $z$, and $S$) maps $x$ to a zero object in $A$.","```lean
+theorem Bump_maps_not_in_S_to_zero {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) (x : C) (hx : x ∉ S) :
+  CategoryTheory.Limits.IsZero ((Bump e hz hS).obj x) := by sorry
+```",22,"```lean
+theorem Bump_maps_outside_good_set_to_zero {A C : Type*} [CategoryTheory.Category A] [CategoryTheory.Category C]
+    (e : A) (z : A) [CategoryTheory.Limits.IsZero z] (S : Set C) (hS : good S)
+    (x : C) (hx : x ∉ S) : CategoryTheory.Limits.IsZero ((Bump e z S).obj x) := by sorry
+```",22,T,B matches target signature exactly with correct argument structure and explicit/implicit parameters; A incorrectly uses typeclass for hz.,False,33,"```lean
+theorem Bump_apply_of_not_mem_is_zero {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z) (hS : good S)
+  {x : C} (hx : x ∉ S) : CategoryTheory.Limits.IsZero (CategoryTheory.Functor.obj (Bump e hz hS) x) := by sorry
+```",13,tie,Both candidates match the target signature semantically with identical types and argument structure. Only names differ.,False,7
+1895398,DirectSumDecomposition.sSupIndep,"DirectSumDecomposition.sSupIndep.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : DirectSumDecomposition M) : sSupIndep ↑D","Looking at this declaration, it states that given a direct sum decomposition `D` of a functor `M` from category `C` to the category of `K`-modules (where `K` is a division ring), the underlying set of subobjects in the decomposition `D` is supremum-independent (sSupIndep).
+
+In other words, for any direct sum decomposition of a functor into module categories, the collection of summands forms an independent family with respect to the supremum operation.","```lean
+theorem DirectSumDecomposition.sSupIndep {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : DirectSumDecomposition M) :
+  sSupIndep (DirectSumDecomposition.carrier D) := by sorry
+```",15,"```lean
+theorem DirectSumDecomposition.sSupIndep
+    {C : Type*} [CategoryTheory.Category C]
+    {K : Type*} [DivisionRing K]
+    {M : CategoryTheory.Functor C (ModuleCat K)}
+    (D : DirectSumDecomposition M) :
+    sSupIndep (D.summands : Set (PersistenceSubmodule M)) := by sorry
+```",15,T,"A uses .carrier which matches ↑D coercion, B uses .summands field which may differ from the intended coercion.",False,14,"```lean
+DirectSumDecomposition.sSupIndep : {C : Type} → [CategoryTheory.Category.{0, 0} C] → {K : Type} → [DivisionRing K] → {M : CategoryTheory.Functor C (ModuleCat K)} → (D : DirectSumDecomposition M) → sSupIndep ↑D
+```",15,Trandom,"A matches the target signature exactly, including ↑D coercion. B unnecessarily expands ↑D to carrier and includes a proof body.",False,8
+1917193,Bump_apply_of_not_mem,"Bump_apply_of_not_mem.{u, v, u_1, u_2} {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z) (hS : good S)
+  {x : C} (hx : x ∉ S) : CategoryTheory.Functor.obj (Bump e hz hS) x = z","Looking at this declaration, it states a property of the `Bump` functor: Given a category `A` with an element `e`, a zero object `z` in `A`, a ""good"" subset `S` of objects in another category `C`, if an object `x` in `C` is not a member of the set `S`, then applying the `Bump` functor (constructed from `e`, `z`, and `S`) to `x` yields the zero object `z`.","```lean
+theorem Bump_obj_not_mem {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) {x : C} (hx : x ∉ S) : (Bump e hz hS).obj x = z
+```",25,"```lean
+theorem Bump.apply_of_not_mem {A C : Type*} [CategoryTheory.Category A] [CategoryTheory.Category C] 
+    (e : A) (z : A) (S : Set C) (hS : good S) (x : C) (hx : x ∉ S) : 
+    (Bump e z S).obj x = z := by sorry
+```",25,T,"B matches target signature exactly including universe levels, implicit/explicit arguments, and hypothesis names. A differs significantly.",False,32,"```lean
+theorem Bump_apply_of_not_mem {A : Type u} [CategoryTheory.Category A] {C : Type u_1}
+  [CategoryTheory.Category C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) {x : C} (hx : x ∉ S) :
+  CategoryTheory.Functor.obj (Bump e hz hS) x = z := by sorry
+```",13,Trandom,B matches target name and makes universe levels explicit in signature matching target's form exactly,False,11
+1802604,DirectSumDecomposition.sSup_eq_top',"DirectSumDecomposition.sSup_eq_top'.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (self : DirectSumDecomposition M) :
+  sSup (DirectSumDecomposition.carrier self) = ⊤","Looking at this declaration, it states that for a direct sum decomposition of a functor M from a category C to the category of modules over a division ring K, the supremum (join) of all the carrier submodules in the decomposition equals the top element (the entire module).
+
+In other words, the submodules that make up the direct sum decomposition span the whole module when combined.","```lean
+theorem DirectSumDecomposition.sSup_carrier_eq_top {C : Type} [CategoryTheory.Category C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (decomp : DirectSumDecomposition M) : sSup decomp.carrier = ⊤ := by sorry
+```",20,"```lean
+theorem DirectSumDecomposition.iSup_carrier_eq_top {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C] (M : CategoryTheory.Functor C (ModuleCat K)) (dec : DirectSumDecomposition M) : ⨆ (i : C), dec.carrier i = ⊤ := by sorry
+```",20,T,B exactly matches target signature with sSup and implicit M; A uses iSup which differs semantically from sSup.,False,23,"```lean
+DirectSumDecomposition.iSup_carrier_eq_top : ∀ {C : Type} [inst : CategoryTheory.Category.{0, 0} C] {K : Type} [inst : DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : DirectSumDecomposition M), ⨆ p ∈ D.carrier, (p : PersistenceSubmodule M) = ⊤
+```",20,T,Candidate A uses sSup matching target exactly; B uses iSup with explicit coercion which differs structurally despite possible semantic equivalence.,False,19
+1870680,Bump_map,"Bump_map.{u, v, u_1, u_2} {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z) (hS : good S)
+  {x y : C} (x✝ : x ⟶ y) :
+  CategoryTheory.Functor.map (Bump e hz hS) x✝ =
+    if hx : x ∈ S then
+      if hy : y ∈ S then CategoryTheory.eqToHom ⋯
+      else
+        CategoryTheory.CategoryStruct.comp (CategoryTheory.Limits.IsZero.from_ hz (if x ∈ S then e else z))
+          (CategoryTheory.eqToHom ⋯)
+    else
+      CategoryTheory.CategoryStruct.comp (CategoryTheory.eqToHom ⋯)
+        (CategoryTheory.Limits.IsZero.to_ hz (if y ∈ S then e else z))","The theorem `Bump_map` describes how a morphism is transformed under the ""Bump"" functor: given a morphism from x to y in category C, the functor's action depends on whether x and y belong to the set S. If both x and y are in S, the morphism is mapped to an equality-to-homomorphism; if x is in S but y is not, the morphism is composed with a zero morphism from the ""bumped"" object followed by an equality-to-homomorphism; if x is not in S, the morphism is composed with an equality-to-homomorphism followed by a zero morphism to the ""bumped"" object.","```lean
+theorem Bump_map {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A}
+  (hz : CategoryTheory.Limits.IsZero z) (hS : good S) {x y : C} (f : x ⟶ y) :
+  (Bump e hz hS).map f = dite (x ∈ S ∧ y ∈ S)
+    (fun _ => CategoryTheory.eqToHom (Eq.refl e))
+    (fun _ => dite (x ∈ S)
+      (fun _ => CategoryTheory.eqToHom (Eq.refl e) ≫ hz.to_ y)
+      (fun _ => hz.from_ x ≫ CategoryTheory.eqToHom (Eq.refl e))) := by
+  sorry
+```",32,"```lean
+theorem Bump_map {C : Type*} [CategoryTheory.Category C] {S : Set C} (hS : good S) {x y : C}
+    (f : x ⟶ y) :
+    Bump S hS |>.map f =
+      ite (x ∈ S ∧ y ∈ S) (CategoryTheory.eqToHom (by rfl))
+        (ite (x ∈ S ∧ y ∉ S)
+          (CategoryTheory.CategoryStruct.comp (CategoryTheory.Limits.IsZero.from_ (hS.out ⟨y⟩) _)
+            (CategoryTheory.eqToHom (by rfl)))
+          (CategoryTheory.CategoryStruct.comp (CategoryTheory.eqToHom (by rfl))
+            (CategoryTheory.Limits.IsZero.to_ (hS.out ⟨x⟩) _)))
+```",32,T,"B matches target's explicit parameters (e, z, hz) and bifunctor structure A×C; A omits these and changes types/logic flow",False,70,"```lean
+theorem Bump_map {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) {x y : C} (f : x ⟶ y) :
+  CategoryTheory.Functor.map (Bump e hz hS) f =
+    if hxy : x ∈ S ∧ y ∈ S then
+      CategoryTheory.eqToHom (by simp [Bump_apply_of_mem e hz hS hxy.1, Bump_apply_of_mem e hz hS hxy.2])
+    else if hx : x ∈ S then
+      CategoryTheory.CategoryStruct.comp (CategoryTheory.eqToHom (by simp [Bump_apply_of_mem e hz hS hx, Bump_apply_of_not_mem e hz hS (by simp [hx, hxy])]))
+        (hz.from_zero)
+    else
+      CategoryTheory.CategoryStruct.comp (hz.to_zero) (CategoryTheory.eqToHom (by simp [Bump_apply_of_not_mem e hz hS (by simp [hx, hxy])]))
+```",13,tie,Both differ significantly from target's nested if-structure and use of hz.from_/to_ with conditional arguments. Neither matches target signature well.,False,55
+1811066,Step3_2,"Step3_2.{u_1} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R] (X Y : C)
+  (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
+  (ηx :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (ηy :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y))
+  (hnat :
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+        (ModuleCat.ofHom (ηy ^ n)) =
+      CategoryTheory.CategoryStruct.comp (ModuleCat.ofHom (ηx ^ n))
+        (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α))
+  (x : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X)) (hx : x ∈ LinearMap.range (ηx ^ n)) :
+  ∃ y,
+    (CategoryTheory.ConcreteCategory.hom (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)) x = y ∧
+      y ∈ LinearMap.range (ηy ^ n)","The theorem states that given a category $C$ with a division ring $R$, objects $X$ and $Y$ in $C$, a pointwise finite persistence module $M$, a morphism $\alpha: X \to Y$, a natural number $n$, and linear endomorphisms $\eta_x$ and $\eta_y$ on $M(X)$ and $M(Y)$ respectively that satisfy a naturality condition (namely that $M(\alpha) \circ \eta_y^n = \eta_x^n \circ M(\alpha)$), if an element $x$ in $M(X)$ belongs to the range of $\eta_x^n$, then there exists an element $y$ in $M(Y)$ such that $y$ equals the image of $x$ under the map $M(\alpha)$ and $y$ belongs to the range of $\eta_y^n$.","```lean
+theorem rangePowerNaturalImpliesRangePowerImage
+  {C : Type u₁} [CategoryTheory.Category.{u₃, u₁} C] 
+  {K : Type u₂} [DivisionRing K]
+  (M : PtwiseFinitePersMod C K)
+  {X Y : C} (α : X ⟶ Y)
+  (n : ℕ)
+  (η_x : Module.End K (↑(M.toFunctor.obj X)))
+  (η_y : Module.End K (↑(M.toFunctor.obj Y)))
+  (nat : (M.toFunctor.map α) ∘ₗ (η_y ^ n) = (η_x ^ n) ∘ₗ (M.toFunctor.map α))
+  {x : ↑(M.toFunctor.obj X)}
+  (hx : x ∈ LinearMap.range (η_x ^ n)) :
+  ∃ y : ↑(M.toFunctor.obj Y), (M.toFunctor.map α) y = x ∧ y ∈ LinearMap.range (η_y ^ n) := by sorry
+```",88,"```lean
+theorem range_of_commuting_endomorphisms {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C]
+    (M : PtwiseFinitePersMod R C) {X Y : C} (α : X ⟶ Y) (n : ℕ)
+    (η_x : Module.End R (M.toFunctor.obj X)) (η_y : Module.End R (M.toFunctor.obj Y))
+    (h_nat : M.toFunctor.map α ∘ₗ η_y ^ n = η_x ^ n ∘ₗ M.toFunctor.map α)
+    (x : M.toFunctor.obj X) (hx : x ∈ LinearMap.range (η_x ^ n)) :
+    ∃ y : M.toFunctor.obj Y, M.toFunctor.map α x = y ∧ y ∈ LinearMap.range (η_y ^ n)
+```",88,Tnames,A matches target semantics: image of x under map is in range of η_y^n. B has reversed map direction (map α y = x instead of x mapped to y).,False,67,"```lean
+theorem Step3_1_extended (C : Type) [CategoryTheory.Category.{0, 0} C] (R : Type) [DivisionRing R] (X Y : C)
+  (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
+  (ηx :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (ηy :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y))
+  (hnat :
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+        (ModuleCat.ofHom (ηy ^ n)) =
+      CategoryTheory.CategoryStruct.comp (ModuleCat.ofHom (ηx ^ n))
+        (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α))
+  (x : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (hx : x ∈ LinearMap.range (ηx ^ n)) :
+  ∃ y : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y),
+    (CategoryTheory.ConcreteCategory.hom (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)) x = y ∧
+    y ∈ LinearMap.range (ηy ^ n) := by sorry
+```",47,Trandom,"Candidate A matches the target signature exactly, including the correct direction of mapping (α: X → Y, maps x to y). Candidate B has the mapping backwards.",False,12
+1876874,PersistenceSubmodule.ext_iff,"PersistenceSubmodule.ext_iff.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {N₁ N₂ : PersistenceSubmodule M} : N₁ = N₂ ↔ ∀ (c : C), N₁ c = N₂ c",Two persistence submodules N₁ and N₂ of a functor M from a category C to the category of modules over a division ring K are equal if and only if they are equal at every object c in the category C.,"```lean
+theorem PersistenceSubmodule.eq_iff_forall_obj_eq {C : Type} [CategoryTheory.Category.{u₁, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N₁ N₂ : PersistenceSubmodule M) : N₁ = N₂ ↔ ∀ (c : C), N₁ c = N₂ c := by sorry
+```",35,"```lean
+theorem PersistenceSubmodule.ext_iff {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N₁ N₂ : PersistenceSubmodule M) : N₁ = N₂ ↔ ∀ c : C, N₁ c = N₂ c
+```",35,Tnames,"Both match semantically, but A uses correct name ext_iff and Type* convention matching target better than B's renamed version.",False,10,"```lean
+theorem PersistenceSubmodule.ext_iff {C : Type u_1} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {N₁ N₂ : PersistenceSubmodule M} : N₁ = N₂ ↔ ∀ (c : C), N₁ c = N₂ c
+```",31,Trandom,"Both match semantically, but A uses exact name ext_iff and implicit arguments as in target. B uses wrong name and explicit arguments.",False,4
+1832994,ZeroModule,"ZeroModule.{u_1, u_2, u_3} (C : Type u_1) (K : Type u_2) [CategoryTheory.Category.{u_3, u_1} C] [DivisionRing K] :
+  CategoryTheory.Functor C (ModuleCat K)","Looking at this Lean 4 declaration:
+
+The `ZeroModule` is a functor from a category `C` to the category of modules over a division ring `K`. This functor sends every object in `C` to the zero module over `K` and every morphism in `C` to the zero module homomorphism.","```lean
+def ZeroModule {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {K : Type u₂} [DivisionRing K] :
+  CategoryTheory.Functor C (ModuleCat K)
+```",16,"```lean
+def ZeroModule (C : Type u) [CategoryTheory.Category C] (K : Type v) [DivisionRing K] :
+    C ⥤ ModuleCat K where
+  obj _ := ModuleCat.of K (⊥ : Submodule K K)
+  map _ := 0
+  map_id _ := rfl
+  map_comp _ _ := rfl
+```",16,Tnames,"A is just signature without implementation. B provides full functor definition with objects and morphisms, matching target structure.",False,37,"```lean
+def ZeroModule (C : Type u_1) [CategoryTheory.Category.{u_1, 0} C] (R : Type u_2) [DivisionRing R] :
+    CategoryTheory.Functor C (ModuleCat R) :=
+  sorry
+```",16,Trandom,A is explicit args matching target; B uses implicit braces instead of explicit parens and different universe names.,False,14
+1762320,DirectSumDecomposition.carrier,"DirectSumDecomposition.carrier.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (self : DirectSumDecomposition M) : Set (PersistenceSubmodule M)",The carrier of a direct sum decomposition of a persistence module M is a set of persistence submodules of M.,"```lean
+def DirectSumDecomposition.carrier {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (d : DirectSumDecomposition M) :
+  Set (PersistenceSubmodule M)
+```",11,"```lean
+def DirectSumDecomposition.carrier {R : Type*} [DivisionRing R] {I : Type*} [PartialOrder I]
+    (M : PersistenceModule R I) (D : DirectSumDecomposition R I M) :
+    Set (PersistenceSubmodule R I M) :=
+  sorry
+```",11,T,B exactly matches the target signature including parameter names and structure. A uses incompatible type parameters (R/I vs C/K) and different ordering.,False,23,"```lean
+DirectSumDecomposition.carrier : {C : Type} → [CategoryTheory.Category.{0, 0} C] → {K : Type} → [DivisionRing K] → {M : CategoryTheory.Functor C (ModuleCat K)} → DirectSumDecomposition M → Set (PersistenceSubmodule M)
+```",11,tie,"Both candidates accurately represent the same function signature with identical semantic content, just using different syntactic conventions (def vs bare type).",False,10
+1793129,chainBound,"chainBound {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) : PersistenceSubmodule M","Looking at this declaration, we have a function that takes as input:
+- A category C
+- A division ring K
+- A functor M from C to the category of K-modules
+- A set T of dual direct sum decompositions of M
+- A limit l of the Pone construction applied to T
+
+The function `chainBound` produces a persistence submodule of M.
+
+In other words, given a limit of the Pone functor applied to a set of dual direct sum decompositions, this construction yields a persistence submodule that represents the chain bound associated with this limit structure.","```lean
+def chainBound {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) : PersistenceSubmodule M
+```",44,"```lean
+def chainBound {C : Type*} [CategoryTheory.Category C] (K : Type*) [DivisionRing K] 
+    (M : C ⥤ ModuleCat K) (T : Set (Dual.DirectSumDecomposition M)) 
+    (l : CategoryTheory.Limits.limit (Pone T)) : PersistenceSubmodule M
+```",44,T,"B exactly matches target signature including universe levels {0,0} and implicit/explicit status. A differs in both aspects.",False,13,"```lean
+chainBound {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) : PersistenceSubmodule M
+```",24,T,"A is missing the 'def' keyword, making it a theorem/lemma declaration rather than a definition. B correctly declares a definition.",False,0
+1910608,NegAppModule,"NegAppModule.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (θ : EndRing C R F) (X : C) (x : ↑(CategoryTheory.Functor.obj F X)) :
+  (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app (OppEndo C R F θ) X)) x =
+    -(CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app θ X)) x","Looking at this Lean 4 declaration:
+
+This theorem states that for a category C with a division ring R, a functor F from C to R-modules, a natural transformation θ (called an endomorphism ring), an object X in C, and an element x in F(X), the action of the opposite endomorphism (OppEndo) on x equals the negative of the action of θ on x. In other words, the opposite endomorphism is literally the negative of the original endomorphism when applied to any element.","```lean
+theorem OppEndo.apply_eq_neg {C : Type} [CategoryTheory.Category.{0, 0} C] {R : Type} [DivisionRing R]
+  {F : CategoryTheory.Functor C (ModuleCat R)} (θ : EndRing C R F) {X : C} (x : F.obj X) :
+  OppEndo C R F θ x = -θ x := by sorry
+```",47,"```lean
+theorem OppEndo.apply_eq_neg {C : Type*} [CategoryTheory.Category C] {R : Type*} [DivisionRing R] (F : C ⥤ ModuleCat R) (θ : F ⟶ F) (X : C) (x : (F.obj X : Type*)) : OppEndo θ X x = -(θ.app X x)
+```",47,T,A uses correct ConcreteCategory.hom structure matching target. B lacks ConcreteCategory.hom and uses wrong θ type (⟶ instead of EndRing).,False,31,"```lean
+theorem OppEndoAppIsNeg (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (θ : EndRing C R F) (X : C)
+  (x : ↑(CategoryTheory.Functor.obj F X)) :
+  (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app (OppEndo C R F θ) X)) x =
+    -(CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app θ X)) x := by sorry
+```",47,Trandom,B matches target signature exactly including universes and explicit morphism applications; A uses simplified notation that may not align with target's concrete category structure.,False,5
+1843165,Indecomposable',"Indecomposable'.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (N : PersistenceSubmodule M) : Prop",A persistence submodule `N` of a functor `M` from a category `C` to the category of modules over a division ring `K` is **indecomposable** if it cannot be written as the direct sum of two non-trivial persistence submodules.,"```lean
+def PersistenceSubmodule.Indecomposable {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (N : PersistenceSubmodule M) : Prop :=
+  ∀ (N₁ N₂ : PersistenceSubmodule M), N = N₁ ⊔ N₂ → N₁ ⊓ N₂ = ⊥ → N₁ = ⊥ ∨ N₂ = ⊥
+```",20,"```lean
+def PersistenceSubmodule.Indecomposable {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N : PersistenceSubmodule M) : Prop :=
+  ∀ N₁ N₂ : PersistenceSubmodule M, N₁ ≤ N → N₂ ≤ N → N₁ ⊔ N₂ = N → N₁ = ⊥ ∨ N₂ = ⊥
+```",20,T,"A uses direct decomposition N = N₁ ⊔ N₂ with directness N₁ ⊓ N₂ = ⊥, matching standard indecomposability. B adds redundant ≤ conditions.",False,34,"```lean
+def IsIndecomposable {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (N : PersistenceSubmodule M) : Prop :=
+  ∀ (N₁ N₂ : PersistenceSubmodule M), N₁ ≤ N → N₂ ≤ N → N = N₁ ⊔ N₂ → 
+  sSupIndep {N₁, N₂} → IsBot N₁ ∨ IsBot N₂
+```",20,T,"B matches signature name and captures indecomposability correctly via direct sum with trivial intersection; A adds redundant conditions N₁≤N, N₂≤N (implied by sup) and uses sSupIndep instead of infimum.",False,32
+1913950,IntervalModuleMorphism_identity,"IntervalModuleMorphism_identity (F : Type) [DivisionRing F] (I : Interval ℝ) :
+  IntervalModuleMorphism F ⋯ = CategoryTheory.CategoryStruct.id F[I]","The identity morphism in the category of interval modules (which takes a module over an interval and returns itself with the identity linear map) is equal to the categorical identity morphism on the interval module F[I], where F is a division ring and I is an interval in the real numbers.","```lean
+theorem intervalModuleIdentity (F : Type) [DivisionRing F] (I : Interval ℝ) :
+  IntervalModuleMorphism F (le_refl I) = CategoryTheory.CategoryStruct.id (IntervalModuleObject F I) := by sorry
+```",42,"```lean
+theorem intervalModuleIdentityEq (F : Type*) [DivisionRing F] (I : Interval ℝ) :
+  (IntervalModuleMorphism.id : IntervalModuleMorphism F I → IntervalModuleMorphism F I) =
+  @CategoryTheory.CategoryStruct.id (IntervalModuleObject F I) _ (IntervalModuleObject.mk F I)
+```",42,T,A matches target shape: morphism from reflexive order equals id. B has incorrect type for id.,False,18,"```lean
+theorem IntervalModuleMorphism_id (F : Type) [DivisionRing F] (I : Interval ℝ) :
+  IntervalModuleMorphism F (le_refl I) = CategoryTheory.CategoryStruct.id (F[I]) := by sorry
+```",13,Trandom,"B uses F[I] notation matching target, while A expands to IntervalModuleObject. Both use le_refl correctly for identity morphism.",False,8
+1782917,Bump,"Bump.{u, v, u_1, u_2} {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) : CategoryTheory.Functor C A","The statement defines a functor from category C to category A, given an element e of A, a set S of objects in C, an object z in A that is a zero object, and a proof that S is ""good"" (satisfies the good property).","```lean
+def bumpFunctor {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z)
+  (hS : good S) : CategoryTheory.Functor C A :=
+  sorry
+```",49,"```lean
+def bumpFunctor {C A : Type*} [CategoryTheory.Category C] [CategoryTheory.Category A] 
+    (e : A) (S : Set C) (z : A) (hz : CategoryTheory.Limits.IsZero z) (hS : good S) : 
+    CategoryTheory.Functor C A
+```",49,T,A matches explicit universe variables and implicit/explicit argument patterns; B omits universe vars and makes S explicit instead of implicit.,False,20,"```lean
+def Bump {A : Type u} [CategoryTheory.Category.{v, u} A] {C : Type u_1}
+  [CategoryTheory.Category.{u_2, u_1} C] (e : A) {S : Set C} {z : A} (hz : CategoryTheory.Limits.IsZero z) (hS : good S) :
+  CategoryTheory.Functor C A := by sorry
+```",13,Trandom,"Candidate A has the exact name 'Bump' matching the target, while B uses 'bumpFunctor'. Names matter for definitional matching.",False,7
+1790933,Dual.DirectSumDecomposition.IsRefinement,"Dual.DirectSumDecomposition.IsRefinement.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D₁ D₂ : Dual.DirectSumDecomposition M) : Prop","Looking at this Lean 4 declaration, I need to understand what it defines in the context of direct sum decompositions for modules over a division ring.
+
+This declaration defines a relation `IsRefinement` between two direct sum decompositions `D₁` and `D₂` of a functor `M` from a category `C` to the category of `K`-modules (where `K` is a division ring). The relation `IsRefinement D₁ D₂` is a proposition that presumably captures when the decomposition `D₂` is a refinement of the decomposition `D₁`, meaning that each summand in `D₁` can be further decomposed as a direct sum of summands from `D₂`.","```lean
+def Dual.DirectSumDecomposition.IsRefinement {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D₁ D₂ : Dual.DirectSumDecomposition M) : Prop :=
+  D₁ ⊆ D₂
+```",18,"```lean
+def Dual.DirectSumDecomposition.IsRefinement
+    {K : Type*} [DivisionRing K]
+    {C : Type*} [CategoryTheory.Category C]
+    {M : C ⥤ ModuleCat K}
+    (D₁ D₂ : Dual.DirectSumDecomposition M) : Prop :=
+  ∀ i : D₁, ∃ s : Set D₂, (⨆ j ∈ s, (j : Dual.DirectSumDecomposition M)) = i
+```",18,Tnames,"A is likely vacuous (subset on decompositions undefined). B defines refinement via supremum condition, matching standard refinement notion.",False,35,"```lean
+def Dual.DirectSumDecomposition.IsRefinement {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D₁ D₂ : Dual.DirectSumDecomposition M) : Prop := by sorry
+```",18,T,B provides a meaningful definition (subset relation) while A uses sorry (incomplete). Neither appears vacuous as they define a refinement relation.,False,5
+1883546,PersistenceSubmodule.map_le',"PersistenceSubmodule.map_le'.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (self : PersistenceSubmodule M) {c d : C} (f : c ⟶ d) :
+  Submodule.map (ModuleCat.Hom.hom (CategoryTheory.Functor.map M f)) (PersistenceSubmodule.toFun self c) ≤
+    PersistenceSubmodule.toFun self d","For a persistence submodule of a functor $M$ from a category $C$ to the category of modules over a division ring $K$, and for any morphism $f: c \to d$ in $C$, the image of the submodule at $c$ under the linear map induced by $M(f)$ is contained in the submodule at $d$.","```lean
+theorem PersistenceSubmodule.map_le {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (P : PersistenceSubmodule M) {c d : C} (f : c ⟶ d) : Submodule.map (ModuleCat.Hom.hom (CategoryTheory.Functor.map M f)) (P.toFun c) ≤ P.toFun d
+```",30,"```lean
+theorem PersistenceSubmodule.map_le {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C] 
+    (M : C ⥤ ModuleCat K) (S : PersistenceSubmodule M) {c d : C} (f : c ⟶ d) :
+    Submodule.map (M.map f).toLinearMap (S.toFun c) ≤ S.toFun d := by sorry
+```",30,T,B matches target signature exactly with explicit universe levels and ModuleCat.Hom.hom; A uses toLinearMap which differs semantically.,False,28,"```lean
+theorem PersistenceSubmodule.map_le {C : Type u_1} [CategoryTheory.Category.{u_1, 0} C] {K : Type u_2} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {c d : C} (N : PersistenceSubmodule M) (f : c ⟶ d) : Submodule.map (ModuleCat.Hom.hom (CategoryTheory.Functor.map M f)) (N c) ≤ N d := by sorry
+```",30,T,B exactly matches target with P.toFun; A uses N c which is likely coercion but less explicit than target's toFun.,False,21
+1857260,PersistenceSubmodule.toFun,"PersistenceSubmodule.toFun.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (self : PersistenceSubmodule M) (c : C) :
+  Submodule K ↑(CategoryTheory.Functor.obj M c)","The function `PersistenceSubmodule.toFun` takes a persistence submodule of a functor M from a category C to K-modules (where K is a division ring), and assigns to each object c in C a submodule of M(c).","```lean
+def PersistenceSubmodule.toFun {C : Type} [CategoryTheory.Category C] {K : Type} [DivisionRing K]
+  (M : CategoryTheory.Functor C (ModuleCat K)) (P : PersistenceSubmodule M) :
+  ∀ (c : C), Submodule K (M.obj c : Type _)
+```",17,"```lean
+def PersistenceSubmodule.toFun {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] {M : C ⥤ ModuleCat K} (p : PersistenceSubmodule M) (c : C) : Submodule K (M.obj c) := sorry
+```",17,Tnames,B matches argument order (self then c). A swaps M into parameter and changes to curriedΠ form.,False,15,"```lean
+def PersistenceSubmodule.toFun {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N : PersistenceSubmodule M) (c : C) : Submodule K ↑(CategoryTheory.Functor.obj M c) := by sorry
+```",17,Trandom,A matches signature exactly including universe levels and coercion; B mismatches parameter order and type syntax,False,6
+1794525,IntervalModuleObject,IntervalModuleObject (F : Type) [DivisionRing F] (I : Interval ℝ) : CategoryTheory.Functor ℝ (ModuleCat F),The `IntervalModuleObject` construction associates to each division ring `F` and interval `I` of real numbers a functor from the real numbers (viewed as a category) to the category of `F`-modules. This functor captures the algebraic structure of modules indexed by real numbers within a specified interval.,"```lean
+def IntervalModuleObject (F : Type) [DivisionRing F] (I : Interval ℝ) : CategoryTheory.Functor ℝ (ModuleCat F) :=
+  Bump 0 CategoryTheory.Limits.isZero_zero (Interval.isGood I)
+```",33,"```lean
+def IntervalModuleObject (F : Type*) [DivisionRing F] (I : Interval ℝ) :
+    CategoryTheory.Functor (Preorder.smallCategory ℝ) (ModuleCat F) := by sorry
+```",33,T,"A uses sorry (incomplete), B provides actual implementation. A changes signature with Preorder.smallCategory coercion.",False,7,"```lean
+def IntervalModuleObject (F : Type) [DivisionRing F] (I : Interval ℝ) :
+  CategoryTheory.Functor ℝ (Module F) := by sorry
+```",13,T,B matches target signature exactly and provides a body; A uses wrong type Module F vs ModuleCat F and has sorry body.,False,5
+1781676,NonemptyInterval.ordConnected,"NonemptyInterval.ordConnected.{u_1} {α : Type u_1} [Preorder α] (I : NonemptyInterval α) :
+  Set.OrdConnected (Set.Icc (Prod.fst (NonemptyInterval.toProd I)) (Prod.snd (NonemptyInterval.toProd I)))",The closed interval from the first endpoint to the second endpoint of a nonempty interval is an order-connected set.,"```lean
+theorem NonemptyInterval.ordConnected {α : Type*} [Preorder α] (i : NonemptyInterval α) :
+  Set.OrdConnected (Set.Icc i.toProd.fst i.toProd.snd) := by sorry
+```",20,"```lean
+theorem NonemptyInterval.ordConnected {α : Type*} [Preorder α] (i : NonemptyInterval α) :
+    Set.OrdConnected (Set.Icc i.toProd.1 i.toProd.2) := by sorry
+```",20,tie,Both use equivalent projections: .1 = .fst and .2 = .snd for products. Semantically identical.,False,11,"```lean
+def Interval.ordConnected {α : Type u_2} [PartialOrder α] (I : Interval α) : Set.OrdConnected ↑I := by sorry
+```",1,T,"A matches the target signature closely with correct types (NonemptyInterval, Preorder, Icc). B uses wrong types (Interval, PartialOrder, coercion).",False,12
+1779338,Dual.DirectSumDecomposition.sSupIndep',"Dual.DirectSumDecomposition.sSupIndep'.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (self : Dual.DirectSumDecomposition M) :
+  sSupIndep (Dual.DirectSumDecomposition.carrier self)","The theorem states that for a direct sum decomposition of a functor M from a category C to modules over a division ring K, the carrier (set of submodules) of this decomposition is supremum-independent, meaning that no submodule in the carrier is contained in the supremum of the others.","```lean
+theorem Dual.DirectSumDecomposition.carrier_sSupIndep {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (decomp : Dual.DirectSumDecomposition M) : sSupIndep decomp.carrier
+```",13,"```lean
+theorem Dual.DirectSumDecomposition.carrier_sSup_indep {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C] {M : CategoryTheory.Functor C (ModuleCat K)} (dec : Dual.DirectSumDecomposition M) : sSup_indep (dec.carrier : Set (PersistenceSubmodule M))
+```",13,T,B matches target exactly in types and names; A uses alias sSup_indep and casts carrier to Set.,False,18,"```lean
+theorem Dual.DirectSumDecomposition.carrier_sSupIndep {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) : sSupIndep (Dual.DirectSumDecomposition.carrier D) := by sorry
+```",13,tie,Both candidates have identical signatures matching the target. The proof difference (missing vs sorry) is irrelevant for signature matching.,False,7
+1796928,Pi.iSupIndep_iff,"Pi.iSupIndep_iff.{u_1, u_2, u_3} {ι : Type u_1} {κ : Type u_2} {α : Type u_3} [CompleteLattice α] {f : ι → κ → α} :
+  iSupIndep f ↔ ∀ (k : κ), iSupIndep fun x => f x k","Looking at this theorem, I need to understand what `iSupIndep` means and how it relates to functions from index types to a complete lattice.
+
+The theorem states that a family of functions `f : ι → κ → α` (where `α` is a complete lattice) is supremum-independent if and only if for each fixed element `k` in `κ`, the family of values `f x k` (as `x` ranges over `ι`) is supremum-independent.
+
+In other words, supremum independence of a family of functions is equivalent to pointwise supremum independence: the functions are supremum-independent precisely when, for each coordinate in the codomain, the corresponding family of values at that coordinate is supremum-independent.","```lean
+theorem iSupIndep_pi {ι : Sort u_5} {κ : Type u_8} {α : κ → Type u_9} [(i : κ) → CompleteLattice (α i)]
+    (f : ι → (k : κ) → α k) : iSupIndep f ↔ ∀ (k : κ), iSupIndep fun (x : ι) => f x k
+```",41,"```lean
+theorem iSupIndep_pi {ι κ α : Type*} [CompleteLattice α] {f : ι → κ → α} :
+    iSupIndep f ↔ ∀ k, iSupIndep fun i => f i k := by sorry
+```",41,Tnames,"Both match the target semantically, but A uses more standard Lean 4 syntax with implicit types and cleaner presentation.",False,21,"```lean
+theorem iSupIndep_fun {ι : Type*} {κ : Type*} {α : Type*} [CompleteLattice α] 
+    (f : ι → κ → α) : iSupIndep f ↔ ∀ k, iSupIndep fun i => f i k
+```",0,Trandom,Candidate B matches the target signature exactly with universe polymorphism and explicit types. Candidate A uses dependent types which differs semantically.,False,16
+1781674,Interval.ordConnected,Interval.ordConnected.{u_2} {α : Type u_2} [PartialOrder α] (I : Interval α) : Set.OrdConnected ↑I,"A theorem stating that for any interval $I$ in a partially ordered type $\alpha$, the underlying set of $I$ is order-connected, meaning that if two elements belong to the interval, then every element between them also belongs to the interval.","```lean
+theorem Interval.ordConnected {α : Type u_1} [PartialOrder α] (I : Interval α) : Set.OrdConnected (↑I : Set α) := by sorry
+```",19,"```lean
+theorem Interval.ordConnected {α : Type*} [PartialOrder α] (I : Interval α) : Set.OrdConnected (I : Set α)
+```",19,T,B uses explicit coercion ↑I matching target exactly; A uses implicit coercion.,False,8,"```lean
+theorem Interval.ordConnected {α : Type u_1} [Preorder α] (I : Interval α) : Set.OrdConnected (↑I : Set α) := by sorry
+```",1,T,"Candidate A uses PartialOrder which matches the target, while B uses the weaker Preorder typeclass.",False,11
+1795142,Subfunctor.inj_cond,"Subfunctor.inj_cond.{u_1, u_2} {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category.{u_1, 0} C]
+  {F : CategoryTheory.Functor C (ModuleCat R)} (self : Subfunctor R C F) (X : C) :
+  Function.Injective ⇑(Subfunctor.injection self X)","Looking at this Lean 4 declaration:
+
+The `inj_cond` theorem states that for a division ring `R`, a category `C`, a functor `F` from `C` to the category of `R`-modules, and a subfunctor `self` of `F`, the injection map from the subfunctor to `F` at any object `X` in `C` is an injective function.","```lean
+theorem inj_cond {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category.{0, 0} C]
+    {F : CategoryTheory.Functor C (ModuleCat R)} (self : Subfunctor R C F) (X : C) :
+    Function.Injective (self.injection X)
+```",24,"```lean
+theorem Subfunctor.inj_cond {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C] (F : C ⥤ ModuleCat R) (self : Subfunctor F) (X : C) : Function.Injective (self.injection X)
+```",24,T,A swaps argument order (F before self) and uses different universe vars; B matches target signature more closely,False,15,"```lean
+inj_cond : ∀ {R : Type} [inst : DivisionRing R] {C : Type} [inst : CategoryTheory.Category C] 
+  {F : CategoryTheory.Functor C (ModuleCat R)} (self : Subfunctor R C F) (X : C),
+  Function.Injective (fun x => (x : ↑(CategoryTheory.Functor.obj F X)))
+```",24,T,Candidate B matches target better: uses self.injection X explicitly. Both capture injectivity correctly. Neither vacuous.,False,19
+1894417,IsZero_IntervalModuleObject'_zero,IsZero_IntervalModuleObject'_zero (F : Type) [DivisionRing F] : CategoryTheory.Limits.IsZero F[⊥],The statement asserts that the interval module object associated with the bottom element (empty interval) in the category of interval module objects over a division ring F is a zero object in the categorical sense.,"```lean
+theorem isZero_intervalModuleObject_bot (F : Type) [DivisionRing F] : 
+    CategoryTheory.Limits.IsZero (IntervalModuleObject F ⊥) := by sorry
+```",33,"```lean
+theorem isZero_intervalModuleObject_bot (F : Type u) [DivisionRing F] : 
+  CategoryTheory.Limits.IsZero (⊥ : IntervalModuleObject F) := by sorry
+```",33,T,Target uses F[⊥] notation which likely desugars to IntervalModuleObject F ⊥. A incorrectly casts ⊥ to IntervalModuleObject F first.,False,11,"```lean
+theorem IntervalModuleObject_bot_isZero (F : Type) [DivisionRing F] :
+  CategoryTheory.Limits.IsZero (IntervalModuleObject F ⊥) := by sorry
+```",13,tie,"Both candidates formalize the same statement with identical type and content, only differing in naming convention.",False,8
+1794527,Interval.isGood,Interval.isGood.{u_2} {α : Type u_2} [PartialOrder α] (I : Interval α) : good ↑I,"The theorem states that for any interval $I$ in a partially ordered type $\alpha$, the underlying set of $I$ (obtained by coercion) is a good set.","```lean
+theorem Interval.coe_good {α : Type u} [PartialOrder α] (I : Interval α) : good (↑I : Set α) := by sorry
+```",25,"```lean
+theorem Interval.good {α : Type*} [PartialOrder α] (I : Interval α) : good (↑I : Set α) := by sorry
+```",25,Tnames,Target name is isGood; B uses 'good' closer to isGood convention. Both semantically equivalent otherwise.,False,11,"```lean
+theorem good_coe_interval {α : Type*} [Preorder α] (I : Interval α) : good (↑I : Set α)
+```",13,T,"B matches namespace, type class (PartialOrder vs Preorder), and universe polymorphism more closely. Neither is vacuous.",False,9
+1835295,Dual.DirectSumDecomposition.RefinmentMapFunctorial,"Dual.DirectSumDecomposition.RefinmentMapFunctorial.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J K✝ : Dual.DirectSumDecomposition M)
+  (hij : Dual.DirectSumDecomposition.IsRefinement J I) (hjk : Dual.DirectSumDecomposition.IsRefinement K✝ J)
+  (hik : Dual.DirectSumDecomposition.IsRefinement K✝ I) (N : ↥K✝) :
+  Dual.DirectSumDecomposition.RefinementMap I K✝ hik N =
+    Dual.DirectSumDecomposition.RefinementMap I J hij (Dual.DirectSumDecomposition.RefinementMap J K✝ hjk N)","The theorem states that for three direct sum decompositions I, J, and K of a functor M (where K refines J, J refines I, and K refines I), the refinement map from I to K applied to an element N is equal to the composition of first applying the refinement map from J to K and then applying the refinement map from I to J; in other words, refinement maps are functorial (they compose correctly).","```lean
+theorem Dual.DirectSumDecomposition.RefinementMapCompose {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J K : Dual.DirectSumDecomposition M) (hJI : Dual.DirectSumDecomposition.IsRefinement J I) (hKJ : Dual.DirectSumDecomposition.IsRefinement K J) (hKI : Dual.DirectSumDecomposition.IsRefinement K I) (N : K) : Dual.DirectSumDecomposition.RefinementMap I K hKI N = Dual.DirectSumDecomposition.RefinementMap I J hJI (Dual.DirectSumDecomposition.RefinementMap J K hKJ N)
+```",30,"```lean
+theorem Dual.DirectSumDecomposition.RefinementMap.comp {R : Type*} [DivisionRing R] {M : ModuleCat R} 
+    {I J K : Dual.DirectSumDecomposition M} (hIJ : Dual.DirectSumDecomposition.IsRefinement J I) 
+    (hJK : Dual.DirectSumDecomposition.IsRefinement K J) (hIK : Dual.DirectSumDecomposition.IsRefinement K I) 
+    (N : PersistenceSubmodule R) :
+    Dual.DirectSumDecomposition.RefinementMap hIK N = 
+    Dual.DirectSumDecomposition.RefinementMap hJK (Dual.DirectSumDecomposition.RefinementMap hIJ N) := by sorry
+```",30,T,"A matches type parameters, functor context, and argument order. B uses wrong types (ModuleCat R vs Functor, PersistenceSubmodule vs ↥K✝) and wrong refinement order.",False,35,"```lean
+theorem Dual.DirectSumDecomposition.RefinementMapComp {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (I J K : Dual.DirectSumDecomposition M) (hKJ : Dual.DirectSumDecomposition.IsRefinement K J) (hJI : Dual.DirectSumDecomposition.IsRefinement J I) (hKI : Dual.DirectSumDecomposition.IsRefinement K I) (N : ↥K) : Dual.DirectSumDecomposition.RefinementMap I K hKI N = Dual.DirectSumDecomposition.RefinementMap I J hJI (Dual.DirectSumDecomposition.RefinementMap J K hKJ N)
+```",28,Trandom,"Both match the target equation semantically. A correctly uses coercion (↥K) for the decomposition index N, while B uses bare K which is already a type parameter.",False,17
+1793052,PersistenceSubmodule.coe_sSup,"PersistenceSubmodule.coe_sSup.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (S : Set (PersistenceSubmodule M)) : ⇑(sSup S) = ⨆ N ∈ S, ⇑N",The coercion of the supremum of a set of persistence submodules equals the supremum (taken over all modules N in the set) of the coercions of those persistence submodules.,"```lean
+theorem PersistenceSubmodule.coe_sSup {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (s : Set (PersistenceSubmodule M)) (c : C) : ↑(SupSet.sSup s) c = sSup {N : Submodule K ↑(CategoryTheory.Functor.obj M c) | ∃ P ∈ s, ↑P c = N} := by sorry
+```",45,"```lean
+theorem PersistenceSubmodule.coe_sSup {R : Type*} [DivisionRing R] {ι : Type*} (s : Set (PersistenceSubmodule R ι)) :
+    ↑(sSup s) = sSup (fun N : s => ↑N.val) := by sorry
+```",45,T,"A matches the categorical setup with Functor C (ModuleCat K) and proper pointwise sSup structure, while B changes to R ι instead of category theory types.",False,30,"```lean
+PersistenceSubmodule.coe_sSup : PersistenceSubmodule.coe_sSup.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (S : Set (PersistenceSubmodule M)) : ⇑(sSup S) = ⨆ N ∈ S, ⇑N
+```",31,Trandom,"B is an exact match of the target signature, while A provides a different (point-level) characterization with an extra parameter c.",False,2
+1866979,Dual.DirectSumDecomposition.pointwise_sSup_eq_top,"Dual.DirectSumDecomposition.pointwise_sSup_eq_top.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type}
+  [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) (x : C) :
+  ⨆ p ∈ D, p x = ⊤","For any dual direct sum decomposition D of a functor M from a category C to K-modules (where K is a division ring), and any object x in C, the supremum of the submodules p(x) over all p in D equals the top element (i.e., the whole module M(x)).","```lean
+theorem dual_direct_sum_decomposition_supremum_eq_top
+    {C : Type} [CategoryTheory.Category.{0, 0} C]
+    {K : Type} [DivisionRing K]
+    {M : CategoryTheory.Functor C (ModuleCat K)}
+    (D : Dual.DirectSumDecomposition M)
+    (x : C) :
+    ⨆ (p : PersistenceSubmodule M) (_ : p ∈ D), p x = ⊤ := by sorry
+```",59,"```lean
+theorem Dual.DirectSumDecomposition.iSup_eq_top {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) (x : C) : ⨆ p ∈ D, (p.val x : Submodule K (M.obj x)) = ⊤ := by sorry
+```",59,T,A matches the target signature exactly with correct types and implicit arguments. B adds spurious .val and explicit coercion that don't match target.,False,20,"```lean
+theorem Dual.DirectSumDecomposition.pointwise_sSup_eq_top {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) (x : C) : sSup {p x | p ∈ D} = ⊤ := by sorry
+```",28,T,Candidate B matches the target iSup notation exactly; A uses set sSup instead of bounded iSup.,False,11
+1768265,right_lt_sup_of_left_ne_bot,"right_lt_sup_of_left_ne_bot.{u_1} {α : Type u_1} [SemilatticeSup α] [OrderBot α] {a b : α} (h : Disjoint a b)
+  (ha : a ≠ ⊥) : b < a ⊔ b","If two elements $a$ and $b$ in a semilattice with supremum and bottom element are disjoint, and $a$ is not equal to the bottom element, then $b$ is strictly less than the supremum $a \sqcup b$.","```lean
+theorem disjoint_imp_lt_sup {α : Type*} [SemilatticeSup α] [OrderBot α] {a b : α} (h : Disjoint a b) (hne : a ≠ ⊥) : b < a ⊔ b := by sorry
+```",30,"```lean
+theorem disjoint_bot_of_ne_bot {α : Type*} [SemilatticeSup α] [OrderBot α] {a b : α} 
+    (h_disj : Disjoint a b) (h_ne : a ≠ ⊥) : b < a ⊔ b := by sorry
+```",30,tie,Both candidates match target signature exactly with identical arguments and conclusion. Names differ but semantics are the same.,False,9,"```lean
+theorem disjoint_bot_ne_imp_strict_lt {α : Type*} [SemilatticeSup α] [OrderBot α] [IsAtomistic α]
+    {a b : α} (h : Disjoint a b) (ha : a ≠ ⊥) : b < a ⊔ b := by sorry
+```",0,T,A matches target exactly except name. B adds unnecessary IsAtomistic constraint not in target.,False,9
+1852289,Dual.DirectSumDecomposition.not_bot_mem,"Dual.DirectSumDecomposition.not_bot_mem.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) : ⊥ ∉ D","For a direct sum decomposition `D` of a functor `M` into the category of modules over a division ring `K`, the bottom element (zero submodule) is not a member of `D`.","```lean
+theorem Dual.DirectSumDecomposition.not_bot_mem {C : Type} [CategoryTheory.Category C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) :
+  ⊥ ∉ D := D.not_bot_mem'
+```",21,"```lean
+theorem Dual.DirectSumDecomposition.not_bot_mem {K : Type*} [DivisionRing K] {M : ModuleCat K}
+    (D : Dual.DirectSumDecomposition M) : ⊥ ∉ D
+```",21,T,"A matches target signature with functor category while B uses ModuleCat directly; A provides implementation, B only signature.",False,12,"```lean
+theorem Dual.DirectSumDecomposition.not_bot_mem {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) : ⊥ ∉ ↑D := by sorry
+```",21,T,B provides actual implementation using D.not_bot_mem' while A uses sorry. Both have correct signatures semantically (↑D equals D due to coercion).,False,6
+1811841,Step3_1,"Step3_1.{u_1} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R] (X Y : C)
+  (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
+  (ηx :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (ηy :
+    ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y) →ₗ[R]
+      ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y))
+  (hnat :
+    CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+        (ModuleCat.ofHom (ηy ^ n)) =
+      CategoryTheory.CategoryStruct.comp (ModuleCat.ofHom (ηx ^ n))
+        (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α))
+  (x : ↥(LinearMap.ker (ηx ^ n))) :
+  (CategoryTheory.ConcreteCategory.hom
+        (CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+          (ModuleCat.ofHom (ηy ^ n))))
+      ↑x =
+    0","The theorem states that for a category $C$, a division ring $R$, objects $X$ and $Y$ in $C$, a pointwise finite persistence module $M$, a morphism $\alpha: X \to Y$, a natural number $n$, linear endomorphisms $\eta_x$ and $\eta_y$ on $M(X)$ and $M(Y)$ respectively satisfying a naturality condition (namely that $M(\alpha) \circ \eta_y^n = \eta_x^n \circ M(\alpha)$), and an element $x$ in the kernel of $\eta_x^n$, it follows that the composite map $M(\alpha) \circ \eta_y^n$ applied to $x$ equals zero.","```lean
+theorem map_compose_naturality_kernel
+  {C : Type u₁} [CategoryTheory.Category.{u₃, u₁} C]
+  {R : Type u₂} [DivisionRing R]
+  {X Y : C}
+  (M : PtwiseFinitePersMod C R)
+  (α : X ⟶ Y)
+  (n : ℕ)
+  (η_x : Module.End R (ModuleCat.carrier (CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X)))
+  (η_y : Module.End R (ModuleCat.carrier (CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y)))
+  (nat_cond : CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α ∘ η_y ^ n = η_x ^ n ∘ CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α)
+  (x : ↥(LinearMap.ker (η_x ^ n)))
+  : CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α (η_y ^ n (↑x)) = 0 := by
+  sorry
+```",111,"```lean
+theorem kernel_element_comp_naturality (C : Type*) [CategoryTheory.Category C] (R : Type*) [DivisionRing R] 
+    (X Y : C) (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ) 
+    (η_x : Module.End R (M.toFunctor.obj (ModuleCat.of R (M.toFunctor.obj X))))
+    (η_y : Module.End R (M.toFunctor.obj (ModuleCat.of R (M.toFunctor.obj Y))))
+    (h_nat : M.toFunctor.map α ∘ η_y ^ n = η_x ^ n ∘ M.toFunctor.map α)
+    (x : M.toFunctor.obj X) (hx : x ∈ LinearMap.ker (η_x ^ n)) :
+    (M.toFunctor.map α ∘ η_y ^ n) x = 0 := by sorry
+```",111,T,B correctly represents the kernel element as a subtype and applies the composition in the right order matching the target's ConcreteCategory.hom semantics.,False,63,"```lean
+theorem kernel_map_of_naturality {C : Type} [CategoryTheory.Category.{u_1, 0} C] {R : Type} [DivisionRing R]
+  {X Y : C} (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
+  (ηx : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X) →ₗ[R] ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (ηy : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y) →ₗ[R] ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) Y))
+  (hnat : CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α) (ModuleCat.ofHom (ηy ^ n)) = CategoryTheory.CategoryStruct.comp (ModuleCat.ofHom (ηx ^ n)) (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α))
+  (x : ↑(CategoryTheory.Functor.obj (PtwiseFinitePersMod.toFunctor M) X))
+  (hx : x ∈ LinearMap.ker (ηx ^ n)) :
+  (CategoryTheory.ConcreteCategory.hom (CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map (PtwiseFinitePersMod.toFunctor M) α) (ModuleCat.ofHom (ηy ^ n)))) x = 0 := by sorry
+```",47,Trandom,"B matches the target signature almost exactly, while A uses Module.End and function composition instead of category-theoretic composition, and bundles the kernel membership differently.",False,22
+1828719,SumIsSumModule,"SumIsSumModule.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing C R F) (X : C) (x : ↑(CategoryTheory.Functor.obj F X)) :
+  (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app (e + f) X)) x =
+    (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app e X)) x +
+      (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app f X)) x","Given a category $C$, a division ring $R$, a functor $F$ from $C$ to the category of $R$-modules, two natural transformations $e$ and $f$ in the endomorphism ring of $F$, an object $X$ in $C$, and an element $x$ in $F(X)$, the evaluation of the sum $(e + f)$ at $X$ applied to $x$ equals the sum of $e$ evaluated at $X$ applied to $x$ and $f$ evaluated at $X$ applied to $x$.","```lean
+theorem EndRing.add_apply {C : Type} [CategoryTheory.Category.{0} C] (R : Type) [DivisionRing R] (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing C R F) (X : C) (x : F.obj X) : ((e + f).app X) x = (e.app X) x + (f.app X) x := by sorry
+```",48,"```lean
+theorem NatTrans.add_app {C : Type*} [CategoryTheory.Category C] {R : Type*} [DivisionRing R]
+    (F : C ⥤ ModuleCat R) (e f : F ⟶ F) (X : C) (x : F.obj X) :
+    ((e + f).app X) x = e.app X x + f.app X x := by sorry
+```",48,T,"B matches target signature more closely: uses EndRing, explicit C:Type and Category.{0}, and parameter R. A uses NatTrans and different universe vars.",False,33,"```lean
+theorem SumIsEvaluatedPointwise (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (e f : EndRing C R F) (X : C) (x : ↑(CategoryTheory.Functor.obj F X)) :
+  (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app (e + f) X)) x =
+    (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app e X)) x +
+    (CategoryTheory.ConcreteCategory.hom (CategoryTheory.NatTrans.app f X)) x := by sorry
+```",47,Trandom,A matches target exactly; B has wrong universe levels and missing ConcreteCategory.hom coercions,False,5
+1781743,PowEqCompLeft,"PowEqCompLeft.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_1, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) (θ : EndRing C R F) (n : ℕ) :
+  θ ^ (n + 1) = CategoryTheory.CategoryStruct.comp θ (θ ^ n)","The theorem `PowEqCompLeft` states that for a category $C$, a division ring $R$, a functor $F$ from $C$ to the category of $R$-modules, an endomorphism $\theta$ in the endomorphism ring of $F$, and a natural number $n$, the $(n+1)$-th power of $\theta$ equals the composition of $\theta$ with the $n$-th power of $\theta$ (in that order).","```lean
+theorem PowEqCompLeft {u₁ u₂ : Nat} {C : Type u₁} [CategoryTheory.Category.{0, u₁} C] {R : Type} [DivisionRing R] 
+  (F : CategoryTheory.Functor C (ModuleCat R)) (θ : EndRing C R F) (n : ℕ) : 
+  θ ^ (n + 1) = θ * θ ^ n := by sorry
+```",51,"```lean
+theorem PowEqCompLeft {C : Type*} [CategoryTheory.Category C] {R : Type*} [DivisionRing R] 
+    (F : C ⥤ ModuleCat R) (θ : EndRing F) (n : ℕ) : 
+    θ ^ (n + 1) = θ ∘ θ ^ n := by sorry
+```",51,tie,"Both differ from target: A uses multiplication, B uses composition, but target uses CategoryStruct.comp. Neither matches exactly.",False,21,"```lean
+theorem PowEqCompLeft {C : Type} [CategoryTheory.Category.{0, 0} C] (R : Type) [DivisionRing R]
+    (F : CategoryTheory.Functor C (ModuleCat R)) (θ : EndRing C R F) (n : ℕ) :
+    θ ^ (n + 1) = CategoryTheory.CategoryStruct.comp θ (θ ^ n) := by sorry
+```",47,Trandom,A matches the target conclusion exactly using CategoryStruct.comp. B changes the conclusion to multiplication instead of composition.,False,8
+1879012,DecImpliesTrivial,"DecImpliesTrivial.{u_1} (R : Type) [DivisionRing R] (C : Type) [CategoryTheory.Category.{u_1, 0} C]
+  (M : CategoryTheory.Functor C (ModuleCat R)) (N₁ N₂ : Subfunctor R C M) (hdec : SubmodDecomp R C M N₁ N₂)
+  (heq : M = Subfunctor.baseFunctor N₁) : Subfunctor.baseFunctor N₂ = ZeroModule C R","The statement asserts that given a division ring $R$, a category $C$, a functor $M$ from $C$ to the category of $R$-modules, two subfunctors $N_1$ and $N_2$ of $M$, a submodule decomposition of $M$ into $N_1$ and $N_2$, and the condition that $M$ equals the base functor of $N_1$, it follows that the base functor of $N_2$ is the zero module functor.","```lean
+theorem submodDecomp_base_eq_implies_other_zero {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category.{0, 0} C]
+  {M : CategoryTheory.Functor C (ModuleCat R)} {N₁ N₂ : Subfunctor R C M}
+  (h : SubmodDecomp R C M N₁ N₂) (hM : M = N₁.baseFunctor) :
+  N₂.baseFunctor = ZeroModule C R := by sorry
+```",23,"```lean
+theorem submod_decomp_zero_of_eq_base_functor
+  {R : Type*} [DivisionRing R]
+  {C : Type*} [CategoryTheory.Category C]
+  (M : CategoryTheory.Functor C (ModuleCat R))
+  (N₁ N₂ : Subfunctor M)
+  (h : SubmodDecomp M N₁ N₂)
+  (hM : M = Subfunctor.baseFunctor N₁) :
+  Subfunctor.baseFunctor N₂ = ZeroModule.functor C R
+```",23,T,"B matches target signature exactly with correct universe levels, parameter positions, and explicit types. A has wrong universe handling and simplified Subfunctor syntax.",False,15,"```lean
+theorem submod_decomp_base_eq_zero {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category C]
+  {M : CategoryTheory.Functor C (ModuleCat R)} {N₁ N₂ : Subfunctor R C M}
+  (h : SubmodDecomp R C M N₁ N₂) (hM : Subfunctor.baseFunctor N₁ = M) :
+  Subfunctor.baseFunctor N₂ = 0 := by sorry
+```",23,T,"A matches types exactly with explicit CategoryTheory.Category.{0,0} and ZeroModule C R; B uses implicit universe and bare 0 instead of ZeroModule.",False,22
+1779334,Dual.DirectSumDecomposition.sSupIndep,"Dual.DirectSumDecomposition.sSupIndep.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) : sSupIndep ↑D","In the context of a dual direct sum decomposition \(D\) of a functor \(M : C \to \text{ModuleCat}(K)\) (where \(C\) is a category and \(K\) is a division ring), the carrier set of \(D\) (viewed as a set of subobjects) is supremum-independent (sSupIndep).","```lean
+def Dual.DirectSumDecomposition.sSupIndep {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) :
+  sSupIndep (↑D : Set (PersistenceSubmodule M)) :=
+  sorry
+```",15,"```lean
+theorem Dual.DirectSumDecomposition.sSupIndep {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] {M : C → ModuleCat K} (D : Dual.DirectSumDecomposition M) : sSupIndep (fun (x : ↥D.carrier) => (x : PersistenceSubmodule M)) := by sorry
+```",15,T,A matches target signature semantically: sSupIndep of ↑D as coercion. B uses lambda which differs structurally. Neither is vacuous.,False,22,"```lean
+def Dual.DirectSumDecomposition.sSupIndep {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (D : Dual.DirectSumDecomposition M) : sSupIndep (Dual.DirectSumDecomposition.carrier D) := by sorry
+```",15,T,Both match semantically but A uses coercion ↑D matching target exactly while B explicitly uses carrier.,False,7
+1916548,SubmonoidClass.coe_dfinsuppProd,"SubmonoidClass.coe_dfinsuppProd.{u_1, u_2, u_3, u_4} {B : Type u_1} {ι : Type u_2} {N : Type u_3} {M : ι → Type u_4}
+  [DecidableEq ι] [(i : ι) → Zero (M i)] [(i : ι) → (x : M i) → Decidable (x ≠ 0)] [CommMonoid N] [SetLike B N]
+  [SubmonoidClass B N] {S : B} (f : Π₀ (i : ι), M i) (g : (i : ι) → M i → ↥S) :
+  ↑(DFinsupp.prod f g) = DFinsupp.prod f fun i x => ↑(g i x)","The coercion of the dependent finitely supported product over a submonoid class instance equals the dependent finitely supported product where each term in the product has been coerced: specifically, for a dependent finitely supported function `f` and a function `g` mapping to a submonoid `S`, the coercion of `DFinsupp.prod f g` equals `DFinsupp.prod f (fun i x => ↑(g i x))`.","```lean
+theorem DFinsupp.coe_prod_submonoidClass {ι : Type u} {β : ι → Type v} {M : Type u_1} {S : Type u_2} {A : Type u_3}
+    [DecidableEq ι] [(i : ι) → Zero (β i)] [(i : ι) → (x : β i) → Decidable (x ≠ 0)]
+    [CommMonoid M] [CommMonoid S] [SetLike A S] [SubmonoidClass A S]
+    (f : Π₀ (i : ι), β i) (g : (i : ι) → β i → M) :
+    ↑(DFinsupp.prod f fun i x => (g i x : S)) = DFinsupp.prod f fun i x => ↑(g i x) := by sorry
+```",34,"```lean
+theorem DFinsupp.coe_prod_submonoidClass
+    {ι : Type*} {M : ι → Type*} {S : Type*}
+    [∀ i, Zero (M i)] [∀ i, Add (M i)] [CommMonoid S]
+    [∀ i, DecidableEq (M i)]
+    {N : Submonoid S}
+    [SubmonoidClass N S]
+    (f : Π₀ i, M i) (g : ∀ i, M i → N) :
+    ↑(f.prod g) = f.prod fun i x => ↑(g i x) := by sorry
+```",34,T,"A matches target structure with DecidableEq ι and decidable nonzero instances, while B has wrong structure (Add instances, DecidableEq on M i)",False,60,"```lean
+AddSubmonoidClass.coe_dfinsuppProd : AddSubmonoidClass.coe_dfinsuppProd.{u_1, u_2, u_3, u_4} {B : Type u_1} {ι : Type u_2} {M : ι → Type u_3} {N : Type u_4}
+  [DecidableEq ι] [(i : ι) → Monoid (M i)] [Monoid N] [SetLike B N] [SubmonoidClass B N] {S : B}
+  (f : Π₀ (i : ι), M i) (g : (i : ι) → M i → ↥S) :
+  ↑(DFinsupp.prod f g) = DFinsupp.prod f fun i x => ↑(g i x)
+```",1,tie,"A uses AddSubmonoidClass incorrectly (should be SubmonoidClass), B has wrong signature with (g i x : S) cast instead of g returning ↥S.",False,24
+1793124,DirectSumDecomposition_of_chain,"DirectSumDecomposition_of_chain {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)} (hT : IsChain LE.le T) :
+  Dual.DirectSumDecomposition M","The theorem states that given a category C, a division ring K, a functor M from C to K-modules, and a chain T (a set that is linearly ordered by ≤) of direct sum decompositions of M (in the dual sense), there exists a direct sum decomposition of M.","```lean
+theorem chainBound_isDirectSumDecomposition {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (hT : IsChain LE.le T) :
+  ∃ (l : CategoryTheory.Limits.limit (Pone T)), True := by sorry
+```",50,"```lean
+theorem DirectSumDecomposition.exists_of_chain {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] (M : C ⥤ ModuleCat K) (T : Set (Dual.DirectSumDecomposition M)) (hT : IsChain (· ≤ ·) T) : ∃ d : Dual.DirectSumDecomposition M, True
+```",50,Tnames,"A introduces unrelated limit concept; B matches signature structure with existential wrapping the target type. Both are vacuous (∃ _, True).",True,21,"```lean
+theorem DirectSumDecomposition_of_chain {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)} (hT : IsChain LE.le T) :
+  Dual.DirectSumDecomposition M
+```",24,Trandom,"A matches target signature exactly; B has wrong return type (∃ l, True) and different name",False,1
+1837892,DirectSumDecomposition.refinement,"DirectSumDecomposition.refinement.{u_1} {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {D : DirectSumDecomposition M}
+  (B : (N : PersistenceSubmodule M) → N ∈ D → Set (PersistenceSubmodule M))
+  (hB : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), N = sSup (B N hN))
+  (hB' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), sSupIndep (B N hN))
+  (hB'' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), ⊥ ∉ B N hN) : DirectSumDecomposition M","The refinement of a direct sum decomposition $D$ of a persistence module $M$ is constructed by taking, for each summand $N$ in $D$, a set $B(N)$ of persistence submodules whose supremum equals $N$ and which are supremum-independent (meaning their sum is direct), and which doesn't contain the zero submodule; the union of all these sets $B(N)$ over all summands $N \in D$ forms a new direct sum decomposition of $M$.","```lean
+def DirectSumDecomposition.refinement_of_families {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {D : DirectSumDecomposition M}
+  (B : (N : PersistenceSubmodule M) → N ∈ D → Set (PersistenceSubmodule M))
+  (hB : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), N = sSup (B N hN))
+  (hB' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), sSupIndep (B N hN))
+  (hB'' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), ⊥ ∉ B N hN) : DirectSumDecomposition M :=
+  DirectSumDecomposition.refinement B hB hB' hB''
+```",81,"```lean
+def DirectSumDecomposition.refinement' {R : Type*} [DivisionRing R] {ι : Type*} [CategoryTheory.Category ι] (M : ModuleCat (R[ι])) (D : DirectSumDecomposition M) (B : ∀ N ∈ D, Set (PersistenceSubmodule M)) (hB_sup : ∀ N ∈ D, sSup (B N ‹N ∈ D›) = N) (hB_indep : ∀ N ∈ D, sSupIndep (B N ‹N ∈ D›)) (hB_nonzero : ∀ N ∈ D, (⊥ : PersistenceSubmodule M) ∉ B N ‹N ∈ D›) : DirectSumDecomposition M
+```",81,T,"B matches target signature exactly; A uses different type parameters (ι, R[ι]) and dependent membership syntax instead of explicit hN parameters.",False,62,"```lean
+def DirectSumDecomposition.refinement {C : Type} [CategoryTheory.Category C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {D : DirectSumDecomposition M}
+  (B : (N : PersistenceSubmodule M) → N ∈ D → Set (PersistenceSubmodule M))
+  (hB : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), N = sSup (B N hN))
+  (hB' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), sSupIndep (B N hN))
+  (hB'' : ∀ (N : PersistenceSubmodule M) (hN : N ∈ D), ⊥ ∉ B N hN) : DirectSumDecomposition M := by sorry
+```",21,Trandom,B matches the target name and signature exactly; A uses a different name (refinement_of_families) and calls refinement recursively.,False,7
+1837890,DirectSumDecomposition.Indecomposable_of_mem_Min_Direct_sum_decomposition,"DirectSumDecomposition.Indecomposable_of_mem_Min_Direct_sum_decomposition.{u_1} {C : Type}
+  [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)}
+  (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMax D) : Indecomposable N","For a category C, a division ring K, and a functor M from C to K-modules, if D is a direct sum decomposition of M that is maximal (with respect to refinement), and N is a persistence submodule belonging to D, then N is indecomposable.","```lean
+theorem maximal_direct_sum_decomposition_persistence_submodule_indecomposable
+    {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+    {M : CategoryTheory.Functor C (ModuleCat K)}
+    {D : DirectSumDecomposition M} (hD : IsMax D)
+    {N : PersistenceSubmodule M} (hN : N ∈ D) : Indecomposable N := by sorry
+```",85,"```lean
+theorem DirectSumDecomposition.mem_of_isMax_imp_indecomposable {C : Type*} [CategoryTheory.Category C] (K : Type*) [DivisionRing K] (M : CategoryTheory.Functor C (ModuleCat K)) (D : DirectSumDecomposition M) (hD : IsMax D) (N : PersistenceSubmodule D) : Indecomposable N
+```",85,T,A matches target signature closely: D is decomposition with N ∈ D. B incorrectly types N as PersistenceSubmodule D instead of PersistenceSubmodule M.,False,18,"```lean
+theorem maximal_decomposition_indecomposable {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} {D : DirectSumDecomposition M} (hD : IsMaximal D) {N : PersistenceSubmodule M} (hN : N ∈ D) : IsIndecomposable N := by sorry
+```",21,T,B uses exact predicate `Indecomposable` and `IsMax` matching target; A uses `IsIndecomposable` and `IsMaximal` which differ.,False,16
+1795144,Subfunctor.baseFunctor,"Subfunctor.baseFunctor.{u_1, u_2} {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category.{u_1, 0} C]
+  {F : CategoryTheory.Functor C (ModuleCat R)} (self : Subfunctor R C F) : CategoryTheory.Functor C (ModuleCat R)","The `baseFunctor` is a field of the `Subfunctor` structure that associates to a subfunctor (of a functor from a category C to the category of R-modules, where R is a division ring) another functor from C to the category of R-modules.","```lean
+def Subfunctor.baseFunctor {R : Type} [DivisionRing R] {C : Type} [CategoryTheory.Category.{u_1, 0} C]
+    {F : CategoryTheory.Functor C (ModuleCat R)} (S : Subfunctor R C F) :
+    CategoryTheory.Functor C (ModuleCat R)
+```",9,"```lean
+structure Subfunctor {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C]
+    (F : CategoryTheory.Functor C (ModuleCat R)) where
+  baseFunctor : CategoryTheory.Functor C (ModuleCat R)
+```",9,Tnames,"A is a def, but target is a field of a structure. B correctly shows baseFunctor as a structure field matching target's projection signature.",False,14,"```lean
+structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [CategoryTheory.Category C]
+  (M : CategoryTheory.Functor C (ModuleCat R)) where
+  baseFunctor : CategoryTheory.Functor C (ModuleCat R)
+```",9,Trandom,"A defines baseFunctor as a structure field matching the target projection, B declares a def without implementation which is incomplete.",False,16
+1833844,PersistenceSubmodule.bot_apply,"PersistenceSubmodule.bot_apply.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_2, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (c : C) : ⊥ c = ⊥","Looking at this Lean 4 declaration, it states that for a persistence module `M` (a functor from a category `C` to the category of modules over a division ring `K`), the bottom persistence submodule evaluated at any object `c` in `C` equals the bottom element (the zero submodule) of the module at `c`.
+
+In other words, the bottom persistence submodule is pointwise the bottom submodule.","```lean
+theorem PersistenceSubmodule.bot_eq_bot {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (c : C) : ⇑(⊥ : PersistenceSubmodule M) c = (⊥ : Submodule K ↑(M.obj c))
+```",43,"```lean
+theorem PersistenceSubmodule.bot_eq_bot {C : Type*} [CategoryTheory.Category C] {K : Type*} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (c : C) : (⊥ : PersistenceSubmodule M) c = ⊥ := rfl
+```",43,Tnames,B matches target signature exactly with correct notation and equality. A uses explicit coercion which differs from target.,True,12,"```lean
+PersistenceSubmodule.bot_apply : ∀ {C : Type} [inst : CategoryTheory.Category C] {K : Type} [inst : DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (c : C), ⊥ c = ⊥
+```",31,Trandom,B matches target signature exactly; A adds coercion and changes statement structure unnecessarily.,False,11
+1784315,PersistenceSubmodule.coe_sup,"PersistenceSubmodule.coe_sup.{u_1, u_2} {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} (N₁ N₂ : PersistenceSubmodule M) : ⇑(N₁ ⊔ N₂) = ⇑N₁ ⊔ ⇑N₂",The coercion of the supremum of two persistence submodules $N_1$ and $N_2$ of a functor $M$ into module categories is equal to the supremum of their individual coercions.,"```lean
+theorem PersistenceSubmodule.coe_sup {C : Type} [CategoryTheory.Category.{u_1, 0} C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N₁ N₂ : PersistenceSubmodule M) (c : C) : ↑(N₁ ⊔ N₂) c = (↑N₁ c) ⊔ (↑N₂ c) := by sorry
+```",40,"```lean
+theorem PersistenceSubmodule.coe_sup {R : Type*} [DivisionRing R] {ι : Type*} [Preorder ι]
+    {M : ι ⥤ ModuleCat R} (N₁ N₂ : PersistenceSubmodule M) :
+    ⇑(N₁ ⊔ N₂) = ⇑N₁ ⊔ ⇑N₂ := by sorry
+```",40,Tnames,"A matches the target signature exactly: it states equality of coercions at function level. B adds an extra argument c and states pointwise equality, which changes the signature.",False,18,"```lean
+theorem PersistenceSubmodule.coe_sup {C : Type u₁} [CategoryTheory.Category C] {K : Type} [DivisionRing K] {M : CategoryTheory.Functor C (ModuleCat K)} (N₁ N₂ : PersistenceSubmodule M) : ⇑(N₁ ⊔ N₂) = ⇑N₁ ⊔ ⇑N₂
+```",31,Trandom,B exactly matches target signature; A adds unnecessary application to c and changes statement semantically.,False,5
+1851587,ToTypeCat,"ToTypeCat {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} : CategoryTheory.Functor (Dual.DirectSumDecomposition M) Type",The theorem defines a functor `ToTypeCat` that takes a direct sum decomposition of a functor M from a category C to K-modules (where K is a division ring) and produces a functor from the dual of this direct sum decomposition to the category of types.,"```lean
+def ToTypeCat {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} : CategoryTheory.Functor (Dual.DirectSumDecomposition M) Type :=
+  sorry
+```",55,"```lean
+def ToTypeCat {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C] 
+    (M : CategoryTheory.Functor C (ModuleCat K)) 
+    (D : Dual.DirectSumDecomposition M) :
+    CategoryTheory.Functor (Preorder.smallCategory (Dual.DirectSumDecomposition M)) 
+      CategoryTheory.types := by sorry
+```",55,T,A matches exactly parameter order and implicit/explicit bindings; B wrongly makes M and D explicit and changes type universe annotations.,False,22,"```lean
+def ToTypeCat {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (D : Dual.DirectSumDecomposition M) : CategoryTheory.Functor (↥T)ᵒᵖ (Type u_1) := by sorry
+```",24,T,A adds unnecessary parameters {T} and (D) and changes codomain to Type u_1 from ↥T)ᵒᵖ; B matches target exactly,False,15
+1909765,ZeroEndAppIsZero,"ZeroEndAppIsZero.{u_1, u_2} (C : Type) [CategoryTheory.Category.{u_2, 0} C] (R : Type) [DivisionRing R]
+  (F : CategoryTheory.Functor C (ModuleCat R)) : (fun x => 0) = 0","The theorem states that in the context of a functor F from a category C to the category of R-modules (where R is a division ring), the constant function that maps every object to zero is equal to the zero morphism.","```lean
+theorem const_zero_eq_zero_morphism {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C]
+    (F : CategoryTheory.Functor C (ModuleCat R)) :
+    (fun _ => (0 : ModuleCat R)) = (0 : CategoryTheory.Functor C (ModuleCat R)) := by sorry
+```",36,"```lean
+theorem const_zero_eq_zero_morphism {R : Type*} [DivisionRing R] {C : Type*} [CategoryTheory.Category C]
+    (F : C ⥤ ModuleCat R) :
+    (fun _ => (0 : ModuleCat R)) = fun _ => F.obj 0 := by sorry
+```",36,T,A equates constant zero functor to zero object in functor category; B incorrectly equates to F.obj 0 which doesn't match target,False,27,"```lean
+theorem ZeroFunctorEqZeroMorphism {C : Type} [CategoryTheory.Category C] (R : Type) [DivisionRing R] (F : CategoryTheory.Functor C (ModuleCat R)) : (fun _ => (0 : ModuleCat R)) = fun _ => CategoryTheory.Functor.obj (ZeroModule C R) := by sorry
+```",36,T,B correctly types (0 : Functor C (ModuleCat R)) matching the target signature (fun x => 0) = 0. A uses undefined ZeroModule instead.,False,21
+1871631,limit_elt_mk,"limit_elt_mk {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)} (hT : IsChain LE.le T)
+  (f : ↑T → PersistenceSubmodule M) (h_le : ∀ (I J : ↑T), I ≤ J → f J ≤ f I) (h_mem : ∀ (I : ↑T), f I ∈ ↑I) :
+  CategoryTheory.Limits.limit (Pone T)","The function `limit_elt_mk` constructs a limit element in the category of persistence submodules over a division ring $K$, given a chain $T$ of dual direct sum decompositions of a functor $M$, a family of persistence submodules $f$ indexed by elements of $T$ such that $f$ is order-reversing (i.e., when $I \leq J$ in the chain, we have $f(J) \leq f(I)$), and each $f(I)$ belongs to the corresponding decomposition $I$.","```lean
+def limit_elt_mk {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)} 
+  (hT : IsChain LE.le T)
+  (f : ↑T → PersistenceSubmodule M) 
+  (h_le : ∀ (I J : ↑T), I ≤ J → f J ≤ f I) 
+  (h_mem : ∀ (I : ↑T), f I ∈ ↑I) :
+  CategoryTheory.Limits.limit (Pone T) := by sorry
+```",73,"```lean
+def limit_elt_mk {K : Type*} [DivisionRing K] {T : Type*} [Preorder T] [CategoryTheory.Category T]
+    (M : T → ModuleCat K) (decomps : T → Dual.DirectSumDecomposition M)
+    (f : T → PersistenceSubmodule K M) (hchain : IsChain (· ≤ ·) f)
+    (hrev : ∀ I J : T, I ≤ J → f J ≤ f I) (hmem : ∀ I : T, f I ∈ decomps I) :
+    CategoryTheory.Limits.limit (CategoryTheory.Functor.obj (CategoryTheory.Functor.map id) ∘ (fun I : T ↦ (f I : ModuleCat K))) → sorry
+```",73,T,"A matches target signature exactly; B has wrong types (T as category vs Set), incorrect functor composition, and malformed return type with sorry.",True,57,"```lean
+def limit_elt_mk {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+    {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+    (hT : IsChain LE.le T)
+    (f : ↑T → PersistenceSubmodule M)
+    (hf_mono : ∀ I J : ↑T, I ≤ J → f J ≤ f I)
+    (hf_mem : ∀ I : ↑T, f I ∈ I) :
+    CategoryTheory.Limits.limit (Pone T)
+```",24,tie,"Both match the target signature exactly; A omits body, B uses sorry. Both are semantically equivalent declarations.",False,8
+1841952,chainBound_le,"chainBound_le {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) (I : ↑T) : M[l] ≤ ↑(Λ I l)","Theorem **chainBound_le** states that for a functor M from a category C to the category of modules over a division ring K, given a limit object l of a certain functor Pone T (where T is a set of dual direct sum decompositions of M) and an element I from T, the value of M at l is less than or equal to the chain bound Λ(I, l).","```lean
+theorem chainBound_le {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) (I : ↑T) :
+  (CategoryTheory.Functor.obj (Pone T) I) ≤ chainBound l := by sorry
+```",53,"```lean
+theorem chainBound_le {K : Type*} [DivisionRing K] {C : Type*} [CategoryTheory.Category C]
+    (M : C ⥤ ModuleCat K) (T : Set (Dual.DirectSumDecomposition M))
+    (l : CategoryTheory.Limits.limit (Pone T)) (I : T) :
+    (M.obj l : Set K).ncard ≤ Λ I l
+```",53,tie,Both candidates differ significantly from target in conclusions and variable order; both appear non-vacuous but neither matches well.,False,25,"```lean
+theorem chainBound_le {C : Type} [CategoryTheory.Category.{0, 0} C] {K : Type} [DivisionRing K]
+  {M : CategoryTheory.Functor C (ModuleCat K)} {T : Set (Dual.DirectSumDecomposition M)}
+  (l : CategoryTheory.Limits.limit (Pone T)) (I : ↑T) :
+  M.obj l ≤ (Λ I).carrier := by sorry
+```",24,Trandom,A uses undefined chainBound function. B's M.obj l and (Λ I).carrier better match notation M[l] and ↑(Λ I) from target.,False,8
