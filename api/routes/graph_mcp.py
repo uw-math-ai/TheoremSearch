@@ -32,9 +32,9 @@ MCP_SEARCH_TOOL = {
 MCP_GET_STATEMENT_TOOL = {
     "name": "get_statement",
     "description": (
-        "Retrieve full details for a specific informal statement by ID, including its body, proof, "
-        "slogan, and the paper it belongs to. Only works for informal (NL/LaTeX) statements. "
-        "Use this to hydrate a statement_id returned by theorem_search or navigate_graph."
+        "Retrieve full details for a specific statement by ID, including its body, proof, "
+        "slogan, and the paper it belongs to. Use this to hydrate a statement_id returned "
+        "by theorem_search or navigate_graph."
     ),
     "inputSchema": {
         "type": "object",
@@ -48,8 +48,7 @@ MCP_GET_STATEMENT_TOOL = {
 MCP_NAVIGATE_GRAPH_TOOL = {
     "name": "navigate_graph",
     "description": (
-        "Traverse the informal (NL/LaTeX) dependency graph from a given statement. "
-        "Only operates on informal statements — formal Lean declarations are not included. "
+        "Traverse the dependency graph from a given statement. "
         "Returns the reachable statement nodes (with slogans) and the dependency edges between them. "
         "direction='dependency' follows what this statement uses (its children / prerequisites). "
         "direction='dependent' finds what uses this statement (its parents / dependents). "
@@ -129,13 +128,13 @@ def _handle_get_statement(args: dict) -> dict:
             FROM statement s
             LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
             JOIN paper p ON p.paper_id = s.paper_id
-            WHERE s.statement_id = %s AND s.formality = 'informal'
+            WHERE s.statement_id = %s
             """,
             (statement_id,),
         )
         row = cur.fetchone()
         if row is None:
-            raise ValueError(f"No informal statement with id '{statement_id}'")
+            raise ValueError(f"No statement with id '{statement_id}'")
 
         cur.execute(
             """
@@ -181,12 +180,9 @@ def _handle_navigate_graph(args: dict) -> dict:
         raise ValueError("depth must be between 1 and 5")
 
     with rds_conn("v2") as conn, conn.cursor() as cur:
-        cur.execute(
-            "SELECT 1 FROM statement WHERE statement_id = %s AND formality = 'informal'",
-            (statement_id,),
-        )
+        cur.execute("SELECT 1 FROM statement WHERE statement_id = %s", (statement_id,))
         if cur.fetchone() is None:
-            raise ValueError(f"No informal statement with id '{statement_id}'")
+            raise ValueError(f"No statement with id '{statement_id}'")
         node_depth = _traverse(cur, [statement_id], depth, direction)
         subgraph = _build_subgraph(cur, node_depth)
 
