@@ -46,6 +46,7 @@ ln -sfn "$LOCAL_BASE/build" .lake/build
 find .lake/packages -maxdepth 1 -mindepth 1 -type d 2>/dev/null | while read -r pkg_dir; do
     pkg_name=$(basename "$pkg_dir")
     mkdir -p "$LOCAL_BASE/packages/$pkg_name"
+    mkdir -p "$pkg_dir/.lake"
     rm -rf "$pkg_dir/.lake/build"
     ln -sfn "$LOCAL_BASE/packages/$pkg_name" "$pkg_dir/.lake/build"
 done
