@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=08:00:00
-#SBATCH --array=0-2
+#SBATCH --array=0-1
 #SBATCH --output=/gscratch/amath/simku22/logs/pC_rebuild_%A_%a.out
 #SBATCH --error=/gscratch/amath/simku22/logs/pC_rebuild_%A_%a.err
 #SBATCH --mail-type=END,FAIL
@@ -13,14 +13,17 @@
 
 set -euo pipefail
 export PATH="$HOME/.elan/bin:$PATH"
+# nvm node/npm for proofwidgets/widgetJsAll JS bundle build
+export PATH="$HOME/.nvm/versions/node/v22.22.2/bin:$PATH"
 export LEAN_CC=/usr/bin/gcc
 TOOLCHAIN_DIR="$HOME/.elan/toolchains/leanprover--lean4---v4.27.0"
 export LIBRARY_PATH="$TOOLCHAIN_DIR/lib:${LIBRARY_PATH:-}"
 
+# lean-stat-learning-theory removed: incompatible with v4.27.0 (proofwidgets v0.0.98
+# uses Lake.Hash.ofHashable which does not exist in Lake v4.27.0).
 PROJECTS=(
     "formal-conjectures:FormalConjecturesForMathlib"
     "FormalBook:FormalBook"
-    "lean-stat-learning-theory:SLT"
 )
 
 ENTRY="${PROJECTS[$SLURM_ARRAY_TASK_ID]}"
@@ -40,11 +43,24 @@ if [ "$PROJECT" = "lean-stat-learning-theory" ] && [ -f lake-manifest.json ]; th
     rm -f lake-manifest.json
 fi
 
+# Fetch/update all dependency packages before SSD redirect so the redirect
+# can capture every package directory (including proofwidgets).
+echo "--- Running lake update ---"
+lake update 2>&1 || true
+
 # Redirect all build outputs to node-local SSD to avoid NFS olean loss on gscratch.
-# Covers both the project's own .lake/build and every package's .lake/build so that
-# dependency oleans (Batteries, Aesop, etc.) are written to SSD too.
 LOCAL_BASE="/tmp/proj-${PROJECT}-${SLURM_JOB_ID:-$$}"
 mkdir -p "$LOCAL_BASE/build"
+
+# Pre-seed proofwidgets JS bundle from a matching workspace:
+#   formal-conjectures uses proofwidgets v0.0.85 (git rev c04225ee) = mathlib4_v427
+#   FormalBook uses proofwidgets v0.0.84 (different rev) — falls back to npm via nvm
+MATHLIB_V427_PW_BUILD="/gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4_v427/.lake/packages/proofwidgets/.lake/build"
+if [ "$PROJECT" = "formal-conjectures" ] && [ -d "$MATHLIB_V427_PW_BUILD" ]; then
+    mkdir -p "$LOCAL_BASE/packages/proofwidgets"
+    cp -a "$MATHLIB_V427_PW_BUILD/." "$LOCAL_BASE/packages/proofwidgets/"
+    echo "--- Pre-seeded proofwidgets v0.0.85 build from mathlib4_v427 ---"
+fi
 
 # Wipe stale build dirs and replace with SSD symlinks
 mkdir -p .lake
