@@ -234,7 +234,7 @@ _PLAIN_ENV = re.compile(
 _PROOF_START = re.compile(r"^[_*]?Proof[_*]?\.?[_*]?[:,.]?\s*", re.IGNORECASE)
 _PROOF_END = re.compile(r"[□∎]|\\(blacksquare|square)\b|Q\.E\.D\.|\\qed\b")
 
-_SECTION_HDR = re.compile(r"^#{1,4}\s+")   # any markdown heading — not a theorem
+_SECTION_HDR = re.compile(r"^#{1,6}\s+")   # any markdown heading (levels 1-6) — not a theorem
 
 
 def _build_theorem_name(env_type: str, number: Optional[str], title: Optional[str]) -> str:
@@ -344,7 +344,8 @@ def parse_markdown(md: str, source: str) -> list[dict]:
                 current["note"] = title
 
             # remainder of the header line is the start of the body
-            after_match = stripped[m.end():].strip()
+            # nougat often formats as "**Theorem 1.1** : body..." — strip the leading colon
+            after_match = re.sub(r"^:\s*", "", stripped[m.end():].strip())
             if body_seed:
                 body_lines.append(body_seed)
             if after_match:
@@ -401,7 +402,8 @@ def _strip_markdown(text: str) -> str:
         return f"\x00{len(placeholders) - 1}\x00"
 
     text = re.sub(r"\$\$[\s\S]*?\$\$", mask, text)
-    text = re.sub(r"\$[^$\n]+?\$", mask, text)
+    # \x00 excluded so the regex can't bridge across an already-masked placeholder
+    text = re.sub(r"\$[^$\n\x00]+?\$", mask, text)
 
     # Strip bold (**text** or __text__)
     text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
@@ -427,7 +429,7 @@ def _clean(lines: list[str]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Save output  (ProofWiki-compatible format)
+# Save output
 # ---------------------------------------------------------------------------
 
 def save_output(theorems: list[dict], source: str, output_path: Path):
@@ -594,3 +596,4 @@ To tweak parsing without re-running OCR:
 
 if __name__ == "__main__":
     main()
+
