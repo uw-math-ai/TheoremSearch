@@ -22,11 +22,24 @@ import tempfile
 import time
 from pathlib import Path
 
+import shutil
+
 REPO     = Path(__file__).resolve().parents[2]
 LEAN_DIR = Path(__file__).parent / "lean_typecheck"
-LAKE     = Path.home() / ".elan/bin/lake"
-LEAN     = Path.home() / ".elan/bin/lean"
 TIMEOUT  = 300  # seconds per condition batch
+
+def _find_tool(name):
+    # Prefer elan-managed binaries; fall back to PATH
+    elan = Path.home() / f".elan/bin/{name}"
+    if elan.exists():
+        return elan
+    found = shutil.which(name)
+    if found:
+        return Path(found)
+    raise SystemExit(f"{name} not found. Install elan (https://leanprover.github.io/lean4/doc/setup.html).")
+
+LAKE = _find_tool("lake")
+LEAN = _find_tool("lean")
 
 
 def strip_fences(text):

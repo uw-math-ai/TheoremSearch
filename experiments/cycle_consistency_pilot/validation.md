@@ -78,19 +78,46 @@ CategoryTheory.CategoryStruct.toQuiver : CategoryTheory.CategoryStruct.toQuiver.
 
 - [x] **Judge blinding**
 
-  A/B labels randomized per item using `random.random() < 0.5`. Mapping saved in `judge_label_map.json` (not in results.csv). Judge prompt shows only 'CANDIDATE A' and 'CANDIDATE B', no condition names.
+  A/B labels randomized per item using `random.random() < 0.5`. Mapping saved in `judge_label_map.json`
+  (not in results.csv). Judge prompt shows only 'CANDIDATE A' and 'CANDIDATE B', no condition names.
+
+  **Note:** The blinding RNG uses the unseeded global `random` state. Re-runs produce different A/B
+  assignments (though the judge is blinded either way). The blinding map in `judge_label_map.json`
+  records the actual assignment used.
 
 - [x] **Same formalizer for B and T**
 
-  Both B and T calls use `us.anthropic.claude-haiku-4-5-20251001-v1:0`. Enforced by the single constant `FORMALIZER_MODEL` used in both `formalize_baseline()` and `formalize_treatment()`.
+  Both B and T calls use `us.anthropic.claude-haiku-4-5-20251001-v1:0`. Enforced by the single constant
+  `FORMALIZER_MODEL` used in both `formalize_baseline()` and `formalize_treatment()`.
 
 - [x] **No post-hoc filtering on outcome**
 
-  Candidate set (60 nodes) was sampled before any model calls. Candidates dropped after model runs (refusals/errors): 0. All drops logged in design.md.
+  Candidate set (60 nodes) was sampled before any model calls. Candidates dropped after model runs
+  (refusals/errors): 0. All drops logged in design.md.
 
-- [x] **Seed determinism**
+- [x] **Seed determinism (sampling only)**
 
-  Sampler uses `random.Random(42).sample(...)` on a deterministic ORDER BY n.id query. Re-running produces identical IDs.
+  Sampler uses `random.Random(42).sample(...)` on a deterministic `ORDER BY n.id` query. Re-running
+  produces identical node IDs. Model call outputs, judge blinding, and T-random sampling use separate
+  RNG state and are not deterministic across re-runs.
+
+- [ ] **NL leakage of F's name (not checked in original run)**
+
+  The informalizer prompt says "Do not mention Lean syntax" but does not prohibit mentioning F's name.
+  Post-hoc inspection of the 60 NLs finds:
+  - **6/60** contain F's full_name verbatim (e.g. `PNat.xgcd`, `Lean.SubExpr.Pos.asNat`)
+  - **10/60** contain F's last name component verbatim
+  - **9/60** contain a CamelCase part of the last component
+
+  When F's name appears in NL, both B and T receive it in their prompts. This likely narrows the B-T
+  gap (helps the baseline). Sensitivity check on the clean-NL subset (46/60 candidates where the last
+  component and CamelCase parts are absent): B=32.6%, T=63.0% — directionally identical to the full
+  sample (33% / 63%), so the main finding survives. The magnitude of all reported gaps is
+  conservative-biased by an unknown amount.
+
+  **Recommendation for re-run:** add "Do not mention the name of the declaration" to the informalizer
+  system prompt.
 
 
-**All checks passed.** Proceeding to analysis.md is authorized.
+**Summary:** data integrity checks pass; NL name leakage is a known confound that does not reverse
+the directional finding but biases gap magnitudes toward zero.

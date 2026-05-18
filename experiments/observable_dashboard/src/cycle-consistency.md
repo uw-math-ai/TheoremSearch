@@ -12,20 +12,25 @@ const cands = d.candidates;
 const strata = d.strata;
 const conds = d.conditions;
 const ablJ  = d.ablation_judge;
+const mc    = d.mcnemar_cis;
+const ctg   = d.contingency_B_Tnames;
+const nl    = d.nl_leakage;
 const editScatter = d.edit_scatter;
 const jvtc = d.judge_vs_tc;
 ```
 
 ## Setup
 
-**The question**: does giving a model the formal graph's dependency context improve
-cycle consistency for autoformalization?
+**The question**: does giving a model access to the formal graph's dependency
+context improve autoformalization quality?
 
-**Cycle consistency** is the round-trip F → NL → F'. We take a real Lean 4
-declaration F from Mathlib, generate an informal English description NL (using
-the model's own words, no graph), then ask a formalizer to reconstruct a Lean
-declaration from NL alone. A system is cycle-consistent if the reconstruction
-matches the original.
+We measure this with a **cycle-consistency** test: take a real Lean 4 declaration
+F from Mathlib, have a model describe it in English (NL), then have a formalizer
+try to reconstruct Lean from NL alone. If the reconstruction F' matches the
+original F, the model preserved the meaning. The formal graph lets us provide F's
+dependencies — the declarations F actually uses — as context to the formalizer.
+
+In a sentence: *can knowing what a theorem depends on help you write it back in Lean?*
 
 ### The four conditions
 
@@ -112,16 +117,79 @@ The type-check rate across all four conditions is the cleanest summary.
 }
 ```
 
-**B and T-names are identical (both 33%).** Knowing the names of F's predecessors —
-which reveals the mathematical domain and namespace — adds exactly nothing over
-having no context at all. What moves the needle is having actual type *signatures*:
-T-random (55%) shows that any same-area signatures help, and the full predecessor
-graph (63%) adds another 8pp by providing signatures directly relevant to F's own
-types.
+The **marginal** typecheck rates for B and T-names are identical (both 33%), but the
+paired picture is more interesting. T-names doesn't help *the same* candidates as B
+— it lifts some and drops others, net zero:
 
-At n=60, pairwise 95% CIs on typecheck-rate differences are roughly ±13–16pp.
-The B = T-names result (0pp gap) is the most robust; the T vs T-random gap (8pp)
-is directional.
+```js
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:12px 0">
+  <thead><tr style="background:#f1f5f9">
+    <th style="padding:8px 14px;border:1px solid #e2e8f0"></th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names passes</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names fails</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0">Row total</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B passes</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f0fdf4;font-weight:700">${ctg.b_pass_tn_pass}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${ctg.b_pass_tn_fail}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_pass + ctg.b_pass_tn_fail}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B fails</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${ctg.b_fail_tn_pass}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f8fafc">${ctg.b_fail_tn_fail}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_fail_tn_pass + ctg.b_fail_tn_fail}</td>
+    </tr>
+    <tr style="background:#f1f5f9">
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600">Col total</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_pass + ctg.b_fail_tn_pass}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_fail + ctg.b_fail_tn_fail}</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">60</td>
+    </tr>
+  </tbody>
+</table>
+<div style="font-size:12px;color:#64748b;margin-top:4px">
+  Green = both pass (${ctg.b_pass_tn_pass} candidates). Red = one passes, one fails (${ctg.b_pass_tn_fail + ctg.b_fail_tn_pass} candidates).
+  McNemar 95% CI on difference: [${mc.B_vs_Tnames.ci_lo}pp, ${mc.B_vs_Tnames.ci_hi}pp].
+</div>`);
+```
+
+Only **${ctg.b_pass_tn_pass}/20** B-passes overlap with T-names passes. T-names shifts *which*
+candidates typecheck — 7 that baseline would fail it passes, and 7 that baseline
+would pass it fails. A plausible mechanism: dep names push the formalizer toward
+specific declarations in the neighbourhood; when it guesses the wrong one the
+output is worse than no hint at all.
+
+What reliably moves the needle is type *signatures*: T-random (55%) shows that
+any same-area signatures help, and the full predecessor graph (63%) adds another
+8pp by providing signatures directly constraining F's own types.
+
+```js
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:8px 0 4px">
+  <thead><tr style="background:#f1f5f9">
+    <th style="padding:7px 12px;border:1px solid #e2e8f0;text-align:left">Comparison</th>
+    <th style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right">Δ (pp)</th>
+    <th style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right">95% CI</th>
+    <th style="padding:7px 12px;border:1px solid #e2e8f0;text-align:left">Interpretation</th>
+  </tr></thead>
+  <tbody>
+    ${[
+      {cmp:"B vs T",        d: mc.B_vs_T,        note:"Strong, robust signal"},
+      {cmp:"T-names vs T",  d: mc.Tnames_vs_T,   note:"Signatures matter a lot"},
+      {cmp:"T vs T-random", d: mc.T_vs_Trandom,  note:"CI crosses zero — directional only"},
+      {cmp:"B vs T-names",  d: mc.B_vs_Tnames,   note:"Names add nothing on average"},
+    ].map(({cmp, d, note}) => html`<tr>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0">${cmp}</td>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-weight:600">${d.delta > 0 ? "+" : ""}${d.delta}pp</td>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">[${d.ci_lo > 0 ? "+" : ""}${d.ci_lo}, +${d.ci_hi}]</td>
+      <td style="padding:7px 12px;border:1px solid #e2e8f0;color:#475569">${note}</td>
+    </tr>`)}
+  </tbody>
+</table>
+<div style="font-size:11px;color:#94a3b8">McNemar exact binomial CI, n=60.</div>`);
+```
 
 ---
 
@@ -147,7 +215,7 @@ display(html`<div style="display:flex;gap:24px;flex-wrap:wrap;margin:14px 0">
 </div>
 <div style="font-size:12px;color:#475569;margin-top:4px">
   Judge: Sonnet 4.5 · prompt: "which candidate more accurately matches the target signature semantically?"
-  · Wilcoxon signed-rank W = ${s.wilcoxon_stat}, p ≈ ${s.wilcoxon_p?.toExponential(1) ?? "—"}
+  · Wilcoxon signed-rank W = ${s.wilcoxon_stat}, z = ${s.wilcoxon_z}, p < 1e-9
   · ${s.t_prefers_and_tc} of ${s.t_count} judge-preferred T outputs also type-check
 </div>`);
 ```
@@ -195,8 +263,9 @@ Stratified by in-degree × signature size:
 }
 ```
 
-Treatment wins in every cell. The effect is largest for dense × large declarations —
-exactly where the dep context is richest (most predecessors, most complex signature).
+Treatment wins in every cell. The strongest cell is **dense × large: 10/10/0**
+(T/tie/B) — the regime where F is both widely cited and has a complex signature,
+meaning its dep context is richest and there is the most structure to get right.
 
 ---
 
@@ -362,6 +431,48 @@ the one that actually type-checked.
 }
 ```
 
+If the scatter is dense to read quickly, here's the same data as a 2×2 count table — judge verdict (rows) × whether T was the one that type-checked (columns):
+
+```js
+{
+  const cells = [
+    {judge:"Judge: T wins",        tc:"TC: only T passes", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="T"      && r.tc_advantage_T===1).length},
+    {judge:"Judge: T wins",        tc:"TC: same outcome",  n: jvtc.filter(r=>r.judge_T_vs_Trandom==="T"      && r.tc_advantage_T===0).length},
+    {judge:"Judge: T wins",        tc:"TC: only T-random", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="T"      && r.tc_advantage_T===-1).length},
+    {judge:"Tie",                  tc:"TC: only T passes", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="tie"    && r.tc_advantage_T===1).length},
+    {judge:"Tie",                  tc:"TC: same outcome",  n: jvtc.filter(r=>r.judge_T_vs_Trandom==="tie"    && r.tc_advantage_T===0).length},
+    {judge:"Tie",                  tc:"TC: only T-random", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="tie"    && r.tc_advantage_T===-1).length},
+    {judge:"Judge: T-random wins", tc:"TC: only T passes", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="Trandom"&& r.tc_advantage_T===1).length},
+    {judge:"Judge: T-random wins", tc:"TC: same outcome",  n: jvtc.filter(r=>r.judge_T_vs_Trandom==="Trandom"&& r.tc_advantage_T===0).length},
+    {judge:"Judge: T-random wins", tc:"TC: only T-random", n: jvtc.filter(r=>r.judge_T_vs_Trandom==="Trandom"&& r.tc_advantage_T===-1).length},
+  ];
+  const judgeRows = ["Judge: T wins","Tie","Judge: T-random wins"];
+  const tcCols    = ["TC: only T passes","TC: same outcome","TC: only T-random"];
+
+  display(html`<table style="border-collapse:collapse;font-size:13px;margin:10px 0">
+    <thead><tr style="background:#f1f5f9">
+      <th style="padding:8px 12px;border:1px solid #e2e8f0"></th>
+      ${tcCols.map(c => html`<th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:center">${c}</th>`)}
+    </tr></thead>
+    <tbody>
+      ${judgeRows.map(jr => html`<tr>
+        <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:600">${jr}</td>
+        ${tcCols.map(tc => {
+          const cell = cells.find(c => c.judge===jr && c.tc===tc);
+          const n = cell ? cell.n : 0;
+          const highlight = jr==="Judge: T-random wins" && tc==="TC: only T passes";
+          return html`<td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:center;
+            font-weight:${n>0?"600":"400"};
+            background:${highlight?"#f5f3ff":n>0?"#f8fafc":"#fff"};
+            color:${highlight?"#7c3aed":"inherit"}">${n}</td>`;
+        })}
+      </tr>`)}
+    </tbody>
+  </table>
+  <div style="font-size:12px;color:#64748b">Shaded cell = judge preferred T-random but T was the one that type-checked.</div>`);
+}
+```
+
 ---
 
 ## 5. Edit Distance to Target Signature
@@ -463,4 +574,22 @@ const selTC = view(Inputs.checkbox(
 
 - **Namespace leakage.** The verbatim-name check in validation passes, but
   predecessor names implicitly identify F's mathematical area (38% mean same-namespace
-  dep overlap). This is a confound for any claim about topical vs. structural signal.
+  dep overlap, 17/60 candidates >50%). This is a confound for any claim about topical
+  vs. structural signal.
+
+- **NL name leakage.** The informalizer was not told to avoid mentioning F's name.
+  Post-hoc: 10/60 NLs contain F's last name component verbatim; 9/60 contain a
+  CamelCase part. Sensitivity check on the clean-NL subset (${nl.clean_nl_n}/60):
+  B = ${nl.clean_nl_tc_B_pct}%, T = ${nl.clean_nl_tc_T_pct}% — identical to the
+  full sample (33% / 63%), so the finding is robust but gap magnitudes are
+  conservative-biased toward zero when the name is present in both prompts.
+
+- **Dep context truncation in dense-large stratum.** The 8 000-token cap (≈32 000
+  chars) truncated deps for 2/10 dense-large candidates (up to 29 deps dropped).
+  For those candidates, T's context is the first ~150 deps by edge-type + name
+  order, not all deps. The \`dep_truncated\` column records exact counts.
+
+- **F_T uses F's exact name 21/60 times vs F_B 8/60.** The judge sees the correct
+  declaration name in T's output more often, which may inflate judge preference for
+  T independent of semantic quality. This is one more reason to treat typecheck rate
+  as the primary metric.

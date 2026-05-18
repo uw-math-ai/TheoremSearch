@@ -126,14 +126,23 @@ def get_random_module_context(conn, node_id, dep_count, module):
 
 # ── Model calls ──────────────────────────────────────────────────────────────
 
-def _call(client, model, system, user_msg):
-    resp = client.messages.create(
-        model=model,
-        max_tokens=1024,
-        system=system,
-        messages=[{"role": "user", "content": user_msg}],
-    )
-    return resp.content[0].text.strip()
+def _call(client, model, system, user_msg, retries=3):
+    import time
+    for attempt in range(retries):
+        try:
+            resp = client.messages.create(
+                model=model,
+                max_tokens=1024,
+                system=system,
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            return resp.content[0].text.strip()
+        except Exception as e:
+            if attempt == retries - 1:
+                raise
+            wait = 2 ** attempt
+            print(f"  API error (attempt {attempt+1}/{retries}): {e}. Retrying in {wait}s...")
+            time.sleep(wait)
 
 
 _FORMALIZER_SYSTEM = (
@@ -235,8 +244,15 @@ def run_judged_pair(client, f_sig, cand_x, cand_y, dry_run=False):
     return prefer, notes, vac_x, vac_y, a_is_x
 
 
+def _strip_fences(text):
+    text = text.strip()
+    text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
+    text = re.sub(r"\n?```$", "", text)
+    return text.strip()
+
+
 def token_levenshtein(s1, s2):
-    return Levenshtein.distance(s1.split(), s2.split())
+    return Levenshtein.distance(_strip_fences(s1).split(), _strip_fences(s2).split())
 
 
 # ── CSV columns ──────────────────────────────────────────────────────────────

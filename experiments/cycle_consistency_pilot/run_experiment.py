@@ -188,14 +188,23 @@ def get_dep_context(conn, node_id):
 # Model calls
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _call(client, model, system, user_msg):
-    resp = client.messages.create(
-        model=model,
-        max_tokens=1024,
-        system=system,
-        messages=[{"role": "user", "content": user_msg}],
-    )
-    return resp.content[0].text.strip()
+def _call(client, model, system, user_msg, retries=3):
+    import time
+    for attempt in range(retries):
+        try:
+            resp = client.messages.create(
+                model=model,
+                max_tokens=1024,
+                system=system,
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            return resp.content[0].text.strip()
+        except Exception as e:
+            if attempt == retries - 1:
+                raise
+            wait = 2 ** attempt
+            print(f"  API error (attempt {attempt+1}/{retries}): {e}. Retrying in {wait}s...")
+            time.sleep(wait)
 
 
 def informalize(client, full_name, signature, dry_run=False):
@@ -306,10 +315,17 @@ def judge_triple(client, f_sig, f_b, f_t, dry_run=False):
     return prefer, j.get("notes", ""), vac_b, vac_t, a_is_b
 
 
+def strip_fences(text):
+    text = text.strip()
+    text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
+    text = re.sub(r"\n?```$", "", text)
+    return text.strip()
+
+
 def token_levenshtein(s1, s2):
-    """Token-level Levenshtein (split on whitespace)."""
-    t1 = s1.split()
-    t2 = s2.split()
+    """Token-level Levenshtein (split on whitespace). Strips markdown fences first."""
+    t1 = strip_fences(s1).split()
+    t2 = strip_fences(s2).split()
     return Levenshtein.distance(t1, t2)
 
 

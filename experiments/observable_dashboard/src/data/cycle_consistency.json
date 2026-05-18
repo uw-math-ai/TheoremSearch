@@ -1,4 +1,12 @@
 {
+  "provenance": {
+    "git_sha": "76d3ea9",
+    "generated_at": "2026-05-18T03:34:55.690310+00:00",
+    "results_csv": "/Users/simon/Desktop/math lab/TheoremSearch/experiments/cycle_consistency_pilot/results.csv",
+    "ablation_csv": "/Users/simon/Desktop/math lab/TheoremSearch/experiments/cycle_consistency_pilot/ablation_results.csv",
+    "corpus_db": "formalized_graph_v2/data/generated/corpus_v2_mathlib_plus_v4.29.db",
+    "corpus_lean_version": "v4.29.0"
+  },
   "summary": {
     "n": 60,
     "t_count": 49,
@@ -8,7 +16,8 @@
     "b_pct": 5.0,
     "tie_pct": 13.3,
     "wilcoxon_stat": 79.5,
-    "wilcoxon_p": 0.0,
+    "wilcoxon_p": 1.7818723327580102e-10,
+    "wilcoxon_z": -5.551,
     "edit_mean_B": 31.7,
     "edit_mean_T": 14.5,
     "t_prefers_and_tc": 33,
@@ -78,6 +87,56 @@
       "Trandom": 22,
       "tie": 11
     }
+  },
+  "mcnemar_cis": {
+    "B_vs_T": {
+      "delta": 30.0,
+      "ci_lo": 20.0,
+      "ci_hi": 40.0
+    },
+    "Tnames_vs_T": {
+      "delta": 30.0,
+      "ci_lo": 13.3,
+      "ci_hi": 43.3
+    },
+    "T_vs_Trandom": {
+      "delta": 8.3,
+      "ci_lo": -8.3,
+      "ci_hi": 25.0
+    },
+    "B_vs_Tnames": {
+      "delta": 0.0,
+      "ci_lo": -13.3,
+      "ci_hi": 13.3
+    },
+    "B_vs_T_discordant": {
+      "T_only": 21,
+      "B_only": 3
+    },
+    "Tnames_vs_T_discordant": {
+      "T_only": 25,
+      "Tnames_only": 7
+    },
+    "T_vs_Trandom_discordant": {
+      "T_only": 16,
+      "Trandom_only": 11
+    }
+  },
+  "contingency_B_Tnames": {
+    "b_pass_tn_pass": 13,
+    "b_pass_tn_fail": 7,
+    "b_fail_tn_pass": 7,
+    "b_fail_tn_fail": 33
+  },
+  "nl_leakage": {
+    "full_name_in_nl": 6,
+    "last_component_in_nl": 10,
+    "camel_part_in_nl": 9,
+    "clean_nl_n": 46,
+    "clean_nl_tc_B": 15,
+    "clean_nl_tc_T": 29,
+    "clean_nl_tc_B_pct": 32.6,
+    "clean_nl_tc_T_pct": 63.0
   },
   "candidates": [
     {

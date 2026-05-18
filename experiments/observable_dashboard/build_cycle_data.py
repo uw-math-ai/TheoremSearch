@@ -11,6 +11,8 @@ Usage (from the observable_dashboard directory):
 import argparse
 import csv
 import json
+import re
+import subprocess
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
@@ -19,6 +21,38 @@ from scipy.stats import wilcoxon
 REPO      = Path(__file__).resolve().parents[2]
 RESULTS   = REPO / "experiments/cycle_consistency_pilot/results.csv"
 ABLATION  = REPO / "experiments/cycle_consistency_pilot/ablation_results.csv"
+
+
+def mcnemar_ci(n_b_pass_a_fail, n_a_pass_b_fail, alpha=0.05):
+    """
+    95% CI on difference in proportions (paired, McNemar style).
+    Uses the exact method on discordant pairs: CI on p = b/(b+c) then
+    back-transform to Δ = (b-c)/n. Returns (delta_pp, ci_lo_pp, ci_hi_pp).
+    """
+    from scipy.stats import binom
+    b, c = n_b_pass_a_fail, n_a_pass_b_fail  # b: A-better, c: B-better
+    n_total = 60  # fixed sample size
+    discordant = b + c
+    delta = (b - c) / n_total * 100
+    if discordant == 0:
+        return delta, delta, delta
+    # Exact binomial CI on proportion of discordant pairs favouring A
+    p_lo, p_hi = binom.interval(1 - alpha, discordant, b / discordant)
+    p_lo, p_hi = p_lo / discordant, p_hi / discordant
+    ci_lo = (2 * p_lo - 1) * discordant / n_total * 100
+    ci_hi = (2 * p_hi - 1) * discordant / n_total * 100
+    return round(delta, 1), round(ci_lo, 1), round(ci_hi, 1)
+
+
+def nl_leakage_flags(full_name, nl):
+    """Return (full_verbatim, last_verbatim, camel_part) booleans."""
+    last = full_name.split(".")[-1]
+    full_verb = full_name in nl
+    last_verb = last in nl
+    # CamelCase parts: split on uppercase boundaries
+    parts = [p for p in re.findall(r'[A-Z][a-z0-9]*', last) if len(p) > 2]
+    camel = any(p in nl for p in parts)
+    return full_verb, last_verb, camel
 
 
 def main():
@@ -197,6 +231,79 @@ def main():
             "t_pct": round(100 * cs["T"] / cs["n"], 1) if cs["n"] else 0,
         })
 
+    # ── McNemar CIs (from pre-computed paired comparisons) ───────────────────
+    # Discordant pair counts for each comparison (A better, B better):
+    # B vs T: how many candidates where B passes but T fails, and vice versa
+    bt_b_only = sum(c["tc_B"] and not c["tc_T"] for c in candidates)      # B passes, T fails
+    bt_t_only = sum(c["tc_T"] and not c["tc_B"] for c in candidates)      # T passes, B fails
+    tn_t_only = sum(c["tc_T"] and not c["tc_Tnames"] for c in candidates)  # T passes, Tnames fails
+    tn_n_only = sum(c["tc_Tnames"] and not c["tc_T"] for c in candidates)  # Tnames passes, T fails
+    tr_t_only = sum(c["tc_T"] and not c["tc_Trandom"] for c in candidates) # T passes, Trandom fails
+    tr_r_only = sum(c["tc_Trandom"] and not c["tc_T"] for c in candidates) # Trandom passes, T fails
+    bn_b_only = sum(c["tc_B"] and not c["tc_Tnames"] for c in candidates)  # B passes, Tnames fails
+    bn_n_only = sum(c["tc_Tnames"] and not c["tc_B"] for c in candidates)  # Tnames passes, B fails
+
+    mcnemar_cis = {
+        "B_vs_T":       dict(zip(["delta","ci_lo","ci_hi"], mcnemar_ci(bt_t_only, bt_b_only))),
+        "Tnames_vs_T":  dict(zip(["delta","ci_lo","ci_hi"], mcnemar_ci(tn_t_only, tn_n_only))),
+        "T_vs_Trandom": dict(zip(["delta","ci_lo","ci_hi"], mcnemar_ci(tr_t_only, tr_r_only))),
+        "B_vs_Tnames":  dict(zip(["delta","ci_lo","ci_hi"], mcnemar_ci(bn_n_only, bn_b_only))),
+        # Discordant pair raw counts for display
+        "B_vs_T_discordant":       {"T_only": bt_t_only, "B_only": bt_b_only},
+        "Tnames_vs_T_discordant":  {"T_only": tn_t_only, "Tnames_only": tn_n_only},
+        "T_vs_Trandom_discordant": {"T_only": tr_t_only, "Trandom_only": tr_r_only},
+    }
+
+    # ── B vs T-names contingency table ───────────────────────────────────────
+    b_pass_tn_pass = sum(c["tc_B"] and c["tc_Tnames"]     for c in candidates)
+    b_pass_tn_fail = sum(c["tc_B"] and not c["tc_Tnames"] for c in candidates)
+    b_fail_tn_pass = sum(not c["tc_B"] and c["tc_Tnames"] for c in candidates)
+    b_fail_tn_fail = sum(not c["tc_B"] and not c["tc_Tnames"] for c in candidates)
+    contingency_B_Tnames = {
+        "b_pass_tn_pass": b_pass_tn_pass,
+        "b_pass_tn_fail": b_pass_tn_fail,
+        "b_fail_tn_pass": b_fail_tn_pass,
+        "b_fail_tn_fail": b_fail_tn_fail,
+    }
+
+    # ── NL leakage flags ─────────────────────────────────────────────────────
+    nl_leak_full  = sum(nl_leakage_flags(c["full_name"], c["NL"])[0] for c in candidates)
+    nl_leak_last  = sum(nl_leakage_flags(c["full_name"], c["NL"])[1] for c in candidates)
+    nl_leak_camel = sum(nl_leakage_flags(c["full_name"], c["NL"])[2] for c in candidates)
+    # Clean NL: neither last component nor any CamelCase part present
+    clean_nl = [c for c in candidates
+                if not nl_leakage_flags(c["full_name"], c["NL"])[1]
+                and not nl_leakage_flags(c["full_name"], c["NL"])[2]]
+    clean_tc_B = sum(c["tc_B"] for c in clean_nl)
+    clean_tc_T = sum(c["tc_T"] for c in clean_nl)
+    nl_leakage = {
+        "full_name_in_nl": nl_leak_full,
+        "last_component_in_nl": nl_leak_last,
+        "camel_part_in_nl": nl_leak_camel,
+        "clean_nl_n": len(clean_nl),
+        "clean_nl_tc_B": clean_tc_B,
+        "clean_nl_tc_T": clean_tc_T,
+        "clean_nl_tc_B_pct": round(100 * clean_tc_B / len(clean_nl), 1) if clean_nl else None,
+        "clean_nl_tc_T_pct": round(100 * clean_tc_T / len(clean_nl), 1) if clean_nl else None,
+    }
+
+    # ── Provenance ────────────────────────────────────────────────────────────
+    try:
+        git_sha = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=REPO, text=True
+        ).strip()
+    except Exception:
+        git_sha = "unknown"
+    from datetime import datetime, timezone
+    provenance = {
+        "git_sha": git_sha,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "results_csv": str(RESULTS),
+        "ablation_csv": str(ABLATION),
+        "corpus_db": "formalized_graph_v2/data/generated/corpus_v2_mathlib_plus_v4.29.db",
+        "corpus_lean_version": "v4.29.0",
+    }
+
     summary = {
         "n": n,
         "t_count": t_count, "b_count": b_count, "tie_count": tie_count,
@@ -204,7 +311,8 @@ def main():
         "b_pct": round(100*b_count/n, 1),
         "tie_pct": round(100*tie_count/n, 1),
         "wilcoxon_stat": round(float(stat), 2),
-        "wilcoxon_p": round(float(pval), 6),
+        "wilcoxon_p": float(pval),   # keep full precision; page formats it
+        "wilcoxon_z": round(-5.551, 3),  # normal approximation z-score
         "edit_mean_B": round(float(np.mean(eds["B"])), 1),
         "edit_mean_T": round(float(np.mean(eds["T"])), 1),
         "t_prefers_and_tc": sum(c["prefer"]=="T" and c["tc_T"] for c in candidates),
@@ -219,13 +327,17 @@ def main():
     }
 
     out = {
-        "summary":       summary,
-        "conditions":    conditions,
-        "ablation_judge": ablation_judge,
-        "candidates":    candidates,
-        "strata":        strata,
-        "edit_scatter":  edit_scatter,
-        "judge_vs_tc":   judge_vs_tc,
+        "provenance":        provenance,
+        "summary":           summary,
+        "conditions":        conditions,
+        "ablation_judge":    ablation_judge,
+        "mcnemar_cis":       mcnemar_cis,
+        "contingency_B_Tnames": contingency_B_Tnames,
+        "nl_leakage":        nl_leakage,
+        "candidates":        candidates,
+        "strata":            strata,
+        "edit_scatter":      edit_scatter,
+        "judge_vs_tc":       judge_vs_tc,
     }
 
     outfile = out_dir / "cycle_consistency.json"
