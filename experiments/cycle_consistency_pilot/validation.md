@@ -27,9 +27,15 @@ Informal statement:
 Provide the Lean 4 signature.
 ```
 
-- [x] **No F leakage in T's dependency context**
+- [x] **No F leakage in T's dependency context (verbatim)**
 
-  Dependency context contains predecessors only — not F's full_name or signature body.
+  Dependency context contains predecessors only — not F's full_name or signature body verbatim.
+
+  **Namespace-prefix overlap (not checked above):** On average 38% of a candidate's dep names share
+  its own top-level namespace prefix (e.g. deps of `CategoryTheory.Foo` are often `CategoryTheory.*`).
+  17/60 candidates have >50% same-namespace deps; 4/60 have 100%. This is an implicit topical hint
+  that is not removed by the verbatim check. It is acknowledged as a limitation in analysis.md and
+  design.md, but this check should not be read as "zero leakage" — only "no verbatim leakage."
 
 Samples:
 - `stronglyMeasurable_iff_measurable_separable`: dep context snippet:

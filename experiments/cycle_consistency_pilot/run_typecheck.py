@@ -61,9 +61,23 @@ def batch_typecheck(decls: list[tuple[str, str]]) -> dict[str, bool]:
         namespace_start[key] = current_line
         block = [f"namespace {ns}", decl, f"end {ns}", ""]
         lines += block
-        current_line += len(block)
+        # Count actual lines contributed: 4 list-element joiners + embedded newlines in decl
+        current_line += sum(s.count("\n") for s in block) + len(block)
 
     src = "\n".join(lines)
+
+    # Sanity-check: re-derive each namespace line from the built source and
+    # confirm it matches namespace_start[key] + 1 (start is the blank line
+    # before the namespace block; the namespace keyword is on start+1).
+    src_lines_check = src.split("\n")
+    for key in namespace_start:
+        ns = f"Check_{re.sub(r'[^a-zA-Z0-9]', '_', key)}"
+        expected_ln = namespace_start[key] + 1         # 1-indexed namespace line
+        actual = src_lines_check[expected_ln - 1] if expected_ln <= len(src_lines_check) else None
+        assert actual == f"namespace {ns}", (
+            f"Line mapping wrong for key={key}: expected 'namespace {ns}' "
+            f"at line {expected_ln}, got {actual!r}"
+        )
 
     with tempfile.NamedTemporaryFile(
         suffix=".lean", mode="w", dir=LEAN_DIR, delete=False

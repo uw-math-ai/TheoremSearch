@@ -106,9 +106,10 @@ Same judge model, same prompt structure, same A/B randomisation per item as the 
 Blinding map stored separately in `ablation_judge_label_map.json`.
 
 The B vs T verdict from the pilot is **not re-run** — it is carried forward as-is.
-B vs T-names and B vs T-random are derived transitively from the above pairs where
-needed for the stratified analysis; direct B vs T-names and B vs T-random judgments
-are not collected (to avoid judge fatigue and cost on a 60-sample pilot).
+Direct B vs T-names and B vs T-random judge comparisons were not collected.
+The typecheck pass rates (B=33%, T-names=33%, T-random=55%, T=63%) provide a
+model-free ground truth for those comparisons; any transitive inference from judge
+pairs should not be made, as LLM judge preferences are not reliably transitive.
 
 ### Type-check supplement
 

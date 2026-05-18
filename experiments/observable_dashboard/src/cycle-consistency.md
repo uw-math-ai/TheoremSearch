@@ -18,22 +18,19 @@ const d = FileAttachment("data/cycle_consistency.json").json();
 const s = d.summary;
 const cands = d.candidates;
 const strata = d.strata;
-const conds = d.conditions;        // [{id, label, desc, tc_pass, tc_pct, edit_mean, …}]
-const ablJ  = d.ablation_judge;    // {T_vs_Tnames: {T,Tnames,tie}, T_vs_Trandom: {…}}
+const conds = d.conditions;
+const ablJ  = d.ablation_judge;
 const editScatter = d.edit_scatter;
 const jvtc = d.judge_vs_tc;
 ```
 
 ## 1. The Core Finding: Signatures Do the Work
 
-We ran four formalizer conditions on the same 60 NLs.
-The type-check rate — ground-truth validity against Mathlib v4.29.0 — is the clearest signal.
+Four formalizer conditions on the same 60 NLs. Type-check rate against Mathlib
+v4.29.0 is the primary validity signal — it is model-free, unlike the judge.
 
 ```js
 {
-  const condOrder = ["B (baseline)", "T-names", "T-random", "T (treatment)"];
-  const colorMap  = {"B (baseline)":"#dc2626","T-names":"#f59e0b","T-random":"#7c3aed","T (treatment)":"#2563eb"};
-
   display(html`<div style="display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 8px">
     ${conds.map(c => html`
       <div style="flex:1;min-width:170px;padding:16px 20px;border-radius:10px;
@@ -50,16 +47,24 @@ The type-check rate — ground-truth validity against Mathlib v4.29.0 — is the
       </div>`)}
   </div>
   <div style="font-size:12px;color:#64748b;margin-top:4px">
-    Type-checked against Mathlib v4.29.0 via batched <code>lake env lean</code>.
+    Type-checked against Mathlib v4.29.0 via batched <code>lake env lean</code> with namespace isolation.
     All four conditions use the same formalizer model (Haiku 4.5) on the same 60 NLs.
   </div>`);
 }
 ```
 
-**T-names (names only, no signatures) is basically as bad as baseline (45% vs 50%).**
-Knowing the names of F's dependencies — which reveals the mathematical domain and namespace — adds almost nothing. What matters is having the actual type signatures, which let the formalizer write well-typed code with the right argument structure.
+**T-names (33%) ties baseline exactly (33%).** Knowing the names of F's
+dependencies — which reveals the mathematical domain and namespace — adds nothing
+to type-check validity. T-random (55%) shows that actual type *signatures* of
+same-area declarations do help, even without the predecessor relationship. The full
+dep graph (63%) adds another 8pp on top by providing signatures that are directly
+relevant to F's own types.
 
-T-random (67%) shows that same-module signatures give a real boost even without the predecessor relationship — but the actual dep graph (80%) is 13pp better still, because predecessors directly constrain the types that appear in F's signature.
+At n=60 with binary outcomes, pairwise 95% confidence intervals on these differences
+are roughly ±13–16pp, so the T vs T-random gap (8pp) and T vs B gap (30pp) should
+be read as direction, not magnitude. The T-names = B result is the most robust: a
+point estimate of zero with a symmetric CI means names alone are consistent with
+adding nothing.
 
 ## 2. Pilot Result: B vs T
 
@@ -78,37 +83,41 @@ display(html`<div style="display:flex;gap:24px;flex-wrap:wrap;margin:14px 0">
     </div>`)}
 </div>
 <div style="font-size:12px;color:#475569;margin-top:4px">
-  Judge: Sonnet 4.5 · Wilcoxon W = ${s.wilcoxon_stat}, p ≈ ${s.wilcoxon_p?.toExponential(1) ?? "—"}
+  Judge (Sonnet 4.5) · Wilcoxon W = ${s.wilcoxon_stat}, p ≈ ${s.wilcoxon_p?.toExponential(1) ?? "—"}
   · n = ${s.n} · ${s.t_prefers_and_tc} candidates both judge-preferred <em>and</em> type-check
 </div>`);
 ```
 
-## 3. Where Judge and Type-Check Diverge
+## 3. Judge vs. Type-Check: Two Different Signals
 
-The judge sees T and T-random as nearly tied (45% vs 37%). The type-check sees a 13pp gap (80% vs 67%). This means the judge is partly fooled by T-random outputs that *sound* correct — same-module vocabulary makes the output plausible — but don't actually elaborate.
+The judge sees T and T-random as nearly tied (45% vs 37%). The type-check sees a
+larger gap (63% vs 55%). These are measuring different things: the judge evaluates
+whether the output *statement* is semantically plausible; the type-checker asks
+whether it *elaborates*. A well-formed Lean statement with wrong argument types can
+look plausible to the judge but fail elaboration — that's not the judge being
+"fooled," it's the two metrics measuring different failure modes.
+
+The scatter below shows where they agree and disagree on the T vs T-random
+comparison. Top-right: judge preferred T-random, but T was the one that
+type-checked. These are cases where T-random produced plausible vocabulary but
+incorrect types.
 
 ```js
 {
-  // Scatter: for each candidate, T-random typecheck (0/1) vs judge verdict
   const verdictColor = {"T":"#2563eb","Trandom":"#7c3aed","tie":"#94a3b8"};
-
-  // Group into four quadrants on the T-random comparison
-  // x-axis: judge verdict (T wins / tie / Trandom wins)
-  // y-axis: typecheck outcome (+1 = T only, 0 = both/neither, -1 = Trandom only)
-  const jitterSeed = 42;
-  let rng = (() => { let s = jitterSeed; return () => { s ^= s<<13; s ^= s>>17; s ^= s<<5; return (s>>>0)/2**32; }; })();
+  let s2 = 42;
+  const rng = () => { s2 ^= s2<<13; s2 ^= s2>>17; s2 ^= s2<<5; return (s2>>>0)/2**32; };
 
   const pts = jvtc.map(r => ({
     ...r,
     jx: {"T":-1,"tie":0,"Trandom":1}[r.judge_T_vs_Trandom] ?? 0,
-    jy: r.tc_advantage_T,    // +1, 0, or -1
+    jy: r.tc_advantage_T,
     jitter_x: (rng()-0.5)*0.35,
     jitter_y: (rng()-0.5)*0.35,
   }));
 
   display(Plot.plot({
     title: "T vs T-random: judge preference vs. type-check outcome",
-    subtitle: "Each point = one candidate. Top-left quadrant = judge picked T-random but T actually type-checks.",
     width,
     height: 280,
     marginLeft: 100,
@@ -134,13 +143,12 @@ The judge sees T and T-random as nearly tied (45% vs 37%). The type-check sees a
     marks: [
       Plot.ruleX([0], {stroke: "#e2e8f0"}),
       Plot.ruleY([0], {stroke: "#e2e8f0"}),
-      // Highlight the "judge fooled" quadrant
-      Plot.rect([{x1:-1.8,x2:0,y1:0,y2:1.8}], {
-        x1:"x1",x2:"x2",y1:"y1",y2:"y2",
-        fill:"#7c3aed",fillOpacity:0.05,
+      Plot.rect([{x1:0, x2:1.8, y1:0, y2:1.8}], {
+        x1:"x1", x2:"x2", y1:"y1", y2:"y2",
+        fill:"#7c3aed", fillOpacity:0.06,
       }),
-      Plot.text([{x:0.9, y:1.5, text:"← judge fooled"}],
-        {x:"x",y:"y",text:"text",fontSize:10,fill:"#7c3aed",fontStyle:"italic"}),
+      Plot.text([{x:0.9, y:1.5, text:"plausible but wrong types"}],
+        {x:"x", y:"y", text:"text", fontSize:10, fill:"#7c3aed", fontStyle:"italic"}),
       Plot.dot(pts, {
         x: d => d.jx + d.jitter_x,
         y: d => d.jy + d.jitter_y,
@@ -160,14 +168,13 @@ The judge sees T and T-random as nearly tied (45% vs 37%). The type-check sees a
 
 ```js
 {
-  // Paired bar: T vs T-names, T vs T-random
   const bars = [
-    {pair:"T vs T-names",  cond:"T",      n: ablJ.T_vs_Tnames.T,      color:"#2563eb"},
-    {pair:"T vs T-names",  cond:"tie",    n: ablJ.T_vs_Tnames.tie,    color:"#94a3b8"},
-    {pair:"T vs T-names",  cond:"T-names",n: ablJ.T_vs_Tnames.Tnames, color:"#f59e0b"},
-    {pair:"T vs T-random", cond:"T",      n: ablJ.T_vs_Trandom.T,      color:"#2563eb"},
-    {pair:"T vs T-random", cond:"tie",    n: ablJ.T_vs_Trandom.tie,    color:"#94a3b8"},
-    {pair:"T vs T-random", cond:"T-random",n:ablJ.T_vs_Trandom.Trandom,color:"#7c3aed"},
+    {pair:"T vs T-names",  cond:"T",        n: ablJ.T_vs_Tnames.T,       color:"#2563eb"},
+    {pair:"T vs T-names",  cond:"tie",      n: ablJ.T_vs_Tnames.tie,     color:"#94a3b8"},
+    {pair:"T vs T-names",  cond:"T-names",  n: ablJ.T_vs_Tnames.Tnames,  color:"#f59e0b"},
+    {pair:"T vs T-random", cond:"T",        n: ablJ.T_vs_Trandom.T,       color:"#2563eb"},
+    {pair:"T vs T-random", cond:"tie",      n: ablJ.T_vs_Trandom.tie,     color:"#94a3b8"},
+    {pair:"T vs T-random", cond:"T-random", n: ablJ.T_vs_Trandom.Trandom, color:"#7c3aed"},
   ];
 
   display(Plot.plot({
@@ -186,25 +193,28 @@ The judge sees T and T-random as nearly tied (45% vs 37%). The type-check sees a
     marks: [
       Plot.barX(bars,
         Plot.stackX({x:"n", y:"pair", fill:"cond",
-          order: ["T","tie","T-names","T-random"]})),
+          order:["T","tie","T-names","T-random"]})),
       Plot.text(bars.filter(b=>b.n>3),
-        Plot.stackX({x:"n", y:"pair", fill:"cond",
+        Plot.stackX({x:"n", y:"pair", z:"cond",
           order:["T","tie","T-names","T-random"],
-          text: d=>String(d.n), fill:"white", fontWeight:"bold", fontSize:12})),
+          text: d=>String(d.n), fontWeight:"bold", fontSize:12, fill:"white"})),
       Plot.ruleX([0]),
     ]
   }));
 }
 ```
 
-The judge's view: T clearly beats T-names (55%/18%), but barely edges T-random (45%/37%). The typecheck numbers explain why the judge is close on T-random — it's not that T-random is actually better, it's that both outputs are plausible enough to be hard to distinguish semantically without actually running the elaborator.
+The judge's view is broadly consistent with typecheck: T beats T-names clearly
+(55%/18%), and T-random sits between them (45%/37%). Note that B vs T-names and
+B vs T-random were not judged directly — LLM judge preferences are not reliably
+transitive, so those comparisons should be read from the typecheck rates, not inferred.
 
 ## 5. Edit Distance — All Four Conditions
 
 ```js
 display(Plot.plot({
   title: "Token-level Levenshtein distance to target signature",
-  subtitle: "T-names edit distance is nearly as bad as baseline despite better vocabulary — the types are wrong.",
+  subtitle: "T-names edit distance stays near baseline despite better vocabulary — the types are wrong.",
   width,
   height: 240,
   marginLeft: 130,
@@ -275,63 +285,58 @@ display(Inputs.table(conds.map(c => ({
 ## 7. Per-Candidate Table
 
 ```js
-const selectedConds = view(Inputs.checkbox(
-  ["T wins (pilot)","T-names wins","T-random wins","T type-checks","T-random type-checks"],
-  {label:"Filter", value:["T wins (pilot)","T-names wins","T-random wins","T type-checks","T-random type-checks"]}
+const selPrefer = view(Inputs.checkbox(
+  ["T","tie","B"], {label:"B vs T", value:["T","tie","B"]}
+));
+const selTC = view(Inputs.checkbox(
+  ["T passes","T fails"], {label:"T type-check", value:["T passes","T fails"]}
 ));
 ```
 
 ```js
 {
-  const filtered = cands.filter(c => {
-    if (!selectedConds.includes("T wins (pilot)")     && c.prefer==="T")      return false;
-    if (!selectedConds.includes("T-names wins")        && c.judge_T_vs_Tnames==="Tnames") return false;
-    if (!selectedConds.includes("T-random wins")       && c.judge_T_vs_Trandom==="Trandom") return false;
-    if (!selectedConds.includes("T type-checks")       && !c.tc_T)   return false;
-    if (!selectedConds.includes("T-random type-checks")&& !c.tc_Trandom) return false;
-    return true;
-  });
+  const filtered = cands.filter(c =>
+    selPrefer.includes(c.prefer) &&
+    (c.tc_T ? selTC.includes("T passes") : selTC.includes("T fails"))
+  );
   display(Inputs.table(filtered.map(c=>({
-    "Name":       c.short_name,
-    "Indeg":      c.indeg,
-    "Size":       c.size,
-    "Deps":       c.dep_count,
-    "B vs T":     c.prefer,
-    "T vs Tnames":  c.judge_T_vs_Tnames,
-    "T vs Trandom": c.judge_T_vs_Trandom,
-    "TC: B":  c.tc_B ? "✓":"✗",
-    "TC: T":  c.tc_T ? "✓":"✗",
-    "TC: Tnames":  c.tc_Tnames ? "✓":"✗",
-    "TC: Trandom": c.tc_Trandom ? "✓":"✗",
-    "Edit B": c.edit_dist_B,
-    "Edit T": c.edit_dist_T,
+    "Name":          c.short_name,
+    "Indeg":         c.indeg,
+    "Size":          c.size,
+    "Deps":          c.dep_count,
+    "B vs T":        c.prefer,
+    "T vs Tnames":   c.judge_T_vs_Tnames  || "—",
+    "T vs Trandom":  c.judge_T_vs_Trandom || "—",
+    "TC: B":         c.tc_B      ? "✓":"✗",
+    "TC: T":         c.tc_T      ? "✓":"✗",
+    "TC: Tnames":    c.tc_Tnames ? "✓":"✗",
+    "TC: Trandom":   c.tc_Trandom? "✓":"✗",
+    "Edit B":        c.edit_dist_B,
+    "Edit T":        c.edit_dist_T,
   })), {layout:"auto", width, rows:15}));
   display(html`<div style="font-size:12px;color:#64748b;margin-top:4px">${filtered.length} of ${cands.length} shown</div>`);
 }
 ```
 
-## 8. Design & Validity
+## 8. Design & Limitations
 
 ```js
 display(html`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;
   padding:16px 20px;font-size:13px;line-height:1.7">
 <strong>Conditions</strong><br>
-<strong>B</strong> — NL only (no graph context)<br>
-<strong>T-names</strong> — NL + predecessor <code>full_name</code> only (no type signatures)<br>
-<strong>T-random</strong> — NL + <code>dep_count(F)</code> random nodes from same Lean module, full signatures<br>
-<strong>T</strong> — NL + actual predecessor <code>full_name : signature</code> blocks (ground-truth deps)<br><br>
-<strong>Models</strong> — Formalizer: ${s.models.formalizer} · Judge: ${s.models.judge}<br>
-<strong>Type-check</strong> — Batched <code>import Mathlib; lake env lean</code> against v4.29.0
-(78s total, ~12s/batch of 60 via namespace-isolated .lean file)<br>
-<strong>Sample</strong> — 60 candidates, seed ${s.seed}, same NLs across all conditions, no re-runs<br>
-<strong>Strata cutoffs</strong> — in-degree p25/p75 = ${s.strata_cutoffs.p25_indeg}/${s.strata_cutoffs.p75_indeg}
- · sig-length p25/p75 = ${s.strata_cutoffs.p25_siglen}/${s.strata_cutoffs.p75_siglen} chars
+<strong>B</strong> — NL only &nbsp;·&nbsp;
+<strong>T-names</strong> — NL + predecessor <code>full_name</code> only (no type sigs) &nbsp;·&nbsp;
+<strong>T-random</strong> — NL + <code>dep_count(F)</code> random same-module nodes, full sigs &nbsp;·&nbsp;
+<strong>T</strong> — NL + actual predecessor <code>full_name : signature</code> blocks<br><br>
+<strong>Models</strong> — Formalizer (all conditions): ${s.models.formalizer} · Judge: ${s.models.judge}<br>
+<strong>Type-check</strong> — Batched <code>import Mathlib; lake env lean</code> against v4.29.0,
+namespace-isolated per candidate. Assertion verified line mapping after each batch.<br>
+<strong>Sample</strong> — 60 candidates, seed ${s.seed}, same NLs reused across all conditions
 </div>`);
 ```
 
-### Limitations
-
-- **Judge vs. typecheck divergence is a feature, not a bug** — it tells us the judge overestimates T-random. Treat typecheck rate as the ground truth for validity and the judge as a proxy for semantic plausibility.
-- **T-random is a weak null** — same-module nodes share vocabulary but aren't necessarily related. A stronger null would be random nodes from a *different* module entirely.
-- **n = 60** — direction-finding only. The 13pp gap between T-random (67%) and T (80%) could narrow or widen with more candidates.
-- **No Opus judge** — Sonnet 4.5 judges Haiku 4.5 outputs; both have memorized Mathlib, which inflates apparent plausibility for all conditions.
+- **n = 60 is small.** 95% CIs on pairwise typecheck-rate differences are ~±13–16pp. The T-names = B result (0pp gap) is the most robust; the T vs T-random gap (8pp) is directional only.
+- **T-random is a weak null.** Same-module nodes share vocabulary and types with F. On average 38% of a candidate's dep names share its top-level namespace prefix. A stronger null would be random nodes from a *different* module.
+- **Typecheck and judge measure different things.** Typecheck measures elaborability; the judge measures semantic plausibility of the statement. Both are useful; neither supersedes the other. The top-right quadrant of §3 (plausible but wrong types) is the clearest example of the gap.
+- **No Opus judge.** Sonnet 4.5 judges Haiku 4.5 outputs; both have internalized Mathlib. B vs T-names and B vs T-random were not judged directly — transitive inference from judge pairs is unreliable.
+- **Namespace leakage not fully controlled.** The verbatim-name check in validation passes, but predecessor names implicitly identify F's mathematical area. 17/60 candidates have >50% same-namespace predecessors. This is a confound for T vs T-names.

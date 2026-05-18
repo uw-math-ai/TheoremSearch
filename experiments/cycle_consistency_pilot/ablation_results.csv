@@ -48,7 +48,7 @@ def CategoryTheory.ShortComplex.LeftHomologyData.liftH {C : Type u_1} [CategoryT
   (h : CategoryTheory.ShortComplex.LeftHomologyData S) {A : C} (k : CategoryTheory.ShortComplex.LeftHomologyData.K h ⟶ A)
   (hk : CategoryTheory.CategoryStruct.comp (CategoryTheory.ShortComplex.LeftHomologyData.f' h) k = 0) :
   CategoryTheory.ShortComplex.LeftHomologyData.H h ⟶ A
-```",45,0,T,B matches name and parameter names exactly; A uses 'liftH' instead of 'descH' and 'hk' instead of 'w'.,False,False,4,True,False,True
+```",45,0,T,B matches name and parameter names exactly; A uses 'liftH' instead of 'descH' and 'hk' instead of 'w'.,False,False,4,True,False,False
 174702,Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right,dense,large,"Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right.{u, v} {α : Type u} {β : α → Type v} [BEq α]
   [EquivBEq α] {l₁ l₂ : List ((a : α) × β a)} {k fallback : α} (dl₁ : Std.Internal.List.DistinctKeys l₁) :
   Std.Internal.List.containsKey k l₂ = false →
@@ -59,7 +59,7 @@ theorem Std.Internal.List.getKeyD_filter_eq_fallback_of_containsKey_eq_false {α
 theorem Std.Internal.List.getKeyD_filter_of_containsKey_eq_false {α : Type u_1} {β : α → Type u_2} [BEq α] [EquivBEq α] {k : α} {l₁ : List (Σ a, β a)} {l₂ : List (Σ a, β a)} {fallback : β k} (h₁ : Std.Internal.List.DistinctKeys l₁) (h₂ : Std.Internal.List.containsKey k l₂ = false) : Std.Internal.List.getKeyD (List.filter (fun x => Std.Internal.List.containsKey x.fst l₂) l₁) k fallback = fallback
 ```",18,0,T,A matches argument order and fallback type (α vs β k). B has wrong getKeyD argument order and fallback type.,False,False,31,"```lean
 theorem Std.Internal.List.getValueD_filter_not_contains_of_containsKey_eq_false_left {α : Type u} {β : Type v} [BEq α] [EquivBEq α] {l₁ l₂ : List ((_ : α) × β)} {k : α} {fallback : β} (dl₁ : Std.Internal.List.DistinctKeys l₁) (h : Std.Internal.List.containsKey k l₂ = false) : Std.Internal.List.getValueD k (List.filter (fun p => !Std.Internal.List.containsKey (Sigma.fst p) l₂) l₁) fallback = fallback := by sorry
-```",18,0,T,"B matches target signature closely: dependent β, getKeyD, same filter predicate. A uses non-dependent β, getValueD, negated predicate.",False,False,21,True,False,False
+```",18,0,T,"B matches target signature closely: dependent β, getKeyD, same filter predicate. A uses non-dependent β, getValueD, negated predicate.",False,False,21,True,False,True
 58186,CategoryTheory.IsPushout.inl_isoPushout_hom,dense,large,"CategoryTheory.IsPushout.inl_isoPushout_hom.{v₁, u₁} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {Z X Y P : C}
   {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P} (h : CategoryTheory.IsPushout f g inl inr)
   [CategoryTheory.Limits.HasPushout f g] :
@@ -99,7 +99,7 @@ theorem GetElem?.getElem!_eq_getElem?_default {α : Type u_1} {β : outParam (α
 theorem getElem!_eq_getElem?_getOrElse {cont : Type u_1} {idx : Type u_2} {elem : Type u_3} {dom : cont → idx → Prop}
   [GetElem? cont idx elem dom] [LawfulGetElem cont idx elem dom] [Inhabited elem] (c : cont) (i : idx) :
   c[i]! = (c[i]?).getOrElse default := by sorry
-```",13,0,Trandom,"A uses notation matching target, B uses explicit function names. Both express same match structure via getOrElse/getD.",False,False,30,True,False,True
+```",13,0,Trandom,"A uses notation matching target, B uses explicit function names. Both express same match structure via getOrElse/getD.",False,False,30,False,False,False
 47996,Bimod.TensorBimod.actRight,dense,large,"Bimod.TensorBimod.actRight.{v₁, u₁} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C]
   [CategoryTheory.MonoidalCategory C] [CategoryTheory.Limits.HasCoequalizers C] {R S T : CategoryTheory.Mon C}
   (P : Bimod R S) (Q : Bimod S T)
@@ -187,7 +187,7 @@ def TestFunction.limitCLM (𝕜 : Type u_1) [NontriviallyNormedField 𝕜] {E : 
     (f : ContDiffMapSupportedIn E F n K),
     toFun (TestFunction.ofSupportedIn K_sub_Ω f) = (T K K_sub_Ω) f) :
   TestFunction Ω F n →L[𝕜] V
-```",79,0,Trandom,Both match target but A makes 𝕜 implicit while B correctly makes it explicit as in target.,False,False,5,True,True,False
+```",79,0,Trandom,Both match target but A makes 𝕜 implicit while B correctly makes it explicit as in target.,False,False,5,False,False,False
 24055,Module.Flat.lTensor_exact,dense,large,"Module.Flat.lTensor_exact.{u, v, u_1, u_2, u_3} {R : Type u} (M : Type v) [CommRing R] [AddCommGroup M] [Module R M]
   [Module.Flat R M] ⦃N : Type u_1⦄ ⦃N' : Type u_2⦄ ⦃N'' : Type u_3⦄ [AddCommGroup N] [AddCommGroup N']
   [AddCommGroup N''] [Module R N] [Module R N'] [Module R N''] ⦃f : N →ₗ[R] N'⦄ ⦃g : N' →ₗ[R] N''⦄
@@ -201,12 +201,12 @@ theorem Module.Flat.lTensor_exact {R : Type u} {M : Type v} {N : Type u_1} {N' :
   [AddCommGroup N''] [Module R N] [Module R N'] [Module R N''] [Module.Flat R M]
   {f : N →ₗ[R] N'} {g : N' →ₗ[R] N''} (exact : Function.Exact ⇑f ⇑g) :
   Function.Exact ⇑(LinearMap.lTensor M f) ⇑(LinearMap.lTensor M g) := by sorry
-```",59,0,Trandom,B matches target signature exactly with correct types and parameter order. A has wrong codomains for f and g.,False,False,38,True,True,True
+```",59,0,Trandom,B matches target signature exactly with correct types and parameter order. A has wrong codomains for f and g.,False,False,38,False,False,True
 144383,PNat.xgcd,dense,small,PNat.xgcd (a b : ℕ+) : PNat.XgcdType,"The function `PNat.xgcd` takes two positive natural numbers `a` and `b` and returns an element of type `PNat.XgcdType`, which represents the extended Euclidean algorithm result for positive natural numbers, containing information about the greatest common divisor and the coefficients of Bézout's identity.","```lean
 def PNat.xgcd (a b : ℕ+) : PNat.XgcdType
 ```",5,0,def PNat.xgcd (a b : ℕ+) : PNat.XgcdType := by sorry,5,0,tie,"Both match the target signature exactly. A uses sorry, B is incomplete. Both equally vacuous in implementation.",True,True,4,"```lean
 def PNat.xgcd (a b : ℕ+) : PNat.XgcdType
-```",5,0,tie,Both candidates are syntactically identical to the target signature.,False,False,3,False,True,True
+```",5,0,tie,Both candidates are syntactically identical to the target signature.,False,False,3,False,True,False
 175107,ENNReal.tsum_coe_eq,dense,small,"ENNReal.tsum_coe_eq.{u_1} {α : Type u_1} {r : NNReal} {f : α → NNReal} (h : HasSum f r) : ∑' (a : α), ↑(f a) = ↑r","The theorem states that if a function $f$ from a type $\alpha$ to the non-negative real numbers has sum $r$ (in the sense of having $r$ as its convergent sum), then the infinite sum of $f(a)$ over all $a$ in $\alpha$, viewed as extended non-negative real numbers, equals $r$ viewed as an extended non-negative real number.","```lean
 theorem ENNReal.hasSum_coe_nnreal {α : Type*} {f : α → NNReal} {r : NNReal} (h : HasSum f r) : 
     ∑' (a : α), (f a : ENNReal) = ↑r := by sorry
@@ -216,7 +216,7 @@ theorem NNReal.hasSum_coe_iff {α : Type*} {f : α → ℕ∞} {r : ℕ∞} :
 ```",31,0,T,"A matches target exactly: sum of coerced NNReals equals coerced sum. B changes semantics entirely (different domain/codomain, iff statement).",False,False,20,"```lean
 theorem NNReal.hasSum_coe_to_ennreal {α : Type*} {f : α → NNReal} {r : NNReal} (h : HasSum f r) :
     ∑' (a : α), ↑(f a) = ↑r
-```",31,0,Trandom,Candidate B matches the target signature exactly in both statement and form. Candidate A uses a different coercion notation style.,False,False,11,True,False,True
+```",31,0,Trandom,Candidate B matches the target signature exactly in both statement and form. Candidate A uses a different coercion notation style.,False,False,11,True,False,False
 99632,Nat.lt_pred_iff,dense,small,Nat.lt_pred_iff {n : ℕ} {m : ℕ} : n < Nat.pred m ↔ Nat.succ n < m,"The theorem states that for natural numbers $n$ and $m$, $n$ is less than the predecessor of $m$ if and only if the successor of $n$ is less than $m$.","```lean
 theorem Nat.lt_pred_iff (n m : ℕ) : n < Nat.pred m ↔ Nat.succ n < m := by sorry
 ```",25,0,"```lean
@@ -231,21 +231,21 @@ theorem Int.le_sub_one_iff_lt (m n : ℤ) : m ≤ n - 1 ↔ m < n :=
 theorem Int.le_sub_one_iff_lt (m n : Int) : m ≤ n - 1 ↔ m < n := by sorry
 ```",23,0,T,"Both match signature. A provides actual proof, B uses sorry placeholder.",False,False,9,"```lean
 theorem Int.le_sub_one_iff_lt (m n : ℤ) : m ≤ n - 1 ↔ m < n := by sorry
-```",23,0,T,A provides a complete proof using helper lemmas. B only has sorry.,False,False,9,True,True,False
+```",23,0,T,A provides a complete proof using helper lemmas. B only has sorry.,False,False,9,True,True,True
 113630,IsRetrocompact.empty,dense,small,IsRetrocompact.empty.{u_2} {X : Type u_2} [TopologicalSpace X] : IsRetrocompact ∅,"In any topological space $X$, the empty set is retrocompact, meaning it satisfies the retrocompactness property.","```lean
 theorem isRetrocompact_empty {X : Type u_1} [TopologicalSpace X] : IsRetrocompact (∅ : Set X) := by sorry
 ```",24,0,"```lean
 theorem IsRetrocompact.empty {X : Type*} [TopologicalSpace X] : IsRetrocompact (∅ : Set X)
 ```",24,0,Tnames,"Both match semantically, but B matches the target's naming convention IsRetrocompact.empty exactly, while A uses snake_case.",False,False,10,"```lean
 theorem IsRetrocompact.empty {X : Type u_2} [TopologicalSpace X] : IsRetrocompact (∅ : Set X) := by sorry
-```",24,0,Trandom,B exactly matches the target name and universe level u_2; A uses different name and universe u_1.,False,False,11,True,False,False
+```",24,0,Trandom,B exactly matches the target name and universe level u_2; A uses different name and universe u_1.,False,False,11,True,False,True
 68271,Lean.SubExpr.Pos.asNat,dense,small,Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → ℕ,The function `Lean.SubExpr.Pos.asNat` converts a subexpression position (of type `Lean.SubExpr.Pos`) to a natural number.,"```lean
 def Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → Nat
 ```",4,0,"```lean
 def Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → Nat := id
 ```",4,0,Tnames,"B has no implementation, just a signature. A provides actual implementation with id, making it a complete definition.",False,False,6,"```lean
 Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → ℕ
-```",4,0,tie,Both signatures are identical (ℕ and Nat are the same). Neither is vacuous.,False,False,2,True,False,True
+```",4,0,tie,Both signatures are identical (ℕ and Nat are the same). Neither is vacuous.,False,False,2,False,True,False
 4075,Polynomial.IsRoot,dense,small,Polynomial.IsRoot.{u} {R : Type u} [Semiring R] (p : Polynomial R) (a : R) : Prop,"Looking at the Lean 4 declaration, `Polynomial.IsRoot p a` is a predicate that states whether an element `a` of a semiring `R` is a root of a polynomial `p` with coefficients in `R`. Specifically, `a` is a root of `p` if and only if evaluating the polynomial `p` at `a` yields zero, that is, `p(a) = 0`.","```lean
 def Polynomial.IsRoot {R : Type u} [Semiring R] (p : Polynomial R) (a : R) : Prop :=
   Polynomial.eval a p = 0
@@ -255,14 +255,14 @@ def Polynomial.IsRoot {R : Type*} [Semiring R] (p : Polynomial R) (a : R) : Prop
 ```",9,0,tie,Both define IsRoot identically as eval returning 0; only notation differs (p.eval vs Polynomial.eval).,False,False,11,"```lean
 def Polynomial.IsRoot {R : Type*} [Semiring R] (p : Polynomial R) (a : R) : Prop :=
   Polynomial.eval a p = 0
-```",9,0,tie,Both candidates are semantically identical; Type* and Type u are equivalent universe polymorphism notations.,False,False,12,False,True,True
+```",9,0,tie,Both candidates are semantically identical; Type* and Type u are equivalent universe polymorphism notations.,False,False,12,True,True,True
 3880,String.Slice.Subslice.endExclusive,dense,small,String.Slice.Subslice.endExclusive {s : String.Slice} (self : String.Slice.Subslice s) : String.Slice.Pos s,The function `String.Slice.Subslice.endExclusive` takes a subslice of a string slice and returns the exclusive end position of that subslice as a position in the original string slice.,"```lean
 def String.Slice.Subslice.endExclusive {s : String.Slice} (ss : String.Slice.Subslice s) : String.Slice.Pos s
 ```",3,0,"```lean
 def String.Slice.Subslice.endExclusive (s : String.Slice) (ss : String.Slice.Subslice s) : String.Slice.Pos s
 ```",3,0,T,"A matches target: implicit {s : String.Slice} then (self : Subslice s). B makes s explicit, changing the signature.",False,False,6,"```lean
 def String.Slice.Subslice.endExclusive {s : String.Slice} (subslice : String.Slice.Subslice s) : String.Slice.Pos s
-```",3,0,Trandom,"'subslice' is more descriptive than 'ss' for parameter name, semantically clearer match.",False,False,4,True,False,False
+```",3,0,Trandom,"'subslice' is more descriptive than 'ss' for parameter name, semantically clearer match.",False,False,4,False,False,False
 11983,Filter.coLindelof,dense,small,Filter.coLindelof.{u_2} (X : Type u_2) [TopologicalSpace X] : Filter X,The coLindelöf filter on a topological space X is the filter generated by all Lindelöf subsets of X (where a subset is Lindelöf if every open cover has a countable subcover).,"```lean
 def coLindelofFilter {X : Type*} [TopologicalSpace X] : Filter X :=
   iInf fun s : {s : Set X // IsLindelof s} => Filter.principal s.val
@@ -272,7 +272,7 @@ def coLindelofFilter (X : Type*) [TopologicalSpace X] : Filter X :=
 ```",9,0,tie,"Both define filters from Lindelöf sets; A uses generate, B uses iInf of principals. Semantically similar approaches, neither vacuous.",False,False,15,"```lean
 def Filter.coLindelof {X : Type u} [TopologicalSpace X] : Filter X :=
   Filter.generate {s : Set X | IsLindelof s}
-```",9,0,tie,"Both define a filter from Lindelöf sets; A uses infimum of principals, B uses filter generation. Semantically similar constructions, neither obviously wrong.",False,False,15,False,True,False
+```",9,0,tie,"Both define a filter from Lindelöf sets; A uses infimum of principals, B uses filter generation. Semantically similar constructions, neither obviously wrong.",False,False,15,True,True,True
 30057,Subgroup.coe_pow,dense,small,Subgroup.coe_pow.{u_1} {G : Type u_1} [Group G] (H : Subgroup G) (x : ↥H) (n : ℕ) : ↑(x ^ n) = ↑x ^ n,"The theorem states that for a subgroup H of a group G, an element x in H, and a natural number n, the coercion of x raised to the power n (computed in the subgroup H) equals the coercion of x raised to the power n (where the power is computed in the ambient group G).","```lean
 theorem Subgroup.coe_npow {G : Type*} [Group G] (H : Subgroup G) (x : H) (n : ℕ) :
     ↑(x ^ n) = (↑x : G) ^ n := by sorry
@@ -281,7 +281,7 @@ theorem Subgroup.coe_npow {G : Type*} [Group G] {H : Subgroup G} (x : H) (n : �
     ↑(x ^ n) = (↑x : G) ^ n := by sorry
 ```",23,0,T,"Candidate B makes H explicit, matching the target's explicit Subgroup parameter. Candidate A uses implicit H.",False,False,15,"```lean
 theorem Subgroup.coe_pow {G : Type*} [Group G] (H : Subgroup G) (x : H) (n : ℕ) : ↑(x ^ n) = (↑x : G) ^ n := by sorry
-```",23,0,Trandom,"Both match semantically, but B uses the correct theorem name coe_pow matching the target.",False,False,13,False,True,True
+```",23,0,Trandom,"Both match semantically, but B uses the correct theorem name coe_pow matching the target.",False,False,13,True,True,True
 177461,ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le,medium,large,"ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le.{u, v, wE, wE₁, wG} {𝕜 : Type u} {ι : Type v}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {G : Type wG} [NontriviallyNormedField 𝕜]
   [(i : ι) → SeminormedAddCommGroup (E i)] [(i : ι) → NormedSpace 𝕜 (E i)] [(i : ι) → SeminormedAddCommGroup (E₁ i)]
@@ -298,7 +298,7 @@ theorem ContinuousMultilinearMap.norm_compContinuousLinearMap_le {𝕜 : Type u}
 theorem ContinuousMultilinearMap.opNorm_compContinuousLinearMap_le (f : ContinuousMultilinearMap 𝕜 E F) (g : ι → (G i →L[𝕜] E i)) : ‖f.compContinuousLinearMap g‖ ≤ ‖f‖ := by sorry
 ```",75,0,T,A closely matches target structure with linear isometries and explicit conversions; B uses generic ContinuousLinearMaps with different type order.,False,False,89,"```lean
 theorem ContinuousMultilinearMap.norm_compContinuousLinearMap_isometry_le {𝕜 : Type u} {ι : Type v} {E : ι → Type wE} {E₁ : ι → Type wE₁} {G : Type wG} [NontriviallyNormedField 𝕜] [(i : ι) → SeminormedAddCommGroup (E i)] [(i : ι) → NormedSpace 𝕜 (E i)] [(i : ι) → SeminormedAddCommGroup (E₁ i)] [(i : ι) → NormedSpace 𝕜 (E₁ i)] [SeminormedAddCommGroup G] [NormedSpace 𝕜 G] [Fintype ι] (g : ContinuousMultilinearMap 𝕜 E₁ G) (f : (i : ι) → E i →ₗᵢ[𝕜] E₁ i) : ‖ContinuousMultilinearMap.compContinuousLinearMap g fun i => (f i : E i →L[𝕜] E₁ i)‖ ≤ ‖g‖ := by sorry
-```",75,10,Trandom,"Both match target closely, but A uses exact coercion notation from target's LinearIsometry.toContinuousLinearMap, while B uses →ₛₗᵢ notation and .toContinuousLinearMap",False,False,16,True,False,True
+```",75,10,Trandom,"Both match target closely, but A uses exact coercion notation from target's LinearIsometry.toContinuousLinearMap, while B uses →ₛₗᵢ notation and .toContinuousLinearMap",False,False,16,True,False,False
 319200,CategoryTheory.ihom.coev_ev_assoc,medium,large,"CategoryTheory.ihom.coev_ev_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]
   [CategoryTheory.MonoidalCategory C] (A B : C) [CategoryTheory.Closed A] {Z : C} (h : A ⟹ B ⟶ Z) :
   CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (CategoryTheory.ihom.coev A) (A ⟹ B))
@@ -326,7 +326,7 @@ theorem CategoryTheory.MonoidalClosed.coev_ev_bij {C : Type u} [CategoryTheory.C
         (CategoryTheory.NatTrans.app (CategoryTheory.ihom.ev B)
           (CategoryTheory.MonoidalCategoryStruct.tensorObj (A ⟹ B) B)))
       (CategoryTheory.Functor.map (CategoryTheory.ihom A) h) = h := by sorry
-```",40,0,T,"A matches the target's nested composition structure and morphism types (A ⟹ B ⟶ Z). B uses different terms (whiskerLeft, tensorObj) and wrong functor application.",False,False,27,True,True,True
+```",40,0,T,"A matches the target's nested composition structure and morphism types (A ⟹ B ⟶ Z). B uses different terms (whiskerLeft, tensorObj) and wrong functor application.",False,False,27,False,False,False
 40769,CategoryTheory.PreZeroHypercover.presieve₀_mem_of_iso,medium,large,"CategoryTheory.PreZeroHypercover.presieve₀_mem_of_iso.{w, v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]
   {J : CategoryTheory.Precoverage C} [CategoryTheory.Precoverage.RespectsIso J] {S : C}
   {E F : CategoryTheory.PreZeroHypercover S} (e : E ≅ F)
@@ -346,7 +346,7 @@ theorem PreZeroHypercover.coverings_of_iso_of_coverings (C : Type u) [CategoryTh
     {E F : CategoryTheory.PreZeroHypercover S} (e : E ≅ F)
     (hE : CategoryTheory.PreZeroHypercover.presieve₀ E ∈ CategoryTheory.Precoverage.coverings J S) :
     CategoryTheory.PreZeroHypercover.presieve₀ F ∈ CategoryTheory.Precoverage.coverings J S
-```",48,0,T,"Both signatures match semantically, but A correctly makes C implicit while B incorrectly makes it explicit. Neither is vacuous.",False,False,9,True,True,False
+```",48,0,T,"Both signatures match semantically, but A correctly makes C implicit while B incorrectly makes it explicit. Neither is vacuous.",False,False,9,True,False,False
 159827,MeasureTheory.Measure.restrict_biUnion_finset,medium,large,"MeasureTheory.Measure.restrict_biUnion_finset.{u_2, u_6} {α : Type u_2} {ι : Type u_6} {m0 : MeasurableSpace α}
   {μ : MeasureTheory.Measure α} {s : ι → Set α} {T : Finset ι} (hd : Set.Pairwise (↑T) (Function.onFun Disjoint s))
   (hm : ∀ (i : ι), MeasurableSet (s i)) :
@@ -366,7 +366,7 @@ theorem restrict_finUnion_add_of_pairwise_disjoint {α : Type*} [MeasurableSpace
     (h_meas : ∀ i : T, MeasurableSet (s i)) :
     MeasureTheory.Measure.restrict μ (⋃ i : T, s i) = 
     Finset.sum Finset.univ (fun i => MeasureTheory.Measure.restrict μ (s i))
-```",48,0,T,A matches target signature closely with Finset biUnion and Measure.sum; B uses Fintype/Finset.sum instead of Measure.sum and has different structure,False,False,36,True,True,True
+```",48,0,T,A matches target signature closely with Finset biUnion and Measure.sum; B uses Fintype/Finset.sum instead of Measure.sum and has different structure,False,False,36,True,False,False
 351689,CategoryTheory.Abelian.SpectralObject.mapFourδ₂Toδ₁',medium,large,"CategoryTheory.Abelian.SpectralObject.mapFourδ₂Toδ₁'.{v_1, u_1, u_3} {C : Type u_1} {ι' : Type u_3}
   [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Abelian C] [Preorder ι']
   (X' : CategoryTheory.Abelian.SpectralObject C ι') (i₀ i₁ i₂ i₃ i₄ : ι') (hi₀₁ : i₀ ≤ i₁) (hi₁₂ : i₁ ≤ i₂)
@@ -429,7 +429,7 @@ theorem CategoryTheory.Sieve.mem_coherentTopology_of_finiteEffectiveEpiFamily
   sorry
 ```",42,0,T,B matches target exactly: finite EffectiveEpiFamily and arrows membership. A adds spurious morphism composition conditions not in target.,False,False,65,"```lean
 theorem coherentTopology.covering_of_effectiveEpiFamily {C : Type u_1} [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Precoherent C] {X : C} {α : Type} [Finite α] {Y : α → C} (π : (a : α) → Y a ⟶ X) (S : CategoryTheory.Sieve X) (h : CategoryTheory.EffectiveEpiFamily Y π) (hS : ∀ (a : α), CategoryTheory.Sieve.arrows S (π a)) : S ∈ (CategoryTheory.coherentTopology C) X := by sorry
-```",3,0,Trandom,B matches target exactly: existentials unpacked as arguments. A uses `π a ∈ S.arrows` instead of `CategoryTheory.Sieve.arrows S (π a)` and different universe variables.,False,False,33,True,False,True
+```",3,0,Trandom,B matches target exactly: existentials unpacked as arguments. A uses `π a ∈ S.arrows` instead of `CategoryTheory.Sieve.arrows S (π a)` and different universe variables.,False,False,33,False,False,True
 171427,ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet,medium,large,"ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet.{u_1} {Ω : Type u_1}
   {m : MeasurableSpace Ω} {X : Ω → ℝ} {μ : MeasureTheory.Measure Ω} {z : ℂ}
   (hz : Complex.re z ∈ interior (ProbabilityTheory.integrableExpSet X μ)) {p : ℝ} (hp : 0 ≤ p) :
@@ -446,7 +446,7 @@ theorem integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet' {Ω : 
   {m : MeasurableSpace Ω} {X : Ω → ℝ} {μ : MeasureTheory.Measure Ω} {z : ℂ}
   (hz : Complex.re z ∈ interior (ProbabilityTheory.integrableExpSet X μ)) {p : ℝ} (hp : 0 ≤ p) :
   MeasureTheory.Integrable (fun ω => |X ω| ^ p * Complex.exp (z * ↑(X ω))) μ := by sorry
-```",43,0,Trandom,"Both are nearly identical except A uses ↑(X ω) while B uses Complex.ofReal (X ω). These are defeq coercions, making them equivalent. Tie.",False,False,9,True,False,True
+```",43,0,Trandom,"Both are nearly identical except A uses ↑(X ω) while B uses Complex.ofReal (X ω). These are defeq coercions, making them equivalent. Tie.",False,False,9,False,True,True
 286382,Array.SatisfiesM_anyM,medium,large,"Array.SatisfiesM_anyM.{u_1, u_2} {m : Type → Type u_1} {α : Type u_2} {start stop : ℕ} [Monad m] [LawfulMonad m]
   {p : α → m Bool} {as : Array α} (hstart : start ≤ min stop (Array.size as)) (tru : Prop) (fal : ℕ → Prop)
   (h0 : fal start)
@@ -469,7 +469,7 @@ theorem Array.SatisfiesM_anyM {m : Type → Type u_1} {α : Type u_2} {start sto
   (hinit : fal start)
   (hstep : ∀ i, i < stop → fal i → SatisfiesM (fun x => x = true → tru | x = false → fal (i + 1)) (p as[i])) :
   SatisfiesM (fun res => res = true → tru | res = false → fal (min stop (Array.size as))) (Array.anyM p as start stop)
-```",11,0,T,"A matches target exactly. B changes fal type to ℕ→Prop, tru to ℕ→Prop, and uses pattern matching instead of bif.",False,False,47,False,False,False
+```",11,0,T,"A matches target exactly. B changes fal type to ℕ→Prop, tru to ℕ→Prop, and uses pattern matching instead of bif.",False,False,47,True,False,False
 200527,MeasureTheory.setToFun_top_smul_measure,medium,large,"MeasureTheory.setToFun_top_smul_measure.{u_1, u_2, u_3} {α : Type u_1} {E : Type u_2} {F : Type u_3}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] {m : MeasurableSpace α}
   {μ : MeasureTheory.Measure α} [CompleteSpace F] {T : Set α → E →L[ℝ] F} {C : ℝ}
@@ -479,7 +479,7 @@ theorem setToFun_top_mul_eq_zero {α : Type*} {E : Type*} {F : Type*} [NormedAdd
 theorem MeasureTheory.setToFun_top_mul_eq_zero {α : Type*} {E : Type*} {F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] {μ : MeasureTheory.Measure α} (T : MeasureTheory.DominatedFinMeasAdditive μ (⊤ * μ) E F) (f : α → E) : MeasureTheory.setToFun F T f = 0 := by sorry
 ```",122,0,T,"Candidate A has correct signature structure matching target with measure, function T, constant C, and hypothesis hT. Candidate B incorrectly types T and setToFun arguments.",False,False,39,"```lean
 theorem setToFun_top_smul_eq_zero {α : Type u_1} {E : Type u_2} {F : Type u_3} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] {m : MeasurableSpace α} {μ : MeasureTheory.Measure α} [CompleteSpace F] {T : Set α → E →L[ℝ] F} {C : ℝ} (hT : MeasureTheory.DominatedFinMeasAdditive μ T C) (f : α → E) : MeasureTheory.setToFun μ (fun s => ⊤ • T s) (by sorry) f = 0
-```",122,70,tie,"Both candidates deviate significantly: A omits the top-smul on μ, B applies top-smul incorrectly to T instead of μ. Neither matches target.",False,False,16,True,True,True
+```",122,70,tie,"Both candidates deviate significantly: A omits the top-smul on μ, B applies top-smul incorrectly to T instead of μ. Neither matches target.",False,False,16,True,False,False
 15949,Submonoid.LocalizationMap.lift_comp_lift_eq,medium,large,"Submonoid.LocalizationMap.lift_comp_lift_eq.{u_1, u_2, u_4, u_5} {M : Type u_1} [CommMonoid M] {S : Submonoid M}
   {N : Type u_2} [CommMonoid N] (f : Submonoid.LocalizationMap S N) {Q : Type u_4} [CommMonoid Q]
   (k : Submonoid.LocalizationMap S Q) {A : Type u_5} [CommMonoid A] {l : M →* A} (hl : ∀ (w : ↥S), IsUnit (l ↑w)) :
@@ -500,7 +500,7 @@ theorem Submonoid.LocalizationMap.lift_comp_lift_eq {M : Type u_1} [CommMonoid M
   (hl : ∀ (w : ↥S), IsUnit (l ↑w)) :
   MonoidHom.comp (Submonoid.LocalizationMap.lift k hl) (Submonoid.LocalizationMap.lift f ⋯) =
     Submonoid.LocalizationMap.lift f hl := by sorry
-```",34,0,Trandom,"A introduces unrelated submonoid T and assumption hST : S ≤ T, deviating from target. B exactly matches target signature.",False,False,8,True,True,False
+```",34,0,Trandom,"A introduces unrelated submonoid T and assumption hST : S ≤ T, deviating from target. B exactly matches target signature.",False,False,8,False,False,False
 305849,Padic.denseRange_ratCast,medium,small,Padic.denseRange_ratCast (p : ℕ) [Fact (Nat.Prime p)] : DenseRange Rat.cast,"The rational numbers have dense range in the $p$-adic numbers, meaning that the image of the canonical embedding (rational cast) from $\mathbb{Q}$ to $\mathbb{Q}_p$ is dense in $\mathbb{Q}_p$ for any prime $p$.","```lean
 theorem Padic.rationals_dense (p : ℕ) [Fact (Nat.Prime p)] : DenseRange (Coe.coe : ℚ → ℚ_[p]) := by sorry
 ```",49,0,"```lean
@@ -514,21 +514,21 @@ theorem Set.Sized.empty {α : Type u} (r : ℕ) : Set.Sized r (∅ : Set (Finset
 theorem Set.sized_empty (r : ℕ) : Set.Sized (∅ : Set α) r := by sorry
 ```",22,0,tie,"Both candidates have incorrect argument orders compared to target signature, though A has correct type (Set (Finset α)).",False,False,14,"```lean
 theorem Set.sized_empty (r : ℕ) (α : Type u_1) : Set.Sized r (∅ : Set (Finset α)) := by sorry
-```",22,0,Trandom,B matches target signature exactly; A changes name and argument order.,False,False,18,True,False,True
+```",22,0,Trandom,B matches target signature exactly; A changes name and argument order.,False,False,18,False,False,True
 99537,Lean.Server.Test.Refs.test7,medium,small,Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6,The declaration states that `test7` is a term of type `Test6` in the `Lean.Server.Test.Refs` module.,"```lean
 def Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6 := by sorry
 ```",2,0,"```lean
 def Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6 := sorry
 ```",2,0,Tnames,"Both match the target signature. B uses term-mode sorry (standard), A uses tactic-mode sorry (unnecessary here).",False,False,5,"```lean
 def Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6 := sorry
-```",2,0,Trandom,"Both match signature; B uses term mode sorry (standard), A uses tactic mode (unnecessary wrapper).",False,False,5,True,False,True
+```",2,0,Trandom,"Both match signature; B uses term mode sorry (standard), A uses tactic mode (unnecessary wrapper).",False,False,5,True,True,True
 283080,Zsqrtd.nonneg_mul,medium,small,Zsqrtd.nonneg_mul {d : ℕ} {a b : ℤ√↑d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b),"The product of two nonnegative elements in the ring of integers adjoined with the square root of a natural number $d$ is itself nonnegative: if $a$ and $b$ are nonnegative elements of $\mathbb{Z}[\sqrt{d}]$, then their product $a \cdot b$ is also nonnegative.","```lean
 theorem Zsqrtd.nonneg_mul {d : ℕ} {a b : ℤ√↑d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b) := by sorry
 ```",89,0,"```lean
 theorem Zsqrtd.nonneg_mul {d : ℕ} {a b : Zsqrtd d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b) : sorry
 ```",89,0,T,"Candidate A matches the target's type signature ℤ√↑d exactly, while B uses Zsqrtd d without the coercion.",False,False,7,"```lean
 theorem Zsqrtd.mul_nonneg {d : ℕ} (a b : ℤ√↑d) (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b := by sorry
-```",89,0,T,B matches target signature exactly. A uses wrong predicate (0 ≤ _ instead of Zsqrtd.Nonneg) and wrong name.,False,False,17,False,True,False
+```",89,0,T,B matches target signature exactly. A uses wrong predicate (0 ≤ _ instead of Zsqrtd.Nonneg) and wrong name.,False,False,17,True,False,True
 193840,Finset.covBy_cons,medium,small,Finset.covBy_cons.{u_1} {α : Type u_1} {s : Finset α} {a : α} (ha : a ∉ s) : s ⋖ Finset.cons a s ha,"The statement asserts that for a finite set `s` and an element `a` not in `s`, the set `s` is covered by the set obtained by adjoining `a` to `s` (that is, `s` and `cons a s ha` form a covering relation in the lattice of finite sets).","```lean
 theorem Finset.covBy_cons {α : Type u_1} {s : Finset α} {a : α} (h : a ∉ s) : s ⋖ Finset.cons a s h := by sorry
 ```",30,0,"```lean
@@ -536,21 +536,21 @@ theorem Finset.covBy_cons {α : Type*} [DecidableEq α] {s : Finset α} {a : α}
     s ⋖ Finset.cons a s ha := by sorry
 ```",30,0,T,A adds unnecessary [DecidableEq α] instance; B matches target exactly with only parameter name difference (ha vs h).,False,False,10,"```lean
 theorem Finset.covBy_cons {α : Type u_1} {s : Finset α} {a : α} (ha : a ∉ s) : s ⋖ Finset.cons a s ha := by sorry
-```",30,0,tie,Both match target signature exactly; only difference is parameter name (ha vs h) which is semantically irrelevant.,False,False,7,True,True,False
+```",30,0,tie,Both match target signature exactly; only difference is parameter name (ha vs h) which is semantically irrelevant.,False,False,7,True,True,True
 166542,Int.Linear.Poly.checkCoeffs,medium,small,Int.Linear.Poly.checkCoeffs : Int.Linear.Poly → Bool,"The function `checkCoeffs` takes a polynomial (represented as `Int.Linear.Poly`) and returns a Boolean value, presumably checking whether the coefficients of the polynomial satisfy certain properties or constraints.","```lean
 def Int.Linear.checkCoeffs (p : Int.Linear.Poly) : Bool := by sorry
 ```",13,0,"```lean
 def Int.Linear.checkCoeffs (p : Int.Linear.Poly) : Bool
 ```",13,0,tie,Both match the signature exactly; neither provides semantic content or is vacuous.,False,False,7,"```lean
 def Int.Linear.Poly.checkCoeffs (p : Int.Linear.Poly) : Bool
-```",12,0,Trandom,A matches target namespace exactly (Int.Linear.Poly.checkCoeffs); B has wrong namespace (Int.Linear.checkCoeffs). Neither vacuous.,False,False,6,True,True,False
+```",12,0,Trandom,A matches target namespace exactly (Int.Linear.Poly.checkCoeffs); B has wrong namespace (Int.Linear.checkCoeffs). Neither vacuous.,False,False,6,True,False,False
 145179,Int.negOnePow_eq_iff,medium,small,Int.negOnePow_eq_iff (n₁ n₂ : ℤ) : Int.negOnePow n₁ = Int.negOnePow n₂ ↔ Even (n₁ - n₂),"The theorem states that two integer powers of negative one are equal if and only if the difference between the exponents is even: for integers $n_1$ and $n_2$, we have $(-1)^{n_1} = (-1)^{n_2}$ if and only if $n_1 - n_2$ is even.","```lean
 theorem Int.negOnePow_eq_iff_even_sub (n₁ n₂ : ℤ) : Int.negOnePow n₁ = Int.negOnePow n₂ ↔ Even (n₁ - n₂) := by sorry
 ```",56,0,"```lean
 theorem Int.negOnePow_eq_iff_even_sub (n₁ n₂ : ℤ) : (-1 : ℤ) ^ n₁ = (-1 : ℤ) ^ n₂ ↔ Even (n₁ - n₂) := by sorry
 ```",56,0,T,"A uses Int.negOnePow matching target, B uses (-1)^n which may differ in definition or type",False,False,15,"```lean
 theorem Int.negOnePow_eq_iff_even_sub (n₁ n₂ : ℤ) : Int.negOnePow n₁ = Int.negOnePow n₂ ↔ Even (n₁ - n₂) := by sorry
-```",20,0,tie,"Both candidates are identical and match the target signature exactly in semantics, just with a different theorem name.",False,False,7,True,False,True
+```",20,0,tie,"Both candidates are identical and match the target signature exactly in semantics, just with a different theorem name.",False,False,7,True,True,True
 97800,iInf_eq_if,medium,small,"iInf_eq_if.{u_1} {α : Type u_1} [CompleteLattice α] {p : Prop} [Decidable p] (a : α) : ⨅ (_ : p), a = if p then a else ⊤","The infimum of a constant value $a$ indexed over a decidable proposition $p$ equals $a$ if $p$ is true, and equals the top element $\top$ if $p$ is false.","```lean
 theorem iInf_eq_const {α : Type*} [CompleteLattice α] {p : Prop} [Decidable p] (a : α) :
   ⨅ (_h : p), a = if p then a else ⊤ := by sorry
@@ -574,14 +574,14 @@ theorem iInf_prop_const {β : Type*} [CompleteLattice β] {p : Prop} [Decidable 
 ```",17,0,T,"B exactly matches target signature with correct types, binders, and if-then-else syntax. A uses ite and wrong variable names.",False,False,120,"```lean
 theorem iInf_eq_dif {α : Type*} [CompleteLattice α] {p : Prop} [Decidable p] (a : p → α) :
   ⨅ (h : p), a h = if h : p then a h else ⊤ := by sorry
-```",17,0,T,Target has constant a independent of p-proof; B incorrectly makes a depend on proof of p.,False,False,16,True,False,False
+```",17,0,T,Target has constant a independent of p-proof; B incorrectly makes a depend on proof of p.,False,False,16,True,False,True
 122140,UpperHalfPlane.vadd_im,medium,small,UpperHalfPlane.vadd_im (x : ℝ) (z : UpperHalfPlane) : UpperHalfPlane.im (x +ᵥ z) = UpperHalfPlane.im z,"The imaginary part of a point in the upper half-plane is unchanged when a real number is added to it via vector addition: for any real number $x$ and any point $z$ in the upper half-plane, the imaginary part of $x +ᵥ z$ equals the imaginary part of $z$.","```lean
 theorem UpperHalfPlane.im_add_real (x : ℝ) (z : UpperHalfPlane) : (x +ᵥ z).im = z.im
 ```",16,0,"```lean
 theorem UpperHalfPlane.im_add_real (x : ℝ) (z : UpperHalfPlane) : (x +ᵥ z).im = z.im := by sorry
 ```",16,0,tie,Both candidates match the target signature semantically with identical statements; only A has 'by sorry' vs B has no proof.,False,False,10,"```lean
 theorem UpperHalfPlane.vadd_im (x : ℝ) (z : UpperHalfPlane) : UpperHalfPlane.im (x +ᵥ z) = UpperHalfPlane.im z := by sorry
-```",16,0,Trandom,A matches target signature exactly; B uses different name and dot notation instead of explicit UpperHalfPlane.im calls.,False,False,6,True,False,True
+```",16,0,Trandom,A matches target signature exactly; B uses different name and dot notation instead of explicit UpperHalfPlane.im calls.,False,False,6,False,True,True
 307632,min_eq_right_of_lt,medium,small,min_eq_right_of_lt.{u_1} {α : Type u_1} [LinearOrder α] {a b : α} (h : b < a) : min a b = b,"If $b < a$ in a linearly ordered type, then $\min(a, b) = b$.","```lean
 theorem min_eq_right_of_lt {α : Type u_1} [LinearOrder α] {a b : α} (h : b < a) : min a b = b :=
   min_eq_right (le_of_lt h)
@@ -608,7 +608,7 @@ def HomologicalComplex₂.flip_X_X {C : Type u_1} [CategoryTheory.Category C]
     (i : I₂) (j : I₁) :
     HomologicalComplex.X (HomologicalComplex.X (HomologicalComplex₂.flip K) i) j =
     HomologicalComplex.X (HomologicalComplex.X K j) i := by sorry
-```",16,0,T,B matches target semantics (K.flip.X i j = K.X j i) with correct index order; A has mismatched notation (HomologicalComplex.X vs .X),False,False,10,True,False,True
+```",16,0,T,B matches target semantics (K.flip.X i j = K.X j i) with correct index order; A has mismatched notation (HomologicalComplex.X vs .X),False,False,10,False,False,True
 124936,CategoryTheory.OverClass.asOverHom_comp_assoc,non_dense,large,"CategoryTheory.OverClass.asOverHom_comp_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C] {X Y Z : C} (S : C)
   [CategoryTheory.OverClass X S] [CategoryTheory.OverClass Y S] [CategoryTheory.OverClass Z S] (f : X ⟶ Y) (g : Y ⟶ Z)
   [CategoryTheory.HomIsOver f S] [CategoryTheory.HomIsOver g S] {Z✝ : CategoryTheory.Over S}
@@ -639,7 +639,7 @@ theorem over_class_comp_assoc {C : Type u} [CategoryTheory.Category.{v, u} C] {S
   [CategoryTheory.HomIsOver h S] :
   CategoryTheory.CategoryStruct.comp (CategoryTheory.CategoryStruct.comp f g) h =
     CategoryTheory.CategoryStruct.comp f (CategoryTheory.CategoryStruct.comp g h) := by sorry
-```",29,0,T,A matches the asOverHom functor structure and Over category codomain. B lacks asOverHom and has wrong codomain type (S instead of Over S).,False,False,35,False,True,True
+```",29,0,T,A matches the asOverHom functor structure and Over category codomain. B lacks asOverHom and has wrong codomain type (S instead of Over S).,False,False,35,True,False,True
 117106,CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_τr,non_dense,large,"CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_τr.{w, v, u} {B : Type u} [CategoryTheory.Bicategory B]
   {a b : CategoryTheory.Bicategory.Adj B} (α : a ⟶ b) :
   CategoryTheory.Bicategory.Adj.Hom₂.τr
@@ -657,7 +657,7 @@ theorem CategoryTheory.Bicategory.Adj.rightUnitor_inv_τr {B : Type u} [Category
   {a b : CategoryTheory.Bicategory.Adj B} (α : a ⟶ b) :
   CategoryTheory.Bicategory.Adj.Hom₂.τr (CategoryTheory.Iso.inv (CategoryTheory.Bicategory.rightUnitor α)) =
     CategoryTheory.Iso.hom (CategoryTheory.Bicategory.leftUnitor (CategoryTheory.Bicategory.Adj.Hom.r α)) := by sorry
-```",34,0,T,"A uses dot notation more consistently with Mathlib style, though B matches target structure more literally. Neither is vacuous.",False,False,8,True,False,False
+```",34,0,T,"A uses dot notation more consistently with Mathlib style, though B matches target structure more literally. Neither is vacuous.",False,False,8,True,False,True
 263254,CategoryTheory.Adjunction.toMonad_μ,non_dense,large,"CategoryTheory.Adjunction.toMonad_μ.{v₁, v₂, u₁, u₂} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {D : Type u₂}
   [CategoryTheory.Category.{v₂, u₂} D] {L : CategoryTheory.Functor C D} {R : CategoryTheory.Functor D C} (h : L ⊣ R) :
   CategoryTheory.Monad.μ (CategoryTheory.Adjunction.toMonad h) =
@@ -674,7 +674,7 @@ theorem CategoryTheory.Adjunction.toMonad_μ {C : Type u₁} [CategoryTheory.Cat
   [CategoryTheory.Category.{v₂, u₂} D] {L : CategoryTheory.Functor C D} {R : CategoryTheory.Functor D C} (h : L ⊣ R) :
   CategoryTheory.Monad.μ (CategoryTheory.Adjunction.toMonad h) =
     CategoryTheory.Functor.whiskerRight (CategoryTheory.Functor.whiskerLeft L (CategoryTheory.Adjunction.counit h)) R
-```",24,0,Trandom,A matches target signature exactly; B has swapped whiskering order and different parenthesization.,False,False,5,False,True,False
+```",24,0,Trandom,A matches target signature exactly; B has swapped whiskering order and different parenthesization.,False,False,5,True,False,False
 120553,CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_τ₂,non_dense,large,"CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_τ₂.{v_1, u_1, v_2, u_2} (J : Type u_1)
   (C : Type u_2) [CategoryTheory.Category.{v_1, u_1} J] [CategoryTheory.Category.{v_2, u_2} C]
   [CategoryTheory.Limits.HasZeroMorphisms C] (X : CategoryTheory.Functor J (CategoryTheory.ShortComplex C)) (X✝ : J) :
@@ -710,7 +710,7 @@ theorem CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_τ�
         j) =
     CategoryTheory.CategoryStruct.id (CategoryTheory.ShortComplex.X₂ (CategoryTheory.Functor.obj X j)) :=
   sorry
-```",31,0,Trandom,A matches the target signature exactly with correct nested NatTrans.app structure. B is missing the outer .app j application.,False,False,14,True,False,True
+```",31,0,Trandom,A matches the target signature exactly with correct nested NatTrans.app structure. B is missing the outer .app j application.,False,False,14,False,False,True
 256217,DirectSum.decompose_symm_add,non_dense,large,"DirectSum.decompose_symm_add.{u_1, u_3, u_4} {ι : Type u_1} {M : Type u_3} {σ : Type u_4} [DecidableEq ι]
   [AddCommMonoid M] [SetLike σ M] [AddSubmonoidClass σ M] (ℳ : ι → σ) [DirectSum.Decomposition ℳ]
   (x y : DirectSum ι fun i => ↥(ℳ i)) :
@@ -728,7 +728,7 @@ theorem DirectSum.decompose_symm_add {ι : Type u_1} {M : Type u_3} {σ : Type u
   (x y : DirectSum ι fun i => ↥(ℳ i)) :
   (Equiv.symm (DirectSum.decompose ℳ)) (x + y) =
     (Equiv.symm (DirectSum.decompose ℳ)) x + (Equiv.symm (DirectSum.decompose ℳ)) y := by sorry
-```",42,0,Trandom,A uses correct DirectSum.decompose while B uses non-existent decomposeAddEquiv. Neither is vacuous; both state additive homomorphism property.,False,False,7,False,True,False
+```",42,0,Trandom,A uses correct DirectSum.decompose while B uses non-existent decomposeAddEquiv. Neither is vacuous; both state additive homomorphism property.,False,False,7,False,True,True
 368610,ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv,non_dense,large,"ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv.{u_1, u_3, u_4} {α : Type u_1} {E : Type u_3}
   [TopologicalSpace α] [CompactSpace α] [SeminormedAddCommGroup E] {𝕜 : Type u_4} [NormedRing 𝕜] [Module 𝕜 E]
   [IsBoundedSMul 𝕜 E] :
@@ -748,7 +748,7 @@ theorem ContinuousMap.linearIsometryBoundedOfCompact_eq_isometryEquiv (α : Type
   [NormedRing 𝕜] [Module 𝕜 E] [IsBoundedSMul 𝕜 E] :
   (ContinuousMap.linearIsometryBoundedOfCompact α E 𝕜 : C(α, E) ≃ᵢ BoundedContinuousFunction α E) =
     ContinuousMap.isometryEquivBoundedOfCompact α E := by sorry
-```",77,0,T,"B exactly matches target using .toIsometryEquiv, A uses coercion instead",False,False,20,True,True,True
+```",77,0,T,"B exactly matches target using .toIsometryEquiv, A uses coercion instead",False,False,20,True,True,False
 250914,VectorBundleCore.mem_source_at,non_dense,large,"VectorBundleCore.mem_source_at.{u_1, u_2, u_3, u_5} {R : Type u_1} {B : Type u_2} {F : Type u_3}
   [NontriviallyNormedField R] [NormedAddCommGroup F] [NormedSpace R F] [TopologicalSpace B] {ι : Type u_5}
   (Z : VectorBundleCore R B F ι) (b : B) (a : F) :
@@ -761,7 +761,7 @@ theorem VectorBundleCore.mem_localTrivAt_source {R : Type u_1} {B : Type u_2} {F
 theorem VectorBundleCore.mem_localTrivAt_source {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E] {B : Type*} [TopologicalSpace B] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F] (Z : VectorBundleCore 𝕜 B F) {b : B} {a : F} (hb : b ∈ Z.baseSet) : (b, a) ∈ (Z.localTrivAt b).toOpenPartialHomeomorph.toPartialEquiv.source
 ```",50,0,T,"A correctly uses Z.Fiber b for the fiber type and matches the target's nested coercion structure, while B incorrectly uses plain F and introduces an unnecessary hypothesis hb.",False,False,46,"```lean
 theorem VectorBundleCore.mem_localTriv_base_source {R : Type u_1} {B : Type u_2} {F : Type u_3} [NontriviallyNormedField R] [NormedAddCommGroup F] [NormedSpace R F] [TopologicalSpace B] {ι : Type u_5} (Z : VectorBundleCore R B F ι) (i : ι) {b : B} (hb : b ∈ VectorBundleCore.baseSet Z i) (a : F) : (b, a) ∈ PartialEquiv.source (OpenPartialHomeomorph.toPartialEquiv (Bundle.Trivialization.toOpenPartialHomeomorph (VectorBundleCore.localTriv Z i)))
-```",50,0,T,B matches target exactly with localTrivAt and parameter b; A uses localTriv with index i and extra hypothesis hb.,False,False,21,True,False,True
+```",50,0,T,B matches target exactly with localTrivAt and parameter b; A uses localTriv with index i and extra hypothesis hb.,False,False,21,False,False,False
 323677,CategoryTheory.Comma.equivProd_unitIso_inv_app_right,non_dense,large,"CategoryTheory.Comma.equivProd_unitIso_inv_app_right.{v₁, v₂, u₁, u₂, u_1} {A : Type u₁}
   [CategoryTheory.Category.{v₁, u₁} A] {B : Type u₂} [CategoryTheory.Category.{v₂, u₂} B]
   (L : CategoryTheory.Functor A (CategoryTheory.Discrete PUnit.{u_1 + 1}))
@@ -781,7 +781,7 @@ theorem CategoryTheory.Comma.equivProd_unitIso_inv_right (L R : CategoryTheory.F
   CategoryTheory.CommaMorphism.right ((CategoryTheory.Equivalence.unitIso (CategoryTheory.Comma.equivProd L R)).inv.app X) = 𝟙 (CategoryTheory.Comma.right X) := by sorry
 ```",39,0,Tnames,B matches the target: it accepts L and R with the same codomain and applies to X : Comma L R. A incorrectly applies to X : A × B.,False,False,40,"```lean
 theorem CategoryTheory.Comma.equivProd_unitIso_inv_app_right {A : Type u₁} [CategoryTheory.Category.{v₁, u₁} A] {B : Type u₂} [CategoryTheory.Category.{v₂, u₂} B] (L : CategoryTheory.Functor A (CategoryTheory.Discrete PUnit.{u_1 + 1})) (R : CategoryTheory.Functor B (CategoryTheory.Discrete PUnit.{u_1 + 1})) (X : CategoryTheory.Comma L R) : CategoryTheory.CommaMorphism.right (CategoryTheory.NatTrans.app (CategoryTheory.Iso.inv (CategoryTheory.Equivalence.unitIso (CategoryTheory.Comma.equivProd L R))) X) = CategoryTheory.CategoryStruct.id (CategoryTheory.Comma.right X)
-```",39,0,Trandom,B matches target signature exactly; A has wrong domain type (A × B instead of CategoryTheory.Comma L R) and wrong conclusion (X.2 instead of CategoryTheory.Comma.right X).,False,False,6,True,False,True
+```",39,0,Trandom,B matches target signature exactly; A has wrong domain type (A × B instead of CategoryTheory.Comma L R) and wrong conclusion (X.2 instead of CategoryTheory.Comma.right X).,False,False,6,False,False,False
 219297,MeasureTheory.integrable_of_intervalIntegral_norm_tendsto,non_dense,large,"MeasureTheory.integrable_of_intervalIntegral_norm_tendsto.{u_1, u_2} {ι : Type u_1} {E : Type u_2}
   {μ : MeasureTheory.Measure ℝ} {l : Filter ι} [Filter.NeBot l] [Filter.IsCountablyGenerated l] [NormedAddCommGroup E]
   {a b : ι → ℝ} {f : ℝ → E} (I : ℝ) (hfi : ∀ (i : ι), MeasureTheory.IntegrableOn f (Set.Ioc (a i) (b i)) μ)
@@ -828,14 +828,14 @@ theorem integrable_of_intervalIntegral_norm_tendsto {ι E : Type*} {μ : Measure
     (ha : Filter.Tendsto a l Filter.atBot) (hb : Filter.Tendsto b l Filter.atTop)
     (h : Filter.Tendsto (fun i => ∫ x in a i..b i, ‖f x‖ ∂μ) l (nhds I)) : 
     MeasureTheory.Integrable f μ
-```",72,3,Trandom,"B matches target signature exactly while A changes tendsto convergence to boundedness condition, fundamentally altering the theorem statement",False,False,196,True,True,True
+```",72,3,Trandom,"B matches target signature exactly while A changes tendsto convergence to boundedness condition, fundamentally altering the theorem statement",False,False,196,True,False,False
 81609,WithOne.map_bot,non_dense,small,"WithOne.map_bot.{u_1, u_2} {α : Type u_1} {β : Type u_2} (f : α → β) : WithOne.map f 1 = 1",The theorem states that applying the `WithOne.map` function with any function `f` from type `α` to type `β` to the bottom element (represented as `1`) of `WithOne α` yields the bottom element (represented as `1`) of `WithOne β`.,"```lean
 theorem WithOne.map_one {α β : Type*} (f : α → β) : WithOne.map f (1 : WithOne α) = (1 : WithOne β)
 ```",12,0,"```lean
 theorem WithOne.map_one {α β : Type*} (f : α → β) : WithOne.map f (1 : WithOne α) = (1 : WithOne β)
 ```",12,0,tie,Both candidates are identical and match the target semantically (bot = 1 in WithOne).,False,False,18,"```lean
 theorem WithOne.map_bot {α : Type u_1} {β : Type u_2} (f : α → β) : WithOne.map f 1 = 1 := by sorry
-```",12,0,T,"Both match signature, but B uses idiomatic name 'map_one' for multiplicative identity rather than 'map_bot'.",False,False,7,False,True,True
+```",12,0,T,"Both match signature, but B uses idiomatic name 'map_one' for multiplicative identity rather than 'map_bot'.",False,False,7,False,False,True
 373013,Fin.map_succEmb_Iic,non_dense,small,Fin.map_succEmb_Iic {n : ℕ} (i : Fin n) : Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i),"The theorem states that for a natural number $n$ and a finite ordinal $i$ of type `Fin n`, mapping the successor embedding over the closed interval from $0$ to $i$ (inclusive) in `Fin n` yields the half-open interval from $0$ (exclusive) to the successor of $i$ (inclusive) in `Fin (n+1)`.","```lean
 theorem Finset.map_succEmb_Iic (n : ℕ) (i : Fin n) : 
   Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i) := by sorry
@@ -844,7 +844,7 @@ theorem Fin.map_succEmb_Iic (n : ℕ) (i : Fin n) :
   Finset.map Fin.succEmb (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i) := by sorry
 ```",62,0,tie,"Both differ from target: A uses wrong namespace, B omits explicit n argument to succEmb. Neither vacuous.",False,False,10,"```lean
 Fin.map_succEmb_Iic : {n : ℕ} → (i : Fin n) → Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ico 0 (Fin.succ i)
-```",62,0,T,Candidate A incorrectly uses Ico (half-open) instead of Ioc (also half-open but opposite side). Candidate B matches the target exactly.,False,False,6,True,True,True
+```",62,0,T,Candidate A incorrectly uses Ico (half-open) instead of Ioc (also half-open but opposite side). Candidate B matches the target exactly.,False,False,6,True,False,False
 311629,Dioph.ex_dioph,non_dense,small,"Dioph.ex_dioph.{u} {α β : Type u} {S : Set (α ⊕ β → ℕ)} : Dioph S → Dioph {v | ∃ x, Sum.elim v x ∈ S}","The theorem states that if a set S of functions from α ⊕ β to ℕ is Diophantine, then the set of all functions v from α to ℕ for which there exists some function x from β to ℕ such that the combined function (obtained by eliminating the sum using v and x) belongs to S is also Diophantine.","```lean
 theorem Dioph.exists_sum {α β : Type*} {S : Set (α ⊕ β → ℕ)} (h : Dioph S) :
     Dioph {v : α → ℕ | ∃ x : β → ℕ, Sum.elim v x ∈ S}
@@ -854,7 +854,7 @@ theorem Dioph.existsRight {α β : Type*} {S : Set (α ⊕ β → ℕ)} (h : Dio
 ```",35,0,tie,"Both candidates are semantically identical to the target, differing only in name (ex_dioph vs exists_sum vs existsRight).",False,False,21,"```lean
 theorem Dioph.sum_ex_dioph {α β : Type} {S : Set (α ⊕ β → ℕ)} (d : Dioph S) :
   Dioph {v : α → ℕ | ∃ x : β → ℕ, Sum.elim v x ∈ S} := by sorry
-```",35,0,tie,Both candidates match the target signature semantically; neither is vacuous.,False,False,21,False,True,False
+```",35,0,tie,Both candidates match the target signature semantically; neither is vacuous.,False,False,21,False,True,True
 332568,ack_inj_left,non_dense,small,ack_inj_left {m₁ m₂ n : ℕ} : ack m₁ n = ack m₂ n ↔ m₁ = m₂,"The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers $m_1$, $m_2$, and $n$, we have $\text{ack}(m_1, n) = \text{ack}(m_2, n)$ if and only if $m_1 = m_2$.","```lean
 theorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=
   (ack_injective_left n).eq_iff
@@ -862,7 +862,7 @@ theorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔
 theorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry
 ```",7,0,T,"A provides a proof using ack_injective_left, while B only has sorry. Neither is vacuous as both require non-trivial injectivity properties.",False,False,9,"```lean
 theorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry
-```",7,0,T,A provides actual proof via ack_injective_left while B uses sorry placeholder,False,False,9,True,False,True
+```",7,0,T,A provides actual proof via ack_injective_left while B uses sorry placeholder,False,False,9,True,True,True
 158086,ENNReal.coe_mem_upperBounds,non_dense,small,ENNReal.coe_mem_upperBounds {r : NNReal} {s : Set NNReal} : ↑r ∈ upperBounds (ENNReal.ofNNReal '' s) ↔ r ∈ upperBounds s,The statement asserts that a non-negative real number $r$ (viewed as an extended non-negative real number via coercion) is an upper bound for the image of a set $s$ of non-negative reals under the coercion map to extended non-negative reals if and only if $r$ is an upper bound for $s$ itself.,"```lean
 theorem ENNReal.coe_upperBounds (r : ℝ≥0) (s : Set ℝ≥0) :
     (r : ENNReal) ∈ upperBounds (ENNReal.ofNNReal '' s) ↔ r ∈ upperBounds s := by sorry
@@ -872,14 +872,14 @@ theorem ENNReal.coe_mem_upperBounds_image_nnreal_iff {r : ℝ≥0} {s : Set ℝ�
 ```",39,0,T,A has subtle binder difference (↑r instead of r on RHS) and uses ↑'' instead of ENNReal.ofNNReal ''. B matches target exactly.,False,False,15,"```lean
 def ENNReal.upperBounds_coe (s : Set NNReal) (r : NNReal) : 
   (r : ENNReal) ∈ upperBounds (ENNReal.ofNNReal '' s) ↔ r ∈ upperBounds s
-```",39,0,T,B uses theorem (correct) vs A's def. Both match signature semantically. Neither is vacuous.,False,False,12,True,False,True
+```",39,0,T,B uses theorem (correct) vs A's def. Both match signature semantically. Neither is vacuous.,False,False,12,True,False,False
 285219,Lean.Parser.Category.attr,non_dense,small,Lean.Parser.Category.attr : Lean.Parser.Category,"The declaration `Lean.Parser.Category.attr` defines a parser category in Lean 4 specifically for parsing attributes, which are metadata annotations that can be attached to declarations in Lean to modify their behavior or provide additional information to the system.","```lean
 def Lean.Parser.Category.attr : Lean.Parser.Category
 ```",1,0,"```lean
 Lean.Parser.Category.attr : String
 ```",1,0,T,A matches the target type Lean.Parser.Category exactly; B incorrectly claims it is a String.,False,False,3,"```lean
 Lean.Parser.Category.attr : Lean.Parser.Category
-```",1,0,Trandom,A declares a constant matching the target signature exactly; B uses 'def' which requires a body and doesn't match the declaration style.,False,False,2,True,False,True
+```",1,0,Trandom,A declares a constant matching the target signature exactly; B uses 'def' which requires a body and doesn't match the declaration style.,False,False,2,False,False,False
 117965,Equiv.Perm.symm_mul,non_dense,small,Equiv.Perm.symm_mul.{u_4} {α : Type u_4} (e : Equiv.Perm α) : Equiv.symm e * e = 1,"The statement asserts that for any permutation \(e\) of a type \(\alpha\), the product of the inverse of \(e\) with \(e\) itself equals the identity permutation.","```lean
 theorem Equiv.Perm.inv_mul_self {α : Type*} (e : Equiv.Perm α) : e.symm * e = 1 := by sorry
 ```",12,0,"```lean
@@ -900,14 +900,14 @@ def Real.sSup (s : Set ℝ) : ℝ :=
     0
 ```",25,0,Tnames,"Both match semantically, but A uses `if h :` with named hypothesis matching target style more closely than B's `dite` with explicit lambdas.",False,False,11,"```lean
 def Real.sSup (s : Set ℝ) : ℝ := sSup s
-```",25,0,T,A matches the conditional definition structure with Classical.choose; B is circular/vacuous (defines sSup as sSup).,False,True,18,True,False,True
+```",25,0,T,A matches the conditional definition structure with Classical.choose; B is circular/vacuous (defines sSup as sSup).,False,True,18,True,False,False
 253041,Substring.toIterator,non_dense,small,Substring.toIterator : Substring.Raw → String.Legacy.Iterator,The function `Substring.toIterator` converts a raw substring into a legacy string iterator.,"```lean
 def Substring.toIterator : Substring → String.Legacy.Iterator
 ```",3,0,"```lean
 def Substring.toIterator (s : Substring) : String.Legacy.Iterator := s.raw.toLegacyIterator
 ```",3,0,Tnames,A provides implementation matching signature; B is incomplete stub. Neither vacuous—both define nontrivial conversion function.,False,False,8,"```lean
 def Substring.toIterator (s : Substring) : String.Legacy.Iterator := by sorry
-```",3,0,tie,"Both match the target signature semantically; A uses arrow notation, B uses explicit parameter syntax. Neither is vacuous.",False,False,9,True,False,True
+```",3,0,tie,"Both match the target signature semantically; A uses arrow notation, B uses explicit parameter syntax. Neither is vacuous.",False,False,9,False,True,True
 353452,WithBot.coe_sup,non_dense,small,WithBot.coe_sup.{u_1} {α : Type u_1} [SemilatticeSup α] (a b : α) : ↑(a ⊔ b) = ↑a ⊔ ↑b,The coercion of the supremum of two elements $a$ and $b$ in a semilattice with supremum into the type with bottom is equal to the supremum of the coercions of $a$ and $b$ separately into the type with bottom.,"```lean
 theorem WithBot.coe_sup {α : Type*} [SemilatticeSup α] (a b : α) :
     ↑(a ⊔ b) = (↑a : WithBot α) ⊔ ↑b := by sorry

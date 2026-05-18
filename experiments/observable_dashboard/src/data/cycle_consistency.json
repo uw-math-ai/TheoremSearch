@@ -11,7 +11,7 @@
     "wilcoxon_p": 0.0,
     "edit_mean_B": 31.7,
     "edit_mean_T": 14.5,
-    "t_prefers_and_tc": 21,
+    "t_prefers_and_tc": 33,
     "models": {
       "informalizer": "claude-sonnet-4-5 (Bedrock)",
       "formalizer": "claude-haiku-4-5 (Bedrock, same for all conditions)",
@@ -31,8 +31,8 @@
       "label": "B \u2014 baseline",
       "desc": "NL only",
       "color": "#dc2626",
-      "tc_pass": 8,
-      "tc_pct": 13.3,
+      "tc_pass": 20,
+      "tc_pct": 33.3,
       "edit_mean": 31.7,
       "edit_median": 25.0
     },
@@ -41,8 +41,8 @@
       "label": "T-names",
       "desc": "NL + dep names (no sigs)",
       "color": "#f59e0b",
-      "tc_pass": 27,
-      "tc_pct": 45.0,
+      "tc_pass": 20,
+      "tc_pct": 33.3,
       "edit_mean": 29.2,
       "edit_median": 18.5
     },
@@ -51,8 +51,8 @@
       "label": "T-random",
       "desc": "NL + random same-module sigs",
       "color": "#7c3aed",
-      "tc_pass": 40,
-      "tc_pct": 66.7,
+      "tc_pass": 33,
+      "tc_pct": 55.0,
       "edit_mean": 16.8,
       "edit_median": 11.0
     },
@@ -61,8 +61,8 @@
       "label": "T \u2014 treatment",
       "desc": "NL + actual dep sigs",
       "color": "#2563eb",
-      "tc_pass": 23,
-      "tc_pct": 38.3,
+      "tc_pass": 38,
+      "tc_pct": 63.3,
       "edit_mean": 14.5,
       "edit_median": 12.0
     }
@@ -96,7 +96,7 @@
       "edit_dist_T": 21,
       "edit_dist_Tnames": 29,
       "edit_dist_Trandom": 25,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
       "tc_Tnames": false,
       "tc_Trandom": false,
@@ -151,9 +151,9 @@
       "edit_dist_Tnames": 13,
       "edit_dist_Trandom": 4,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "T",
       "NL": "This definition provides a morphism from the left homology H of a short complex to an object A, given a morphism k from the kernel object K to A that satisfies the condition that the composition of f' (a certain morphism in the left homology data) with k is zero.",
@@ -180,7 +180,7 @@
       "tc_B": false,
       "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "When the key `k` is not contained in the list `l\u2082` (that is, `containsKey k l\u2082 = false`), and `l\u2081` has distinct keys, then looking up the key `k` in the filtered version of `l\u2081` (where we keep only entries whose keys appear in `l\u2082`) with fallback value `fallback` returns the fallback value `fallback`.",
@@ -234,7 +234,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that for a collection type with a lawful element access operation and an inhabited element type, the unchecked element access operation `c[i]!` is equal to the result of attempting to access the element at index `i` using the safe access operation `c[i]?`, returning the element if it exists (in the `some` case) or the default element if it doesn't (in the `none` case).",
@@ -259,7 +259,7 @@
       "edit_dist_Tnames": 25,
       "edit_dist_Trandom": 7,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
@@ -314,7 +314,7 @@
       "edit_dist_Trandom": 5,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
@@ -341,7 +341,7 @@
       "edit_dist_Trandom": 38,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "Trandom",
@@ -369,7 +369,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "tie",
       "NL": "The function `PNat.xgcd` takes two positive natural numbers `a` and `b` and returns an element of type `PNat.XgcdType`, which represents the extended Euclidean algorithm result for positive natural numbers, containing information about the greatest common divisor and the coefficients of B\u00e9zout's identity.",
@@ -396,7 +396,7 @@
       "tc_B": false,
       "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that if a function $f$ from a type $\\alpha$ to the non-negative real numbers has sum $r$ (in the sense of having $r$ as its convergent sum), then the infinite sum of $f(a)$ over all $a$ in $\\alpha$, viewed as extended non-negative real numbers, equals $r$ viewed as an extended non-negative real number.",
@@ -421,7 +421,7 @@
       "edit_dist_Tnames": 6,
       "edit_dist_Trandom": 9,
       "tc_B": true,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
@@ -450,7 +450,7 @@
       "tc_B": true,
       "tc_T": true,
       "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for integers $m$ and $n$, the inequality $m \\leq n - 1$ holds if and only if $m < n$.",
@@ -477,7 +477,7 @@
       "tc_B": true,
       "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "In any topological space $X$, the empty set is retrocompact, meaning it satisfies the retrocompactness property.",
@@ -501,10 +501,10 @@
       "edit_dist_T": 4,
       "edit_dist_Tnames": 6,
       "edit_dist_Trandom": 2,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": false,
-      "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "tie",
       "NL": "The function `Lean.SubExpr.Pos.asNat` converts a subexpression position (of type `Lean.SubExpr.Pos`) to a natural number.",
@@ -528,8 +528,8 @@
       "edit_dist_T": 10,
       "edit_dist_Tnames": 11,
       "edit_dist_Trandom": 12,
-      "tc_B": false,
-      "tc_T": false,
+      "tc_B": true,
+      "tc_T": true,
       "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
@@ -582,10 +582,10 @@
       "edit_dist_T": 22,
       "edit_dist_Tnames": 15,
       "edit_dist_Trandom": 15,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
       "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "tie",
       "NL": "The coLindel\u00f6f filter on a topological space X is the filter generated by all Lindel\u00f6f subsets of X (where a subset is Lindel\u00f6f if every open cover has a countable subcover).",
@@ -609,7 +609,7 @@
       "edit_dist_T": 13,
       "edit_dist_Tnames": 15,
       "edit_dist_Trandom": 13,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
       "tc_Tnames": true,
       "tc_Trandom": true,
@@ -637,9 +637,9 @@
       "edit_dist_Tnames": 89,
       "edit_dist_Trandom": 16,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The norm of a continuous multilinear map composed with a family of continuous linear isometries is at most the norm of the original continuous multilinear map.",
@@ -665,8 +665,8 @@
       "edit_dist_Trandom": 27,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for a closed monoidal category C and objects A and B in C, given a morphism h from the internal hom-object A \u27f9 B to an object Z, the composition of the coevaluation natural transformation at A \u27f9 B with the evaluation natural transformation at B (applied through the internal hom functor at A) followed by h equals h itself.",
@@ -692,7 +692,7 @@
       "edit_dist_Trandom": 9,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
@@ -719,8 +719,8 @@
       "edit_dist_Trandom": 36,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "When restricting a measure \u03bc to a finite union of sets indexed by a finite set T, if the sets are pairwise disjoint on T and each set is measurable, then the restricted measure equals the sum of the measures restricted to each individual set in the family.",
@@ -800,7 +800,7 @@
       "edit_dist_Trandom": 9,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": false,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "Trandom",
@@ -854,8 +854,8 @@
       "edit_dist_Trandom": 16,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "tie",
       "NL": "The theorem states that for a dominated finitely additive set function $T$ defined with respect to the measure $\\top \\cdot \\mu$ (where $\\top$ denotes the top element, representing infinity, multiplied with the measure $\\mu$), the associated set-to-function construction applied to any function $f$ from $\\alpha$ to a normed space $E$ yields zero in the target normed space $F$.",
@@ -881,7 +881,7 @@
       "edit_dist_Trandom": 8,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": false,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "Trandom",
@@ -906,8 +906,8 @@
       "edit_dist_T": 12,
       "edit_dist_Tnames": 13,
       "edit_dist_Trandom": 12,
-      "tc_B": false,
-      "tc_T": false,
+      "tc_B": true,
+      "tc_T": true,
       "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
@@ -961,8 +961,8 @@
       "edit_dist_Tnames": 5,
       "edit_dist_Trandom": 5,
       "tc_B": true,
-      "tc_T": false,
-      "tc_Tnames": false,
+      "tc_T": true,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "Trandom",
@@ -988,9 +988,9 @@
       "edit_dist_Tnames": 7,
       "edit_dist_Trandom": 17,
       "tc_B": false,
-      "tc_T": false,
-      "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The product of two nonnegative elements in the ring of integers adjoined with the square root of a natural number $d$ is itself nonnegative: if $a$ and $b$ are nonnegative elements of $\\mathbb{Z}[\\sqrt{d}]$, then their product $a \\cdot b$ is also nonnegative.",
@@ -1015,9 +1015,9 @@
       "edit_dist_Tnames": 10,
       "edit_dist_Trandom": 7,
       "tc_B": true,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "tie",
       "NL": "The statement asserts that for a finite set `s` and an element `a` not in `s`, the set `s` is covered by the set obtained by adjoining `a` to `s` (that is, `s` and `cons a s ha` form a covering relation in the lattice of finite sets).",
@@ -1043,7 +1043,7 @@
       "edit_dist_Trandom": 6,
       "tc_B": true,
       "tc_T": true,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": false,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "Trandom",
@@ -1068,9 +1068,9 @@
       "edit_dist_T": 7,
       "edit_dist_Tnames": 15,
       "edit_dist_Trandom": 7,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
-      "tc_Tnames": false,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "tie",
@@ -1095,10 +1095,10 @@
       "edit_dist_T": 10,
       "edit_dist_Tnames": 120,
       "edit_dist_Trandom": 16,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The infimum of a constant value $a$ indexed over a decidable proposition $p$ equals $a$ if $p$ is true, and equals the top element $\\top$ if $p$ is false.",
@@ -1122,9 +1122,9 @@
       "edit_dist_T": 7,
       "edit_dist_Tnames": 10,
       "edit_dist_Trandom": 6,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": false,
-      "tc_Tnames": false,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "Trandom",
@@ -1150,7 +1150,7 @@
       "edit_dist_Tnames": 9,
       "edit_dist_Trandom": 7,
       "tc_B": true,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
@@ -1205,7 +1205,7 @@
       "edit_dist_Trandom": 35,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
@@ -1231,9 +1231,9 @@
       "edit_dist_Tnames": 12,
       "edit_dist_Trandom": 8,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The inverse of the right unitor isomorphism applied to a morphism \u03b1 between adjunctions a and b in a bicategory B, when viewed through the right transformation component (\u03c4r), equals the left unitor isomorphism applied to the right component of the morphism \u03b1.",
@@ -1258,8 +1258,8 @@
       "edit_dist_Tnames": 34,
       "edit_dist_Trandom": 5,
       "tc_B": false,
-      "tc_T": false,
-      "tc_Tnames": true,
+      "tc_T": true,
+      "tc_Tnames": false,
       "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
@@ -1314,7 +1314,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The inverse of the direct sum decomposition equivalence preserves addition: for any two elements $x$ and $y$ in the direct sum of the subobjects indexed by $\\iota$, applying the inverse decomposition to their sum equals the sum of applying the inverse decomposition to each element individually.",
@@ -1341,7 +1341,7 @@
       "tc_B": false,
       "tc_T": true,
       "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "T",
       "NL": "The linear isometry equivalence `linearIsometryBoundedOfCompact` between continuous maps and bounded continuous functions (over a compact space \u03b1 with values in a seminormed space E and scalars \ud835\udd5c) is equal, when viewed as an isometry equivalence by forgetting the linear structure, to the isometry equivalence `isometryEquivBoundedOfCompact`.",
@@ -1365,10 +1365,10 @@
       "edit_dist_T": 12,
       "edit_dist_Tnames": 46,
       "edit_dist_Trandom": 21,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": false,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that for a vector bundle core Z over a base space B with fiber F, any point (b, a) where b is in the base space and a is in the fiber, belongs to the source of the local trivialization at the point b.",
@@ -1395,7 +1395,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The right component of the inverse of the unit isomorphism of the equivalence between the comma category of functors L and R (both targeting the discrete category on the unit type) and the product category, when applied to an object X, is equal to the identity morphism on the right component of X.",
@@ -1421,8 +1421,8 @@
       "edit_dist_Trandom": 196,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "If a function $f : \\mathbb{R} \\to E$ (where $E$ is a normed additive commutative group) is integrable on intervals $(a_i, b_i]$ for all $i$ in an index set $\\iota$, where $a_i$ tends to negative infinity and $b_i$ tends to positive infinity along a countably generated filter $l$, and if the interval integrals of $\\|f\\|$ converge to some value $I$, then $f$ is integrable with respect to the measure $\\mu$ on all of $\\mathbb{R}$.",
@@ -1448,7 +1448,7 @@
       "edit_dist_Trandom": 7,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": true,
+      "tc_Tnames": false,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "T",
@@ -1475,8 +1475,8 @@
       "edit_dist_Trandom": 6,
       "tc_B": false,
       "tc_T": true,
-      "tc_Tnames": true,
-      "tc_Trandom": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for a natural number $n$ and a finite ordinal $i$ of type `Fin n`, mapping the successor embedding over the closed interval from $0$ to $i$ (inclusive) in `Fin n` yields the half-open interval from $0$ (exclusive) to the successor of $i$ (inclusive) in `Fin (n+1)`.",
@@ -1503,7 +1503,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": true,
-      "tc_Trandom": false,
+      "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
       "judge_T_vs_Trandom": "tie",
       "NL": "The theorem states that if a set S of functions from \u03b1 \u2295 \u03b2 to \u2115 is Diophantine, then the set of all functions v from \u03b1 to \u2115 for which there exists some function x from \u03b2 to \u2115 such that the combined function (obtained by eliminating the sum using v and x) belongs to S is also Diophantine.",
@@ -1527,9 +1527,9 @@
       "edit_dist_T": 9,
       "edit_dist_Tnames": 9,
       "edit_dist_Trandom": 9,
-      "tc_B": false,
+      "tc_B": true,
       "tc_T": true,
-      "tc_Tnames": false,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
@@ -1555,9 +1555,9 @@
       "edit_dist_Tnames": 15,
       "edit_dist_Trandom": 12,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that a non-negative real number $r$ (viewed as an extended non-negative real number via coercion) is an upper bound for the image of a set $s$ of non-negative reals under the coercion map to extended non-negative reals if and only if $r$ is an upper bound for $s$ itself.",
@@ -1584,7 +1584,7 @@
       "tc_B": false,
       "tc_T": false,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "T",
       "judge_T_vs_Trandom": "Trandom",
       "NL": "The declaration `Lean.Parser.Category.attr` defines a parser category in Lean 4 specifically for parsing attributes, which are metadata annotations that can be attached to declarations in Lean to modify their behavior or provide additional information to the system.",
@@ -1635,10 +1635,10 @@
       "edit_dist_T": 22,
       "edit_dist_Tnames": 11,
       "edit_dist_Trandom": 18,
-      "tc_B": false,
-      "tc_T": false,
+      "tc_B": true,
+      "tc_T": true,
       "tc_Tnames": false,
-      "tc_Trandom": true,
+      "tc_Trandom": false,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "T",
       "NL": "The supremum of a set of real numbers $s$ is defined as follows: if $s$ is nonempty and bounded above, then $\\sup s$ is the element chosen (via the axiom of choice) that satisfies the least upper bound property; otherwise, $\\sup s$ is defined to be 0.",
@@ -1664,7 +1664,7 @@
       "edit_dist_Trandom": 9,
       "tc_B": false,
       "tc_T": false,
-      "tc_Tnames": false,
+      "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "Tnames",
       "judge_T_vs_Trandom": "tie",
@@ -1690,7 +1690,7 @@
       "edit_dist_Tnames": 13,
       "edit_dist_Trandom": 13,
       "tc_B": false,
-      "tc_T": false,
+      "tc_T": true,
       "tc_Tnames": true,
       "tc_Trandom": true,
       "judge_T_vs_Tnames": "tie",
@@ -1767,7 +1767,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 29,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "large",
       "full_name": "stronglyMeasurable_iff_measurable_separable"
@@ -1847,7 +1847,7 @@
     {
       "condition": "T-random",
       "edit_dist": 4,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "large",
       "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
@@ -1855,7 +1855,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 7,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "large",
       "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
@@ -1879,7 +1879,7 @@
     {
       "condition": "T-random",
       "edit_dist": 21,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "large",
       "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right"
@@ -1943,7 +1943,7 @@
     {
       "condition": "T-random",
       "edit_dist": 30,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "large",
       "full_name": "LawfulGetElem.getElem!_def"
@@ -1983,7 +1983,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 7,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "large",
       "full_name": "Bimod.TensorBimod.actRight"
@@ -2031,7 +2031,7 @@
     {
       "condition": "T-names",
       "edit_dist": 106,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "large",
       "full_name": "TestFunction.limitCLM"
@@ -2063,7 +2063,7 @@
     {
       "condition": "T-names",
       "edit_dist": 36,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "large",
       "full_name": "Module.Flat.lTensor_exact"
@@ -2103,7 +2103,7 @@
     {
       "condition": "T-random",
       "edit_dist": 3,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "small",
       "full_name": "PNat.xgcd"
@@ -2135,7 +2135,7 @@
     {
       "condition": "T-random",
       "edit_dist": 11,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "small",
       "full_name": "ENNReal.tsum_coe_eq"
@@ -2175,7 +2175,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 10,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Nat.lt_pred_iff"
@@ -2199,7 +2199,7 @@
     {
       "condition": "T-random",
       "edit_dist": 9,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Int.le_sub_one_iff"
@@ -2231,7 +2231,7 @@
     {
       "condition": "T-random",
       "edit_dist": 11,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "IsRetrocompact.empty"
@@ -2247,7 +2247,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 9,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Lean.SubExpr.Pos.asNat"
@@ -2255,7 +2255,7 @@
     {
       "condition": "T-names",
       "edit_dist": 6,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Lean.SubExpr.Pos.asNat"
@@ -2263,7 +2263,7 @@
     {
       "condition": "T-random",
       "edit_dist": 2,
-      "tc": true,
+      "tc": false,
       "indeg": "dense",
       "size": "small",
       "full_name": "Lean.SubExpr.Pos.asNat"
@@ -2279,7 +2279,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 13,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Polynomial.IsRoot"
@@ -2303,7 +2303,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 10,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Polynomial.IsRoot"
@@ -2343,7 +2343,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Filter.coLindelof"
@@ -2359,7 +2359,7 @@
     {
       "condition": "T-random",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Filter.coLindelof"
@@ -2375,7 +2375,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "dense",
       "size": "small",
       "full_name": "Subgroup.coe_pow"
@@ -2423,7 +2423,7 @@
     {
       "condition": "T-random",
       "edit_dist": 16,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
@@ -2431,7 +2431,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 21,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "large",
       "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
@@ -2447,7 +2447,7 @@
     {
       "condition": "T-names",
       "edit_dist": 31,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "CategoryTheory.ihom.coev_ev_assoc"
@@ -2455,7 +2455,7 @@
     {
       "condition": "T-random",
       "edit_dist": 27,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "CategoryTheory.ihom.coev_ev_assoc"
@@ -2479,7 +2479,7 @@
     {
       "condition": "T-names",
       "edit_dist": 19,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso"
@@ -2511,7 +2511,7 @@
     {
       "condition": "T-names",
       "edit_dist": 42,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
@@ -2519,7 +2519,7 @@
     {
       "condition": "T-random",
       "edit_dist": 36,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
@@ -2607,7 +2607,7 @@
     {
       "condition": "T-names",
       "edit_dist": 25,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "large",
       "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet"
@@ -2671,7 +2671,7 @@
     {
       "condition": "T-names",
       "edit_dist": 39,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "MeasureTheory.setToFun_top_smul_measure"
@@ -2679,7 +2679,7 @@
     {
       "condition": "T-random",
       "edit_dist": 16,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "MeasureTheory.setToFun_top_smul_measure"
@@ -2703,7 +2703,7 @@
     {
       "condition": "T-names",
       "edit_dist": 53,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "large",
       "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq"
@@ -2727,7 +2727,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 12,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Padic.denseRange_ratCast"
@@ -2751,7 +2751,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 12,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Padic.denseRange_ratCast"
@@ -2799,7 +2799,7 @@
     {
       "condition": "T-names",
       "edit_dist": 5,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Lean.Server.Test.Refs.test7"
@@ -2815,7 +2815,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 6,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Lean.Server.Test.Refs.test7"
@@ -2831,7 +2831,7 @@
     {
       "condition": "T-names",
       "edit_dist": 7,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "small",
       "full_name": "Zsqrtd.nonneg_mul"
@@ -2839,7 +2839,7 @@
     {
       "condition": "T-random",
       "edit_dist": 17,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Zsqrtd.nonneg_mul"
@@ -2847,7 +2847,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 6,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Zsqrtd.nonneg_mul"
@@ -2871,7 +2871,7 @@
     {
       "condition": "T-random",
       "edit_dist": 7,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Finset.covBy_cons"
@@ -2879,7 +2879,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 9,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Finset.covBy_cons"
@@ -2895,7 +2895,7 @@
     {
       "condition": "T-names",
       "edit_dist": 7,
-      "tc": true,
+      "tc": false,
       "indeg": "medium",
       "size": "small",
       "full_name": "Int.Linear.Poly.checkCoeffs"
@@ -2919,7 +2919,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Int.negOnePow_eq_iff"
@@ -2927,7 +2927,7 @@
     {
       "condition": "T-names",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "Int.negOnePow_eq_iff"
@@ -2951,7 +2951,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 10,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "iInf_eq_if"
@@ -2967,7 +2967,7 @@
     {
       "condition": "T-random",
       "edit_dist": 16,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "iInf_eq_if"
@@ -2983,7 +2983,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 15,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "UpperHalfPlane.vadd_im"
@@ -2991,7 +2991,7 @@
     {
       "condition": "T-names",
       "edit_dist": 10,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "UpperHalfPlane.vadd_im"
@@ -3039,7 +3039,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 8,
-      "tc": false,
+      "tc": true,
       "indeg": "medium",
       "size": "small",
       "full_name": "min_eq_right_of_lt"
@@ -3087,7 +3087,7 @@
     {
       "condition": "T-names",
       "edit_dist": 104,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc"
@@ -3127,7 +3127,7 @@
     {
       "condition": "T-random",
       "edit_dist": 8,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
@@ -3135,7 +3135,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 12,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
@@ -3151,7 +3151,7 @@
     {
       "condition": "T-names",
       "edit_dist": 34,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
@@ -3167,7 +3167,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 14,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
@@ -3223,7 +3223,7 @@
     {
       "condition": "T-random",
       "edit_dist": 7,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "DirectSum.decompose_symm_add"
@@ -3255,7 +3255,7 @@
     {
       "condition": "T-random",
       "edit_dist": 20,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv"
@@ -3271,7 +3271,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 40,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "VectorBundleCore.mem_source_at"
@@ -3287,7 +3287,7 @@
     {
       "condition": "T-random",
       "edit_dist": 21,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "VectorBundleCore.mem_source_at"
@@ -3319,7 +3319,7 @@
     {
       "condition": "T-random",
       "edit_dist": 6,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right"
@@ -3343,7 +3343,7 @@
     {
       "condition": "T-names",
       "edit_dist": 65,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
@@ -3351,7 +3351,7 @@
     {
       "condition": "T-random",
       "edit_dist": 196,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "large",
       "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
@@ -3375,7 +3375,7 @@
     {
       "condition": "T-names",
       "edit_dist": 18,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "WithOne.map_bot"
@@ -3407,7 +3407,7 @@
     {
       "condition": "T-names",
       "edit_dist": 10,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Fin.map_succEmb_Iic"
@@ -3415,7 +3415,7 @@
     {
       "condition": "T-random",
       "edit_dist": 6,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Fin.map_succEmb_Iic"
@@ -3447,7 +3447,7 @@
     {
       "condition": "T-random",
       "edit_dist": 21,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Dioph.ex_dioph"
@@ -3463,7 +3463,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 50,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "ack_inj_left"
@@ -3471,7 +3471,7 @@
     {
       "condition": "T-names",
       "edit_dist": 9,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "ack_inj_left"
@@ -3511,7 +3511,7 @@
     {
       "condition": "T-random",
       "edit_dist": 12,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "ENNReal.coe_mem_upperBounds"
@@ -3519,7 +3519,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 14,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "ENNReal.coe_mem_upperBounds"
@@ -3543,7 +3543,7 @@
     {
       "condition": "T-random",
       "edit_dist": 2,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Lean.Parser.Category.attr"
@@ -3591,7 +3591,7 @@
     {
       "condition": "B (baseline)",
       "edit_dist": 13,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Real.sSup_def"
@@ -3607,7 +3607,7 @@
     {
       "condition": "T-random",
       "edit_dist": 18,
-      "tc": true,
+      "tc": false,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Real.sSup_def"
@@ -3615,7 +3615,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 22,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Real.sSup_def"
@@ -3631,7 +3631,7 @@
     {
       "condition": "T-names",
       "edit_dist": 8,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "Substring.toIterator"
@@ -3679,7 +3679,7 @@
     {
       "condition": "T (treatment)",
       "edit_dist": 13,
-      "tc": false,
+      "tc": true,
       "indeg": "non_dense",
       "size": "small",
       "full_name": "WithBot.coe_sup"
@@ -3712,9 +3712,9 @@
       "indeg": "dense",
       "size": "large",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right",
@@ -3723,8 +3723,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": false,
-      "tc_advantage_T": 1
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom",
@@ -3743,8 +3743,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Bimod.TensorBimod.actRight",
@@ -3752,9 +3752,9 @@
       "indeg": "dense",
       "size": "large",
       "judge_T_vs_Trandom": "tie",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.Limits.image.ext",
@@ -3793,8 +3793,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "tie",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "ENNReal.tsum_coe_eq",
@@ -3803,8 +3803,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Nat.lt_pred_iff",
@@ -3812,9 +3812,9 @@
       "indeg": "dense",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Int.le_sub_one_iff",
@@ -3823,8 +3823,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": false,
-      "tc_advantage_T": 1
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "IsRetrocompact.empty",
@@ -3833,8 +3833,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": true,
-      "tc_Trandom": false,
-      "tc_advantage_T": 1
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Lean.SubExpr.Pos.asNat",
@@ -3843,8 +3843,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "tie",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Polynomial.IsRoot",
@@ -3852,9 +3852,9 @@
       "indeg": "dense",
       "size": "small",
       "judge_T_vs_Trandom": "tie",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "String.Slice.Subslice.endExclusive",
@@ -3873,8 +3873,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "tie",
       "tc_T": true,
-      "tc_Trandom": false,
-      "tc_advantage_T": 1
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Subgroup.coe_pow",
@@ -3892,9 +3892,9 @@
       "indeg": "medium",
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
-      "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "CategoryTheory.ihom.coev_ev_assoc",
@@ -3903,8 +3903,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "T",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso",
@@ -3923,8 +3923,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'",
@@ -3973,8 +3973,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "tie",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq",
@@ -3992,9 +3992,9 @@
       "indeg": "medium",
       "size": "small",
       "judge_T_vs_Trandom": "tie",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Set.sized_empty",
@@ -4012,9 +4012,9 @@
       "indeg": "medium",
       "size": "small",
       "judge_T_vs_Trandom": "Trandom",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Zsqrtd.nonneg_mul",
@@ -4022,8 +4022,8 @@
       "indeg": "medium",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
-      "tc_Trandom": false,
+      "tc_T": true,
+      "tc_Trandom": true,
       "tc_advantage_T": 0
     },
     {
@@ -4032,8 +4032,8 @@
       "indeg": "medium",
       "size": "small",
       "judge_T_vs_Trandom": "tie",
-      "tc_T": false,
-      "tc_Trandom": false,
+      "tc_T": true,
+      "tc_Trandom": true,
       "tc_advantage_T": 0
     },
     {
@@ -4063,8 +4063,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": false,
-      "tc_advantage_T": 1
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "UpperHalfPlane.vadd_im",
@@ -4082,9 +4082,9 @@
       "indeg": "medium",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     },
     {
       "full_name": "HomologicalComplex\u2082.flip_X_X",
@@ -4112,8 +4112,8 @@
       "indeg": "non_dense",
       "size": "large",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
-      "tc_Trandom": false,
+      "tc_T": true,
+      "tc_Trandom": true,
       "tc_advantage_T": 0
     },
     {
@@ -4122,9 +4122,9 @@
       "indeg": "non_dense",
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": false,
-      "tc_advantage_T": 0
+      "tc_advantage_T": 1
     },
     {
       "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082",
@@ -4143,8 +4143,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": false,
-      "tc_Trandom": false,
-      "tc_advantage_T": 0
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv",
@@ -4153,8 +4153,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "VectorBundleCore.mem_source_at",
@@ -4163,8 +4163,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "T",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right",
@@ -4173,8 +4173,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto",
@@ -4183,8 +4183,8 @@
       "size": "large",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "WithOne.map_bot",
@@ -4203,8 +4203,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "T",
       "tc_T": true,
-      "tc_Trandom": true,
-      "tc_advantage_T": 0
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Dioph.ex_dioph",
@@ -4213,8 +4213,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "tie",
       "tc_T": false,
-      "tc_Trandom": false,
-      "tc_advantage_T": 0
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "ack_inj_left",
@@ -4232,9 +4232,9 @@
       "indeg": "non_dense",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Lean.Parser.Category.attr",
@@ -4243,8 +4243,8 @@
       "size": "small",
       "judge_T_vs_Trandom": "Trandom",
       "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Equiv.Perm.symm_mul",
@@ -4262,9 +4262,9 @@
       "indeg": "non_dense",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
-      "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Substring.toIterator",
@@ -4282,9 +4282,9 @@
       "indeg": "non_dense",
       "size": "small",
       "judge_T_vs_Trandom": "T",
-      "tc_T": false,
+      "tc_T": true,
       "tc_Trandom": true,
-      "tc_advantage_T": -1
+      "tc_advantage_T": 0
     }
   ]
 }
