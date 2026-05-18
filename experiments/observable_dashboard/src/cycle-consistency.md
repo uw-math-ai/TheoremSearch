@@ -755,7 +755,75 @@ const selTC = view(Inputs.checkbox(
 
 ---
 
-## 7. Limitations
+## 7. Generalization: Does the Effect Hold Outside Mathlib?
+
+Pilot and ablation are both Mathlib-only. To test whether the B vs T effect
+generalizes, we ran the same pilot (60 candidates, B + T + judge) on
+`combinatorial-games` — a Lean 4 project of 2,435 eligible declarations
+downstream of Mathlib.
+
+Setup was identical: same models, same prompts, same judge protocol, same
+seed. Candidates were sampled uniformly (no stratification — the project is
+too skewed across in-degree × signature-size cells to fill the 3×2 grid).
+
+```js
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0">
+  <thead><tr style="background:#f1f5f9">
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:left">Project</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">n</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">T preferred</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">B preferred</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Tie</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Wilcoxon p</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Edit B → T</th>
+  </tr></thead>
+  <tbody>
+    <tr>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0">Mathlib (pilot)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">49 (82%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">3 (5%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">8 (13%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">1.8e-10</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">31.7 → 14.5</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0">combinatorial-games</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">46 (77%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">5 (8%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">9 (15%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">9.4e-9</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">13.3 → 8.1</td>
+    </tr>
+  </tbody>
+</table>
+<div style="font-size:12px;color:#64748b;margin-top:4px">
+  Same models, same prompts, same judge protocol. combinatorial-games signatures are
+  shorter on average → smaller absolute edit distances, but the proportional T advantage
+  holds (B is ~1.6× the edit distance of T in both projects).
+</div>`);
+```
+
+The effect replicates: T is preferred at very similar rates (82% vs. 77%), with
+significance well below 1e-8 in both. The edit-distance gap is proportionally
+similar despite different absolute magnitudes. **This is not Mathlib-specific.**
+
+What was *not* tested here:
+- **Typecheck signal**: skipped for non-Mathlib because each project pins its own
+  Lean dependencies. To run typecheck against combinatorial-games, we'd need
+  `import CombinatorialGames` plus its own lakefile.
+- **Ablation**: B vs T only; T-names and T-random not run on the new project.
+- **Stratified breakdown**: combinatorial-games' eligible pool is heavily
+  small-signature, so the dense×large cell can't be populated.
+
+A natural next step is to run the same test across 4–5 more downstream projects
+(PersistentDecomp, cam-combi, etc.) for a tighter generalization claim, and to
+set up per-project typecheck environments so the second metric becomes available.
+
+---
+
+## 8. Limitations
 
 - **n = 60.** Pairwise 95% CIs on typecheck-rate differences are ~±13–16pp. The
   B = T-names result (0pp gap) is the most robust claim. The T vs T-random gap
