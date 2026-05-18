@@ -30,6 +30,8 @@ parsed_papers/
 # Allow cycle-consistency pilot artifacts
 !experiments/cycle_consistency_pilot/*.csv
 !experiments/cycle_consistency_pilot/*.json
+experiments/cycle_consistency_pilot/lean_typecheck/.lake/
+experiments/cycle_consistency_pilot/lean_typecheck/tmp*.lean
 
 # Allow observable dashboard data + config
 !experiments/observable_dashboard/src/data/*.json

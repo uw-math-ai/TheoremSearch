@@ -10,7 +10,7 @@ theorem stronglyMeasurable_iff_measurable_and_separable_range
     {f : α → β} :
     MeasureTheory.StronglyMeasurable f ↔ Measurable f ∧ TopologicalSpace.IsSeparable (Set.range f) := by
   sorry
-```",35,0,T,A uses IsSeparable (Set.range f) matching target; B uses SeparableSpace which is wrong type and missing TopologicalSpace.PseudoMetrizableSpace,False,False,29,21,,
+```",35,0,T,A uses IsSeparable (Set.range f) matching target; B uses SeparableSpace which is wrong type and missing TopologicalSpace.PseudoMetrizableSpace,False,False,29,21,True,True
 25874,CategoryTheory.Iso.map_inv_hom_id_assoc,dense,large,"Looking at this Lean 4 declaration, I need to parse the structure of the equality being asserted.
 
 The theorem states that for an isomorphism `e : X ≅ Y` in a category C, a functor F from C to D, and a morphism h from F(Y) to some object Z in D, the composition of F applied to the inverse of e with the composition of F applied to the morphism part of e and h equals h itself. In other words, composing F(e⁻¹) with (F(e) composed with h) simplifies to just h, which reflects the fact that applying a functor to an isomorphism and its inverse yields an isomorphism in the target category whose composition with any subsequent morphism can be simplified by canceling the inverse.","CategoryTheory.Iso.map_inv_hom_id_assoc.{v, u, v_1, u_1} {C : Type u} [CategoryTheory.Category.{v, u} C] {D : Type u_1}
@@ -22,7 +22,7 @@ The theorem states that for an isomorphism `e : X ≅ Y` in a category C, a func
 theorem Iso.inv_comp_fac {C D : Type*} [Category C] [Category D] (X Y : C) (e : X ≅ Y) (F : C ⥤ D) (Z : D) (h : F.obj Y ⟶ Z) : (F.map e.inv) ≫ (F.map e.hom ≫ h) = h := by sorry
 ```","```lean
 theorem CategoryTheory.Functor.map_inv_comp_map_hom_comp {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {D : Type u₂} [CategoryTheory.Category.{v₂, u₂} D] {X Y : C} (e : X ≅ Y) (F : CategoryTheory.Functor C D) {Z : D} (h : CategoryTheory.Functor.obj F Y ⟶ Z) : CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map F (CategoryTheory.Iso.inv e)) (CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map F (CategoryTheory.Iso.hom e)) h) = h := by sorry
-```",30,0,T,B matches target signature exactly; A uses implicit types and shortened notation,False,False,36,14,,
+```",30,0,T,B matches target signature exactly; A uses implicit types and shortened notation,False,False,36,14,False,True
 7364,CategoryTheory.ShortComplex.LeftHomologyData.descH,dense,large,"This definition provides a morphism from the left homology H of a short complex to an object A, given a morphism k from the kernel object K to A that satisfies the condition that the composition of f' (a certain morphism in the left homology data) with k is zero.","CategoryTheory.ShortComplex.LeftHomologyData.descH.{v_1, u_1} {C : Type u_1} [CategoryTheory.Category.{v_1, u_1} C]
   [CategoryTheory.Limits.HasZeroMorphisms C] {S : CategoryTheory.ShortComplex C}
   (h : CategoryTheory.ShortComplex.LeftHomologyData S) {A : C}
@@ -40,7 +40,7 @@ def CategoryTheory.ShortComplex.LeftHomologyData.descH {C : Type u_1} [CategoryT
   (w : CategoryTheory.CategoryStruct.comp (CategoryTheory.ShortComplex.LeftHomologyData.f' h) k = 0) :
   CategoryTheory.ShortComplex.LeftHomologyData.H h ⟶ A :=
   sorry
-```",45,0,T,A matches target signature exactly; B has different parameter names and uses do-notation,False,False,28,7,,
+```",45,0,T,A matches target signature exactly; B has different parameter names and uses do-notation,False,False,28,7,True,True
 174702,Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right,dense,large,"When the key `k` is not contained in the list `l₂` (that is, `containsKey k l₂ = false`), and `l₁` has distinct keys, then looking up the key `k` in the filtered version of `l₁` (where we keep only entries whose keys appear in `l₂`) with fallback value `fallback` returns the fallback value `fallback`.","Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right.{u, v} {α : Type u} {β : α → Type v} [BEq α]
   [EquivBEq α] {l₁ l₂ : List ((a : α) × β a)} {k fallback : α} (dl₁ : Std.Internal.List.DistinctKeys l₁) :
   Std.Internal.List.containsKey k l₂ = false →
@@ -51,7 +51,7 @@ theorem lookup_filterByKeys_fallback {α β : Type*} [DecidableEq α] {k : α} {
     (l₁.filter fun p => l₂.contains p.1).lookup k = fallback := by sorry
 ```","```lean
 theorem Std.Internal.List.getKeyD_filter_eq_fallback_of_containsKey_eq_false {α : Type u} {β : α → Type v} [BEq α] [EquivBEq α] {l₁ l₂ : List ((a : α) × β a)} {hl₁ : Std.Internal.List.DistinctKeys l₁} {k : α} (h : Std.Internal.List.containsKey k l₂ = false) (fallback : α) : Std.Internal.List.getKeyD k (List.filter (fun p => Std.Internal.List.containsKey (Sigma.fst p) l₂) l₁) fallback = fallback := by sorry
-```",18,0,T,"B matches namespace, types (dependent β), and arg placement; A uses wrong types (non-dependent β), wrong name, DecidableEq vs BEq.",False,False,50,19,,
+```",18,0,T,"B matches namespace, types (dependent β), and arg placement; A uses wrong types (non-dependent β), wrong name, DecidableEq vs BEq.",False,False,50,19,False,True
 58186,CategoryTheory.IsPushout.inl_isoPushout_hom,dense,large,"When a commutative square is a pushout (witnessed by `h : IsPushout f g inl inr`), and the category has pushouts of `f` and `g`, then composing the morphism `inl : X ⟶ P` with the isomorphism from `P` to the pushout of `f` and `g` yields the canonical inclusion morphism `pushout.inl` from `X` into the pushout.","CategoryTheory.IsPushout.inl_isoPushout_hom.{v₁, u₁} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {Z X Y P : C}
   {f : Z ⟶ X} {g : Z ⟶ Y} {inl : X ⟶ P} {inr : Y ⟶ P} (h : CategoryTheory.IsPushout f g inl inr)
   [CategoryTheory.Limits.HasPushout f g] :
@@ -65,7 +65,7 @@ theorem CategoryTheory.IsPushout.inl_comp_isoPushout_hom {C : Type u₁} [Catego
   CategoryTheory.CategoryStruct.comp inl (CategoryTheory.Iso.hom (CategoryTheory.IsPushout.isoPushout h)) =
     CategoryTheory.Limits.pushout.inl f g :=
   sorry
-```",30,0,T,"B matches the target signature exactly (including universe levels, names, and types). A uses different names (isoCoprodDesc vs isoPushout) and mismatches morphism sources.",False,False,25,6,,
+```",30,0,T,"B matches the target signature exactly (including universe levels, names, and types). A uses different names (isoCoprodDesc vs isoPushout) and mismatches morphism sources.",False,False,25,6,False,True
 51917,LawfulGetElem.getElem!_def,dense,large,"The theorem states that for a collection type with a lawful element access operation and an inhabited element type, the unchecked element access operation `c[i]!` is equal to the result of attempting to access the element at index `i` using the safe access operation `c[i]?`, returning the element if it exists (in the `some` case) or the default element if it doesn't (in the `none` case).","LawfulGetElem.getElem!_def.{u, v, w} {cont : Type u} {idx : Type v} {elem : outParam (Type w)}
   {dom : outParam (cont → idx → Prop)} {ge : GetElem? cont idx elem dom} [self : LawfulGetElem cont idx elem dom]
   [Inhabited elem] (c : cont) (i : idx) :
@@ -79,7 +79,7 @@ theorem getElem!_eq_getElem? {coll : Type u} {idx : Type v} {elem : Type w} {val
   [GetElem? coll idx elem valid] [Inhabited elem] [LawfulGetElem coll idx elem valid]
   (xs : coll) (i : idx) :
   GetElem?.getElem! xs i = (GetElem?.getElem? xs i).getD (Inhabited.default)
-```",13,0,T,A matches target structure exactly with Option.getD; B uses wrong names (getUnchecked vs getElem!),False,False,53,39,,
+```",13,0,T,A matches target structure exactly with Option.getD; B uses wrong names (getUnchecked vs getElem!),False,False,53,39,False,True
 47996,Bimod.TensorBimod.actRight,dense,large,"The declaration defines a morphism in a monoidal category that represents the right action of a monoid object T on the tensor product of two bimodules P and Q, where P is an R-S-bimodule and Q is an S-T-bimodule, going from the tensor product of the underlying object of the tensor bimodule P ⊗ Q with the underlying object of T to the underlying object of P ⊗ Q.","Bimod.TensorBimod.actRight.{v₁, u₁} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C]
   [CategoryTheory.MonoidalCategory C] [CategoryTheory.Limits.HasCoequalizers C] {R S T : CategoryTheory.Mon C}
   (P : Bimod R S) (Q : Bimod S T)
@@ -91,7 +91,7 @@ theorem getElem!_eq_getElem? {coll : Type u} {idx : Type v} {elem : Type w} {val
 def MonoidalCategory.TensorBimodule.rAct {C : Type*} [MonoidalCategory C] {R S T : C} (hR : Monoid R) (hS : Monoid S) (hT : Monoid T) (P : Bimodule R S C) (Q : Bimodule S T C) : (P.obj ⊗ Q.obj) ⊗ T.obj → (P.obj ⊗ Q.obj) := by sorry
 ```","```lean
 def Bimod.TensorBimod.actRight {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] [CategoryTheory.MonoidalCategory C] [CategoryTheory.Limits.HasCoequalizers C] {R S T : CategoryTheory.Mon C} (P : Bimod R S) (Q : Bimod S T) [∀ (X : C), CategoryTheory.Limits.PreservesColimitsOfSize.{0, 0, v₁, v₁, u₁, u₁} (CategoryTheory.MonoidalCategory.tensorRight X)] : CategoryTheory.MonoidalCategoryStruct.tensorObj (Bimod.TensorBimod.X P Q) (CategoryTheory.Mon.X T) ⟶ Bimod.TensorBimod.X P Q := by sorry
-```",64,0,T,"A matches target signature exactly; B uses incompatible types and structure (bare C objects vs Mon C, different namespacing).",False,False,46,7,,
+```",64,0,T,"A matches target signature exactly; B uses incompatible types and structure (bare C objects vs Mon C, different namespacing).",False,False,46,7,False,True
 31198,CategoryTheory.Limits.image.ext,dense,large,"If $f: X \to Y$ is a morphism in a category $C$ that has an image, and $g, h$ are two morphisms from the image of $f$ to an object $W$, then $g = h$ whenever the composites of the factorization through the image followed by $g$ and $h$ are equal (that is, when $(\text{factorThruImage } f) \circ g = (\text{factorThruImage } f) \circ h$), provided that the parallel pair of $g$ and $h$ has a limit.","CategoryTheory.Limits.image.ext.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C] {X Y : C} (f : X ⟶ Y)
   [CategoryTheory.Limits.HasImage f] {W : C} {g h : CategoryTheory.Limits.image f ⟶ W}
   [CategoryTheory.Limits.HasLimit (CategoryTheory.Limits.parallelPair g h)]
@@ -112,7 +112,7 @@ def CategoryTheory.Limits.image.lift_uniqueness
          CategoryTheory.CategoryStruct.comp (CategoryTheory.Limits.factorThruImage f) h)
     [CategoryTheory.Limits.HasLimit (CategoryTheory.Limits.parallelPair g h)] :
     g = h := by sorry
-```",63,0,T,"B matches the target signature exactly with correct parameter order and names, while A uses different names (imageEmbedding vs factorThruImage) and omits the HasLimit constraint.",False,False,29,17,,
+```",63,0,T,"B matches the target signature exactly with correct parameter order and names, while A uses different names (imageEmbedding vs factorThruImage) and omits the HasLimit constraint.",False,False,29,17,False,True
 173044,TestFunction.limitCLM,dense,large,"Looking at this declaration, I need to understand what it constructs.
 
 This is a constructor that builds a continuous linear map from the space of test functions (on an open set Ω in a normed space E, taking values in F, with smoothness order n) to a topological vector space V over a field 𝕜.
@@ -152,7 +152,7 @@ def TestFunction.limitCLM {𝕜 : Type u_1} [NontriviallyNormedField 𝕜] {E : 
     ∀ (K : TopologicalSpace.Compacts E) (K_sub_Ω : ↑K ⊆ ↑Ω) (f : ContDiffMapSupportedIn E F n K),
       toFun (TestFunction.ofSupportedIn K_sub_Ω f) = (T K K_sub_Ω) f) :
   TestFunction Ω F n →L[𝕜] V := by sorry
-```",211,29,T,A matches the target signature exactly; B changes the structure to a custom record type instead of returning a ContinuousLinearMap.,False,False,103,10,,
+```",211,29,T,A matches the target signature exactly; B changes the structure to a custom record type instead of returning a ContinuousLinearMap.,False,False,103,10,False,True
 24055,Module.Flat.lTensor_exact,dense,large,"If $M$ is a flat $R$-module and the sequence $N \xrightarrow{f} N' \xrightarrow{g} N''$ is exact (meaning the image of $f$ equals the kernel of $g$), then the sequence $M \otimes_R N \xrightarrow{M \otimes f} M \otimes_R N' \xrightarrow{M \otimes g} M \otimes_R N''$ is also exact, where $M \otimes f$ and $M \otimes g$ denote the left tensor product functors applied to the linear maps $f$ and $g$ respectively.","Module.Flat.lTensor_exact.{u, v, u_1, u_2, u_3} {R : Type u} (M : Type v) [CommRing R] [AddCommGroup M] [Module R M]
   [Module.Flat R M] ⦃N : Type u_1⦄ ⦃N' : Type u_2⦄ ⦃N'' : Type u_3⦄ [AddCommGroup N] [AddCommGroup N']
   [AddCommGroup N''] [Module R N] [Module R N'] [Module R N''] ⦃f : N →ₗ[R] N'⦄ ⦃g : N' →ₗ[R] N''⦄
@@ -168,65 +168,65 @@ theorem flat_module_preserves_exact {R : Type*} [CommRing R] {M N N' N'' : Type*
   (TensorProduct.map (LinearMap.id : M →ₗ[R] M) f).range := by sorry
 ```","```lean
 theorem lTensor_exact_of_flat {R : Type u_1} {M : Type u_2} {N : Type u_3} {P : Type u_4} [CommRing R] [AddCommGroup M] [AddCommGroup N] [AddCommGroup P] [Module R M] [Module R N] [Module R P] [Module.Flat R M] {f : N →ₗ[R] P} {g : P →ₗ[R] M} (hfg : Function.Exact ⇑f ⇑g) : Function.Exact ⇑(LinearMap.lTensor M f) ⇑(LinearMap.lTensor M g)
-```",181,4,T,A matches target signature closely; B uses different type classes (AddCommMonoid vs AddCommGroup) and different definition of exactness,False,False,82,40,,
+```",181,4,T,A matches target signature closely; B uses different type classes (AddCommMonoid vs AddCommGroup) and different definition of exactness,False,False,82,40,True,True
 144383,PNat.xgcd,dense,small,"The function `PNat.xgcd` takes two positive natural numbers `a` and `b` and returns an element of type `PNat.XgcdType`, which represents the extended Euclidean algorithm result for positive natural numbers, containing information about the greatest common divisor and the coefficients of Bézout's identity.",PNat.xgcd (a b : ℕ+) : PNat.XgcdType,"```lean
 def PNat.xgcd (a b : ℕ+) : PNat.XgcdType
 ```","```lean
 def PNat.xgcd (a b : ℕ+) : PNat.XgcdType
-```",5,0,tie,Both candidates are syntactically identical to the target signature.,False,False,3,3,,
+```",5,0,tie,Both candidates are syntactically identical to the target signature.,False,False,3,3,True,False
 175107,ENNReal.tsum_coe_eq,dense,small,"The theorem states that if a function $f$ from a type $\alpha$ to the non-negative real numbers has sum $r$ (in the sense of having $r$ as its convergent sum), then the infinite sum of $f(a)$ over all $a$ in $\alpha$, viewed as extended non-negative real numbers, equals $r$ viewed as an extended non-negative real number.","ENNReal.tsum_coe_eq.{u_1} {α : Type u_1} {r : NNReal} {f : α → NNReal} (h : HasSum f r) : ∑' (a : α), ↑(f a) = ↑r","```lean
 theorem tsum_coe_ne_zero_iff {α : Type*} {f : α → ℝ≥0} {r : ℝ≥0} (h : ∑' (a : α), f a = r) : 
   ∑' (a : α), (f a : ℝ≥0∞) = ↑r := by sorry
 ```","```lean
 theorem ENNReal.hasSum_coe_nnreal {α : Type*} {f : α → NNReal} {r : NNReal} (h : HasSum f r) : 
     ∑' (a : α), (f a : ENNReal) = ↑r := by sorry
-```",31,0,T,"A matches the target signature exactly (HasSum premise, tsum conclusion). B uses a tsum premise instead of HasSum, changing the theorem's meaning.",False,False,25,18,,
+```",31,0,T,"A matches the target signature exactly (HasSum premise, tsum conclusion). B uses a tsum premise instead of HasSum, changing the theorem's meaning.",False,False,25,18,False,True
 99632,Nat.lt_pred_iff,dense,small,"The theorem states that for natural numbers $n$ and $m$, $n$ is less than the predecessor of $m$ if and only if the successor of $n$ is less than $m$.",Nat.lt_pred_iff {n : ℕ} {m : ℕ} : n < Nat.pred m ↔ Nat.succ n < m,"```lean
 theorem lt_pred_iff_succ_lt (n m : ℕ) : n < Nat.pred m ↔ Nat.succ n < m := by sorry
 ```","```lean
 theorem Nat.lt_pred_iff (n m : ℕ) : n < Nat.pred m ↔ Nat.succ n < m := by sorry
-```",25,0,T,B matches the target name and signature exactly; A renames theorem,False,False,10,10,,
+```",25,0,T,B matches the target name and signature exactly; A renames theorem,False,False,10,10,True,True
 10968,Int.le_sub_one_iff,dense,small,"The theorem states that for integers $m$ and $n$, the inequality $m \leq n - 1$ holds if and only if $m < n$.",Int.le_sub_one_iff {m n : ℤ} : m ≤ n - 1 ↔ m < n,"```lean
 theorem int_le_sub_one_iff_lt (m n : ℤ) : m ≤ n - 1 ↔ m < n := by sorry
 ```","```lean
 theorem Int.le_sub_one_iff_lt (m n : ℤ) : m ≤ n - 1 ↔ m < n :=
   Iff.intro Int.lt_of_le_sub_one Int.le_sub_one_of_lt
-```",23,0,T,A proves the iff using named lemmas; B is incomplete (sorry). Both match semantics.,False,False,9,10,,
+```",23,0,T,A proves the iff using named lemmas; B is incomplete (sorry). Both match semantics.,False,False,9,10,True,True
 113630,IsRetrocompact.empty,dense,small,"In any topological space $X$, the empty set is retrocompact, meaning it satisfies the retrocompactness property.",IsRetrocompact.empty.{u_2} {X : Type u_2} [TopologicalSpace X] : IsRetrocompact ∅,"```lean
 theorem isRetrocompact_empty {X : Type*} [TopologicalSpace X] : IsRetrocompact (∅ : Set X) := by sorry
 ```","```lean
 theorem isRetrocompact_empty {X : Type u_1} [TopologicalSpace X] : IsRetrocompact (∅ : Set X) := by sorry
-```",24,0,tie,Both candidates are semantically identical; universe variable naming (u_1 vs u_2) is irrelevant.,False,False,13,12,,
+```",24,0,tie,Both candidates are semantically identical; universe variable naming (u_1 vs u_2) is irrelevant.,False,False,13,12,False,True
 68271,Lean.SubExpr.Pos.asNat,dense,small,The function `Lean.SubExpr.Pos.asNat` converts a subexpression position (of type `Lean.SubExpr.Pos`) to a natural number.,Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → ℕ,"```lean
 def Lean.SubExpr.Pos.asNat (p : Lean.SubExpr.Pos) : ℕ := by sorry
 ```","```lean
 def Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos → Nat
-```",4,0,T,B matches the signature exactly; A uses tactic mode unnecessarily and ℕ vs Nat is notation.,False,False,9,4,,
+```",4,0,T,B matches the signature exactly; A uses tactic mode unnecessarily and ℕ vs Nat is notation.,False,False,9,4,True,True
 4075,Polynomial.IsRoot,dense,small,"Looking at the Lean 4 declaration, `Polynomial.IsRoot p a` is a predicate that states whether an element `a` of a semiring `R` is a root of a polynomial `p` with coefficients in `R`. Specifically, `a` is a root of `p` if and only if evaluating the polynomial `p` at `a` yields zero, that is, `p(a) = 0`.",Polynomial.IsRoot.{u} {R : Type u} [Semiring R] (p : Polynomial R) (a : R) : Prop,"```lean
 def Polynomial.IsRoot (p : Polynomial R) (a : R) : Prop := p.eval a = 0
 ```","```lean
 def Polynomial.IsRoot {R : Type u} [Semiring R] (p : Polynomial R) (a : R) : Prop :=
   Polynomial.eval a p = 0
-```",9,0,tie,"Both candidates are semantically identical definitions of IsRoot, differing only in style (qualified vs dot notation).",False,False,13,10,,
+```",9,0,tie,"Both candidates are semantically identical definitions of IsRoot, differing only in style (qualified vs dot notation).",False,False,13,10,False,False
 3880,String.Slice.Subslice.endExclusive,dense,small,The function `String.Slice.Subslice.endExclusive` takes a subslice of a string slice and returns the exclusive end position of that subslice as a position in the original string slice.,String.Slice.Subslice.endExclusive {s : String.Slice} (self : String.Slice.Subslice s) : String.Slice.Pos s,"```lean
 def String.Slice.Subslice.endExclusive (ss : String.Slice.Subslice) : String.Pos := by sorry
 ```","```lean
 def String.Slice.Subslice.endExclusive {s : String.Slice} (ss : String.Slice.Subslice s) : String.Slice.Pos s
-```",3,0,T,"A matches target signature exactly; B has wrong types (missing parameter, wrong return type)",False,False,10,4,,
+```",3,0,T,"A matches target signature exactly; B has wrong types (missing parameter, wrong return type)",False,False,10,4,False,True
 11983,Filter.coLindelof,dense,small,The coLindelöf filter on a topological space X is the filter generated by all Lindelöf subsets of X (where a subset is Lindelöf if every open cover has a countable subcover).,Filter.coLindelof.{u_2} (X : Type u_2) [TopologicalSpace X] : Filter X,"```lean
 def coLindelöfFilter (X : Type*) [TopologicalSpace X] : Filter X :=
   Filter.generate {s : Set X | IsLindelöf s}
 ```","```lean
 def coLindelofFilter {X : Type*} [TopologicalSpace X] : Filter X :=
   iInf fun s : {s : Set X // IsLindelof s} => Filter.principal s.val
-```",9,0,T,B uses iInf of principal filters (standard cofilter construction); A uses generate which is less precise for representing cofilters.,False,False,15,22,,
+```",9,0,T,B uses iInf of principal filters (standard cofilter construction); A uses generate which is less precise for representing cofilters.,False,False,15,22,True,False
 30057,Subgroup.coe_pow,dense,small,"The theorem states that for a subgroup H of a group G, an element x in H, and a natural number n, the coercion of x raised to the power n (computed in the subgroup H) equals the coercion of x raised to the power n (where the power is computed in the ambient group G).",Subgroup.coe_pow.{u_1} {G : Type u_1} [Group G] (H : Subgroup G) (x : ↥H) (n : ℕ) : ↑(x ^ n) = ↑x ^ n,"```lean
 theorem Subgroup.coe_pow {G : Type*} [Group G] {H : Subgroup G} (x : H) (n : ℕ) :
     ↑(x ^ n) = (↑x : G) ^ n := by sorry
 ```","```lean
 theorem Subgroup.coe_npow {G : Type*} [Group G] (H : Subgroup G) (x : H) (n : ℕ) :
     ↑(x ^ n) = (↑x : G) ^ n := by sorry
-```",23,0,B,A matches target name coe_pow and uses implicit H; B wrongly names it coe_npow.,False,False,15,13,,
+```",23,0,B,A matches target name coe_pow and uses implicit H; B wrongly names it coe_npow.,False,False,15,13,True,False
 177461,ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le,medium,large,The norm of a continuous multilinear map composed with a family of continuous linear isometries is at most the norm of the original continuous multilinear map.,"ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le.{u, v, wE, wE₁, wG} {𝕜 : Type u} {ι : Type v}
   {E : ι → Type wE} {E₁ : ι → Type wE₁} {G : Type wG} [NontriviallyNormedField 𝕜]
   [(i : ι) → SeminormedAddCommGroup (E i)] [(i : ι) → NormedSpace 𝕜 (E i)] [(i : ι) → SeminormedAddCommGroup (E₁ i)]
@@ -249,7 +249,7 @@ theorem ContinuousMultilinearMap.norm_compContinuousLinearMap_le {𝕜 : Type u}
   [SeminormedAddCommGroup G] [NormedSpace 𝕜 G] [Fintype ι]
   (g : ContinuousMultilinearMap 𝕜 E' G) (f : (i : ι) → E i →ₛₗᵢ[RingHom.id 𝕜] E' i) :
   ‖g.compContinuousLinearMap fun i => (f i).toContinuousLinearMap‖ ≤ ‖g‖ := by sorry
-```",75,0,T,"A matches the target signature structure closely with compContinuousLinearMap and LinearIsometry, while B uses different names and incorrect type classes (IsometryEquiv, NormedModule instead of NormedSpace).",False,False,79,21,,
+```",75,0,T,"A matches the target signature structure closely with compContinuousLinearMap and LinearIsometry, while B uses different names and incorrect type classes (IsometryEquiv, NormedModule instead of NormedSpace).",False,False,79,21,True,True
 319200,CategoryTheory.ihom.coev_ev_assoc,medium,large,"The theorem states that for a closed monoidal category C and objects A and B in C, given a morphism h from the internal hom-object A ⟹ B to an object Z, the composition of the coevaluation natural transformation at A ⟹ B with the evaluation natural transformation at B (applied through the internal hom functor at A) followed by h equals h itself.","CategoryTheory.ihom.coev_ev_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]
   [CategoryTheory.MonoidalCategory C] (A B : C) [CategoryTheory.Closed A] {Z : C} (h : A ⟹ B ⟶ Z) :
   CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (CategoryTheory.ihom.coev A) (A ⟹ B))
@@ -268,7 +268,7 @@ theorem CategoryTheory.ihom.coev_ev_comp {C : Type u} [CategoryTheory.Category.{
       (CategoryTheory.NatTrans.app (CategoryTheory.ihom.coev A) (A ⟹ B))
       (CategoryTheory.Functor.map (CategoryTheory.ihom A) (CategoryTheory.NatTrans.app (CategoryTheory.ihom.ev A) B)))
     h = h
-```",40,0,T,"B matches target structure and namespaces exactly; A uses different notation (⊗, ∘) and wrong typeclass (ClosedMonoidalCategory vs Closed A).",False,False,33,14,,
+```",40,0,T,"B matches target structure and namespaces exactly; A uses different notation (⊗, ∘) and wrong typeclass (ClosedMonoidalCategory vs Closed A).",False,False,33,14,True,True
 40769,CategoryTheory.PreZeroHypercover.presieve₀_mem_of_iso,medium,large,"If $E$ and $F$ are pre-zero hypercovers of an object $S$ in a category $C$ with a precoverage $J$ that respects isomorphisms, and $e : E \cong F$ is an isomorphism between them, then if the presieve at level 0 of $E$ belongs to the coverings of $S$ under $J$, then the presieve at level 0 of $F$ also belongs to the coverings of $S$ under $J$.","CategoryTheory.PreZeroHypercover.presieve₀_mem_of_iso.{w, v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]
   {J : CategoryTheory.Precoverage C} [CategoryTheory.Precoverage.RespectsIso J] {S : C}
   {E F : CategoryTheory.PreZeroHypercover S} (e : E ≅ F)
@@ -284,7 +284,7 @@ theorem CategoryTheory.PreZeroHypercover.isoCov {C : Type u} [CategoryTheory.Cat
     (hE : CategoryTheory.PreZeroHypercover.presieve₀ E ∈ CategoryTheory.Precoverage.coverings J S) :
     CategoryTheory.PreZeroHypercover.presieve₀ F ∈ CategoryTheory.Precoverage.coverings J S :=
   sorry
-```",48,0,T,"B matches target signature exactly; A uses def instead of theorem, wrong universe variables, and wrong type names.",False,False,32,12,,
+```",48,0,T,"B matches target signature exactly; A uses def instead of theorem, wrong universe variables, and wrong type names.",False,False,32,12,True,True
 159827,MeasureTheory.Measure.restrict_biUnion_finset,medium,large,"When restricting a measure μ to a finite union of sets indexed by a finite set T, if the sets are pairwise disjoint on T and each set is measurable, then the restricted measure equals the sum of the measures restricted to each individual set in the family.","MeasureTheory.Measure.restrict_biUnion_finset.{u_2, u_6} {α : Type u_2} {ι : Type u_6} {m0 : MeasurableSpace α}
   {μ : MeasureTheory.Measure α} {s : ι → Set α} {T : Finset ι} (hd : Set.Pairwise (↑T) (Function.onFun Disjoint s))
   (hm : ∀ (i : ι), MeasurableSet (s i)) :
@@ -298,7 +298,7 @@ theorem MeasureTheory.Measure.restrict_finUnion {α : Type*} {ι : Type*} [Measu
     MeasureTheory.Measure.restrict μ (⋃ i ∈ T, s i) =
       MeasureTheory.Measure.sum fun i => MeasureTheory.Measure.restrict μ (s ↑i) :=
   sorry
-```",48,0,T,A uses Finset T with membership condition matching target; B uses Fintype and sum notation instead of Measure.sum,False,False,46,20,,
+```",48,0,T,A uses Finset T with membership condition matching target; B uses Fintype and sum notation instead of Measure.sum,False,False,46,20,False,True
 351689,CategoryTheory.Abelian.SpectralObject.mapFourδ₂Toδ₁',medium,large,"This theorem provides a morphism between two E-page entries of a spectral object in an abelian category, where both entries are associated with the same grading indices n₀, n₁, n₂ (with n₀ + 1 = n₁ and n₁ + 1 = n₂), but constructed using different chains of inequalities in the index preorder ι': the first using the chain i₀ ≤ i₁ ≤ i₂ ≤ i₃ ≤ i₄ (focusing on the first two transitions), and the second using a chain that emphasizes the last two transitions i₂ ≤ i₃ ≤ i₄.","CategoryTheory.Abelian.SpectralObject.mapFourδ₂Toδ₁'.{v_1, u_1, u_3} {C : Type u_1} {ι' : Type u_3}
   [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Abelian C] [Preorder ι']
   (X' : CategoryTheory.Abelian.SpectralObject C ι') (i₀ i₁ i₂ i₃ i₄ : ι') (hi₀₁ : i₀ ≤ i₁) (hi₁₂ : i₁ ≤ i₂)
@@ -323,7 +323,7 @@ def CategoryTheory.Abelian.SpectralObject.mapFourδ₂Toδ₁'_aux {C : Type u_1
       (CategoryTheory.homOfLE hi₃₄) n₀ n₁ n₂ hn₁ hn₂ ⟶
     CategoryTheory.Abelian.SpectralObject.E X' (CategoryTheory.homOfLE (LE.le.trans hi₀₁ hi₁₂)) (CategoryTheory.homOfLE hi₂₃)
       (CategoryTheory.homOfLE hi₃₄) n₀ n₁ n₂ hn₁ hn₂
-```",34,0,T,B matches the exact signature and transitivities; A uses E_page (wrong API) and returns a function instead of a morphism.,False,False,92,10,,
+```",34,0,T,B matches the exact signature and transitivities; A uses E_page (wrong API) and returns a function instead of a morphism.,False,False,92,10,True,False
 270514,CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily,medium,large,"The theorem states that for a category $C$ with a precoherent structure and a sieve $S$ on an object $X$, if there exists a finite effective epimorphic family $(Y_a \to X)_{a \in \alpha}$ such that all arrows $\pi_a : Y_a \to X$ in this family belong to the sieve $S$, then $S$ is a covering sieve in the coherent topology on $C$ at $X$.","CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily.{v_1, u_1} {C : Type u_1}
   [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Precoherent C] {X : C} (S : CategoryTheory.Sieve X) :
   (∃ α,
@@ -342,7 +342,7 @@ theorem coherentTopology_covering_of_finite_effective_epi_family {C : Type u₁}
     {X : C} (S : CategoryTheory.Sieve X) {α : Type u₂} [Finite α] (Y : α → C) (π : (a : α) → Y a ⟶ X)
     (heff : CategoryTheory.EffectiveEpiFamily Y π) (h : ∀ a, π a ∈ S.arrows) :
     S ∈ CategoryTheory.coherentTopology C X
-```",42,0,tie,"Both accurately flatten the ∃ structure; A uses π a ∈ S, B uses π a ∈ S.arrows (equivalent via Sieve.mem_def).",False,False,42,40,,
+```",42,0,tie,"Both accurately flatten the ∃ structure; A uses π a ∈ S, B uses π a ∈ S.arrows (equivalent via Sieve.mem_def).",False,False,42,40,True,True
 171427,ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet,medium,large,"If the real part of a complex number $z$ is in the interior of the integrable exponential set of a real-valued function $X$ with respect to a measure $μ$, and $p$ is a non-negative real number, then the function $ω \mapsto |X(ω)|^p \cdot e^{z \cdot X(ω)}$ is integrable with respect to $μ$.","ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet.{u_1} {Ω : Type u_1}
   {m : MeasurableSpace Ω} {X : Ω → ℝ} {μ : MeasureTheory.Measure Ω} {z : ℂ}
   (hz : Complex.re z ∈ interior (ProbabilityTheory.integrableExpSet X μ)) {p : ℝ} (hp : 0 ≤ p) :
@@ -357,7 +357,7 @@ theorem integrable_complex_exp_mul_of_mem_interior_integrableExpSet
   {z : ℂ} (hz : Complex.re z ∈ interior (ProbabilityTheory.integrableExpSet X μ))
   {p : ℝ} (hp : 0 ≤ p) :
   MeasureTheory.Integrable (fun ω => |X ω| ^ p * Complex.exp (z * Complex.ofReal (X ω))) μ
-```",195,0,T,A matches the target signature more closely: uses ℂ coercion explicitly and parameter order matches. B omits ofReal coercion and reorders parameters.,False,False,39,10,,
+```",195,0,T,A matches the target signature more closely: uses ℂ coercion explicitly and parameter order matches. B omits ofReal coercion and reorders parameters.,False,False,39,10,True,True
 286382,Array.SatisfiesM_anyM,medium,large,"The theorem states that for a monadic predicate `p` on array elements and an array `as`, if we start with an index `start` (which is at most the minimum of `stop` and the array size), and we have propositions `tru` and `fal` indexed by natural numbers such that `fal start` holds initially, and for every valid index `i` less than `stop` where `fal i` holds, the predicate `p` satisfies that if it returns true then `tru` holds, otherwise `fal (i+1)` holds, then the monadic operation `anyM p as start stop` satisfies that if it returns true then `tru` holds, otherwise `fal (min stop (size as))` holds.","Array.SatisfiesM_anyM.{u_1, u_2} {m : Type → Type u_1} {α : Type u_2} {start stop : ℕ} [Monad m] [LawfulMonad m]
   {p : α → m Bool} {as : Array α} (hstart : start ≤ min stop (Array.size as)) (tru : Prop) (fal : ℕ → Prop)
   (h0 : fal start)
@@ -377,7 +377,7 @@ theorem Array.SatisfiesM_anyM' {m : Type → Type u_1} {α : Type u_2} {start st
   (hp : ∀ (i : Fin (Array.size as)), ↑i < stop → fal ↑i → SatisfiesM (fun x => bif x then tru else fal (↑i + 1)) (p as[i])) :
   SatisfiesM (fun res => bif res then tru else fal (min stop (Array.size as))) (Array.anyM p as start stop) :=
   Array.SatisfiesM_anyM hstart tru fal h0 hp
-```",145,0,T,"A is syntactically identical to target and uses correct dependency. B has wrong signature, no LawfulMonad, different parameter structure, and uses SatisfiesM incorrectly.",False,False,87,11,,
+```",145,0,T,"A is syntactically identical to target and uses correct dependency. B has wrong signature, no LawfulMonad, different parameter structure, and uses SatisfiesM incorrectly.",False,False,87,11,False,False
 200527,MeasureTheory.setToFun_top_smul_measure,medium,large,"The theorem states that for a dominated finitely additive set function $T$ defined with respect to the measure $\top \cdot \mu$ (where $\top$ denotes the top element, representing infinity, multiplied with the measure $\mu$), the associated set-to-function construction applied to any function $f$ from $\alpha$ to a normed space $E$ yields zero in the target normed space $F$.","MeasureTheory.setToFun_top_smul_measure.{u_1, u_2, u_3} {α : Type u_1} {E : Type u_2} {F : Type u_3}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] {m : MeasurableSpace α}
   {μ : MeasureTheory.Measure α} [CompleteSpace F] {T : Set α → E →L[ℝ] F} {C : ℝ}
@@ -385,7 +385,7 @@ theorem Array.SatisfiesM_anyM' {m : Type → Type u_1} {α : Type u_2} {start st
 theorem dominated_finitelyAdditive_setFunction_top_eq_zero {α : Type*} {E : Type*} {F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F] (μ : Set α → ℝ) (f : α → E) (T : (Set α → E) → F) : T (fun s => f s) = 0 := by sorry
 ```","```lean
 theorem setToFun_top_mul_eq_zero {α : Type*} {E : Type*} {F : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F] {m : MeasurableSpace α} (μ : MeasureTheory.Measure α) [CompleteSpace F] (T : Set α → E →L[ℝ] F) {C : ℝ} (hT : MeasureTheory.DominatedFinMeasAdditive μ T C) (f : α → E) : MeasureTheory.setToFun μ T hT f = 0 := by sorry
-```",122,0,T,B captures the measure-theoretic structure and proper types; A oversimplifies with raw functions instead of measures/continuous linear maps.,False,False,53,23,,
+```",122,0,T,B captures the measure-theoretic structure and proper types; A oversimplifies with raw functions instead of measures/continuous linear maps.,False,False,53,23,True,True
 15949,Submonoid.LocalizationMap.lift_comp_lift_eq,medium,large,The composition of the lift of a localization map `f` (with respect to a submonoid `S` and a monoid homomorphism `l` that sends elements of `S` to units) with the lift of another localization map `k` (with respect to the same submonoid `S` and compatible unit conditions) equals the lift of `f` with respect to `l` directly.,"Submonoid.LocalizationMap.lift_comp_lift_eq.{u_1, u_2, u_4, u_5} {M : Type u_1} [CommMonoid M] {S : Submonoid M}
   {N : Type u_2} [CommMonoid N] (f : Submonoid.LocalizationMap S N) {Q : Type u_4} [CommMonoid Q]
   (k : Submonoid.LocalizationMap S Q) {A : Type u_5} [CommMonoid A] {l : M →* A} (hl : ∀ (w : ↥S), IsUnit (l ↑w)) :
@@ -399,60 +399,60 @@ theorem Submonoid.LocalizationMap.lift_comp_lift_comp {M : Type u_1} [CommMonoid
   {l : M →* A} (hl : ∀ (w : ↥T), IsUnit (l ↑w)) :
   MonoidHom.comp (Submonoid.LocalizationMap.lift k hl) (Submonoid.LocalizationMap.lift f ⋯) =
     Submonoid.LocalizationMap.lift f ⋯ := by sorry
-```",34,0,T,"A matches the target structure with two LocalizationMaps (f, k) and lift composition, while B has incorrect types and signature",False,False,68,20,,
+```",34,0,T,"A matches the target structure with two LocalizationMaps (f, k) and lift composition, while B has incorrect types and signature",False,False,68,20,True,True
 305849,Padic.denseRange_ratCast,medium,small,"The rational numbers have dense range in the $p$-adic numbers, meaning that the image of the canonical embedding (rational cast) from $\mathbb{Q}$ to $\mathbb{Q}_p$ is dense in $\mathbb{Q}_p$ for any prime $p$.",Padic.denseRange_ratCast (p : ℕ) [Fact (Nat.Prime p)] : DenseRange Rat.cast,"```lean
 theorem Rat.denseRange_cast (p : ℕ) [Fact (Nat.Prime p)] : DenseRange (Coe.coe : ℚ → ℤ_[p]) := by sorry
 ```","```lean
 theorem Padic.rationals_dense (p : ℕ) [Fact (Nat.Prime p)] : DenseRange (Coe.coe : ℚ → ℚ_[p]) := by sorry
-```",49,0,T,Candidate B uses ℚ_[p] (padic rationals) matching Padic namespace; A uses ℤ_[p] (padic integers) which is wrong codomain,False,False,12,12,,
+```",49,0,T,Candidate B uses ℚ_[p] (padic rationals) matching Padic namespace; A uses ℤ_[p] (padic integers) which is wrong codomain,False,False,12,12,False,True
 325907,Set.sized_empty,medium,small,"The empty set is sized with respect to any natural number $r$, meaning the empty set satisfies the property of being ""sized $r$"" (where a set is sized $r$ if all its finite subsets have cardinality at most $r$).",Set.sized_empty.{u_1} {α : Type u_1} {r : ℕ} : Set.Sized r ∅,"```lean
 theorem empty_set_sized (r : ℕ) : Sized (∅ : Set α) r := by sorry
 ```","```lean
 theorem Set.Sized.empty {α : Type u} (r : ℕ) : Set.Sized r (∅ : Set (Finset α))
-```",22,0,B,B matches target order (set then size). A restricts to Set (Finset α) incorrectly.,False,False,14,12,,
+```",22,0,B,B matches target order (set then size). A restricts to Set (Finset α) incorrectly.,False,False,14,12,False,True
 99537,Lean.Server.Test.Refs.test7,medium,small,The declaration states that `test7` is a term of type `Test6` in the `Lean.Server.Test.Refs` module.,Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6,"```lean
 def test7 : Test6 := sorry
 ```","```lean
 def Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6 := by sorry
-```",2,0,tie,Both define test7 with correct type; short vs full name is stylistic.,False,False,7,6,,
+```",2,0,tie,Both define test7 with correct type; short vs full name is stylistic.,False,False,7,6,True,True
 283080,Zsqrtd.nonneg_mul,medium,small,"The product of two nonnegative elements in the ring of integers adjoined with the square root of a natural number $d$ is itself nonnegative: if $a$ and $b$ are nonnegative elements of $\mathbb{Z}[\sqrt{d}]$, then their product $a \cdot b$ is also nonnegative.",Zsqrtd.nonneg_mul {d : ℕ} {a b : ℤ√↑d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b),"```lean
 theorem mul_nonneg_in_zsqrtd (d : ℕ) (a b : ℤ[√d]) (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a * b := by sorry
 ```","```lean
 theorem Zsqrtd.nonneg_mul {d : ℕ} {a b : ℤ√↑d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b) := by sorry
-```",89,0,T,B exactly matches target signature with Zsqrtd.Nonneg predicate; A uses incorrect 0 ≤ notation,False,False,19,6,,
+```",89,0,T,B exactly matches target signature with Zsqrtd.Nonneg predicate; A uses incorrect 0 ≤ notation,False,False,19,6,False,False
 193840,Finset.covBy_cons,medium,small,"The statement asserts that for a finite set `s` and an element `a` not in `s`, the set `s` is covered by the set obtained by adjoining `a` to `s` (that is, `s` and `cons a s ha` form a covering relation in the lattice of finite sets).",Finset.covBy_cons.{u_1} {α : Type u_1} {s : Finset α} {a : α} (ha : a ∉ s) : s ⋖ Finset.cons a s ha,"```lean
 theorem Finset.le_cons {α : Type*} {s : Finset α} {a : α} (ha : a ∉ s) : s ≤ Finset.cons a s ha := by sorry
 ```","```lean
 theorem Finset.covBy_cons {α : Type u_1} {s : Finset α} {a : α} (h : a ∉ s) : s ⋖ Finset.cons a s h := by sorry
-```",30,0,T,"A matches target exactly (covBy). B changes to ≤ (le), which is weaker semantically.",False,False,10,9,,
+```",30,0,T,"A matches target exactly (covBy). B changes to ≤ (le), which is weaker semantically.",False,False,10,9,True,True
 166542,Int.Linear.Poly.checkCoeffs,medium,small,"The function `checkCoeffs` takes a polynomial (represented as `Int.Linear.Poly`) and returns a Boolean value, presumably checking whether the coefficients of the polynomial satisfy certain properties or constraints.",Int.Linear.Poly.checkCoeffs : Int.Linear.Poly → Bool,"```lean
 def checkCoeffs (p : Int.Linear.Poly) : Bool := by sorry
 ```","```lean
 def Int.Linear.checkCoeffs (p : Int.Linear.Poly) : Bool := by sorry
-```",13,0,T,Candidate A matches the full qualified name Int.Linear.Poly.checkCoeffs while B omits the namespace prefix.,False,False,10,10,,
+```",13,0,T,Candidate A matches the full qualified name Int.Linear.Poly.checkCoeffs while B omits the namespace prefix.,False,False,10,10,False,True
 145179,Int.negOnePow_eq_iff,medium,small,"The theorem states that two integer powers of negative one are equal if and only if the difference between the exponents is even: for integers $n_1$ and $n_2$, we have $(-1)^{n_1} = (-1)^{n_2}$ if and only if $n_1 - n_2$ is even.",Int.negOnePow_eq_iff (n₁ n₂ : ℤ) : Int.negOnePow n₁ = Int.negOnePow n₂ ↔ Even (n₁ - n₂),"```lean
 theorem neg_one_pow_eq_iff_even_diff (n₁ n₂ : ℤ) : (-1 : ℤ) ^ n₁ = (-1 : ℤ) ^ n₂ ↔ Even (n₁ - n₂) := by sorry
 ```","```lean
 theorem Int.negOnePow_eq_iff_even_sub (n₁ n₂ : ℤ) : Int.negOnePow n₁ = Int.negOnePow n₂ ↔ Even (n₁ - n₂) := by sorry
-```",56,0,T,"A uses Int.negOnePow matching the target, B uses literal (-1)^n which may differ semantically",False,False,15,7,,
+```",56,0,T,"A uses Int.negOnePow matching the target, B uses literal (-1)^n which may differ semantically",False,False,15,7,True,True
 97800,iInf_eq_if,medium,small,"The infimum of a constant value $a$ indexed over a decidable proposition $p$ equals $a$ if $p$ is true, and equals the top element $\top$ if $p$ is false.","iInf_eq_if.{u_1} {α : Type u_1} [CompleteLattice α] {p : Prop} [Decidable p] (a : α) : ⨅ (_ : p), a = if p then a else ⊤","```lean
 theorem iInf_const_of_decidable {α : Type*} [ConditionallyCompleteLinearOrder α] {p : Prop} [Decidable p] (a : α) :
     ⨅ (_ : p), a = if p then a else ⊤ := by sorry
 ```","```lean
 theorem iInf_eq_const {α : Type*} [CompleteLattice α] {p : Prop} [Decidable p] (a : α) :
   ⨅ (_h : p), a = if p then a else ⊤ := by sorry
-```",17,0,T,A uses CompleteLattice matching target; B uses stricter ConditionallyCompleteLinearOrder which is semantically narrower.,False,False,10,10,,
+```",17,0,T,A uses CompleteLattice matching target; B uses stricter ConditionallyCompleteLinearOrder which is semantically narrower.,False,False,10,10,True,True
 122140,UpperHalfPlane.vadd_im,medium,small,"The imaginary part of a point in the upper half-plane is unchanged when a real number is added to it via vector addition: for any real number $x$ and any point $z$ in the upper half-plane, the imaginary part of $x +ᵥ z$ equals the imaginary part of $z$.",UpperHalfPlane.vadd_im (x : ℝ) (z : UpperHalfPlane) : UpperHalfPlane.im (x +ᵥ z) = UpperHalfPlane.im z,"```lean
 theorem imag_add_real_eq_imag (x : ℝ) (z : ℂ) (hz : 0 < z.im) : (x +ᵥ z).im = z.im := by sorry
 ```","```lean
 theorem UpperHalfPlane.im_add_real (x : ℝ) (z : UpperHalfPlane) : (x +ᵥ z).im = z.im
-```",16,0,T,B matches target signature exactly; A uses Complex.im on ℂ instead of UpperHalfPlane.im and adds extra hypothesis.,False,False,15,7,,
+```",16,0,T,B matches target signature exactly; A uses Complex.im on ℂ instead of UpperHalfPlane.im and adds extra hypothesis.,False,False,15,7,False,True
 307632,min_eq_right_of_lt,medium,small,"If $b < a$ in a linearly ordered type, then $\min(a, b) = b$.",min_eq_right_of_lt.{u_1} {α : Type u_1} [LinearOrder α] {a b : α} (h : b < a) : min a b = b,"```lean
 theorem min_eq_of_lt {α : Type*} [LinearOrder α] {a b : α} (h : b < a) : min a b = b := by sorry
 ```","```lean
 theorem min_eq_right_of_lt {α : Type u_1} [LinearOrder α] {a b : α} (h : b < a) : min a b = b :=
   min_eq_right (le_of_lt h)
-```",14,0,T,A provides a complete proof using min_eq_right and le_of_lt; B is incomplete (uses sorry). Both match the signature.,False,False,9,8,,
+```",14,0,T,A provides a complete proof using min_eq_right and le_of_lt; B is incomplete (uses sorry). Both match the signature.,False,False,9,8,False,True
 248356,HomologicalComplex₂.flip_X_X,non_dense,large,"The statement asserts that for a double homological complex $K$ in a category $C$ with zero morphisms, indexed by complex shapes over types $I_1$ and $I_2$, accessing the object at position $(i,j)$ after flipping the complex (which swaps the two indices) is equal to accessing the object at position $(j,i)$ in the original complex; in other words, flipping a double complex commutes with extracting objects at swapped indices.","HomologicalComplex₂.flip_X_X.{v_1, u_1, u_2, u_3} {C : Type u_1} [CategoryTheory.Category.{v_1, u_1} C]
   [CategoryTheory.Limits.HasZeroMorphisms C] {I₁ : Type u_2} {I₂ : Type u_3} {c₁ : ComplexShape I₁}
   {c₂ : ComplexShape I₂} (K : HomologicalComplex₂ C c₁ c₂) (i : I₂) (j : I₁) :
@@ -464,7 +464,7 @@ theorem HomologicalComplex₂.X_flip {C : Type u_1} [CategoryTheory.Category.{v_
   [CategoryTheory.Limits.HasZeroMorphisms C] {I₁ : Type u_2} {I₂ : Type u_3}
   {c₁ : ComplexShape I₁} {c₂ : ComplexShape I₂} (K : HomologicalComplex₂ C c₁ c₂)
   (i : I₁) (j : I₂) : (K.flip).X j i = K.X i j := by sorry
-```",16,0,T,A matches target signature semantics and universe params; B uses different types (DoubleComplex vs HomologicalComplex₂) and misses complexity structure.,False,False,41,18,,
+```",16,0,T,A matches target signature semantics and universe params; B uses different types (DoubleComplex vs HomologicalComplex₂) and misses complexity structure.,False,False,41,18,False,True
 124936,CategoryTheory.OverClass.asOverHom_comp_assoc,non_dense,large,"Given a category C with a base object S, and objects X, Y, Z in C that are equipped with morphisms to S (via OverClass instances), and given morphisms f: X → Y and g: Y → Z that are compatible with the structure over S (via HomIsOver instances), the following associativity property holds: composing the morphism corresponding to (g ∘ f) in the over category with any morphism h equals first composing the morphism corresponding to f with the morphism corresponding to g, and then composing with h.","CategoryTheory.OverClass.asOverHom_comp_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C] {X Y Z : C} (S : C)
   [CategoryTheory.OverClass X S] [CategoryTheory.OverClass Y S] [CategoryTheory.OverClass Z S] (f : X ⟶ Y) (g : Y ⟶ Z)
   [CategoryTheory.HomIsOver f S] [CategoryTheory.HomIsOver g S] {Z✝ : CategoryTheory.Over S}
@@ -483,7 +483,7 @@ theorem overClass_asOverHom_assoc {C : Type u} [CategoryTheory.Category.{v, u} C
   CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S (CategoryTheory.CategoryStruct.comp f g)) (CategoryTheory.OverClass.asOverHom S h) =
     CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S f) (CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S g) (CategoryTheory.OverClass.asOverHom S h)) := by
   sorry
-```",29,0,T,B uses correct OverClass.asOverHom and CategoryStruct.comp matching target; A uses Over.homMk and different composition operator,False,False,54,33,,
+```",29,0,T,B uses correct OverClass.asOverHom and CategoryStruct.comp matching target; A uses Over.homMk and different composition operator,False,False,54,33,False,False
 117106,CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_τr,non_dense,large,"The inverse of the right unitor isomorphism applied to a morphism α between adjunctions a and b in a bicategory B, when viewed through the right transformation component (τr), equals the left unitor isomorphism applied to the right component of the morphism α.","CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_τr.{w, v, u} {B : Type u} [CategoryTheory.Bicategory B]
   {a b : CategoryTheory.Bicategory.Adj B} (α : a ⟶ b) :
   CategoryTheory.Bicategory.Adj.Hom₂.τr
@@ -497,7 +497,7 @@ theorem CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_τr {B : Type u
     {a b : CategoryTheory.Bicategory.Adj B} (α : a ⟶ b) :
     (CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor α).inv.τr =
     (CategoryTheory.Bicategory.leftUnitor α.r).hom := by sorry
-```",34,0,T,A matches the target structure: rightUnitor.inv.τr = leftUnitor.hom. B reverses the structure and has incorrect τr placement.,False,False,17,12,,
+```",34,0,T,A matches the target structure: rightUnitor.inv.τr = leftUnitor.hom. B reverses the structure and has incorrect τr placement.,False,False,17,12,False,True
 263254,CategoryTheory.Adjunction.toMonad_μ,non_dense,large,The multiplication natural transformation of the monad obtained from an adjunction between functors L and R (where L is left adjoint to R) is equal to the natural transformation obtained by whiskering the counit of the adjunction with L on the left and R on the right.,"CategoryTheory.Adjunction.toMonad_μ.{v₁, v₂, u₁, u₂} {C : Type u₁} [CategoryTheory.Category.{v₁, u₁} C] {D : Type u₂}
   [CategoryTheory.Category.{v₂, u₂} D] {L : CategoryTheory.Functor C D} {R : CategoryTheory.Functor D C} (h : L ⊣ R) :
   CategoryTheory.Monad.μ (CategoryTheory.Adjunction.toMonad h) =
@@ -509,7 +509,7 @@ theorem CategoryTheory.Adjunction.toMonad_μ {C : Type u₁} [CategoryTheory.Cat
   [CategoryTheory.Category.{v₂, u₂} D] {L : CategoryTheory.Functor C D} {R : CategoryTheory.Functor D C} (h : L ⊣ R) :
   (h.toMonad).μ = CategoryTheory.Functor.whiskerLeft L (CategoryTheory.Functor.whiskerRight h.counit R) :=
   sorry
-```",24,0,tie,Both use incorrect whisker order; target is whiskerRight (whiskerLeft L ε) R not whiskerLeft L (whiskerRight ε R),False,False,32,14,,
+```",24,0,tie,Both use incorrect whisker order; target is whiskerRight (whiskerLeft L ε) R not whiskerLeft L (whiskerRight ε R),False,False,32,14,False,False
 120553,CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_τ₂,non_dense,large,"This theorem states that for a category $J$, a category $C$ with zero morphisms, a functor $X$ from $J$ to short complexes in $C$, and an object in $J$, the second component ($\tau_2$) of the morphism obtained by applying the inverse of the counit isomorphism of the functor equivalence to $X$ and then evaluating at the given object is equal to the identity morphism on the second object of the short complex $X$ evaluated at that object.","CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_τ₂.{v_1, u_1, v_2, u_2} (J : Type u_1)
   (C : Type u_2) [CategoryTheory.Category.{v_1, u_1} J] [CategoryTheory.Category.{v_2, u_2} C]
   [CategoryTheory.Limits.HasZeroMorphisms C] (X : CategoryTheory.Functor J (CategoryTheory.ShortComplex C)) (X✝ : J) :
@@ -530,7 +530,7 @@ theorem CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_τ₂_eq_id {J 
     CategoryTheory.ShortComplex.Hom.τ₂
       ((CategoryTheory.ShortComplex.FunctorEquivalence.counitIso J C).inv.app X) =
     CategoryTheory.CategoryStruct.id ((CategoryTheory.Functor.obj X j).X₂) := by sorry
-```",39,0,B,"A has type mismatch: counitIso.inv.app X is nat trans, needs another .app j. B correctly applies symm to both X and j.",False,False,36,22,,
+```",39,0,B,"A has type mismatch: counitIso.inv.app X is nat trans, needs another .app j. B correctly applies symm to both X and j.",False,False,36,22,False,True
 256217,DirectSum.decompose_symm_add,non_dense,large,"The inverse of the direct sum decomposition equivalence preserves addition: for any two elements $x$ and $y$ in the direct sum of the subobjects indexed by $\iota$, applying the inverse decomposition to their sum equals the sum of applying the inverse decomposition to each element individually.","DirectSum.decompose_symm_add.{u_1, u_3, u_4} {ι : Type u_1} {M : Type u_3} {σ : Type u_4} [DecidableEq ι]
   [AddCommMonoid M] [SetLike σ M] [AddSubmonoidClass σ M] (ℳ : ι → σ) [DirectSum.Decomposition ℳ]
   (x y : DirectSum ι fun i => ↥(ℳ i)) :
@@ -542,7 +542,7 @@ theorem DirectSum.decompose_add {R : Type*} [Semiring R] {M : Type*} [AddCommMon
     h.decompose (x + y) = h.decompose x + h.decompose y := by sorry
 ```","```lean
 theorem DirectSum.decomposeAddEquiv_symm_add {ι : Type u_1} {M : Type u_3} {σ : Type u_4} [DecidableEq ι] [AddCommMonoid M] [SetLike σ M] [AddSubmonoidClass σ M] (ℳ : ι → σ) [DirectSum.Decomposition ℳ] (x y : DirectSum ι fun i => ↥(ℳ i)) : (DirectSum.decomposeAddEquiv ℳ).symm (x + y) = (DirectSum.decomposeAddEquiv ℳ).symm x + (DirectSum.decomposeAddEquiv ℳ).symm y
-```",46,0,T,A matches target exactly (decompose_symm vs decomposeAddEquiv.symm); B uses IsInternal.decompose with Module/Submodule instead of SetLike/AddSubmonoidClass,False,False,48,13,,
+```",46,0,T,A matches target exactly (decompose_symm vs decomposeAddEquiv.symm); B uses IsInternal.decompose with Module/Submodule instead of SetLike/AddSubmonoidClass,False,False,48,13,True,False
 368610,ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv,non_dense,large,"The linear isometry equivalence `linearIsometryBoundedOfCompact` between continuous maps and bounded continuous functions (over a compact space α with values in a seminormed space E and scalars 𝕜) is equal, when viewed as an isometry equivalence by forgetting the linear structure, to the isometry equivalence `isometryEquivBoundedOfCompact`.","ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv.{u_1, u_3, u_4} {α : Type u_1} {E : Type u_3}
   [TopologicalSpace α] [CompactSpace α] [SeminormedAddCommGroup E] {𝕜 : Type u_4} [NormedRing 𝕜] [Module 𝕜 E]
   [IsBoundedSMul 𝕜 E] :
@@ -556,7 +556,7 @@ theorem ContinuousMap.linearIsometryBoundedOfCompact.toIsometryEquiv_eq_isometry
     [NormedRing 𝕜] [Module 𝕜 E] [IsBoundedSMul 𝕜 E] :
     (ContinuousMap.linearIsometryBoundedOfCompact α E 𝕜).toIsometryEquiv =
     ContinuousMap.isometryEquivBoundedOfCompact α E := by sorry
-```",112,0,T,"B matches target signature exactly with correct namespace, type classes, and argument order. A uses wrong type classes (NontriviallyNormedField vs NormedRing, NormedModule vs Module+IsBoundedSMul) and missing namespace.",False,False,30,17,,
+```",112,0,T,"B matches target signature exactly with correct namespace, type classes, and argument order. A uses wrong type classes (NontriviallyNormedField vs NormedRing, NormedModule vs Module+IsBoundedSMul) and missing namespace.",False,False,30,17,False,True
 250914,VectorBundleCore.mem_source_at,non_dense,large,"The statement asserts that for a vector bundle core Z over a base space B with fiber F, any point (b, a) where b is in the base space and a is in the fiber, belongs to the source of the local trivialization at the point b.","VectorBundleCore.mem_source_at.{u_1, u_2, u_3, u_5} {R : Type u_1} {B : Type u_2} {F : Type u_3}
   [NontriviallyNormedField R] [NormedAddCommGroup F] [NormedSpace R F] [TopologicalSpace B] {ι : Type u_5}
   (Z : VectorBundleCore R B F ι) (b : B) (a : F) :
@@ -568,7 +568,7 @@ theorem VectorBundleCore.mem_source (Z : VectorBundleCore 𝕜 B F) (b : B) (a :
   (b, a) ∈ (Z.local_triv b).source := by sorry
 ```","```lean
 theorem VectorBundleCore.mem_localTrivAt_source {R : Type u_1} {B : Type u_2} {F : Type u_3} [NontriviallyNormedField R] [NormedAddCommGroup F] [NormedSpace R F] [TopologicalSpace B] {ι : Type u_5} (Z : VectorBundleCore R B F ι) (b : B) (a : Z.Fiber b) : (⟨b, a⟩ : Z.TotalSpace) ∈ PartialEquiv.source (OpenPartialHomeomorph.toPartialEquiv (Bundle.Trivialization.toOpenPartialHomeomorph (Z.localTrivAt b)))
-```",50,0,T,A matches target signature structure closely with correct types; B uses deprecated notation and wrong structure,False,False,40,12,,
+```",50,0,T,A matches target signature structure closely with correct types; B uses deprecated notation and wrong structure,False,False,40,12,True,True
 323677,CategoryTheory.Comma.equivProd_unitIso_inv_app_right,non_dense,large,"The right component of the inverse of the unit isomorphism of the equivalence between the comma category of functors L and R (both targeting the discrete category on the unit type) and the product category, when applied to an object X, is equal to the identity morphism on the right component of X.","CategoryTheory.Comma.equivProd_unitIso_inv_app_right.{v₁, v₂, u₁, u₂, u_1} {A : Type u₁}
   [CategoryTheory.Category.{v₁, u₁} A] {B : Type u₂} [CategoryTheory.Category.{v₂, u₂} B]
   (L : CategoryTheory.Functor A (CategoryTheory.Discrete PUnit.{u_1 + 1}))
@@ -585,7 +585,7 @@ theorem CategoryTheory.Comma.equivProd_unitIso_inv_right {A B : Type*} [Category
     (X : A × B) :
     CategoryTheory.CommaMorphism.right ((CategoryTheory.Comma.equivProd L R).unitIso.inv.app X) =
     CategoryTheory.CategoryStruct.id (X.2) := by sorry
-```",39,0,T,A uses wrong domain (C × D vs Comma L R). B correctly models the equivalence and applies unitIso to product category.,False,False,45,35,,
+```",39,0,T,A uses wrong domain (C × D vs Comma L R). B correctly models the equivalence and applies unitIso to product category.,False,False,45,35,False,True
 219297,MeasureTheory.integrable_of_intervalIntegral_norm_tendsto,non_dense,large,"If a function $f : \mathbb{R} \to E$ (where $E$ is a normed additive commutative group) is integrable on intervals $(a_i, b_i]$ for all $i$ in an index set $\iota$, where $a_i$ tends to negative infinity and $b_i$ tends to positive infinity along a countably generated filter $l$, and if the interval integrals of $\|f\|$ converge to some value $I$, then $f$ is integrable with respect to the measure $\mu$ on all of $\mathbb{R}$.","MeasureTheory.integrable_of_intervalIntegral_norm_tendsto.{u_1, u_2} {ι : Type u_1} {E : Type u_2}
   {μ : MeasureTheory.Measure ℝ} {l : Filter ι} [Filter.NeBot l] [Filter.IsCountablyGenerated l] [NormedAddCommGroup E]
   {a b : ι → ℝ} {f : ℝ → E} (I : ℝ) (hfi : ∀ (i : ι), MeasureTheory.IntegrableOn f (Set.Ioc (a i) (b i)) μ)
@@ -604,26 +604,26 @@ theorem intervalIntegral_tendsto_implies_integrable
   sorry
 ```","```lean
 theorem integrable_of_intervalIntegral_norm_bounded {ι : Type*} {E : Type*} {μ : MeasureTheory.Measure ℝ} {l : Filter ι} [Filter.NeBot l] [Filter.IsCountablyGenerated l] [NormedAddCommGroup E] {a b : ι → ℝ} {f : ℝ → E} (I : ℝ) (hfi : ∀ (i : ι), MeasureTheory.IntegrableOn f (Set.Ioc (a i) (b i)) μ) (ha : Filter.Tendsto a l Filter.atBot) (hb : Filter.Tendsto b l Filter.atTop) (h : ∀ᶠ (i : ι) in l, ∫ (x : ℝ) in a i..b i, ‖f x‖ ∂μ ≤ I) : MeasureTheory.Integrable f μ := by sorry
-```",72,0,T,"A matches signature more closely: ι filter structure, Ioc integrable, μ measure, I : ℝ. B uses volume, Countable ι, NormedSpace, different tendsto/integrability.",False,False,65,21,,
+```",72,0,T,"A matches signature more closely: ι filter structure, Ioc integrable, μ measure, I : ℝ. B uses volume, Countable ι, NormedSpace, different tendsto/integrability.",False,False,65,21,True,True
 81609,WithOne.map_bot,non_dense,small,The theorem states that applying the `WithOne.map` function with any function `f` from type `α` to type `β` to the bottom element (represented as `1`) of `WithOne α` yields the bottom element (represented as `1`) of `WithOne β`.,"WithOne.map_bot.{u_1, u_2} {α : Type u_1} {β : Type u_2} (f : α → β) : WithOne.map f 1 = 1","```lean
 theorem WithOne.map_one {α β : Type*} (f : α → β) : WithOne.map f (1 : WithOne α) = (1 : WithOne β)
 ```","```lean
 theorem WithOne.map_one {α β : Type*} (f : α → β) : WithOne.map f (1 : WithOne α) = (1 : WithOne β)
-```",12,0,tie,Both candidates are identical and match the target signature semantically (map_bot refers to the one element).,False,False,18,18,,
+```",12,0,tie,Both candidates are identical and match the target signature semantically (map_bot refers to the one element).,False,False,18,18,True,False
 373013,Fin.map_succEmb_Iic,non_dense,small,"The theorem states that for a natural number $n$ and a finite ordinal $i$ of type `Fin n`, mapping the successor embedding over the closed interval from $0$ to $i$ (inclusive) in `Fin n` yields the half-open interval from $0$ (exclusive) to the successor of $i$ (inclusive) in `Fin (n+1)`.",Fin.map_succEmb_Iic {n : ℕ} (i : Fin n) : Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i),"```lean
 theorem Fin.map_Icc_succ (n : ℕ) (i : Fin n) :
     (Icc (0 : Fin n) i).image Fin.succ = Icc (0 : Fin (n + 1)) (Fin.succ i) \ {0} := by sorry
 ```","```lean
 theorem Finset.map_succEmb_Iic (n : ℕ) (i : Fin n) : 
   Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i) := by sorry
-```",62,0,T,"A matches target exactly: map succEmb, Iic, Ioc. B uses image succ, Icc, and set difference instead.",False,False,24,9,,
+```",62,0,T,"A matches target exactly: map succEmb, Iic, Ioc. B uses image succ, Icc, and set difference instead.",False,False,24,9,True,True
 311629,Dioph.ex_dioph,non_dense,small,"The theorem states that if a set S of functions from α ⊕ β to ℕ is Diophantine, then the set of all functions v from α to ℕ for which there exists some function x from β to ℕ such that the combined function (obtained by eliminating the sum using v and x) belongs to S is also Diophantine.","Dioph.ex_dioph.{u} {α β : Type u} {S : Set (α ⊕ β → ℕ)} : Dioph S → Dioph {v | ∃ x, Sum.elim v x ∈ S}","```lean
 theorem diophantine_elimination_of_sum {α β : Type*} (S : Set (α ⊕ β → ℕ)) (hS : Diophantine S) :
     Diophantine {v : α → ℕ | ∃ x : β → ℕ, Sum.elim v x ∈ S} := by sorry
 ```","```lean
 theorem Dioph.exists_sum {α β : Type*} {S : Set (α ⊕ β → ℕ)} (h : Dioph S) :
     Dioph {v : α → ℕ | ∃ x : β → ℕ, Sum.elim v x ∈ S}
-```",35,0,T,"Both match semantically. A uses correct Dioph, B uses nonexistent Diophantine. A is correctly stated without proof.",False,False,25,18,,
+```",35,0,T,"Both match semantically. A uses correct Dioph, B uses nonexistent Diophantine. A is correctly stated without proof.",False,False,25,18,True,False
 332568,ack_inj_left,non_dense,small,"The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers $m_1$, $m_2$, and $n$, we have $\text{ack}(m_1, n) = \text{ack}(m_2, n)$ if and only if $m_1 = m_2$.",ack_inj_left {m₁ m₂ n : ℕ} : ack m₁ n = ack m₂ n ↔ m₁ = m₂,"```lean
 def ack : ℕ → ℕ → ℕ
   | 0, n => n + 1
@@ -634,7 +634,7 @@ theorem ack_injective_first_arg : ∀ (m₁ m₂ n : ℕ), ack m₁ n = ack m₂
 ```","```lean
 theorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=
   (ack_injective_left n).eq_iff
-```",7,0,T,A uses injective_left helper matching target semantics; B has unproven sorry and redefines ack unnecessarily.,False,False,50,9,,
+```",7,0,T,A uses injective_left helper matching target semantics; B has unproven sorry and redefines ack unnecessarily.,False,False,50,9,True,True
 158086,ENNReal.coe_mem_upperBounds,non_dense,small,The statement asserts that a non-negative real number $r$ (viewed as an extended non-negative real number via coercion) is an upper bound for the image of a set $s$ of non-negative reals under the coercion map to extended non-negative reals if and only if $r$ is an upper bound for $s$ itself.,ENNReal.coe_mem_upperBounds {r : NNReal} {s : Set NNReal} : ↑r ∈ upperBounds (ENNReal.ofNNReal '' s) ↔ r ∈ upperBounds s,"```lean
 theorem isUB_coe_iff_isUB {r : ℝ≥0} {s : Set ℝ≥0} :
     BddAbove ((↑) '' s : Set ℝ≥0∞) ∧ ↑r ∈ upperBounds ((↑) '' s : Set ℝ≥0∞) ↔ 
@@ -642,17 +642,17 @@ theorem isUB_coe_iff_isUB {r : ℝ≥0} {s : Set ℝ≥0} :
 ```","```lean
 theorem ENNReal.coe_upperBounds (r : ℝ≥0) (s : Set ℝ≥0) :
     (r : ENNReal) ∈ upperBounds (ENNReal.ofNNReal '' s) ↔ r ∈ upperBounds s := by sorry
-```",39,0,T,A exactly matches target signature; B adds unnecessary BddAbove conjunct and changes statement semantics.,False,False,22,14,,
+```",39,0,T,A exactly matches target signature; B adds unnecessary BddAbove conjunct and changes statement semantics.,False,False,22,14,True,True
 285219,Lean.Parser.Category.attr,non_dense,small,"The declaration `Lean.Parser.Category.attr` defines a parser category in Lean 4 specifically for parsing attributes, which are metadata annotations that can be attached to declarations in Lean to modify their behavior or provide additional information to the system.",Lean.Parser.Category.attr : Lean.Parser.Category,"```lean
 def Lean.Parser.Category.attr : String
 ```","```lean
 def Lean.Parser.Category.attr : Lean.Parser.Category
-```",1,0,T,B matches the target type exactly; A uses String instead of Lean.Parser.Category.,False,False,4,3,,
+```",1,0,T,B matches the target type exactly; A uses String instead of Lean.Parser.Category.,False,False,4,3,False,True
 117965,Equiv.Perm.symm_mul,non_dense,small,"The statement asserts that for any permutation \(e\) of a type \(\alpha\), the product of the inverse of \(e\) with \(e\) itself equals the identity permutation.",Equiv.Perm.symm_mul.{u_4} {α : Type u_4} (e : Equiv.Perm α) : Equiv.symm e * e = 1,"```lean
 theorem Equiv.inv_mul_self (e : Equiv α α) : e.symm * e = Equiv.refl α := by sorry
 ```","```lean
 theorem Equiv.Perm.inv_mul_self {α : Type*} (e : Equiv.Perm α) : e.symm * e = 1 := by sorry
-```",12,0,T,"B matches target exactly: same namespace, types, and 1 for identity. A uses Equiv.refl α instead of 1.",False,False,15,11,,
+```",12,0,T,"B matches target exactly: same namespace, types, and 1 for identity. A uses Equiv.refl α instead of 1.",False,False,15,11,False,True
 336471,Real.sSup_def,non_dense,small,"The supremum of a set of real numbers $s$ is defined as follows: if $s$ is nonempty and bounded above, then $\sup s$ is the element chosen (via the axiom of choice) that satisfies the least upper bound property; otherwise, $\sup s$ is defined to be 0.",Real.sSup_def (s : Set ℝ) : sSup s = if h : Set.Nonempty s ∧ BddAbove s then Classical.choose ⋯ else 0,"```lean
 noncomputable def supremum (s : Set ℝ) : ℝ :=
   if h : BddAbove s ∧ s.Nonempty then
@@ -664,16 +664,16 @@ def Real.sSup (s : Set ℝ) : ℝ :=
   dite (Set.Nonempty s ∧ BddAbove s)
     (fun h => Classical.choose (Real.exists_isLUB h.left h.right))
     (fun _ => 0)
-```",25,0,T,B exactly matches target signature structure; A defines supremum in terms of sSup (circular/wrong direction),False,False,13,22,,
+```",25,0,T,B exactly matches target signature structure; A defines supremum in terms of sSup (circular/wrong direction),False,False,13,22,False,True
 253041,Substring.toIterator,non_dense,small,The function `Substring.toIterator` converts a raw substring into a legacy string iterator.,Substring.toIterator : Substring.Raw → String.Legacy.Iterator,"```lean
 def Substring.toIterator : Substring → String.Iterator
 ```","```lean
 def Substring.toIterator : Substring → String.Legacy.Iterator
-```",3,0,tie,"Both differ from target: A uses Substring vs Substring.Raw, B uses String.Iterator vs String.Legacy.Iterator. Neither matches exactly.",False,False,5,4,,
+```",3,0,tie,"Both differ from target: A uses Substring vs Substring.Raw, B uses String.Iterator vs String.Legacy.Iterator. Neither matches exactly.",False,False,5,4,True,True
 353452,WithBot.coe_sup,non_dense,small,The coercion of the supremum of two elements $a$ and $b$ in a semilattice with supremum into the type with bottom is equal to the supremum of the coercions of $a$ and $b$ separately into the type with bottom.,WithBot.coe_sup.{u_1} {α : Type u_1} [SemilatticeSup α] (a b : α) : ↑(a ⊔ b) = ↑a ⊔ ↑b,"```lean
 theorem coe_sup {α : Type*} {β : Type*} [SemilatticeSup α] [SemilatticeSup β] [Bot β] 
     (f : α → β) (a b : α) : (↑(a ⊔ b) : β) = ↑a ⊔ ↑b := by sorry
 ```","```lean
 theorem WithBot.coe_sup {α : Type*} [SemilatticeSup α] (a b : α) :
     ↑(a ⊔ b) = (↑a : WithBot α) ⊔ ↑b := by sorry
-```",12,0,T,"A matches WithBot.coe_sup signature exactly; B introduces unrelated type β and generic coercion f, not WithBot-specific",False,False,23,13,,
+```",12,0,T,"A matches WithBot.coe_sup signature exactly; B introduces unrelated type β and generic coercion f, not WithBot-specific",False,False,23,13,False,True
