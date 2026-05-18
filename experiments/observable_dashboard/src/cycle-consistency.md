@@ -7,14 +7,15 @@ toc: true
 
 ```js
 const d = FileAttachment("data/cycle_consistency.json").json();
+```
+
+```js
 const s = d.summary;
 const cands = d.candidates;
 const strata = d.strata;
 const conds = d.conditions;
 const ablJ  = d.ablation_judge;
 const mc    = d.mcnemar_cis;
-const ctg   = d.contingency_B_Tnames;
-const nl    = d.nl_leakage;
 const editScatter = d.edit_scatter;
 const jvtc = d.judge_vs_tc;
 ```
