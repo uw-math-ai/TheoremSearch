@@ -141,73 +141,81 @@ exactly what the formalizer receives in each case.
 ```
 
 ```js
-// Separate block so the condition selector can drive the context display reactively
+// Static example data shared across the reactive blocks below
+const exampleData = {
+  nl: "The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers m₁, m₂, and n, we have ack(m₁, n) = ack(m₂, n) if and only if m₁ = m₂.",
+  deps: [
+    {type:"proof", name:"Function.Injective.eq_iff",   sig:"Function.Injective.eq_iff {α β} {f : α → β} (hf : Function.Injective f) {a b} : f a = f b ↔ a = b"},
+    {type:"proof", name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
+    {type:"proof", name:"ack_injective_left",           sig:"ack_injective_left (n : ℕ) : Function.Injective fun m => ack m n"},
+    {type:"sig",   name:"Eq",                           sig:"Eq.{u_1} {α : Sort u_1} : α → α → Prop"},
+    {type:"sig",   name:"Iff",                          sig:"Iff (a b : Prop) : Prop"},
+    {type:"sig",   name:"Nat",                          sig:"Nat : Type"},
+    {type:"sig",   name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
+  ],
+  rand_deps: [
+    {type:"random", name:"max_ack_right",               sig:"max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n₁) (ack m n₂)"},
+    {type:"random", name:"one_lt_ack_succ_right",       sig:"one_lt_ack_succ_right (m n : ℕ) : 1 < ack m (n + 1)"},
+    {type:"random", name:"ack_lt_ack_right",            sig:"ack_lt_ack_right (m : ℕ) : StrictMono (ack m)"},
+    {type:"random", name:"ack_pos",                     sig:"ack_pos (m n : ℕ) : 0 < ack m n"},
+    {type:"random", name:"ack_succ_succ",               sig:"ack_succ_succ (m n : ℕ) : ack (m + 1) (n + 1) = ack m (ack (m + 1) n)"},
+    {type:"random", name:"Nat.Partrec.Code.primrec_pappAck", sig:"Nat.Partrec.Code.primrec_pappAck : Primrec Nat.Partrec.Code.pappAck"},
+    {type:"random", name:"ack_succ_zero",               sig:"ack_succ_zero (m : ℕ) : ack (m + 1) 0 = ack m 1"},
+  ],
+  outputs: {
+    "B — baseline":    "-- model output (type-checks ✓, but wrong theorem)\ndef ack : ℕ → ℕ → ℕ\n  | 0, n => n + 1\n  | m + 1, 0 => ack m 1\n  | m + 1, n + 1 => ack m (ack (m + 1) n)\n\ntheorem ack_injective_first_arg ...\n-- ✗ Redefined ack instead of stating injectivity",
+    "T-names":         "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
+    "T-random":        "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
+    "T — treatment":   "-- model output (type-checks ✓, judge preferred)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=\n  (ack_injective_left n).eq_iff\n-- ✓ Correct statement + uses ack_injective_left from dep context",
+  },
+};
+```
+
+```js
+// Top-level view() — this is what makes the radio reactive across blocks
+const condPicker = view(Inputs.radio(
+  ["B — baseline","T-names","T-random","T — treatment"],
+  {value:"T — treatment", label:"Condition"}
+));
+```
+
+```js
+// Reactively re-renders whenever condPicker changes
 {
-  // Re-declare ex locally for the reactive output block
-  const ex2 = {
-    nl: "The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers m₁, m₂, and n, we have ack(m₁, n) = ack(m₂, n) if and only if m₁ = m₂.",
-    deps: [
-      {type:"proof", name:"Function.Injective.eq_iff",   sig:"Function.Injective.eq_iff {α β} {f : α → β} (hf : Function.Injective f) {a b} : f a = f b ↔ a = b"},
-      {type:"proof", name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
-      {type:"proof", name:"ack_injective_left",           sig:"ack_injective_left (n : ℕ) : Function.Injective fun m => ack m n"},
-      {type:"sig",   name:"Eq",                           sig:"Eq.{u_1} {α : Sort u_1} : α → α → Prop"},
-      {type:"sig",   name:"Iff",                          sig:"Iff (a b : Prop) : Prop"},
-      {type:"sig",   name:"Nat",                          sig:"Nat : Type"},
-      {type:"sig",   name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
-    ],
-    rand_deps: [
-      {type:"random", name:"max_ack_right",               sig:"max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n₁) (ack m n₂)"},
-      {type:"random", name:"one_lt_ack_succ_right",       sig:"one_lt_ack_succ_right (m n : ℕ) : 1 < ack m (n + 1)"},
-      {type:"random", name:"ack_lt_ack_right",            sig:"ack_lt_ack_right (m : ℕ) : StrictMono (ack m)"},
-      {type:"random", name:"ack_pos",                     sig:"ack_pos (m n : ℕ) : 0 < ack m n"},
-      {type:"random", name:"ack_succ_succ",               sig:"ack_succ_succ (m n : ℕ) : ack (m + 1) (n + 1) = ack m (ack (m + 1) n)"},
-      {type:"random", name:"Nat.Partrec.Code.primrec_pappAck", sig:"Nat.Partrec.Code.primrec_pappAck : Primrec Nat.Partrec.Code.pappAck"},
-      {type:"random", name:"ack_succ_zero",               sig:"ack_succ_zero (m : ℕ) : ack (m + 1) 0 = ack m 1"},
-    ],
-    outputs: {
-      "B — baseline":    "-- model output (type-checks ✓, but wrong theorem)\ndef ack : ℕ → ℕ → ℕ\n  | 0, n => n + 1\n  | m + 1, 0 => ack m 1\n  | m + 1, n + 1 => ack m (ack (m + 1) n)\n\ntheorem ack_injective_first_arg ...\n-- ✗ Redefined ack instead of stating injectivity",
-      "T-names":         "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
-      "T-random":        "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
-      "T — treatment":   "-- model output (type-checks ✓, judge preferred)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=\n  (ack_injective_left n).eq_iff\n-- ✓ Correct statement + uses ack_injective_left from dep context",
-    },
-  };
-
   const condColors = {"B — baseline":"#dc2626","T-names":"#f59e0b","T-random":"#7c3aed","T — treatment":"#2563eb"};
-
-  function buildCtx(cond, ex) {
-    const nlBlock = `-- NL (all conditions)\n${ex.nl}`;
-    if (cond === "B — baseline") return {text: nlBlock, extra: null};
-    if (cond === "T-names") {
-      return {text: nlBlock, extra: {label:"-- dep names only (no signatures)", lines: ex.deps.map(r => `-- ${r.type}\n${r.name}`).join("\n\n")}};
-    }
-    if (cond === "T-random") {
-      return {text: nlBlock, extra: {label:"-- same-module random (7 nodes)", lines: ex.rand_deps.map(r => `-- random\n${r.name} : ${r.sig}`).join("\n\n")}};
-    }
-    return {text: nlBlock, extra: {label:"-- actual predecessor signatures (from graph)", lines: ex.deps.map(r => `-- ${r.type}\n${r.name} : ${r.sig}`).join("\n\n")}};
-  }
-
-  const condPicker = view(Inputs.radio(
-    ["B — baseline","T-names","T-random","T — treatment"],
-    {value:"T — treatment", label:"Condition"}
-  ));
-
-  const ctx = buildCtx(condPicker, ex2);
   const col = condColors[condPicker] ?? "#0f172a";
 
-  display(html`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0">
-    <div>
+  function buildCtx(cond) {
+    const nlBlock = `-- NL (all conditions)\n${exampleData.nl}`;
+    if (cond === "B — baseline") return nlBlock;
+    if (cond === "T-names") {
+      return `${nlBlock}\n\n-- dep names only (no signatures)\n\n${exampleData.deps.map(r => `-- ${r.type}\n${r.name}`).join("\n\n")}`;
+    }
+    if (cond === "T-random") {
+      return `${nlBlock}\n\n-- same-module random (7 nodes)\n\n${exampleData.rand_deps.map(r => `-- random\n${r.name} : ${r.sig}`).join("\n\n")}`;
+    }
+    return `${nlBlock}\n\n-- actual predecessor signatures (from graph)\n\n${exampleData.deps.map(r => `-- ${r.type}\n${r.name} : ${r.sig}`).join("\n\n")}`;
+  }
+
+  const inputText  = buildCtx(condPicker);
+  const outputText = exampleData.outputs[condPicker] ?? "";
+
+  display(html`<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:12px 0">
+    <div style="min-width:0">
       <div style="font-size:11px;font-weight:600;color:${col};text-transform:uppercase;
                   letter-spacing:.05em;margin-bottom:6px">Input to formalizer</div>
       <pre style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid ${col};
                   border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;
-                  overflow:auto;max-height:280px;white-space:pre-wrap;margin:0">${ctx.text}${ctx.extra ? `\n\n${ctx.extra.label}\n\n${ctx.extra.lines}` : ""}</pre>
+                  overflow:auto;max-height:280px;white-space:pre-wrap;word-break:break-word;
+                  overflow-wrap:anywhere;margin:0">${inputText}</pre>
     </div>
-    <div>
+    <div style="min-width:0">
       <div style="font-size:11px;font-weight:600;color:${col};text-transform:uppercase;
                   letter-spacing:.05em;margin-bottom:6px">Formalizer output</div>
       <pre style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid ${col};
                   border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;
-                  overflow:auto;max-height:280px;white-space:pre-wrap;margin:0">${ex2.outputs[condPicker] ?? ""}</pre>
+                  overflow:auto;max-height:280px;white-space:pre-wrap;word-break:break-word;
+                  overflow-wrap:anywhere;margin:0">${outputText}</pre>
     </div>
   </div>
   <div style="font-size:12px;color:#64748b">
