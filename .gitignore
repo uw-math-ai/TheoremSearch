@@ -26,6 +26,15 @@ parsed_papers/
 
 # Allow failure-modes experiment summary CSV
 !experiments/failure-modes/failure_modes.csv
+
+# Allow cycle-consistency pilot artifacts
+!experiments/cycle_consistency_pilot/*.csv
+!experiments/cycle_consistency_pilot/*.json
+
+# Allow observable dashboard data + config
+!experiments/observable_dashboard/src/data/*.json
+!experiments/observable_dashboard/package.json
+!experiments/observable_dashboard/package-lock.json
 data/sources/
 DEBUG/
 external/stacks-project/
