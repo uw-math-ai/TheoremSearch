@@ -9,15 +9,12 @@
     "tie_pct": 13.3,
     "wilcoxon_stat": 79.5,
     "wilcoxon_p": 0.0,
-    "vacuous_rate_B": 0.0,
-    "vacuous_rate_T": 0.0,
     "edit_mean_B": 31.7,
     "edit_mean_T": 14.5,
-    "edit_median_B": 25.0,
-    "edit_median_T": 12.0,
+    "t_prefers_and_tc": 21,
     "models": {
       "informalizer": "claude-sonnet-4-5 (Bedrock)",
-      "formalizer": "claude-haiku-4-5 (Bedrock, same for B and T)",
+      "formalizer": "claude-haiku-4-5 (Bedrock, same for all conditions)",
       "judge": "claude-sonnet-4-5 (Bedrock)"
     },
     "strata_cutoffs": {
@@ -27,6 +24,60 @@
       "p75_siglen": 314
     },
     "seed": 42
+  },
+  "conditions": [
+    {
+      "id": "B",
+      "label": "B \u2014 baseline",
+      "desc": "NL only",
+      "color": "#dc2626",
+      "tc_pass": 8,
+      "tc_pct": 13.3,
+      "edit_mean": 31.7,
+      "edit_median": 25.0
+    },
+    {
+      "id": "Tnames",
+      "label": "T-names",
+      "desc": "NL + dep names (no sigs)",
+      "color": "#f59e0b",
+      "tc_pass": 27,
+      "tc_pct": 45.0,
+      "edit_mean": 29.2,
+      "edit_median": 18.5
+    },
+    {
+      "id": "Trandom",
+      "label": "T-random",
+      "desc": "NL + random same-module sigs",
+      "color": "#7c3aed",
+      "tc_pass": 40,
+      "tc_pct": 66.7,
+      "edit_mean": 16.8,
+      "edit_median": 11.0
+    },
+    {
+      "id": "T",
+      "label": "T \u2014 treatment",
+      "desc": "NL + actual dep sigs",
+      "color": "#2563eb",
+      "tc_pass": 23,
+      "tc_pct": 38.3,
+      "edit_mean": 14.5,
+      "edit_median": 12.0
+    }
+  ],
+  "ablation_judge": {
+    "T_vs_Tnames": {
+      "T": 33,
+      "Tnames": 11,
+      "tie": 16
+    },
+    "T_vs_Trandom": {
+      "T": 27,
+      "Trandom": 22,
+      "tie": 11
+    }
   },
   "candidates": [
     {
@@ -43,6 +94,14 @@
       "vacuous_T": false,
       "edit_dist_B": 29,
       "edit_dist_T": 21,
+      "edit_dist_Tnames": 29,
+      "edit_dist_Trandom": 25,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "A function `f` from a measurable space `\u03b1` to a topological space `\u03b2` (which is pseudo-metrizable and has a Borel measurable structure) is strongly measurable if and only if `f` is measurable and the range of `f` is a separable topological subspace.",
       "F_sig": "stronglyMeasurable_iff_measurable_separable.{u_1, u_2} {\u03b1 : Type u_1} {\u03b2 : Type u_2} {f : \u03b1 \u2192 \u03b2} {m : MeasurableSpace \u03b1}\n  [TopologicalSpace \u03b2] [TopologicalSpace.PseudoMetrizableSpace \u03b2] [MeasurableSpace \u03b2] [BorelSpace \u03b2] :\n  MeasureTheory.StronglyMeasurable f \u2194 Measurable f \u2227 TopologicalSpace.IsSeparable (Set.range f)",
       "F_B": "```lean\ntheorem stronglyMeasurable_iff_measurable_separable {\u03b1 : Type*} {\u03b2 : Type*} [MeasurableSpace \u03b1] [TopologicalSpace \u03b2] [PseudoMetricSpace \u03b2] [BorelSpace \u03b2] {f : \u03b1 \u2192 \u03b2} : StronglyMeasurable f \u2194 Measurable f \u2227 SeparableSpace (Set.range f) := by sorry\n```",
@@ -62,6 +121,14 @@
       "vacuous_T": false,
       "edit_dist_B": 36,
       "edit_dist_T": 14,
+      "edit_dist_Tnames": 32,
+      "edit_dist_Trandom": 18,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "Looking at this Lean 4 declaration, I need to parse the structure of the equality being asserted.\n\nThe theorem states that for an isomorphism `e : X \u2245 Y` in a category C, a functor F from C to D, and a morphism h from F(Y) to some object Z in D, the composition of F applied to the inverse of e with the composition of F applied to the morphism part of e and h equals h itself. In other words, composing F(e\u207b\u00b9) with (F(e) composed with h) simplifies to just h, which reflects the fact that applying a functor to an isomorphism and its inverse yields an isomorphism in the target category whose composition with any subsequent morphism can be simplified by canceling the inverse.",
       "F_sig": "CategoryTheory.Iso.map_inv_hom_id_assoc.{v, u, v_1, u_1} {C : Type u} [CategoryTheory.Category.{v, u} C] {D : Type u_1}\n  [CategoryTheory.Category.{v_1, u_1} D] {X Y : C} (e : X \u2245 Y) (F : CategoryTheory.Functor C D) {Z : D}\n  (h : CategoryTheory.Functor.obj F Y \u27f6 Z) :\n  CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map F (CategoryTheory.Iso.inv e))\n      (CategoryTheory.CategoryStruct.comp (CategoryTheory.Functor.map F (CategoryTheory.Iso.hom e)) h) =\n    h",
       "F_B": "```lean\ntheorem Iso.inv_comp_fac {C D : Type*} [Category C] [Category D] (X Y : C) (e : X \u2245 Y) (F : C \u2964 D) (Z : D) (h : F.obj Y \u27f6 Z) : (F.map e.inv) \u226b (F.map e.hom \u226b h) = h := by sorry\n```",
@@ -81,6 +148,14 @@
       "vacuous_T": false,
       "edit_dist_B": 28,
       "edit_dist_T": 7,
+      "edit_dist_Tnames": 13,
+      "edit_dist_Trandom": 4,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "T",
       "NL": "This definition provides a morphism from the left homology H of a short complex to an object A, given a morphism k from the kernel object K to A that satisfies the condition that the composition of f' (a certain morphism in the left homology data) with k is zero.",
       "F_sig": "CategoryTheory.ShortComplex.LeftHomologyData.descH.{v_1, u_1} {C : Type u_1} [CategoryTheory.Category.{v_1, u_1} C]\n  [CategoryTheory.Limits.HasZeroMorphisms C] {S : CategoryTheory.ShortComplex C}\n  (h : CategoryTheory.ShortComplex.LeftHomologyData S) {A : C}\n  (k : CategoryTheory.ShortComplex.LeftHomologyData.K h \u27f6 A)\n  (hk : CategoryTheory.CategoryStruct.comp (CategoryTheory.ShortComplex.LeftHomologyData.f' h) k = 0) :\n  CategoryTheory.ShortComplex.LeftHomologyData.H h \u27f6 A",
       "F_B": "```lean\ndef ShortComplex.LeftHomologyData.homologyToOfKernelCondition {C : Type*} [Category C]\n    (sc : ShortComplex C) (hc : sc.LeftHomologyData) (A : C)\n    (k : hc.K \u27f6 A) (hk : hc.f' \u226b k = 0) : hc.H \u27f6 A := by sorry\n```",
@@ -100,6 +175,14 @@
       "vacuous_T": false,
       "edit_dist_B": 50,
       "edit_dist_T": 19,
+      "edit_dist_Tnames": 31,
+      "edit_dist_Trandom": 21,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "When the key `k` is not contained in the list `l\u2082` (that is, `containsKey k l\u2082 = false`), and `l\u2081` has distinct keys, then looking up the key `k` in the filtered version of `l\u2081` (where we keep only entries whose keys appear in `l\u2082`) with fallback value `fallback` returns the fallback value `fallback`.",
       "F_sig": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right.{u, v} {\u03b1 : Type u} {\u03b2 : \u03b1 \u2192 Type v} [BEq \u03b1]\n  [EquivBEq \u03b1] {l\u2081 l\u2082 : List ((a : \u03b1) \u00d7 \u03b2 a)} {k fallback : \u03b1} (dl\u2081 : Std.Internal.List.DistinctKeys l\u2081) :\n  Std.Internal.List.containsKey k l\u2082 = false \u2192\n    Std.Internal.List.getKeyD k (List.filter (fun p => Std.Internal.List.containsKey (Sigma.fst p) l\u2082) l\u2081) fallback =\n      fallback",
       "F_B": "```lean\ntheorem lookup_filterByKeys_fallback {\u03b1 \u03b2 : Type*} [DecidableEq \u03b1] {k : \u03b1} {l\u2081 : List (\u03b1 \u00d7 \u03b2)} {l\u2082 : List \u03b1} {fallback : \u03b2}\n    (h\u2081 : containsKey k l\u2082 = false) (h\u2082 : l\u2081.Nodup (fun a b => a.1 = b.1)) :\n    (l\u2081.filter fun p => l\u2082.contains p.1).lookup k = fallback := by sorry\n```",
@@ -119,6 +202,14 @@
       "vacuous_T": false,
       "edit_dist_B": 25,
       "edit_dist_T": 6,
+      "edit_dist_Tnames": 25,
+      "edit_dist_Trandom": 9,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "When a commutative square is a pushout (witnessed by `h : IsPushout f g inl inr`), and the category has pushouts of `f` and `g`, then composing the morphism `inl : X \u27f6 P` with the isomorphism from `P` to the pushout of `f` and `g` yields the canonical inclusion morphism `pushout.inl` from `X` into the pushout.",
       "F_sig": "CategoryTheory.IsPushout.inl_isoPushout_hom.{v\u2081, u\u2081} {C : Type u\u2081} [CategoryTheory.Category.{v\u2081, u\u2081} C] {Z X Y P : C}\n  {f : Z \u27f6 X} {g : Z \u27f6 Y} {inl : X \u27f6 P} {inr : Y \u27f6 P} (h : CategoryTheory.IsPushout f g inl inr)\n  [CategoryTheory.Limits.HasPushout f g] :\n  CategoryTheory.CategoryStruct.comp inl (CategoryTheory.Iso.hom (CategoryTheory.IsPushout.isoPushout h)) =\n    CategoryTheory.Limits.pushout.inl f g",
       "F_B": "```lean\ntheorem IsPushout.inl_comp_isoCoprodDesc {C : Type u} [Category C] {X Y Z P : C} {f : X \u27f6 Y} {g : X \u27f6 Z} {inl : X \u27f6 P} {inr : Z \u27f6 P} (h : IsPushout f g inl inr) [HasPushout f g] : inl \u226b (h.isoCoprodDesc) = pushout.inl f g := by sorry\n```",
@@ -138,6 +229,14 @@
       "vacuous_T": false,
       "edit_dist_B": 53,
       "edit_dist_T": 39,
+      "edit_dist_Tnames": 51,
+      "edit_dist_Trandom": 30,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that for a collection type with a lawful element access operation and an inhabited element type, the unchecked element access operation `c[i]!` is equal to the result of attempting to access the element at index `i` using the safe access operation `c[i]?`, returning the element if it exists (in the `some` case) or the default element if it doesn't (in the `none` case).",
       "F_sig": "LawfulGetElem.getElem!_def.{u, v, w} {cont : Type u} {idx : Type v} {elem : outParam (Type w)}\n  {dom : outParam (cont \u2192 idx \u2192 Prop)} {ge : GetElem? cont idx elem dom} [self : LawfulGetElem cont idx elem dom]\n  [Inhabited elem] (c : cont) (i : idx) :\n  c[i]! =\n    match c[i]? with\n    | some e => e\n    | none => default",
       "F_B": "```lean\ntheorem getUnchecked_eq_getOption_getD [GetElem Cont Idx Elem Dom] [LawfulGetElem Cont Idx Elem Dom] [Inhabited Elem] (c : Cont) (i : Idx) : c[i]! = (c[i]?).getD default\n```",
@@ -157,6 +256,14 @@
       "vacuous_T": false,
       "edit_dist_B": 46,
       "edit_dist_T": 7,
+      "edit_dist_Tnames": 25,
+      "edit_dist_Trandom": 7,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The declaration defines a morphism in a monoidal category that represents the right action of a monoid object T on the tensor product of two bimodules P and Q, where P is an R-S-bimodule and Q is an S-T-bimodule, going from the tensor product of the underlying object of the tensor bimodule P \u2297 Q with the underlying object of T to the underlying object of P \u2297 Q.",
       "F_sig": "Bimod.TensorBimod.actRight.{v\u2081, u\u2081} {C : Type u\u2081} [CategoryTheory.Category.{v\u2081, u\u2081} C]\n  [CategoryTheory.MonoidalCategory C] [CategoryTheory.Limits.HasCoequalizers C] {R S T : CategoryTheory.Mon C}\n  (P : Bimod R S) (Q : Bimod S T)\n  [\u2200 (X : C),\n      CategoryTheory.Limits.PreservesColimitsOfSize.{0, 0, v\u2081, v\u2081, u\u2081, u\u2081}\n        (CategoryTheory.MonoidalCategory.tensorRight X)] :\n  CategoryTheory.MonoidalCategoryStruct.tensorObj (Bimod.TensorBimod.X P Q) (CategoryTheory.Mon.X T) \u27f6\n    Bimod.TensorBimod.X P Q",
       "F_B": "```lean\ndef MonoidalCategory.TensorBimodule.rAct {C : Type*} [MonoidalCategory C] {R S T : C} (hR : Monoid R) (hS : Monoid S) (hT : Monoid T) (P : Bimodule R S C) (Q : Bimodule S T C) : (P.obj \u2297 Q.obj) \u2297 T.obj \u2192 (P.obj \u2297 Q.obj) := by sorry\n```",
@@ -176,6 +283,14 @@
       "vacuous_T": false,
       "edit_dist_B": 29,
       "edit_dist_T": 17,
+      "edit_dist_Tnames": 28,
+      "edit_dist_Trandom": 14,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "If $f: X \\to Y$ is a morphism in a category $C$ that has an image, and $g, h$ are two morphisms from the image of $f$ to an object $W$, then $g = h$ whenever the composites of the factorization through the image followed by $g$ and $h$ are equal (that is, when $(\\text{factorThruImage } f) \\circ g = (\\text{factorThruImage } f) \\circ h$), provided that the parallel pair of $g$ and $h$ has a limit.",
       "F_sig": "CategoryTheory.Limits.image.ext.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C] {X Y : C} (f : X \u27f6 Y)\n  [CategoryTheory.Limits.HasImage f] {W : C} {g h : CategoryTheory.Limits.image f \u27f6 W}\n  [CategoryTheory.Limits.HasLimit (CategoryTheory.Limits.parallelPair g h)]\n  (w :\n    CategoryTheory.CategoryStruct.comp (CategoryTheory.Limits.factorThruImage f) g =\n      CategoryTheory.CategoryStruct.comp (CategoryTheory.Limits.factorThruImage f) h) :\n  g = h",
       "F_B": "```lean\ntheorem image_morphism_ext {C : Type*} [Category C] {X Y W : C} (f : X \u27f6 Y) \n    [HasImage f] (g h : image f \u27f6 W) \n    (h_eq : imageEmbedding f \u2218 g = imageEmbedding f \u2218 h) : g = h :=\n  sorry\n```",
@@ -195,6 +310,14 @@
       "vacuous_T": false,
       "edit_dist_B": 103,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 106,
+      "edit_dist_Trandom": 5,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "Looking at this declaration, I need to understand what it constructs.\n\nThis is a constructor that builds a continuous linear map from the space of test functions (on an open set \u03a9 in a normed space E, taking values in F, with smoothness order n) to a topological vector space V over a field \ud835\udd5c.\n\nThe constructor takes as input:\n1. A function `toFun` from test functions to V\n2. A family of continuous linear maps `T`, one for each compact set K contained in \u03a9, mapping continuously differentiable functions supported in K to V\n3. A proof that `toFun` agrees with the appropriate map from the family `T` on each test function\n\nGiven a function from test functions to a locally convex topological vector space V, along with a compatible family of continuous linear maps defined on continuously differentiable functions with compact support in each compact subset K of \u03a9, and a proof that these data are consistent, this constructs a continuous linear map from the space of test functions on \u03a9 with values in F and smoothness order n to V.",
       "F_sig": "TestFunction.limitCLM.{u_1, u_3, u_4, u_6} (\ud835\udd5c : Type u_1) [NontriviallyNormedField \ud835\udd5c] {E : Type u_3}\n  [NormedAddCommGroup E] [NormedSpace \u211d E] {\u03a9 : TopologicalSpace.Opens E} {F : Type u_4} [NormedAddCommGroup F]\n  [NormedSpace \u211d F] [NormedSpace \ud835\udd5c F] {n : \u2115\u221e} {V : Type u_6} [AddCommGroup V] [Module \u211d V] [t : TopologicalSpace V]\n  [IsTopologicalAddGroup V] [ContinuousSMul \u211d V] [LocallyConvexSpace \u211d V] [Algebra \u211d \ud835\udd5c] [IsScalarTower \u211d \ud835\udd5c F]\n  [Module \ud835\udd5c V] [IsScalarTower \u211d \ud835\udd5c V] (toFun : TestFunction \u03a9 F n \u2192 V)\n  (T : (K : TopologicalSpace.Compacts E) \u2192 \u2191K \u2286 \u2191\u03a9 \u2192 ContDiffMapSupportedIn E F n K \u2192L[\ud835\udd5c] V)\n  (toFun_eq_T :\n    \u2200 (K : TopologicalSpace.Compacts E) (K_sub_\u03a9 : \u2191K \u2286 \u2191\u03a9) (f : ContDiffMapSupportedIn E F n K),\n      toFun (TestFunction.ofSupportedIn K_sub_\u03a9 f) = (T K K_sub_\u03a9) f) :\n  TestFunction \u03a9 F n \u2192L[\ud835\udd5c] V",
       "F_B": "```lean\nstructure TestFunctionContinuousLinearMap (\ud835\udd5c : Type*) [NontriviallyNormedField \ud835\udd5c] \n    (E : Type*) [NormedAddCommGroup E] [NormedSpace \ud835\udd5c E] (\u03a9 : Set E) [OpenEmbedding Coe.coe]\n    (F : Type*) [NormedAddCommGroup F] [NormedSpace \ud835\udd5c F] (n : \u2115\u221e)\n    (V : Type*) [LocallyConvexSpace \ud835\udd5c V] [TopologicalAddCommGroup V] where\n  toFun : (TestFunction \ud835\udd5c E \u03a9 F n) \u2192 V\n  T : \u2200 (K : Set E), IsCompact K \u2192 K \u2286 \u03a9 \u2192 \n      ContinuousLinearMap \ud835\udd5c (C_c^n(K, F)) V\n  map_eq : \u2200 (f : TestFunction \ud835\udd5c E \u03a9 F n), \n      toFun f = T f.carrier f.isCompact_carrier f.carrier_subset (f : C_c^n(f.carrier, F))\n```",
@@ -214,6 +337,14 @@
       "vacuous_T": false,
       "edit_dist_B": 82,
       "edit_dist_T": 40,
+      "edit_dist_Tnames": 36,
+      "edit_dist_Trandom": 38,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "If $M$ is a flat $R$-module and the sequence $N \\xrightarrow{f} N' \\xrightarrow{g} N''$ is exact (meaning the image of $f$ equals the kernel of $g$), then the sequence $M \\otimes_R N \\xrightarrow{M \\otimes f} M \\otimes_R N' \\xrightarrow{M \\otimes g} M \\otimes_R N''$ is also exact, where $M \\otimes f$ and $M \\otimes g$ denote the left tensor product functors applied to the linear maps $f$ and $g$ respectively.",
       "F_sig": "Module.Flat.lTensor_exact.{u, v, u_1, u_2, u_3} {R : Type u} (M : Type v) [CommRing R] [AddCommGroup M] [Module R M]\n  [Module.Flat R M] \u2983N : Type u_1\u2984 \u2983N' : Type u_2\u2984 \u2983N'' : Type u_3\u2984 [AddCommGroup N] [AddCommGroup N']\n  [AddCommGroup N''] [Module R N] [Module R N'] [Module R N''] \u2983f : N \u2192\u2097[R] N'\u2984 \u2983g : N' \u2192\u2097[R] N''\u2984\n  (exact : Function.Exact \u21d1f \u21d1g) : Function.Exact \u21d1(LinearMap.lTensor M f) \u21d1(LinearMap.lTensor M g)",
       "F_B": "```lean\ntheorem flat_module_preserves_exact {R : Type*} [CommRing R] {M N N' N'' : Type*} \n  [AddCommMonoid N] [Module R N] [AddCommMonoid N'] [Module R N'] \n  [AddCommMonoid N''] [Module R N''] [AddCommMonoid M] [Module R M]\n  (hM : Module.Flat R M) (f : N \u2192\u2097[R] N') (g : N' \u2192\u2097[R] N'')\n  (hexact : Function.Injective g \u2218 f \u2227 g.ker = f.range) :\n  Function.Injective (TensorProduct.map (LinearMap.id : M \u2192\u2097[R] M) g \u2218 \n    TensorProduct.map (LinearMap.id : M \u2192\u2097[R] M) f) \u2227 \n  (TensorProduct.map (LinearMap.id : M \u2192\u2097[R] M) g).ker = \n  (TensorProduct.map (LinearMap.id : M \u2192\u2097[R] M) f).range := by sorry\n```",
@@ -233,6 +364,14 @@
       "vacuous_T": false,
       "edit_dist_B": 3,
       "edit_dist_T": 3,
+      "edit_dist_Tnames": 4,
+      "edit_dist_Trandom": 3,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The function `PNat.xgcd` takes two positive natural numbers `a` and `b` and returns an element of type `PNat.XgcdType`, which represents the extended Euclidean algorithm result for positive natural numbers, containing information about the greatest common divisor and the coefficients of B\u00e9zout's identity.",
       "F_sig": "PNat.xgcd (a b : \u2115+) : PNat.XgcdType",
       "F_B": "```lean\ndef PNat.xgcd (a b : \u2115+) : PNat.XgcdType\n```",
@@ -252,6 +391,14 @@
       "vacuous_T": false,
       "edit_dist_B": 25,
       "edit_dist_T": 18,
+      "edit_dist_Tnames": 20,
+      "edit_dist_Trandom": 11,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that if a function $f$ from a type $\\alpha$ to the non-negative real numbers has sum $r$ (in the sense of having $r$ as its convergent sum), then the infinite sum of $f(a)$ over all $a$ in $\\alpha$, viewed as extended non-negative real numbers, equals $r$ viewed as an extended non-negative real number.",
       "F_sig": "ENNReal.tsum_coe_eq.{u_1} {\u03b1 : Type u_1} {r : NNReal} {f : \u03b1 \u2192 NNReal} (h : HasSum f r) : \u2211' (a : \u03b1), \u2191(f a) = \u2191r",
       "F_B": "```lean\ntheorem tsum_coe_ne_zero_iff {\u03b1 : Type*} {f : \u03b1 \u2192 \u211d\u22650} {r : \u211d\u22650} (h : \u2211' (a : \u03b1), f a = r) : \n  \u2211' (a : \u03b1), (f a : \u211d\u22650\u221e) = \u2191r := by sorry\n```",
@@ -271,6 +418,14 @@
       "vacuous_T": false,
       "edit_dist_B": 10,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 6,
+      "edit_dist_Trandom": 9,
+      "tc_B": true,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for natural numbers $n$ and $m$, $n$ is less than the predecessor of $m$ if and only if the successor of $n$ is less than $m$.",
       "F_sig": "Nat.lt_pred_iff {n : \u2115} {m : \u2115} : n < Nat.pred m \u2194 Nat.succ n < m",
       "F_B": "```lean\ntheorem lt_pred_iff_succ_lt (n m : \u2115) : n < Nat.pred m \u2194 Nat.succ n < m := by sorry\n```",
@@ -290,6 +445,14 @@
       "vacuous_T": false,
       "edit_dist_B": 9,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 9,
+      "edit_dist_Trandom": 9,
+      "tc_B": true,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for integers $m$ and $n$, the inequality $m \\leq n - 1$ holds if and only if $m < n$.",
       "F_sig": "Int.le_sub_one_iff {m n : \u2124} : m \u2264 n - 1 \u2194 m < n",
       "F_B": "```lean\ntheorem int_le_sub_one_iff_lt (m n : \u2124) : m \u2264 n - 1 \u2194 m < n := by sorry\n```",
@@ -309,6 +472,14 @@
       "vacuous_T": false,
       "edit_dist_B": 13,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 10,
+      "edit_dist_Trandom": 11,
+      "tc_B": true,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "In any topological space $X$, the empty set is retrocompact, meaning it satisfies the retrocompactness property.",
       "F_sig": "IsRetrocompact.empty.{u_2} {X : Type u_2} [TopologicalSpace X] : IsRetrocompact \u2205",
       "F_B": "```lean\ntheorem isRetrocompact_empty {X : Type*} [TopologicalSpace X] : IsRetrocompact (\u2205 : Set X) := by sorry\n```",
@@ -328,6 +499,14 @@
       "vacuous_T": false,
       "edit_dist_B": 9,
       "edit_dist_T": 4,
+      "edit_dist_Tnames": 6,
+      "edit_dist_Trandom": 2,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The function `Lean.SubExpr.Pos.asNat` converts a subexpression position (of type `Lean.SubExpr.Pos`) to a natural number.",
       "F_sig": "Lean.SubExpr.Pos.asNat : Lean.SubExpr.Pos \u2192 \u2115",
       "F_B": "```lean\ndef Lean.SubExpr.Pos.asNat (p : Lean.SubExpr.Pos) : \u2115 := by sorry\n```",
@@ -347,6 +526,14 @@
       "vacuous_T": false,
       "edit_dist_B": 13,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 11,
+      "edit_dist_Trandom": 12,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "tie",
       "NL": "Looking at the Lean 4 declaration, `Polynomial.IsRoot p a` is a predicate that states whether an element `a` of a semiring `R` is a root of a polynomial `p` with coefficients in `R`. Specifically, `a` is a root of `p` if and only if evaluating the polynomial `p` at `a` yields zero, that is, `p(a) = 0`.",
       "F_sig": "Polynomial.IsRoot.{u} {R : Type u} [Semiring R] (p : Polynomial R) (a : R) : Prop",
       "F_B": "```lean\ndef Polynomial.IsRoot (p : Polynomial R) (a : R) : Prop := p.eval a = 0\n```",
@@ -366,6 +553,14 @@
       "vacuous_T": false,
       "edit_dist_B": 10,
       "edit_dist_T": 4,
+      "edit_dist_Tnames": 6,
+      "edit_dist_Trandom": 4,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The function `String.Slice.Subslice.endExclusive` takes a subslice of a string slice and returns the exclusive end position of that subslice as a position in the original string slice.",
       "F_sig": "String.Slice.Subslice.endExclusive {s : String.Slice} (self : String.Slice.Subslice s) : String.Slice.Pos s",
       "F_B": "```lean\ndef String.Slice.Subslice.endExclusive (ss : String.Slice.Subslice) : String.Pos := by sorry\n```",
@@ -385,6 +580,14 @@
       "vacuous_T": false,
       "edit_dist_B": 15,
       "edit_dist_T": 22,
+      "edit_dist_Tnames": 15,
+      "edit_dist_Trandom": 15,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The coLindel\u00f6f filter on a topological space X is the filter generated by all Lindel\u00f6f subsets of X (where a subset is Lindel\u00f6f if every open cover has a countable subcover).",
       "F_sig": "Filter.coLindelof.{u_2} (X : Type u_2) [TopologicalSpace X] : Filter X",
       "F_B": "```lean\ndef coLindel\u00f6fFilter (X : Type*) [TopologicalSpace X] : Filter X :=\n  Filter.generate {s : Set X | IsLindel\u00f6f s}\n```",
@@ -404,6 +607,14 @@
       "vacuous_T": false,
       "edit_dist_B": 15,
       "edit_dist_T": 13,
+      "edit_dist_Tnames": 15,
+      "edit_dist_Trandom": 13,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that for a subgroup H of a group G, an element x in H, and a natural number n, the coercion of x raised to the power n (computed in the subgroup H) equals the coercion of x raised to the power n (where the power is computed in the ambient group G).",
       "F_sig": "Subgroup.coe_pow.{u_1} {G : Type u_1} [Group G] (H : Subgroup G) (x : \u21a5H) (n : \u2115) : \u2191(x ^ n) = \u2191x ^ n",
       "F_B": "```lean\ntheorem Subgroup.coe_pow {G : Type*} [Group G] {H : Subgroup G} (x : H) (n : \u2115) :\n    \u2191(x ^ n) = (\u2191x : G) ^ n := by sorry\n```",
@@ -423,6 +634,14 @@
       "vacuous_T": false,
       "edit_dist_B": 79,
       "edit_dist_T": 21,
+      "edit_dist_Tnames": 89,
+      "edit_dist_Trandom": 16,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The norm of a continuous multilinear map composed with a family of continuous linear isometries is at most the norm of the original continuous multilinear map.",
       "F_sig": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le.{u, v, wE, wE\u2081, wG} {\ud835\udd5c : Type u} {\u03b9 : Type v}\n  {E : \u03b9 \u2192 Type wE} {E\u2081 : \u03b9 \u2192 Type wE\u2081} {G : Type wG} [NontriviallyNormedField \ud835\udd5c]\n  [(i : \u03b9) \u2192 SeminormedAddCommGroup (E i)] [(i : \u03b9) \u2192 NormedSpace \ud835\udd5c (E i)] [(i : \u03b9) \u2192 SeminormedAddCommGroup (E\u2081 i)]\n  [(i : \u03b9) \u2192 NormedSpace \ud835\udd5c (E\u2081 i)] [SeminormedAddCommGroup G] [NormedSpace \ud835\udd5c G] [Fintype \u03b9]\n  (g : ContinuousMultilinearMap \ud835\udd5c E\u2081 G) (f : (i : \u03b9) \u2192 E i \u2192\u2097\u1d62[\ud835\udd5c] E\u2081 i) :\n  \u2016ContinuousMultilinearMap.compContinuousLinearMap g fun i => LinearIsometry.toContinuousLinearMap (f i)\u2016 \u2264 \u2016g\u2016",
       "F_B": "```lean\ntheorem ContinuousMultilinearMap.norm_comp_le_of_isometries\n    {\ud835\udd5c : Type*} [NontriviallyNormedField \ud835\udd5c]\n    {\u03b9 : Type*} [Fintype \u03b9]\n    {E : \u03b9 \u2192 Type*} [\u2200 i, SeminormedAddCommGroup (E i)] [\u2200 i, NormedModule \ud835\udd5c (E i)]\n    {F : Type*} [SeminormedAddCommGroup F] [NormedModule \ud835\udd5c F]\n    {G : Type*} [SeminormedAddCommGroup G] [NormedModule \ud835\udd5c G]\n    (f : ContinuousMultilinearMap \ud835\udd5c (fun _ => F) G)\n    (g : \u2200 i, E i \u2192L[\ud835\udd5c] F) (hg : \u2200 i, IsometryEquiv.toIsometry (g i)) :\n    \u2016f.comp_multilinearMap (fun i => (g i).toMultilinearMap)\u2016 \u2264 \u2016f\u2016 := by sorry\n```",
@@ -442,6 +661,14 @@
       "vacuous_T": false,
       "edit_dist_B": 33,
       "edit_dist_T": 14,
+      "edit_dist_Tnames": 31,
+      "edit_dist_Trandom": 27,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for a closed monoidal category C and objects A and B in C, given a morphism h from the internal hom-object A \u27f9 B to an object Z, the composition of the coevaluation natural transformation at A \u27f9 B with the evaluation natural transformation at B (applied through the internal hom functor at A) followed by h equals h itself.",
       "F_sig": "CategoryTheory.ihom.coev_ev_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]\n  [CategoryTheory.MonoidalCategory C] (A B : C) [CategoryTheory.Closed A] {Z : C} (h : A \u27f9 B \u27f6 Z) :\n  CategoryTheory.CategoryStruct.comp (CategoryTheory.NatTrans.app (CategoryTheory.ihom.coev A) (A \u27f9 B))\n      (CategoryTheory.CategoryStruct.comp\n        (CategoryTheory.Functor.map (CategoryTheory.ihom A) (CategoryTheory.NatTrans.app (CategoryTheory.ihom.ev A) B))\n        h) =\n    h",
       "F_B": "```lean\ntheorem closed_monoidal_coev_eval_comp {C : Type*} [MonoidalCategory C] [ClosedMonoidalCategory C]\n    {A B Z : C} (h : (A \u27f9 B) \u27f6 Z) :\n    h \u2218 (ev B \u2218 ((id (A \u27f9 B)) \u2297 coev A)) = h := by sorry\n```",
@@ -461,6 +688,14 @@
       "vacuous_T": false,
       "edit_dist_B": 32,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 19,
+      "edit_dist_Trandom": 9,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "If $E$ and $F$ are pre-zero hypercovers of an object $S$ in a category $C$ with a precoverage $J$ that respects isomorphisms, and $e : E \\cong F$ is an isomorphism between them, then if the presieve at level 0 of $E$ belongs to the coverings of $S$ under $J$, then the presieve at level 0 of $F$ also belongs to the coverings of $S$ under $J$.",
       "F_sig": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso.{w, v, u} {C : Type u} [CategoryTheory.Category.{v, u} C]\n  {J : CategoryTheory.Precoverage C} [CategoryTheory.Precoverage.RespectsIso J] {S : C}\n  {E F : CategoryTheory.PreZeroHypercover S} (e : E \u2245 F)\n  (hE : CategoryTheory.PreZeroHypercover.presieve\u2080 E \u2208 CategoryTheory.Precoverage.coverings J S) :\n  CategoryTheory.PreZeroHypercover.presieve\u2080 F \u2208 CategoryTheory.Precoverage.coverings J S",
       "F_B": "```lean\ndef PreZeroHypercoverIsoPreservesCoverage {C : Type*} [Category C] (J : Precoverage C) \n    (hJ : J.RespectiveIsomorphisms) (S : C) (E F : PreZeroHypercover S) \n    (e : E \u2245 F) : J.Covers S E.presieve\u2080 \u2192 J.Covers S F.presieve\u2080 := by sorry\n```",
@@ -480,6 +715,14 @@
       "vacuous_T": false,
       "edit_dist_B": 46,
       "edit_dist_T": 20,
+      "edit_dist_Tnames": 42,
+      "edit_dist_Trandom": 36,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "When restricting a measure \u03bc to a finite union of sets indexed by a finite set T, if the sets are pairwise disjoint on T and each set is measurable, then the restricted measure equals the sum of the measures restricted to each individual set in the family.",
       "F_sig": "MeasureTheory.Measure.restrict_biUnion_finset.{u_2, u_6} {\u03b1 : Type u_2} {\u03b9 : Type u_6} {m0 : MeasurableSpace \u03b1}\n  {\u03bc : MeasureTheory.Measure \u03b1} {s : \u03b9 \u2192 Set \u03b1} {T : Finset \u03b9} (hd : Set.Pairwise (\u2191T) (Function.onFun Disjoint s))\n  (hm : \u2200 (i : \u03b9), MeasurableSet (s i)) :\n  MeasureTheory.Measure.restrict \u03bc (\u22c3 i \u2208 T, s i) =\n    MeasureTheory.Measure.sum fun i => MeasureTheory.Measure.restrict \u03bc (s \u2191i)",
       "F_B": "```lean\ntheorem measure_restrict_finset_union {\u03b1 : Type*} {T : Type*} [MeasurableSpace \u03b1] (\u03bc : Measure \u03b1) (s : T \u2192 Set \u03b1) (ht : Set.Pairwise (Disjoint on s)) [Fintype T] (hmeas : \u2200 t : T, MeasurableSet (s t)) : Measure.restrict \u03bc (\u22c3 t : T, s t) = \u2211 t : T, Measure.restrict \u03bc (s t) := by sorry\n```",
@@ -499,6 +742,14 @@
       "vacuous_T": false,
       "edit_dist_B": 92,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 85,
+      "edit_dist_Trandom": 17,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "This theorem provides a morphism between two E-page entries of a spectral object in an abelian category, where both entries are associated with the same grading indices n\u2080, n\u2081, n\u2082 (with n\u2080 + 1 = n\u2081 and n\u2081 + 1 = n\u2082), but constructed using different chains of inequalities in the index preorder \u03b9': the first using the chain i\u2080 \u2264 i\u2081 \u2264 i\u2082 \u2264 i\u2083 \u2264 i\u2084 (focusing on the first two transitions), and the second using a chain that emphasizes the last two transitions i\u2082 \u2264 i\u2083 \u2264 i\u2084.",
       "F_sig": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'.{v_1, u_1, u_3} {C : Type u_1} {\u03b9' : Type u_3}\n  [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Abelian C] [Preorder \u03b9']\n  (X' : CategoryTheory.Abelian.SpectralObject C \u03b9') (i\u2080 i\u2081 i\u2082 i\u2083 i\u2084 : \u03b9') (hi\u2080\u2081 : i\u2080 \u2264 i\u2081) (hi\u2081\u2082 : i\u2081 \u2264 i\u2082)\n  (hi\u2082\u2083 : i\u2082 \u2264 i\u2083) (hi\u2083\u2084 : i\u2083 \u2264 i\u2084) (n\u2080 n\u2081 n\u2082 : \u2124) (hn\u2081 : n\u2080 + 1 = n\u2081 := by lia) (hn\u2082 : n\u2081 + 1 = n\u2082 := by lia) :\n  CategoryTheory.Abelian.SpectralObject.E X' (CategoryTheory.homOfLE hi\u2080\u2081) (CategoryTheory.homOfLE \u22ef)\n      (CategoryTheory.homOfLE hi\u2083\u2084) n\u2080 n\u2081 n\u2082 hn\u2081 hn\u2082 \u27f6\n    CategoryTheory.Abelian.SpectralObject.E X' (CategoryTheory.homOfLE \u22ef) (CategoryTheory.homOfLE hi\u2082\u2083)\n      (CategoryTheory.homOfLE hi\u2083\u2084) n\u2080 n\u2081 n\u2082 hn\u2081 hn\u2082",
       "F_B": "```lean\ndef spectralObject_E_page_morphism\n    {A : Type*} [Category A] [Abelian A]\n    {\u03b9 : Type*} [Preorder \u03b9]\n    (E : SpectralObject A \u03b9)\n    {n\u2080 n\u2081 n\u2082 : \u2124} (h_n01 : n\u2080 + 1 = n\u2081) (h_n12 : n\u2081 + 1 = n\u2082)\n    {i\u2080 i\u2081 i\u2082 i\u2083 i\u2084 : \u03b9} (h_01 : i\u2080 \u2264 i\u2081) (h_12 : i\u2081 \u2264 i\u2082) (h_23 : i\u2082 \u2264 i\u2083) (h_34 : i\u2083 \u2264 i\u2084) :\n    E.E_page \u27e8n\u2080, i\u2080, i\u2084\u27e9 \u2192 E.E_page \u27e8n\u2080, i\u2082, i\u2084\u27e9\n```",
@@ -518,6 +769,14 @@
       "vacuous_T": false,
       "edit_dist_B": 42,
       "edit_dist_T": 40,
+      "edit_dist_Tnames": 65,
+      "edit_dist_Trandom": 33,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The theorem states that for a category $C$ with a precoherent structure and a sieve $S$ on an object $X$, if there exists a finite effective epimorphic family $(Y_a \\to X)_{a \\in \\alpha}$ such that all arrows $\\pi_a : Y_a \\to X$ in this family belong to the sieve $S$, then $S$ is a covering sieve in the coherent topology on $C$ at $X$.",
       "F_sig": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily.{v_1, u_1} {C : Type u_1}\n  [CategoryTheory.Category.{v_1, u_1} C] [CategoryTheory.Precoherent C] {X : C} (S : CategoryTheory.Sieve X) :\n  (\u2203 \u03b1,\n      \u2203 (_ : Finite \u03b1), \u2203 Y \u03c0, CategoryTheory.EffectiveEpiFamily Y \u03c0 \u2227 \u2200 (a : \u03b1), CategoryTheory.Sieve.arrows S (\u03c0 a)) \u2192\n    S \u2208 (CategoryTheory.coherentTopology C) X",
       "F_B": "```lean\ntheorem sieve_of_finite_effective_epi_family_in_coherent_topology\n  {C : Type*} [Category C] [Precoherent C]\n  {X : C} (S : Sieve X)\n  (\u03b1 : Type*) [Finite \u03b1]\n  (Y : \u03b1 \u2192 C) (\u03c0 : (a : \u03b1) \u2192 (Y a \u27f6 X))\n  (heff : EffectiveEpiFamily \u03c0)\n  (hS : \u2200 a, \u03c0 a \u2208 S) :\n  S \u2208 coherentTopology C X\n```",
@@ -537,6 +796,14 @@
       "vacuous_T": false,
       "edit_dist_B": 39,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 25,
+      "edit_dist_Trandom": 9,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "If the real part of a complex number $z$ is in the interior of the integrable exponential set of a real-valued function $X$ with respect to a measure $\u03bc$, and $p$ is a non-negative real number, then the function $\u03c9 \\mapsto |X(\u03c9)|^p \\cdot e^{z \\cdot X(\u03c9)}$ is integrable with respect to $\u03bc$.",
       "F_sig": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet.{u_1} {\u03a9 : Type u_1}\n  {m : MeasurableSpace \u03a9} {X : \u03a9 \u2192 \u211d} {\u03bc : MeasureTheory.Measure \u03a9} {z : \u2102}\n  (hz : Complex.re z \u2208 interior (ProbabilityTheory.integrableExpSet X \u03bc)) {p : \u211d} (hp : 0 \u2264 p) :\n  MeasureTheory.Integrable (fun \u03c9 => \u2191(|X \u03c9| ^ p) * Complex.exp (z * \u2191(X \u03c9))) \u03bc",
       "F_B": "```lean\ntheorem integrable_pow_exp_mul_ofReal {\u03b1 : Type*} [MeasurableSpace \u03b1] (\u03bc : Measure \u03b1) \n    (X : \u03b1 \u2192 \u211d) (z : \u2102) (p : \u211d) (hp : 0 \u2264 p) \n    (hz : z.re \u2208 interior (integrableExpSet \u03bc X)) :\n    Integrable (fun \u03c9 => |X \u03c9| ^ p * Complex.exp (z * X \u03c9)) \u03bc\n```",
@@ -556,6 +823,14 @@
       "vacuous_T": false,
       "edit_dist_B": 87,
       "edit_dist_T": 11,
+      "edit_dist_Tnames": 77,
+      "edit_dist_Trandom": 47,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for a monadic predicate `p` on array elements and an array `as`, if we start with an index `start` (which is at most the minimum of `stop` and the array size), and we have propositions `tru` and `fal` indexed by natural numbers such that `fal start` holds initially, and for every valid index `i` less than `stop` where `fal i` holds, the predicate `p` satisfies that if it returns true then `tru` holds, otherwise `fal (i+1)` holds, then the monadic operation `anyM p as start stop` satisfies that if it returns true then `tru` holds, otherwise `fal (min stop (size as))` holds.",
       "F_sig": "Array.SatisfiesM_anyM.{u_1, u_2} {m : Type \u2192 Type u_1} {\u03b1 : Type u_2} {start stop : \u2115} [Monad m] [LawfulMonad m]\n  {p : \u03b1 \u2192 m Bool} {as : Array \u03b1} (hstart : start \u2264 min stop (Array.size as)) (tru : Prop) (fal : \u2115 \u2192 Prop)\n  (h0 : fal start)\n  (hp :\n    \u2200 (i : Fin (Array.size as)),\n      \u2191i < stop \u2192 fal \u2191i \u2192 SatisfiesM (fun x => bif x then tru else fal (\u2191i + 1)) (p as[i])) :\n  SatisfiesM (fun res => bif res then tru else fal (min stop (Array.size as))) (Array.anyM p as start stop)",
       "F_B": "```lean\ntheorem anyM_ind {m : Type u \u2192 Type v} [Monad m] {p : \u03b1 \u2192 m Bool} {as : Array \u03b1} {start stop : \u2115} {tru fal : \u2115 \u2192 Prop}\n    (h_start : start \u2264 min stop as.size)\n    (h_base : fal start)\n    (h_step : \u2200 i, i < stop \u2192 fal i \u2192 (\u2200 b, p as[i] = m.pure b \u2192 (b = true \u2192 tru) \u2227 (b = false \u2192 fal (i + 1))))\n    : \u2200 b, anyM p as start stop = m.pure b \u2192 (b = true \u2192 tru) \u2227 (b = false \u2192 fal (min stop as.size))\n```",
@@ -575,6 +850,14 @@
       "vacuous_T": false,
       "edit_dist_B": 53,
       "edit_dist_T": 23,
+      "edit_dist_Tnames": 39,
+      "edit_dist_Trandom": 16,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The theorem states that for a dominated finitely additive set function $T$ defined with respect to the measure $\\top \\cdot \\mu$ (where $\\top$ denotes the top element, representing infinity, multiplied with the measure $\\mu$), the associated set-to-function construction applied to any function $f$ from $\\alpha$ to a normed space $E$ yields zero in the target normed space $F$.",
       "F_sig": "MeasureTheory.setToFun_top_smul_measure.{u_1, u_2, u_3} {\u03b1 : Type u_1} {E : Type u_2} {F : Type u_3}\n  [NormedAddCommGroup E] [NormedSpace \u211d E] [NormedAddCommGroup F] [NormedSpace \u211d F] {m : MeasurableSpace \u03b1}\n  {\u03bc : MeasureTheory.Measure \u03b1} [CompleteSpace F] {T : Set \u03b1 \u2192 E \u2192L[\u211d] F} {C : \u211d}\n  (hT : MeasureTheory.DominatedFinMeasAdditive (\u22a4 \u2022 \u03bc) T C) (f : \u03b1 \u2192 E) : MeasureTheory.setToFun (\u22a4 \u2022 \u03bc) T hT f = 0",
       "F_B": "```lean\ntheorem dominated_finitelyAdditive_setFunction_top_eq_zero {\u03b1 : Type*} {E : Type*} {F : Type*} [NormedAddCommGroup E] [NormedAddCommGroup F] (\u03bc : Set \u03b1 \u2192 \u211d) (f : \u03b1 \u2192 E) (T : (Set \u03b1 \u2192 E) \u2192 F) : T (fun s => f s) = 0 := by sorry\n```",
@@ -594,6 +877,14 @@
       "vacuous_T": false,
       "edit_dist_B": 68,
       "edit_dist_T": 20,
+      "edit_dist_Tnames": 53,
+      "edit_dist_Trandom": 8,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The composition of the lift of a localization map `f` (with respect to a submonoid `S` and a monoid homomorphism `l` that sends elements of `S` to units) with the lift of another localization map `k` (with respect to the same submonoid `S` and compatible unit conditions) equals the lift of `f` with respect to `l` directly.",
       "F_sig": "Submonoid.LocalizationMap.lift_comp_lift_eq.{u_1, u_2, u_4, u_5} {M : Type u_1} [CommMonoid M] {S : Submonoid M}\n  {N : Type u_2} [CommMonoid N] (f : Submonoid.LocalizationMap S N) {Q : Type u_4} [CommMonoid Q]\n  (k : Submonoid.LocalizationMap S Q) {A : Type u_5} [CommMonoid A] {l : M \u2192* A} (hl : \u2200 (w : \u21a5S), IsUnit (l \u2191w)) :\n  MonoidHom.comp (Submonoid.LocalizationMap.lift k hl) (Submonoid.LocalizationMap.lift f \u22ef) =\n    Submonoid.LocalizationMap.lift f hl",
       "F_B": "```lean\ntheorem Submonoid.LocalizationMap.lift_comp_lift {M : Type*} {N : Type*} {P : Type*} [Monoid M] [Monoid N] [Monoid P] (S : Submonoid M) (f : LocalizationMap S N) (k : LocalizationMap S P) (l : M \u2192* P) (hl : \u2200 s : S, IsUnit (l s)) (hf : \u2200 s : S, IsUnit (f.lift hl s)) : f.lift (fun s => hl s) \u2218 k.lift (fun s => hl s) = k.lift (fun s => hl s) := by sorry\n```",
@@ -613,6 +904,14 @@
       "vacuous_T": false,
       "edit_dist_B": 12,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 13,
+      "edit_dist_Trandom": 12,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The rational numbers have dense range in the $p$-adic numbers, meaning that the image of the canonical embedding (rational cast) from $\\mathbb{Q}$ to $\\mathbb{Q}_p$ is dense in $\\mathbb{Q}_p$ for any prime $p$.",
       "F_sig": "Padic.denseRange_ratCast (p : \u2115) [Fact (Nat.Prime p)] : DenseRange Rat.cast",
       "F_B": "```lean\ntheorem Rat.denseRange_cast (p : \u2115) [Fact (Nat.Prime p)] : DenseRange (Coe.coe : \u211a \u2192 \u2124_[p]) := by sorry\n```",
@@ -632,6 +931,14 @@
       "vacuous_T": false,
       "edit_dist_B": 14,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 14,
+      "edit_dist_Trandom": 18,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The empty set is sized with respect to any natural number $r$, meaning the empty set satisfies the property of being \"sized $r$\" (where a set is sized $r$ if all its finite subsets have cardinality at most $r$).",
       "F_sig": "Set.sized_empty.{u_1} {\u03b1 : Type u_1} {r : \u2115} : Set.Sized r \u2205",
       "F_B": "```lean\ntheorem empty_set_sized (r : \u2115) : Sized (\u2205 : Set \u03b1) r := by sorry\n```",
@@ -651,6 +958,14 @@
       "vacuous_T": false,
       "edit_dist_B": 7,
       "edit_dist_T": 6,
+      "edit_dist_Tnames": 5,
+      "edit_dist_Trandom": 5,
+      "tc_B": true,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The declaration states that `test7` is a term of type `Test6` in the `Lean.Server.Test.Refs` module.",
       "F_sig": "Lean.Server.Test.Refs.test7 : Lean.Server.Test.Refs.Test6",
       "F_B": "```lean\ndef test7 : Test6 := sorry\n```",
@@ -670,6 +985,14 @@
       "vacuous_T": false,
       "edit_dist_B": 19,
       "edit_dist_T": 6,
+      "edit_dist_Tnames": 7,
+      "edit_dist_Trandom": 17,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The product of two nonnegative elements in the ring of integers adjoined with the square root of a natural number $d$ is itself nonnegative: if $a$ and $b$ are nonnegative elements of $\\mathbb{Z}[\\sqrt{d}]$, then their product $a \\cdot b$ is also nonnegative.",
       "F_sig": "Zsqrtd.nonneg_mul {d : \u2115} {a b : \u2124\u221a\u2191d} (ha : Zsqrtd.Nonneg a) (hb : Zsqrtd.Nonneg b) : Zsqrtd.Nonneg (a * b)",
       "F_B": "```lean\ntheorem mul_nonneg_in_zsqrtd (d : \u2115) (a b : \u2124[\u221ad]) (ha : 0 \u2264 a) (hb : 0 \u2264 b) : 0 \u2264 a * b := by sorry\n```",
@@ -689,6 +1012,14 @@
       "vacuous_T": false,
       "edit_dist_B": 10,
       "edit_dist_T": 9,
+      "edit_dist_Tnames": 10,
+      "edit_dist_Trandom": 7,
+      "tc_B": true,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The statement asserts that for a finite set `s` and an element `a` not in `s`, the set `s` is covered by the set obtained by adjoining `a` to `s` (that is, `s` and `cons a s ha` form a covering relation in the lattice of finite sets).",
       "F_sig": "Finset.covBy_cons.{u_1} {\u03b1 : Type u_1} {s : Finset \u03b1} {a : \u03b1} (ha : a \u2209 s) : s \u22d6 Finset.cons a s ha",
       "F_B": "```lean\ntheorem Finset.le_cons {\u03b1 : Type*} {s : Finset \u03b1} {a : \u03b1} (ha : a \u2209 s) : s \u2264 Finset.cons a s ha := by sorry\n```",
@@ -708,6 +1039,14 @@
       "vacuous_T": false,
       "edit_dist_B": 10,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 7,
+      "edit_dist_Trandom": 6,
+      "tc_B": true,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The function `checkCoeffs` takes a polynomial (represented as `Int.Linear.Poly`) and returns a Boolean value, presumably checking whether the coefficients of the polynomial satisfy certain properties or constraints.",
       "F_sig": "Int.Linear.Poly.checkCoeffs : Int.Linear.Poly \u2192 Bool",
       "F_B": "```lean\ndef checkCoeffs (p : Int.Linear.Poly) : Bool := by sorry\n```",
@@ -727,6 +1066,14 @@
       "vacuous_T": false,
       "edit_dist_B": 15,
       "edit_dist_T": 7,
+      "edit_dist_Tnames": 15,
+      "edit_dist_Trandom": 7,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The theorem states that two integer powers of negative one are equal if and only if the difference between the exponents is even: for integers $n_1$ and $n_2$, we have $(-1)^{n_1} = (-1)^{n_2}$ if and only if $n_1 - n_2$ is even.",
       "F_sig": "Int.negOnePow_eq_iff (n\u2081 n\u2082 : \u2124) : Int.negOnePow n\u2081 = Int.negOnePow n\u2082 \u2194 Even (n\u2081 - n\u2082)",
       "F_B": "```lean\ntheorem neg_one_pow_eq_iff_even_diff (n\u2081 n\u2082 : \u2124) : (-1 : \u2124) ^ n\u2081 = (-1 : \u2124) ^ n\u2082 \u2194 Even (n\u2081 - n\u2082) := by sorry\n```",
@@ -746,6 +1093,14 @@
       "vacuous_T": false,
       "edit_dist_B": 10,
       "edit_dist_T": 10,
+      "edit_dist_Tnames": 120,
+      "edit_dist_Trandom": 16,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The infimum of a constant value $a$ indexed over a decidable proposition $p$ equals $a$ if $p$ is true, and equals the top element $\\top$ if $p$ is false.",
       "F_sig": "iInf_eq_if.{u_1} {\u03b1 : Type u_1} [CompleteLattice \u03b1] {p : Prop} [Decidable p] (a : \u03b1) : \u2a05 (_ : p), a = if p then a else \u22a4",
       "F_B": "```lean\ntheorem iInf_const_of_decidable {\u03b1 : Type*} [ConditionallyCompleteLinearOrder \u03b1] {p : Prop} [Decidable p] (a : \u03b1) :\n    \u2a05 (_ : p), a = if p then a else \u22a4 := by sorry\n```",
@@ -765,6 +1120,14 @@
       "vacuous_T": false,
       "edit_dist_B": 15,
       "edit_dist_T": 7,
+      "edit_dist_Tnames": 10,
+      "edit_dist_Trandom": 6,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The imaginary part of a point in the upper half-plane is unchanged when a real number is added to it via vector addition: for any real number $x$ and any point $z$ in the upper half-plane, the imaginary part of $x +\u1d65 z$ equals the imaginary part of $z$.",
       "F_sig": "UpperHalfPlane.vadd_im (x : \u211d) (z : UpperHalfPlane) : UpperHalfPlane.im (x +\u1d65 z) = UpperHalfPlane.im z",
       "F_B": "```lean\ntheorem imag_add_real_eq_imag (x : \u211d) (z : \u2102) (hz : 0 < z.im) : (x +\u1d65 z).im = z.im := by sorry\n```",
@@ -784,6 +1147,14 @@
       "vacuous_T": false,
       "edit_dist_B": 9,
       "edit_dist_T": 8,
+      "edit_dist_Tnames": 9,
+      "edit_dist_Trandom": 7,
+      "tc_B": true,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "If $b < a$ in a linearly ordered type, then $\\min(a, b) = b$.",
       "F_sig": "min_eq_right_of_lt.{u_1} {\u03b1 : Type u_1} [LinearOrder \u03b1] {a b : \u03b1} (h : b < a) : min a b = b",
       "F_B": "```lean\ntheorem min_eq_of_lt {\u03b1 : Type*} [LinearOrder \u03b1] {a b : \u03b1} (h : b < a) : min a b = b := by sorry\n```",
@@ -803,6 +1174,14 @@
       "vacuous_T": false,
       "edit_dist_B": 41,
       "edit_dist_T": 18,
+      "edit_dist_Tnames": 35,
+      "edit_dist_Trandom": 10,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that for a double homological complex $K$ in a category $C$ with zero morphisms, indexed by complex shapes over types $I_1$ and $I_2$, accessing the object at position $(i,j)$ after flipping the complex (which swaps the two indices) is equal to accessing the object at position $(j,i)$ in the original complex; in other words, flipping a double complex commutes with extracting objects at swapped indices.",
       "F_sig": "HomologicalComplex\u2082.flip_X_X.{v_1, u_1, u_2, u_3} {C : Type u_1} [CategoryTheory.Category.{v_1, u_1} C]\n  [CategoryTheory.Limits.HasZeroMorphisms C] {I\u2081 : Type u_2} {I\u2082 : Type u_3} {c\u2081 : ComplexShape I\u2081}\n  {c\u2082 : ComplexShape I\u2082} (K : HomologicalComplex\u2082 C c\u2081 c\u2082) (i : I\u2082) (j : I\u2081) :\n  HomologicalComplex.X (HomologicalComplex.X (HomologicalComplex\u2082.flip K) i) j =\n    HomologicalComplex.X (HomologicalComplex.X K j) i",
       "F_B": "```lean\ndef DoubleComplex.flip_obj_eq {C : Type*} [CategoryTheory.Category C] {I\u2081 I\u2082 : Type*} (K : DoubleComplex C I\u2081 I\u2082) (i : I\u2081) (j : I\u2082) : K.flip.X j i = K.X i j := by sorry\n```",
@@ -822,6 +1201,14 @@
       "vacuous_T": false,
       "edit_dist_B": 54,
       "edit_dist_T": 33,
+      "edit_dist_Tnames": 104,
+      "edit_dist_Trandom": 35,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "Given a category C with a base object S, and objects X, Y, Z in C that are equipped with morphisms to S (via OverClass instances), and given morphisms f: X \u2192 Y and g: Y \u2192 Z that are compatible with the structure over S (via HomIsOver instances), the following associativity property holds: composing the morphism corresponding to (g \u2218 f) in the over category with any morphism h equals first composing the morphism corresponding to f with the morphism corresponding to g, and then composing with h.",
       "F_sig": "CategoryTheory.OverClass.asOverHom_comp_assoc.{v, u} {C : Type u} [CategoryTheory.Category.{v, u} C] {X Y Z : C} (S : C)\n  [CategoryTheory.OverClass X S] [CategoryTheory.OverClass Y S] [CategoryTheory.OverClass Z S] (f : X \u27f6 Y) (g : Y \u27f6 Z)\n  [CategoryTheory.HomIsOver f S] [CategoryTheory.HomIsOver g S] {Z\u271d : CategoryTheory.Over S}\n  (h : CategoryTheory.OverClass.asOver Z S \u27f6 Z\u271d) :\n  CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S (CategoryTheory.CategoryStruct.comp f g)) h =\n    CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S f)\n      (CategoryTheory.CategoryStruct.comp (CategoryTheory.OverClass.asOverHom S g) h)",
       "F_B": "```lean\ntheorem over_comp_assoc {C : Type*} [Category C] {S : C} {X Y Z : C} \n    (f : X \u27f6 Y) (g : Y \u27f6 Z) (h : (Over S).obj Z \u27f6 (Over S).obj Z) :\n    h \u2218 (Over.homMk (g \u2218 f)) = (Over.homMk g \u2218 Over.homMk f) \u2218 h := by sorry\n```",
@@ -841,6 +1228,14 @@
       "vacuous_T": false,
       "edit_dist_B": 17,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 12,
+      "edit_dist_Trandom": 8,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The inverse of the right unitor isomorphism applied to a morphism \u03b1 between adjunctions a and b in a bicategory B, when viewed through the right transformation component (\u03c4r), equals the left unitor isomorphism applied to the right component of the morphism \u03b1.",
       "F_sig": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r.{w, v, u} {B : Type u} [CategoryTheory.Bicategory B]\n  {a b : CategoryTheory.Bicategory.Adj B} (\u03b1 : a \u27f6 b) :\n  CategoryTheory.Bicategory.Adj.Hom\u2082.\u03c4r\n      (CategoryTheory.Iso.inv (CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor \u03b1)) =\n    CategoryTheory.Iso.hom (CategoryTheory.Bicategory.leftUnitor (CategoryTheory.Bicategory.Adj.Hom.r \u03b1))",
       "F_B": "```lean\ntheorem BicatAdjMorphInvRightUnitorEqLeftUnitorRight {B : Type*} [Bicategory B] \n    {a b : BicatAdj B} (\u03b1 : a \u27f6 b) :\n    (rightUnitor (\u03c4r \u03b1)).inv = leftUnitor (\u03b1.right) := by sorry\n```",
@@ -860,6 +1255,14 @@
       "vacuous_T": false,
       "edit_dist_B": 32,
       "edit_dist_T": 14,
+      "edit_dist_Tnames": 34,
+      "edit_dist_Trandom": 5,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The multiplication natural transformation of the monad obtained from an adjunction between functors L and R (where L is left adjoint to R) is equal to the natural transformation obtained by whiskering the counit of the adjunction with L on the left and R on the right.",
       "F_sig": "CategoryTheory.Adjunction.toMonad_\u03bc.{v\u2081, v\u2082, u\u2081, u\u2082} {C : Type u\u2081} [CategoryTheory.Category.{v\u2081, u\u2081} C] {D : Type u\u2082}\n  [CategoryTheory.Category.{v\u2082, u\u2082} D] {L : CategoryTheory.Functor C D} {R : CategoryTheory.Functor D C} (h : L \u22a3 R) :\n  CategoryTheory.Monad.\u03bc (CategoryTheory.Adjunction.toMonad h) =\n    CategoryTheory.Functor.whiskerRight (CategoryTheory.Functor.whiskerLeft L (CategoryTheory.Adjunction.counit h)) R",
       "F_B": "```lean\ntheorem monadFromAdjunction_mul {C D : Type*} [Category C] [Category D] {L : C \u2964 D} {R : D \u2964 C} (adj : L \u22a3 R) :\n  (monadFromAdjunction adj).toMonad.\u03bc = whiskerLeft L (whiskerRight adj.counit R) := by sorry\n```",
@@ -879,6 +1282,14 @@
       "vacuous_T": false,
       "edit_dist_B": 36,
       "edit_dist_T": 22,
+      "edit_dist_Tnames": 30,
+      "edit_dist_Trandom": 14,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "This theorem states that for a category $J$, a category $C$ with zero morphisms, a functor $X$ from $J$ to short complexes in $C$, and an object in $J$, the second component ($\\tau_2$) of the morphism obtained by applying the inverse of the counit isomorphism of the functor equivalence to $X$ and then evaluating at the given object is equal to the identity morphism on the second object of the short complex $X$ evaluated at that object.",
       "F_sig": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082.{v_1, u_1, v_2, u_2} (J : Type u_1)\n  (C : Type u_2) [CategoryTheory.Category.{v_1, u_1} J] [CategoryTheory.Category.{v_2, u_2} C]\n  [CategoryTheory.Limits.HasZeroMorphisms C] (X : CategoryTheory.Functor J (CategoryTheory.ShortComplex C)) (X\u271d : J) :\n  CategoryTheory.ShortComplex.Hom.\u03c4\u2082\n      (CategoryTheory.NatTrans.app\n        (CategoryTheory.NatTrans.app\n          (CategoryTheory.Iso.inv (CategoryTheory.ShortComplex.FunctorEquivalence.counitIso J C)) X)\n        X\u271d) =\n    CategoryTheory.CategoryStruct.id (CategoryTheory.ShortComplex.X\u2082 (CategoryTheory.Functor.obj X X\u271d))",
       "F_B": "```lean\ntheorem ShortComplex.tau2_counitInv_eq_id {J C : Type*} [Category J] [Category C] [ZeroMorphisms C]\n    (X : J \u2964 ShortComplex C) (j : J) :\n    ((ShortComplex.funExtEquiv X).symm X j).\u03c4\u2082 = \ud835\udfd9 (X.obj j).X\u2082 := by sorry\n```",
@@ -898,6 +1309,14 @@
       "vacuous_T": false,
       "edit_dist_B": 48,
       "edit_dist_T": 13,
+      "edit_dist_Tnames": 41,
+      "edit_dist_Trandom": 7,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The inverse of the direct sum decomposition equivalence preserves addition: for any two elements $x$ and $y$ in the direct sum of the subobjects indexed by $\\iota$, applying the inverse decomposition to their sum equals the sum of applying the inverse decomposition to each element individually.",
       "F_sig": "DirectSum.decompose_symm_add.{u_1, u_3, u_4} {\u03b9 : Type u_1} {M : Type u_3} {\u03c3 : Type u_4} [DecidableEq \u03b9]\n  [AddCommMonoid M] [SetLike \u03c3 M] [AddSubmonoidClass \u03c3 M] (\u2133 : \u03b9 \u2192 \u03c3) [DirectSum.Decomposition \u2133]\n  (x y : DirectSum \u03b9 fun i => \u21a5(\u2133 i)) :\n  (Equiv.symm (DirectSum.decompose \u2133)) (x + y) =\n    (Equiv.symm (DirectSum.decompose \u2133)) x + (Equiv.symm (DirectSum.decompose \u2133)) y",
       "F_B": "```lean\ntheorem DirectSum.decompose_add {R : Type*} [Semiring R] {M : Type*} [AddCommMonoid M] [Module R M]\n    {\u03b9 : Type*} [DecidableEq \u03b9] {p : \u03b9 \u2192 Submodule R M}\n    (h : DirectSum.IsInternal p) (x y : \u2a01 i, p i) :\n    h.decompose (x + y) = h.decompose x + h.decompose y := by sorry\n```",
@@ -917,6 +1336,14 @@
       "vacuous_T": false,
       "edit_dist_B": 30,
       "edit_dist_T": 17,
+      "edit_dist_Tnames": 16,
+      "edit_dist_Trandom": 20,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "T",
       "NL": "The linear isometry equivalence `linearIsometryBoundedOfCompact` between continuous maps and bounded continuous functions (over a compact space \u03b1 with values in a seminormed space E and scalars \ud835\udd5c) is equal, when viewed as an isometry equivalence by forgetting the linear structure, to the isometry equivalence `isometryEquivBoundedOfCompact`.",
       "F_sig": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv.{u_1, u_3, u_4} {\u03b1 : Type u_1} {E : Type u_3}\n  [TopologicalSpace \u03b1] [CompactSpace \u03b1] [SeminormedAddCommGroup E] {\ud835\udd5c : Type u_4} [NormedRing \ud835\udd5c] [Module \ud835\udd5c E]\n  [IsBoundedSMul \ud835\udd5c E] :\n  LinearIsometryEquiv.toIsometryEquiv (ContinuousMap.linearIsometryBoundedOfCompact \u03b1 E \ud835\udd5c) =\n    ContinuousMap.isometryEquivBoundedOfCompact \u03b1 E",
       "F_B": "```lean\ntheorem linearIsometryBoundedOfCompact_eq_isometryEquivBoundedOfCompact (\ud835\udd5c : Type*) (\u03b1 : Type*) (E : Type*) [NontriviallyNormedField \ud835\udd5c] [TopologicalSpace \u03b1] [CompactSpace \u03b1] [SeminormedAddCommGroup E] [NormedModule \ud835\udd5c E] : (linearIsometryBoundedOfCompact \ud835\udd5c \u03b1 E).toIsometryEquiv = isometryEquivBoundedOfCompact \u03b1 E := by sorry\n```",
@@ -936,6 +1363,14 @@
       "vacuous_T": false,
       "edit_dist_B": 40,
       "edit_dist_T": 12,
+      "edit_dist_Tnames": 46,
+      "edit_dist_Trandom": 21,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that for a vector bundle core Z over a base space B with fiber F, any point (b, a) where b is in the base space and a is in the fiber, belongs to the source of the local trivialization at the point b.",
       "F_sig": "VectorBundleCore.mem_source_at.{u_1, u_2, u_3, u_5} {R : Type u_1} {B : Type u_2} {F : Type u_3}\n  [NontriviallyNormedField R] [NormedAddCommGroup F] [NormedSpace R F] [TopologicalSpace B] {\u03b9 : Type u_5}\n  (Z : VectorBundleCore R B F \u03b9) (b : B) (a : F) :\n  \u27e8b, a\u27e9 \u2208\n    PartialEquiv.source\n      (OpenPartialHomeomorph.toPartialEquiv\n        (Bundle.Trivialization.toOpenPartialHomeomorph (VectorBundleCore.localTrivAt Z b)))",
       "F_B": "```lean\ntheorem VectorBundleCore.mem_source (Z : VectorBundleCore \ud835\udd5c B F) (b : B) (a : F) :\n  (b, a) \u2208 (Z.local_triv b).source := by sorry\n```",
@@ -955,6 +1390,14 @@
       "vacuous_T": false,
       "edit_dist_B": 45,
       "edit_dist_T": 35,
+      "edit_dist_Tnames": 40,
+      "edit_dist_Trandom": 6,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The right component of the inverse of the unit isomorphism of the equivalence between the comma category of functors L and R (both targeting the discrete category on the unit type) and the product category, when applied to an object X, is equal to the identity morphism on the right component of X.",
       "F_sig": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right.{v\u2081, v\u2082, u\u2081, u\u2082, u_1} {A : Type u\u2081}\n  [CategoryTheory.Category.{v\u2081, u\u2081} A] {B : Type u\u2082} [CategoryTheory.Category.{v\u2082, u\u2082} B]\n  (L : CategoryTheory.Functor A (CategoryTheory.Discrete PUnit.{u_1 + 1}))\n  (R : CategoryTheory.Functor B (CategoryTheory.Discrete PUnit.{u_1 + 1})) (X : CategoryTheory.Comma L R) :\n  CategoryTheory.CommaMorphism.right\n      (CategoryTheory.NatTrans.app\n        (CategoryTheory.Iso.inv (CategoryTheory.Equivalence.unitIso (CategoryTheory.Comma.equivProd L R))) X) =\n    CategoryTheory.CategoryStruct.id (CategoryTheory.Comma.right X)",
       "F_B": "```lean\ntheorem comma_unit_equiv_inv_right_component_eq_id {C D : Type*} [Category C] [Category D] (L : C \u2964 Discrete Unit) (R : D \u2964 Discrete Unit) (X : C \u00d7 D) : (((L \u2a3e R).unitIso).inv.app X).right = \ud835\udfd9 X.right := by sorry\n```",
@@ -974,6 +1417,14 @@
       "vacuous_T": false,
       "edit_dist_B": 65,
       "edit_dist_T": 21,
+      "edit_dist_Tnames": 65,
+      "edit_dist_Trandom": 196,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "If a function $f : \\mathbb{R} \\to E$ (where $E$ is a normed additive commutative group) is integrable on intervals $(a_i, b_i]$ for all $i$ in an index set $\\iota$, where $a_i$ tends to negative infinity and $b_i$ tends to positive infinity along a countably generated filter $l$, and if the interval integrals of $\\|f\\|$ converge to some value $I$, then $f$ is integrable with respect to the measure $\\mu$ on all of $\\mathbb{R}$.",
       "F_sig": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto.{u_1, u_2} {\u03b9 : Type u_1} {E : Type u_2}\n  {\u03bc : MeasureTheory.Measure \u211d} {l : Filter \u03b9} [Filter.NeBot l] [Filter.IsCountablyGenerated l] [NormedAddCommGroup E]\n  {a b : \u03b9 \u2192 \u211d} {f : \u211d \u2192 E} (I : \u211d) (hfi : \u2200 (i : \u03b9), MeasureTheory.IntegrableOn f (Set.Ioc (a i) (b i)) \u03bc)\n  (ha : Filter.Tendsto a l Filter.atBot) (hb : Filter.Tendsto b l Filter.atTop)\n  (h : Filter.Tendsto (fun i => \u222b (x : \u211d) in a i..b i, \u2016f x\u2016 \u2202\u03bc) l (nhds I)) : MeasureTheory.Integrable f \u03bc",
       "F_B": "```lean\ntheorem intervalIntegral_tendsto_implies_integrable\n    {E : Type*} [NormedAddCommGroup E] [NormedSpace \u211d E]\n    {f : \u211d \u2192 E} {\u03b9 : Type*} [Countable \u03b9]\n    {a b : \u03b9 \u2192 \u211d} (l : Filter \u03b9)\n    [CountablyGeneratedFilter l]\n    (ha : Filter.Tendsto a l (\ud835\udcdd (-\u221e)))\n    (hb : Filter.Tendsto b l (\ud835\udcdd (+\u221e)))\n    (h_int : \u2200 i, IntervalIntegrable f volume (a i) (b i))\n    (h_conv : \u2203 I, Filter.Tendsto (fun i => \u222b x in a i..b i, \u2016f x\u2016 \u2202volume) l (\ud835\udcdd I)) :\n    Integrable f volume :=\n  sorry\n```",
@@ -993,6 +1444,14 @@
       "vacuous_T": false,
       "edit_dist_B": 18,
       "edit_dist_T": 18,
+      "edit_dist_Tnames": 18,
+      "edit_dist_Trandom": 7,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that applying the `WithOne.map` function with any function `f` from type `\u03b1` to type `\u03b2` to the bottom element (represented as `1`) of `WithOne \u03b1` yields the bottom element (represented as `1`) of `WithOne \u03b2`.",
       "F_sig": "WithOne.map_bot.{u_1, u_2} {\u03b1 : Type u_1} {\u03b2 : Type u_2} (f : \u03b1 \u2192 \u03b2) : WithOne.map f 1 = 1",
       "F_B": "```lean\ntheorem WithOne.map_one {\u03b1 \u03b2 : Type*} (f : \u03b1 \u2192 \u03b2) : WithOne.map f (1 : WithOne \u03b1) = (1 : WithOne \u03b2)\n```",
@@ -1012,6 +1471,14 @@
       "vacuous_T": false,
       "edit_dist_B": 24,
       "edit_dist_T": 9,
+      "edit_dist_Tnames": 10,
+      "edit_dist_Trandom": 6,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "The theorem states that for a natural number $n$ and a finite ordinal $i$ of type `Fin n`, mapping the successor embedding over the closed interval from $0$ to $i$ (inclusive) in `Fin n` yields the half-open interval from $0$ (exclusive) to the successor of $i$ (inclusive) in `Fin (n+1)`.",
       "F_sig": "Fin.map_succEmb_Iic {n : \u2115} (i : Fin n) : Finset.map (Fin.succEmb n) (Finset.Iic i) = Finset.Ioc 0 (Fin.succ i)",
       "F_B": "```lean\ntheorem Fin.map_Icc_succ (n : \u2115) (i : Fin n) :\n    (Icc (0 : Fin n) i).image Fin.succ = Icc (0 : Fin (n + 1)) (Fin.succ i) \\ {0} := by sorry\n```",
@@ -1031,6 +1498,14 @@
       "vacuous_T": false,
       "edit_dist_B": 25,
       "edit_dist_T": 18,
+      "edit_dist_Tnames": 21,
+      "edit_dist_Trandom": 21,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": false,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The theorem states that if a set S of functions from \u03b1 \u2295 \u03b2 to \u2115 is Diophantine, then the set of all functions v from \u03b1 to \u2115 for which there exists some function x from \u03b2 to \u2115 such that the combined function (obtained by eliminating the sum using v and x) belongs to S is also Diophantine.",
       "F_sig": "Dioph.ex_dioph.{u} {\u03b1 \u03b2 : Type u} {S : Set (\u03b1 \u2295 \u03b2 \u2192 \u2115)} : Dioph S \u2192 Dioph {v | \u2203 x, Sum.elim v x \u2208 S}",
       "F_B": "```lean\ntheorem diophantine_elimination_of_sum {\u03b1 \u03b2 : Type*} (S : Set (\u03b1 \u2295 \u03b2 \u2192 \u2115)) (hS : Diophantine S) :\n    Diophantine {v : \u03b1 \u2192 \u2115 | \u2203 x : \u03b2 \u2192 \u2115, Sum.elim v x \u2208 S} := by sorry\n```",
@@ -1050,6 +1525,14 @@
       "vacuous_T": false,
       "edit_dist_B": 50,
       "edit_dist_T": 9,
+      "edit_dist_Tnames": 9,
+      "edit_dist_Trandom": 9,
+      "tc_B": false,
+      "tc_T": true,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers $m_1$, $m_2$, and $n$, we have $\\text{ack}(m_1, n) = \\text{ack}(m_2, n)$ if and only if $m_1 = m_2$.",
       "F_sig": "ack_inj_left {m\u2081 m\u2082 n : \u2115} : ack m\u2081 n = ack m\u2082 n \u2194 m\u2081 = m\u2082",
       "F_B": "```lean\ndef ack : \u2115 \u2192 \u2115 \u2192 \u2115\n  | 0, n => n + 1\n  | m + 1, 0 => ack m 1\n  | m + 1, n + 1 => ack m (ack (m + 1) n)\n\ntheorem ack_injective_first_arg : \u2200 (m\u2081 m\u2082 n : \u2115), ack m\u2081 n = ack m\u2082 n \u2194 m\u2081 = m\u2082 := by sorry\n```",
@@ -1069,6 +1552,14 @@
       "vacuous_T": false,
       "edit_dist_B": 22,
       "edit_dist_T": 14,
+      "edit_dist_Tnames": 15,
+      "edit_dist_Trandom": 12,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that a non-negative real number $r$ (viewed as an extended non-negative real number via coercion) is an upper bound for the image of a set $s$ of non-negative reals under the coercion map to extended non-negative reals if and only if $r$ is an upper bound for $s$ itself.",
       "F_sig": "ENNReal.coe_mem_upperBounds {r : NNReal} {s : Set NNReal} : \u2191r \u2208 upperBounds (ENNReal.ofNNReal '' s) \u2194 r \u2208 upperBounds s",
       "F_B": "```lean\ntheorem isUB_coe_iff_isUB {r : \u211d\u22650} {s : Set \u211d\u22650} :\n    BddAbove ((\u2191) '' s : Set \u211d\u22650\u221e) \u2227 \u2191r \u2208 upperBounds ((\u2191) '' s : Set \u211d\u22650\u221e) \u2194 \n    r \u2208 upperBounds s := by sorry\n```",
@@ -1088,6 +1579,14 @@
       "vacuous_T": false,
       "edit_dist_B": 4,
       "edit_dist_T": 3,
+      "edit_dist_Tnames": 3,
+      "edit_dist_Trandom": 2,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "T",
+      "judge_T_vs_Trandom": "Trandom",
       "NL": "The declaration `Lean.Parser.Category.attr` defines a parser category in Lean 4 specifically for parsing attributes, which are metadata annotations that can be attached to declarations in Lean to modify their behavior or provide additional information to the system.",
       "F_sig": "Lean.Parser.Category.attr : Lean.Parser.Category",
       "F_B": "```lean\ndef Lean.Parser.Category.attr : String\n```",
@@ -1107,6 +1606,14 @@
       "vacuous_T": false,
       "edit_dist_B": 15,
       "edit_dist_T": 11,
+      "edit_dist_Tnames": 11,
+      "edit_dist_Trandom": 9,
+      "tc_B": true,
+      "tc_T": true,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "The statement asserts that for any permutation \\(e\\) of a type \\(\\alpha\\), the product of the inverse of \\(e\\) with \\(e\\) itself equals the identity permutation.",
       "F_sig": "Equiv.Perm.symm_mul.{u_4} {\u03b1 : Type u_4} (e : Equiv.Perm \u03b1) : Equiv.symm e * e = 1",
       "F_B": "```lean\ntheorem Equiv.inv_mul_self (e : Equiv \u03b1 \u03b1) : e.symm * e = Equiv.refl \u03b1 := by sorry\n```",
@@ -1126,6 +1633,14 @@
       "vacuous_T": false,
       "edit_dist_B": 13,
       "edit_dist_T": 22,
+      "edit_dist_Tnames": 11,
+      "edit_dist_Trandom": 18,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "T",
       "NL": "The supremum of a set of real numbers $s$ is defined as follows: if $s$ is nonempty and bounded above, then $\\sup s$ is the element chosen (via the axiom of choice) that satisfies the least upper bound property; otherwise, $\\sup s$ is defined to be 0.",
       "F_sig": "Real.sSup_def (s : Set \u211d) : sSup s = if h : Set.Nonempty s \u2227 BddAbove s then Classical.choose \u22ef else 0",
       "F_B": "```lean\nnoncomputable def supremum (s : Set \u211d) : \u211d :=\n  if h : BddAbove s \u2227 s.Nonempty then\n    sSup s\n  else\n    0\n```",
@@ -1145,6 +1660,14 @@
       "vacuous_T": false,
       "edit_dist_B": 5,
       "edit_dist_T": 4,
+      "edit_dist_Tnames": 8,
+      "edit_dist_Trandom": 9,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": false,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "Tnames",
+      "judge_T_vs_Trandom": "tie",
       "NL": "The function `Substring.toIterator` converts a raw substring into a legacy string iterator.",
       "F_sig": "Substring.toIterator : Substring.Raw \u2192 String.Legacy.Iterator",
       "F_B": "```lean\ndef Substring.toIterator : Substring \u2192 String.Iterator\n```",
@@ -1164,6 +1687,14 @@
       "vacuous_T": false,
       "edit_dist_B": 23,
       "edit_dist_T": 13,
+      "edit_dist_Tnames": 13,
+      "edit_dist_Trandom": 13,
+      "tc_B": false,
+      "tc_T": false,
+      "tc_Tnames": true,
+      "tc_Trandom": true,
+      "judge_T_vs_Tnames": "tie",
+      "judge_T_vs_Trandom": "T",
       "NL": "The coercion of the supremum of two elements $a$ and $b$ in a semilattice with supremum into the type with bottom is equal to the supremum of the coercions of $a$ and $b$ separately into the type with bottom.",
       "F_sig": "WithBot.coe_sup.{u_1} {\u03b1 : Type u_1} [SemilatticeSup \u03b1] (a b : \u03b1) : \u2191(a \u2294 b) = \u2191a \u2294 \u2191b",
       "F_B": "```lean\ntheorem coe_sup {\u03b1 : Type*} {\u03b2 : Type*} [SemilatticeSup \u03b1] [SemilatticeSup \u03b2] [Bot \u03b2] \n    (f : \u03b1 \u2192 \u03b2) (a b : \u03b1) : (\u2191(a \u2294 b) : \u03b2) = \u2191a \u2294 \u2191b := by sorry\n```",
@@ -1234,1084 +1765,2526 @@
   ],
   "edit_scatter": [
     {
-      "full_name": "stronglyMeasurable_iff_measurable_separable",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 35,
+      "condition": "B (baseline)",
       "edit_dist": 29,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "stronglyMeasurable_iff_measurable_separable",
+      "tc": false,
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 35,
+      "full_name": "stronglyMeasurable_iff_measurable_separable"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 29,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "stronglyMeasurable_iff_measurable_separable"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "stronglyMeasurable_iff_measurable_separable"
+    },
+    {
+      "condition": "T (treatment)",
       "edit_dist": 21,
-      "condition": "T (treatment)"
-    },
-    {
-      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc",
+      "tc": true,
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 30,
+      "full_name": "stronglyMeasurable_iff_measurable_separable"
+    },
+    {
+      "condition": "B (baseline)",
       "edit_dist": 36,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc",
+      "tc": false,
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 30,
+      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 32,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 18,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc"
+    },
+    {
+      "condition": "T (treatment)",
       "edit_dist": 14,
-      "condition": "T (treatment)"
-    },
-    {
-      "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH",
+      "tc": true,
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 45,
+      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc"
+    },
+    {
+      "condition": "B (baseline)",
       "edit_dist": 28,
-      "condition": "B (baseline)"
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 13,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 4,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 7,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 50,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 31,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 21,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 19,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 6,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 53,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "LawfulGetElem.getElem!_def"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 51,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "LawfulGetElem.getElem!_def"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 30,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "LawfulGetElem.getElem!_def"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 39,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "LawfulGetElem.getElem!_def"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 46,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Bimod.TensorBimod.actRight"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Bimod.TensorBimod.actRight"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Bimod.TensorBimod.actRight"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 7,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Bimod.TensorBimod.actRight"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 29,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Limits.image.ext"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 28,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Limits.image.ext"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 14,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Limits.image.ext"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 17,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Limits.image.ext"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 103,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "TestFunction.limitCLM"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 106,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "TestFunction.limitCLM"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 5,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "TestFunction.limitCLM"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "TestFunction.limitCLM"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 82,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Module.Flat.lTensor_exact"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 36,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Module.Flat.lTensor_exact"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 38,
+      "tc": true,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Module.Flat.lTensor_exact"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 40,
+      "tc": false,
+      "indeg": "dense",
+      "size": "large",
+      "full_name": "Module.Flat.lTensor_exact"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 3,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "PNat.xgcd"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 4,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "PNat.xgcd"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 3,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "PNat.xgcd"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 3,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "PNat.xgcd"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "ENNReal.tsum_coe_eq"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 20,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "ENNReal.tsum_coe_eq"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 11,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "ENNReal.tsum_coe_eq"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 18,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "ENNReal.tsum_coe_eq"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Nat.lt_pred_iff"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Nat.lt_pred_iff"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Nat.lt_pred_iff"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Nat.lt_pred_iff"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Int.le_sub_one_iff"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Int.le_sub_one_iff"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Int.le_sub_one_iff"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Int.le_sub_one_iff"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "IsRetrocompact.empty"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "IsRetrocompact.empty"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 11,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "IsRetrocompact.empty"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "IsRetrocompact.empty"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 9,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Lean.SubExpr.Pos.asNat"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Lean.SubExpr.Pos.asNat"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 2,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Lean.SubExpr.Pos.asNat"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 4,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Lean.SubExpr.Pos.asNat"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 13,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Polynomial.IsRoot"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 11,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Polynomial.IsRoot"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 12,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Polynomial.IsRoot"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Polynomial.IsRoot"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "String.Slice.Subslice.endExclusive"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "String.Slice.Subslice.endExclusive"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 4,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "String.Slice.Subslice.endExclusive"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 4,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "String.Slice.Subslice.endExclusive"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Filter.coLindelof"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 15,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Filter.coLindelof"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Filter.coLindelof"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 22,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Filter.coLindelof"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Subgroup.coe_pow"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 15,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Subgroup.coe_pow"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Subgroup.coe_pow"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "dense",
+      "size": "small",
+      "full_name": "Subgroup.coe_pow"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 79,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 89,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 16,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 21,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 33,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.ihom.coev_ev_assoc"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 31,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.ihom.coev_ev_assoc"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 27,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.ihom.coev_ev_assoc"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 14,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.ihom.coev_ev_assoc"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 32,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 19,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 46,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 42,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 36,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 20,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.Measure.restrict_biUnion_finset"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 92,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 85,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 17,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 42,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 65,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 33,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 40,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 39,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 87,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Array.SatisfiesM_anyM"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 77,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Array.SatisfiesM_anyM"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 47,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Array.SatisfiesM_anyM"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 11,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Array.SatisfiesM_anyM"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 53,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.setToFun_top_smul_measure"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 39,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.setToFun_top_smul_measure"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 16,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.setToFun_top_smul_measure"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 23,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "MeasureTheory.setToFun_top_smul_measure"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 68,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 53,
+      "tc": true,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 8,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 20,
+      "tc": false,
+      "indeg": "medium",
+      "size": "large",
+      "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Padic.denseRange_ratCast"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Padic.denseRange_ratCast"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 12,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Padic.denseRange_ratCast"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Padic.denseRange_ratCast"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 14,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Set.sized_empty"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 14,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Set.sized_empty"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 18,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Set.sized_empty"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Set.sized_empty"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Lean.Server.Test.Refs.test7"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 5,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Lean.Server.Test.Refs.test7"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 5,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Lean.Server.Test.Refs.test7"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Lean.Server.Test.Refs.test7"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 19,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Zsqrtd.nonneg_mul"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Zsqrtd.nonneg_mul"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 17,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Zsqrtd.nonneg_mul"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Zsqrtd.nonneg_mul"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Finset.covBy_cons"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Finset.covBy_cons"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Finset.covBy_cons"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 9,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Finset.covBy_cons"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.Linear.Poly.checkCoeffs"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.Linear.Poly.checkCoeffs"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 6,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.Linear.Poly.checkCoeffs"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.Linear.Poly.checkCoeffs"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.negOnePow_eq_iff"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.negOnePow_eq_iff"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.negOnePow_eq_iff"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "Int.negOnePow_eq_iff"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "iInf_eq_if"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 120,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "iInf_eq_if"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 16,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "iInf_eq_if"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "iInf_eq_if"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "UpperHalfPlane.vadd_im"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 10,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "UpperHalfPlane.vadd_im"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 6,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "UpperHalfPlane.vadd_im"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 7,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "UpperHalfPlane.vadd_im"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "min_eq_right_of_lt"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "min_eq_right_of_lt"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "min_eq_right_of_lt"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 8,
+      "tc": false,
+      "indeg": "medium",
+      "size": "small",
+      "full_name": "min_eq_right_of_lt"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 41,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "HomologicalComplex\u2082.flip_X_X"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 35,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "HomologicalComplex\u2082.flip_X_X"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "HomologicalComplex\u2082.flip_X_X"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 18,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "HomologicalComplex\u2082.flip_X_X"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 54,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 104,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 35,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 33,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 17,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 8,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 32,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 34,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 5,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 14,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 36,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 30,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 14,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 22,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 48,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "DirectSum.decompose_symm_add"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 41,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "DirectSum.decompose_symm_add"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "DirectSum.decompose_symm_add"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 13,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "DirectSum.decompose_symm_add"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 30,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 16,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 20,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 17,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 40,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "VectorBundleCore.mem_source_at"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 46,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "VectorBundleCore.mem_source_at"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 21,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "VectorBundleCore.mem_source_at"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 12,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "VectorBundleCore.mem_source_at"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 45,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 40,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 6,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 35,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 65,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 65,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 196,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 21,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "large",
+      "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 18,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithOne.map_bot"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 18,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithOne.map_bot"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 7,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithOne.map_bot"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 18,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithOne.map_bot"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 24,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Fin.map_succEmb_Iic"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 10,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Fin.map_succEmb_Iic"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 6,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Fin.map_succEmb_Iic"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Fin.map_succEmb_Iic"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 25,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Dioph.ex_dioph"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 21,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Dioph.ex_dioph"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 21,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Dioph.ex_dioph"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 18,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Dioph.ex_dioph"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 50,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ack_inj_left"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 9,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ack_inj_left"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ack_inj_left"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ack_inj_left"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 22,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ENNReal.coe_mem_upperBounds"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 15,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ENNReal.coe_mem_upperBounds"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 12,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ENNReal.coe_mem_upperBounds"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 14,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "ENNReal.coe_mem_upperBounds"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 4,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Lean.Parser.Category.attr"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 3,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Lean.Parser.Category.attr"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 2,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Lean.Parser.Category.attr"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 3,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Lean.Parser.Category.attr"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 15,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Equiv.Perm.symm_mul"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 11,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Equiv.Perm.symm_mul"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Equiv.Perm.symm_mul"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 11,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Equiv.Perm.symm_mul"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 13,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Real.sSup_def"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 11,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Real.sSup_def"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 18,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Real.sSup_def"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 22,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Real.sSup_def"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 5,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Substring.toIterator"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 8,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Substring.toIterator"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 9,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Substring.toIterator"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 4,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "Substring.toIterator"
+    },
+    {
+      "condition": "B (baseline)",
+      "edit_dist": 23,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithBot.coe_sup"
+    },
+    {
+      "condition": "T-names",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithBot.coe_sup"
+    },
+    {
+      "condition": "T-random",
+      "edit_dist": 13,
+      "tc": true,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithBot.coe_sup"
+    },
+    {
+      "condition": "T (treatment)",
+      "edit_dist": 13,
+      "tc": false,
+      "indeg": "non_dense",
+      "size": "small",
+      "full_name": "WithBot.coe_sup"
+    }
+  ],
+  "judge_vs_tc": [
+    {
+      "full_name": "stronglyMeasurable_iff_measurable_separable",
+      "short_name": "stronglyMeasurable_iff_measurable_separable",
+      "indeg": "dense",
+      "size": "large",
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
+    },
+    {
+      "full_name": "CategoryTheory.Iso.map_inv_hom_id_assoc",
+      "short_name": "map_inv_hom_id_assoc",
+      "indeg": "dense",
+      "size": "large",
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "CategoryTheory.ShortComplex.LeftHomologyData.descH",
+      "short_name": "descH",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 45,
-      "edit_dist": 7,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right",
+      "short_name": "getKeyD_filter_containsKey_of_containsKey_eq_false_right",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 18,
-      "edit_dist": 50,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Std.Internal.List.getKeyD_filter_containsKey_of_containsKey_eq_false_right",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 18,
-      "edit_dist": 19,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom",
+      "short_name": "inl_isoPushout_hom",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 30,
-      "edit_dist": 25,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.IsPushout.inl_isoPushout_hom",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 30,
-      "edit_dist": 6,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "LawfulGetElem.getElem!_def",
+      "short_name": "getElem!_def",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 13,
-      "edit_dist": 53,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "LawfulGetElem.getElem!_def",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 13,
-      "edit_dist": 39,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Bimod.TensorBimod.actRight",
+      "short_name": "actRight",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 64,
-      "edit_dist": 46,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Bimod.TensorBimod.actRight",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 64,
-      "edit_dist": 7,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "CategoryTheory.Limits.image.ext",
+      "short_name": "ext",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 63,
-      "edit_dist": 29,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Limits.image.ext",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 63,
-      "edit_dist": 17,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "TestFunction.limitCLM",
+      "short_name": "limitCLM",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 211,
-      "edit_dist": 103,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "TestFunction.limitCLM",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 211,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Module.Flat.lTensor_exact",
+      "short_name": "lTensor_exact",
       "indeg": "dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 181,
-      "edit_dist": 82,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Module.Flat.lTensor_exact",
-      "indeg": "dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 181,
-      "edit_dist": 40,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "PNat.xgcd",
+      "short_name": "xgcd",
       "indeg": "dense",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 5,
-      "edit_dist": 3,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "PNat.xgcd",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 5,
-      "edit_dist": 3,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "ENNReal.tsum_coe_eq",
+      "short_name": "tsum_coe_eq",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 31,
-      "edit_dist": 25,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ENNReal.tsum_coe_eq",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 31,
-      "edit_dist": 18,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Nat.lt_pred_iff",
+      "short_name": "lt_pred_iff",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 25,
-      "edit_dist": 10,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Nat.lt_pred_iff",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 25,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Int.le_sub_one_iff",
+      "short_name": "le_sub_one_iff",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 23,
-      "edit_dist": 9,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Int.le_sub_one_iff",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 23,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "IsRetrocompact.empty",
+      "short_name": "empty",
       "indeg": "dense",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 24,
-      "edit_dist": 13,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "IsRetrocompact.empty",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 24,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Lean.SubExpr.Pos.asNat",
+      "short_name": "asNat",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 4,
-      "edit_dist": 9,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Lean.SubExpr.Pos.asNat",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 4,
-      "edit_dist": 4,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Polynomial.IsRoot",
+      "short_name": "IsRoot",
       "indeg": "dense",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 9,
-      "edit_dist": 13,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Polynomial.IsRoot",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 9,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "String.Slice.Subslice.endExclusive",
+      "short_name": "endExclusive",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 3,
-      "edit_dist": 10,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "String.Slice.Subslice.endExclusive",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 3,
-      "edit_dist": 4,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Filter.coLindelof",
+      "short_name": "coLindelof",
       "indeg": "dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 9,
-      "edit_dist": 15,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Filter.coLindelof",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 9,
-      "edit_dist": 22,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Subgroup.coe_pow",
+      "short_name": "coe_pow",
       "indeg": "dense",
       "size": "small",
-      "prefer": "B",
-      "dep_count": 23,
-      "edit_dist": 15,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Subgroup.coe_pow",
-      "indeg": "dense",
-      "size": "small",
-      "prefer": "B",
-      "dep_count": 23,
-      "edit_dist": 13,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le",
+      "short_name": "norm_compContinuous_linearIsometry_le",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 75,
-      "edit_dist": 79,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ContinuousMultilinearMap.norm_compContinuous_linearIsometry_le",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 75,
-      "edit_dist": 21,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "CategoryTheory.ihom.coev_ev_assoc",
+      "short_name": "coev_ev_assoc",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 40,
-      "edit_dist": 33,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.ihom.coev_ev_assoc",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 40,
-      "edit_dist": 14,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso",
+      "short_name": "presieve\u2080_mem_of_iso",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 48,
-      "edit_dist": 32,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.PreZeroHypercover.presieve\u2080_mem_of_iso",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 48,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "MeasureTheory.Measure.restrict_biUnion_finset",
+      "short_name": "restrict_biUnion_finset",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 48,
-      "edit_dist": 46,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "MeasureTheory.Measure.restrict_biUnion_finset",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 48,
-      "edit_dist": 20,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'",
+      "short_name": "mapFour\u03b4\u2082To\u03b4\u2081'",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 92,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Abelian.SpectralObject.mapFour\u03b4\u2082To\u03b4\u2081'",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily",
+      "short_name": "mem_sieves_of_hasEffectiveEpiFamily",
       "indeg": "medium",
       "size": "large",
-      "prefer": "tie",
-      "dep_count": 42,
-      "edit_dist": 42,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.coherentTopology.mem_sieves_of_hasEffectiveEpiFamily",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "tie",
-      "dep_count": 42,
-      "edit_dist": 40,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet",
+      "short_name": "integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 195,
-      "edit_dist": 39,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ProbabilityTheory.integrable_rpow_abs_mul_cexp_of_re_mem_interior_integrableExpSet",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 195,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Array.SatisfiesM_anyM",
+      "short_name": "SatisfiesM_anyM",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 145,
-      "edit_dist": 87,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Array.SatisfiesM_anyM",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 145,
-      "edit_dist": 11,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "MeasureTheory.setToFun_top_smul_measure",
+      "short_name": "setToFun_top_smul_measure",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 122,
-      "edit_dist": 53,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "MeasureTheory.setToFun_top_smul_measure",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 122,
-      "edit_dist": 23,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq",
+      "short_name": "lift_comp_lift_eq",
       "indeg": "medium",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 68,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Submonoid.LocalizationMap.lift_comp_lift_eq",
-      "indeg": "medium",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 20,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Padic.denseRange_ratCast",
+      "short_name": "denseRange_ratCast",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 49,
-      "edit_dist": 12,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Padic.denseRange_ratCast",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 49,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Set.sized_empty",
+      "short_name": "sized_empty",
       "indeg": "medium",
       "size": "small",
-      "prefer": "B",
-      "dep_count": 22,
-      "edit_dist": 14,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Set.sized_empty",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "B",
-      "dep_count": 22,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Lean.Server.Test.Refs.test7",
+      "short_name": "test7",
       "indeg": "medium",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 2,
-      "edit_dist": 7,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Lean.Server.Test.Refs.test7",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 2,
-      "edit_dist": 6,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Zsqrtd.nonneg_mul",
+      "short_name": "nonneg_mul",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 89,
-      "edit_dist": 19,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Zsqrtd.nonneg_mul",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 89,
-      "edit_dist": 6,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Finset.covBy_cons",
+      "short_name": "covBy_cons",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 30,
-      "edit_dist": 10,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Finset.covBy_cons",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 30,
-      "edit_dist": 9,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Int.Linear.Poly.checkCoeffs",
+      "short_name": "checkCoeffs",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 13,
-      "edit_dist": 10,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Int.Linear.Poly.checkCoeffs",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 13,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "Int.negOnePow_eq_iff",
+      "short_name": "negOnePow_eq_iff",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 56,
-      "edit_dist": 15,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Int.negOnePow_eq_iff",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 56,
-      "edit_dist": 7,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "iInf_eq_if",
+      "short_name": "iInf_eq_if",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 17,
-      "edit_dist": 10,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "iInf_eq_if",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 17,
-      "edit_dist": 10,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": false,
+      "tc_advantage_T": 1
     },
     {
       "full_name": "UpperHalfPlane.vadd_im",
+      "short_name": "vadd_im",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 16,
-      "edit_dist": 15,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "UpperHalfPlane.vadd_im",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 16,
-      "edit_dist": 7,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "min_eq_right_of_lt",
+      "short_name": "min_eq_right_of_lt",
       "indeg": "medium",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 14,
-      "edit_dist": 9,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "min_eq_right_of_lt",
-      "indeg": "medium",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 14,
-      "edit_dist": 8,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "HomologicalComplex\u2082.flip_X_X",
+      "short_name": "flip_X_X",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 16,
-      "edit_dist": 41,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "HomologicalComplex\u2082.flip_X_X",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 16,
-      "edit_dist": 18,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc",
+      "short_name": "asOverHom_comp_assoc",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 29,
-      "edit_dist": 54,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.OverClass.asOverHom_comp_assoc",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 29,
-      "edit_dist": 33,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r",
+      "short_name": "rightUnitor_inv_\u03c4r",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 17,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Bicategory.Adj.Bicategory.rightUnitor_inv_\u03c4r",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 34,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc",
+      "short_name": "toMonad_\u03bc",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "tie",
-      "dep_count": 24,
-      "edit_dist": 32,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Adjunction.toMonad_\u03bc",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "tie",
-      "dep_count": 24,
-      "edit_dist": 14,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082",
+      "short_name": "counitIso_inv_app_app_\u03c4\u2082",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "B",
-      "dep_count": 39,
-      "edit_dist": 36,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.ShortComplex.FunctorEquivalence.counitIso_inv_app_app_\u03c4\u2082",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "B",
-      "dep_count": 39,
-      "edit_dist": 22,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "DirectSum.decompose_symm_add",
+      "short_name": "decompose_symm_add",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 46,
-      "edit_dist": 48,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "DirectSum.decompose_symm_add",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 46,
-      "edit_dist": 13,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv",
+      "short_name": "linearIsometryBoundedOfCompact_toIsometryEquiv",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 112,
-      "edit_dist": 30,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ContinuousMap.linearIsometryBoundedOfCompact_toIsometryEquiv",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 112,
-      "edit_dist": 17,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "VectorBundleCore.mem_source_at",
+      "short_name": "mem_source_at",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 50,
-      "edit_dist": 40,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "VectorBundleCore.mem_source_at",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 50,
-      "edit_dist": 12,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right",
+      "short_name": "equivProd_unitIso_inv_app_right",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 39,
-      "edit_dist": 45,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "CategoryTheory.Comma.equivProd_unitIso_inv_app_right",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 39,
-      "edit_dist": 35,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto",
+      "short_name": "integrable_of_intervalIntegral_norm_tendsto",
       "indeg": "non_dense",
       "size": "large",
-      "prefer": "T",
-      "dep_count": 72,
-      "edit_dist": 65,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "MeasureTheory.integrable_of_intervalIntegral_norm_tendsto",
-      "indeg": "non_dense",
-      "size": "large",
-      "prefer": "T",
-      "dep_count": 72,
-      "edit_dist": 21,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "WithOne.map_bot",
+      "short_name": "map_bot",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 12,
-      "edit_dist": 18,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "WithOne.map_bot",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 12,
-      "edit_dist": 18,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Fin.map_succEmb_Iic",
+      "short_name": "map_succEmb_Iic",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 62,
-      "edit_dist": 24,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Fin.map_succEmb_Iic",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 62,
-      "edit_dist": 9,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Dioph.ex_dioph",
+      "short_name": "ex_dioph",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 35,
-      "edit_dist": 25,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Dioph.ex_dioph",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 35,
-      "edit_dist": 18,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": false,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "ack_inj_left",
+      "short_name": "ack_inj_left",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 7,
-      "edit_dist": 50,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ack_inj_left",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 7,
-      "edit_dist": 9,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "ENNReal.coe_mem_upperBounds",
+      "short_name": "coe_mem_upperBounds",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 39,
-      "edit_dist": 22,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "ENNReal.coe_mem_upperBounds",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 39,
-      "edit_dist": 14,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Lean.Parser.Category.attr",
+      "short_name": "attr",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 1,
-      "edit_dist": 4,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Lean.Parser.Category.attr",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 1,
-      "edit_dist": 3,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "Trandom",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Equiv.Perm.symm_mul",
+      "short_name": "symm_mul",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 12,
-      "edit_dist": 15,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Equiv.Perm.symm_mul",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 12,
-      "edit_dist": 11,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": true,
+      "tc_Trandom": true,
+      "tc_advantage_T": 0
     },
     {
       "full_name": "Real.sSup_def",
+      "short_name": "sSup_def",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 25,
-      "edit_dist": 13,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Real.sSup_def",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 25,
-      "edit_dist": 22,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "Substring.toIterator",
+      "short_name": "toIterator",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "tie",
-      "dep_count": 3,
-      "edit_dist": 5,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "Substring.toIterator",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "tie",
-      "dep_count": 3,
-      "edit_dist": 4,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "tie",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     },
     {
       "full_name": "WithBot.coe_sup",
+      "short_name": "coe_sup",
       "indeg": "non_dense",
       "size": "small",
-      "prefer": "T",
-      "dep_count": 12,
-      "edit_dist": 23,
-      "condition": "B (baseline)"
-    },
-    {
-      "full_name": "WithBot.coe_sup",
-      "indeg": "non_dense",
-      "size": "small",
-      "prefer": "T",
-      "dep_count": 12,
-      "edit_dist": 13,
-      "condition": "T (treatment)"
+      "judge_T_vs_Trandom": "T",
+      "tc_T": false,
+      "tc_Trandom": true,
+      "tc_advantage_T": -1
     }
   ]
 }

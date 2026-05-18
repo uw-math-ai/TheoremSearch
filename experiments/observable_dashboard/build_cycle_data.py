@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build cycle-consistency experiment data for the Observable dashboard.
-Reads experiments/cycle_consistency_pilot/results.csv and emits
+Reads pilot results.csv and ablation_results.csv, emits
 src/data/cycle_consistency.json.
 
 Usage (from the observable_dashboard directory):
@@ -11,103 +11,177 @@ Usage (from the observable_dashboard directory):
 import argparse
 import csv
 import json
+import numpy as np
 from pathlib import Path
 from collections import defaultdict
+from scipy.stats import wilcoxon
 
-REPO = Path(__file__).resolve().parents[2]
-RESULTS = REPO / "experiments/cycle_consistency_pilot/results.csv"
-DESIGN  = REPO / "experiments/cycle_consistency_pilot/design.md"
+REPO      = Path(__file__).resolve().parents[2]
+RESULTS   = REPO / "experiments/cycle_consistency_pilot/results.csv"
+ABLATION  = REPO / "experiments/cycle_consistency_pilot/ablation_results.csv"
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default="src/data", help="Output directory")
+    parser.add_argument("--out", default="src/data")
     args = parser.parse_args()
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    rows = list(csv.DictReader(open(RESULTS)))
+    pilot_rows = list(csv.DictReader(open(RESULTS)))
+    abl_rows   = list(csv.DictReader(open(ABLATION))) if ABLATION.exists() else []
+    abl_by_id  = {r["node_id"]: r for r in abl_rows}
 
-    # ── Per-candidate records (for the detail table) ──────────────────────────
+    # ── Per-candidate records ─────────────────────────────────────────────────
     candidates = []
-    for r in rows:
+    for r in pilot_rows:
+        nid = r["node_id"]
+        ab  = abl_by_id.get(nid, {})
         candidates.append({
-            "node_id":      int(r["node_id"]),
+            "node_id":      int(nid),
             "full_name":    r["full_name"],
             "short_name":   r["full_name"].split(".")[-1],
             "indeg":        r["stratum_indeg"],
             "size":         r["stratum_size"],
             "dep_count":    int(r["dep_count"]),
             "dep_truncated": int(r["dep_truncated"]),
+            # pilot judge
             "prefer":       r["judge_prefer"],
             "judge_notes":  r["judge_notes"],
             "vacuous_B":    r["vacuous_B"] == "True",
             "vacuous_T":    r["vacuous_T"] == "True",
-            "edit_dist_B":  int(r["edit_dist_B"]),
-            "edit_dist_T":  int(r["edit_dist_T"]),
-            # Keep NL and formalization outputs for hover/detail
-            "NL":           r["NL"],
-            "F_sig":        r["F_signature"],
-            "F_B":          r["F_B"],
-            "F_T":          r["F_T"],
+            # edit distances (all four conditions)
+            "edit_dist_B":      int(r["edit_dist_B"]),
+            "edit_dist_T":      int(r["edit_dist_T"]),
+            "edit_dist_Tnames": int(ab["edit_dist_Tnames"]) if ab.get("edit_dist_Tnames") else None,
+            "edit_dist_Trandom":int(ab["edit_dist_Trandom"]) if ab.get("edit_dist_Trandom") else None,
+            # type-check results
+            "tc_B":       r.get("typecheck_B") == "True",
+            "tc_T":       r.get("typecheck_T") == "True",
+            "tc_Tnames":  ab.get("typecheck_Tnames") == "True",
+            "tc_Trandom": ab.get("typecheck_Trandom") == "True",
+            # ablation judge
+            "judge_T_vs_Tnames":  ab.get("judge_T_vs_Tnames", ""),
+            "judge_T_vs_Trandom": ab.get("judge_T_vs_Trandom", ""),
+            # text (for hover)
+            "NL":    r["NL"],
+            "F_sig": r["F_signature"],
+            "F_B":   r["F_B"],
+            "F_T":   r["F_T"],
         })
 
-    # ── Summary ───────────────────────────────────────────────────────────────
     n = len(candidates)
-    t_count = sum(1 for c in candidates if c["prefer"] == "T")
-    b_count = sum(1 for c in candidates if c["prefer"] == "B")
-    tie_count = sum(1 for c in candidates if c["prefer"] == "tie")
 
-    # Wilcoxon (compute here so the page doesn't need scipy)
-    try:
-        from scipy.stats import wilcoxon
-        coded = [1 if c["prefer"] == "T" else (-1 if c["prefer"] == "B" else 0)
-                 for c in candidates]
-        non_zero = [x for x in coded if x != 0]
-        if len(non_zero) >= 10:
-            stat, pval = wilcoxon(coded)
-            wilcoxon_p = round(float(pval), 6)
-            wilcoxon_stat = round(float(stat), 2)
-        else:
-            wilcoxon_p = None
-            wilcoxon_stat = None
-    except Exception:
-        wilcoxon_p = None
-        wilcoxon_stat = None
+    # ── Pilot summary ─────────────────────────────────────────────────────────
+    t_count   = sum(c["prefer"] == "T"   for c in candidates)
+    b_count   = sum(c["prefer"] == "B"   for c in candidates)
+    tie_count = sum(c["prefer"] == "tie" for c in candidates)
 
-    import numpy as np
-    eds_b = [c["edit_dist_B"] for c in candidates]
-    eds_t = [c["edit_dist_T"] for c in candidates]
+    coded = [1 if c["prefer"]=="T" else (-1 if c["prefer"]=="B" else 0) for c in candidates]
+    stat, pval = wilcoxon(coded)
 
-    summary = {
-        "n": n,
-        "t_count": t_count,
-        "b_count": b_count,
-        "tie_count": tie_count,
-        "t_pct": round(100 * t_count / n, 1),
-        "b_pct": round(100 * b_count / n, 1),
-        "tie_pct": round(100 * tie_count / n, 1),
-        "wilcoxon_stat": wilcoxon_stat,
-        "wilcoxon_p": wilcoxon_p,
-        "vacuous_rate_B": round(100 * sum(c["vacuous_B"] for c in candidates) / n, 1),
-        "vacuous_rate_T": round(100 * sum(c["vacuous_T"] for c in candidates) / n, 1),
-        "edit_mean_B": round(float(np.mean(eds_b)), 1),
-        "edit_mean_T": round(float(np.mean(eds_t)), 1),
-        "edit_median_B": float(np.median(eds_b)),
-        "edit_median_T": float(np.median(eds_t)),
-        "models": {
-            "informalizer": "claude-sonnet-4-5 (Bedrock)",
-            "formalizer":   "claude-haiku-4-5 (Bedrock, same for B and T)",
-            "judge":        "claude-sonnet-4-5 (Bedrock)",
-        },
-        "strata_cutoffs": {
-            "p25_indeg": 0, "p75_indeg": 4,
-            "p25_siglen": 124, "p75_siglen": 314,
-        },
-        "seed": 42,
+    eds = {
+        "B":       [c["edit_dist_B"] for c in candidates],
+        "T":       [c["edit_dist_T"] for c in candidates],
+        "Tnames":  [c["edit_dist_Tnames"]  for c in candidates if c["edit_dist_Tnames"]  is not None],
+        "Trandom": [c["edit_dist_Trandom"] for c in candidates if c["edit_dist_Trandom"] is not None],
     }
 
-    # ── Stratified breakdown ──────────────────────────────────────────────────
+    # ── Condition comparison table (the four-condition summary) ───────────────
+    conditions = [
+        {
+            "id":    "B",
+            "label": "B — baseline",
+            "desc":  "NL only",
+            "color": "#dc2626",
+            "tc_pass":    sum(c["tc_B"] for c in candidates),
+            "tc_pct":     round(100 * sum(c["tc_B"] for c in candidates) / n, 1),
+            "edit_mean":  round(float(np.mean(eds["B"])), 1),
+            "edit_median":float(np.median(eds["B"])),
+        },
+        {
+            "id":    "Tnames",
+            "label": "T-names",
+            "desc":  "NL + dep names (no sigs)",
+            "color": "#f59e0b",
+            "tc_pass":    sum(c["tc_Tnames"] for c in candidates),
+            "tc_pct":     round(100 * sum(c["tc_Tnames"] for c in candidates) / n, 1),
+            "edit_mean":  round(float(np.mean(eds["Tnames"])), 1) if eds["Tnames"] else None,
+            "edit_median":float(np.median(eds["Tnames"])) if eds["Tnames"] else None,
+        },
+        {
+            "id":    "Trandom",
+            "label": "T-random",
+            "desc":  "NL + random same-module sigs",
+            "color": "#7c3aed",
+            "tc_pass":    sum(c["tc_Trandom"] for c in candidates),
+            "tc_pct":     round(100 * sum(c["tc_Trandom"] for c in candidates) / n, 1),
+            "edit_mean":  round(float(np.mean(eds["Trandom"])), 1) if eds["Trandom"] else None,
+            "edit_median":float(np.median(eds["Trandom"])) if eds["Trandom"] else None,
+        },
+        {
+            "id":    "T",
+            "label": "T — treatment",
+            "desc":  "NL + actual dep sigs",
+            "color": "#2563eb",
+            "tc_pass":    sum(c["tc_T"] for c in candidates),
+            "tc_pct":     round(100 * sum(c["tc_T"] for c in candidates) / n, 1),
+            "edit_mean":  round(float(np.mean(eds["T"])), 1),
+            "edit_median":float(np.median(eds["T"])),
+        },
+    ]
+
+    # ── Ablation judge counts ─────────────────────────────────────────────────
+    ablation_judge = {
+        "T_vs_Tnames": {
+            "T":      sum(c["judge_T_vs_Tnames"] == "T"      for c in candidates),
+            "Tnames": sum(c["judge_T_vs_Tnames"] == "Tnames" for c in candidates),
+            "tie":    sum(c["judge_T_vs_Tnames"] == "tie"    for c in candidates),
+        },
+        "T_vs_Trandom": {
+            "T":       sum(c["judge_T_vs_Trandom"] == "T"       for c in candidates),
+            "Trandom": sum(c["judge_T_vs_Trandom"] == "Trandom" for c in candidates),
+            "tie":     sum(c["judge_T_vs_Trandom"] == "tie"     for c in candidates),
+        },
+    }
+
+    # ── Edit scatter (all 4 conditions, for boxplot) ──────────────────────────
+    COND_ORDER = ["B (baseline)", "T-names", "T-random", "T (treatment)"]
+    edit_scatter = []
+    for c in candidates:
+        for cond_id, cond_label, val in [
+            ("B",       "B (baseline)",   c["edit_dist_B"]),
+            ("Tnames",  "T-names",        c["edit_dist_Tnames"]),
+            ("Trandom", "T-random",       c["edit_dist_Trandom"]),
+            ("T",       "T (treatment)",  c["edit_dist_T"]),
+        ]:
+            if val is not None:
+                edit_scatter.append({
+                    "condition":  cond_label,
+                    "edit_dist":  val,
+                    "tc":         c[f"tc_{cond_id}"],
+                    "indeg":      c["indeg"],
+                    "size":       c["size"],
+                    "full_name":  c["full_name"],
+                })
+
+    # ── Judge vs typecheck comparison (per candidate, for the divergence chart)
+    judge_vs_tc = []
+    for c in candidates:
+        judge_vs_tc.append({
+            "full_name":   c["full_name"],
+            "short_name":  c["short_name"],
+            "indeg":       c["indeg"],
+            "size":        c["size"],
+            # For T-random: is judge preference consistent with typecheck?
+            "judge_T_vs_Trandom":   c["judge_T_vs_Trandom"],
+            "tc_T":                 c["tc_T"],
+            "tc_Trandom":           c["tc_Trandom"],
+            # quadrant: both T better, both similar, random better on judge but T on TC, etc.
+            "tc_advantage_T":       int(c["tc_T"]) - int(c["tc_Trandom"]),  # +1, 0, -1
+        })
+
+    # ── Stratified breakdown (pilot B vs T) ───────────────────────────────────
     cell_stats = defaultdict(lambda: {"T": 0, "B": 0, "tie": 0, "n": 0})
     for c in candidates:
         key = (c["indeg"], c["size"])
@@ -117,43 +191,41 @@ def main():
     strata = []
     for (indeg, size), cs in sorted(cell_stats.items()):
         strata.append({
-            "indeg": indeg,
-            "size": size,
-            "cell": f"{indeg} × {size}",
-            "n": cs["n"],
-            "T": cs["T"],
-            "B": cs["B"],
-            "tie": cs["tie"],
+            "indeg": indeg, "size": size,
+            "cell":  f"{indeg} × {size}",
+            "n": cs["n"], "T": cs["T"], "B": cs["B"], "tie": cs["tie"],
             "t_pct": round(100 * cs["T"] / cs["n"], 1) if cs["n"] else 0,
         })
 
-    # ── Edit-distance scatter (one point per candidate per condition) ─────────
-    edit_scatter = []
-    for c in candidates:
-        edit_scatter.append({
-            "full_name": c["full_name"],
-            "indeg": c["indeg"],
-            "size": c["size"],
-            "prefer": c["prefer"],
-            "dep_count": c["dep_count"],
-            "edit_dist": c["edit_dist_B"],
-            "condition": "B (baseline)",
-        })
-        edit_scatter.append({
-            "full_name": c["full_name"],
-            "indeg": c["indeg"],
-            "size": c["size"],
-            "prefer": c["prefer"],
-            "dep_count": c["dep_count"],
-            "edit_dist": c["edit_dist_T"],
-            "condition": "T (treatment)",
-        })
+    summary = {
+        "n": n,
+        "t_count": t_count, "b_count": b_count, "tie_count": tie_count,
+        "t_pct": round(100*t_count/n, 1),
+        "b_pct": round(100*b_count/n, 1),
+        "tie_pct": round(100*tie_count/n, 1),
+        "wilcoxon_stat": round(float(stat), 2),
+        "wilcoxon_p": round(float(pval), 6),
+        "edit_mean_B": round(float(np.mean(eds["B"])), 1),
+        "edit_mean_T": round(float(np.mean(eds["T"])), 1),
+        "t_prefers_and_tc": sum(c["prefer"]=="T" and c["tc_T"] for c in candidates),
+        "models": {
+            "informalizer": "claude-sonnet-4-5 (Bedrock)",
+            "formalizer":   "claude-haiku-4-5 (Bedrock, same for all conditions)",
+            "judge":        "claude-sonnet-4-5 (Bedrock)",
+        },
+        "strata_cutoffs": {"p25_indeg": 0, "p75_indeg": 4,
+                           "p25_siglen": 124, "p75_siglen": 314},
+        "seed": 42,
+    }
 
     out = {
-        "summary": summary,
-        "candidates": candidates,
-        "strata": strata,
-        "edit_scatter": edit_scatter,
+        "summary":       summary,
+        "conditions":    conditions,
+        "ablation_judge": ablation_judge,
+        "candidates":    candidates,
+        "strata":        strata,
+        "edit_scatter":  edit_scatter,
+        "judge_vs_tc":   judge_vs_tc,
     }
 
     outfile = out_dir / "cycle_consistency.json"
