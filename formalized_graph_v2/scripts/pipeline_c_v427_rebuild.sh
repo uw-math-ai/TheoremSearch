@@ -47,6 +47,7 @@ LOCAL_BASE="/tmp/proj-${PROJECT}-${SLURM_JOB_ID:-$$}"
 mkdir -p "$LOCAL_BASE/build"
 
 # Wipe stale build dirs and replace with SSD symlinks
+mkdir -p .lake
 rm -rf .lake/build
 ln -sfn "$LOCAL_BASE/build" .lake/build
 
