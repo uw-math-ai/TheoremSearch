@@ -168,6 +168,13 @@ const exampleData = {
     "T-random":        "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
     "T — treatment":   "-- model output (type-checks ✓, judge preferred)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=\n  (ack_injective_left n).eq_iff\n-- ✓ Correct statement + uses ack_injective_left from dep context",
   },
+  // Actual scores for ack_inj_left from the run
+  scores: {
+    "B — baseline":  {tc: true,  edit: 50, vsT: "T won",         judgeNote: "B redefined ack unnecessarily; T uses injective_left helper matching target semantics"},
+    "T-names":       {tc: true,  edit: 9,  vsT: "T won",         judgeNote: "T provides a proof using ack_injective_left; T-names only has sorry"},
+    "T-random":      {tc: true,  edit: 9,  vsT: "T won",         judgeNote: "T provides actual proof via ack_injective_left; T-random uses sorry placeholder"},
+    "T — treatment": {tc: true,  edit: 9,  vsT: "—",             judgeNote: "Reference condition (compared against in all pairwise judgments)"},
+  },
 };
 ```
 
@@ -200,6 +207,27 @@ const condPicker = view(Inputs.radio(
   const inputText  = buildCtx(condPicker);
   const outputText = exampleData.outputs[condPicker] ?? "";
 
+  const allConds = ["B — baseline","T-names","T-random","T — treatment"];
+  const scoreStrip = html`<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0">
+    ${allConds.map(c => {
+      const sc = exampleData.scores[c];
+      const cc = condColors[c];
+      const selected = c === condPicker;
+      return html`<div style="padding:10px 12px;border-radius:6px;
+                  background:${selected ? "#f8fafc" : "transparent"};
+                  border:${selected ? `2px solid ${cc}` : "1px solid #e2e8f0"};
+                  opacity:${selected ? 1 : 0.6}">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.05em;color:${cc};margin-bottom:6px">${c}</div>
+        <div style="display:flex;gap:10px;font-size:11px;color:#334155">
+          <span><strong style="color:${sc.tc ? "#16a34a" : "#dc2626"}">${sc.tc ? "✓" : "✗"}</strong> typecheck</span>
+          <span><strong>${sc.edit}</strong> edit</span>
+          <span style="color:${sc.vsT === "T won" ? "#7c3aed" : "#94a3b8"}">${sc.vsT === "T won" ? "T won vs this" : sc.vsT}</span>
+        </div>
+      </div>`;
+    })}
+  </div>`;
+
   display(html`<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:12px 0">
     <div style="min-width:0">
       <div style="font-size:11px;font-weight:600;color:${col};text-transform:uppercase;
@@ -218,9 +246,15 @@ const condPicker = view(Inputs.radio(
                   overflow-wrap:anywhere;margin:0">${outputText}</pre>
     </div>
   </div>
-  <div style="font-size:12px;color:#64748b">
+  ${scoreStrip}
+  <div style="background:#f8fafc;border-left:3px solid ${col};padding:8px 12px;
+              font-size:12px;color:#475569;line-height:1.5;margin-top:6px">
+    <strong>Judge note for ${condPicker}:</strong> ${exampleData.scores[condPicker].judgeNote}
+  </div>
+  <div style="font-size:12px;color:#64748b;margin-top:8px">
     Target: <code>ack_inj_left {m₁ m₂ n : ℕ} : ack m₁ n = ack m₂ n ↔ m₁ = m₂</code>
     · <code>Mathlib.Computability.Ackermann</code> · 7 predecessors · non-dense × small stratum
+    · all four conditions type-check on this candidate but only T produced a real proof
   </div>`);
 }
 ```
