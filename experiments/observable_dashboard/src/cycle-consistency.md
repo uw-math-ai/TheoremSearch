@@ -763,16 +763,27 @@ const selTC = view(Inputs.checkbox(
 
 ---
 
-## 7. Generalization: Does the Effect Hold Outside Mathlib?
+## 7. Generalization: 5 Projects, 300 Candidates
 
-Pilot and ablation are both Mathlib-only. To test whether the B vs T effect
-generalizes, we ran the same pilot (60 candidates, B + T + judge) on
-`combinatorial-games` — a Lean 4 project of 2,435 eligible declarations
-downstream of Mathlib.
+The pilot and ablation in §1–§6 were Mathlib-only (n=60). To test whether the findings
+generalize, we replicated the entire protocol — same models, same prompts, same judge,
+same seed — on 4 additional Lean 4 projects downstream of Mathlib, spanning very
+different mathematical domains:
 
-Setup was identical: same models, same prompts, same judge protocol, same
-seed. Candidates were sampled uniformly (no stratification — the project is
-too skewed across in-degree × signature-size cells to fill the 3×2 grid).
+| Project | Eligible pool | Domain |
+| --- | ---: | --- |
+| Mathlib | 329,981 | general mathematics |
+| combinatorial-games | 2,435 | surreal numbers, game theory |
+| PersistentDecomp | 153 | topological data analysis |
+| cam-combi | 128 | extremal / additive combinatorics |
+| gibbs-measure | 114 | probability, measure theory |
+
+Each project contributed 60 uniformly-sampled candidates (unstratified — small
+projects can't fill the 3×2 in-degree × signature-size grid). Total: 300 pilot
+B-vs-T pairs and 300 ablation pairs. Per-project judge counts in the three
+tables below.
+
+### 7.1 Headline (B vs T) replicates everywhere
 
 ```js
 display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0">
@@ -787,85 +798,165 @@ display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0
   </tr></thead>
   <tbody>
     <tr>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0">Mathlib (pilot)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">49 (82%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">3 (5%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">8 (13%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">1.8e-10</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">31.7 → 14.5</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0">Mathlib</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">49 (82%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">3 (5%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">8 (13%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">8.9e-10</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">31.7 → 14.5</td>
     </tr>
     <tr>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0">combinatorial-games</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">46 (77%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">5 (8%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">9 (15%)</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">9.4e-9</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">13.3 → 8.1</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0">combinatorial-games</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">46 (77%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">5 (8%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">9 (15%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">3.8e-07</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">13.3 → 8.1</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0">PersistentDecomp</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">47 (78%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">9 (15%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">4 (7%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">1.9e-11</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">31.5 → 14.6</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0">cam-combi</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">47 (78%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">3 (5%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">10 (17%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">7.3e-06</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">31.5 → 21.5</td>
+    </tr>
+    <tr>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0">gibbs-measure</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">60</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">49 (82%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">5 (8%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">6 (10%)</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">2.2e-10</td>
+      <td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">36.7 → 20.0</td>
+    </tr>
+    <tr style="background:#fef3c7;font-weight:700">
+      <td style="padding:8px 14px;border:1px solid #e2e8f0">Pooled (n=300)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">300</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb">238 (79.3%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">25 (8.3%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">37 (12.3%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;font-size:11px">—</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">28.9 → 15.7</td>
     </tr>
   </tbody>
 </table>
 <div style="font-size:12px;color:#64748b;margin-top:4px">
-  Same models, same prompts, same judge protocol. combinatorial-games signatures are
-  shorter on average → smaller absolute edit distances, but the proportional T advantage
-  holds (B is ~1.6× the edit distance of T in both projects).
+  T preferred 77–82% of the time in <em>every</em> project, with Wilcoxon p
+  below 1e-5 in all five. <strong>Adding dep-graph context is not a Mathlib-specific
+  finding.</strong>
 </div>`);
 ```
 
-The B vs T effect replicates: T preferred at very similar rates (82% vs. 77%),
-with significance well below 1e-8 in both. The edit-distance gap is proportionally
-similar despite different absolute magnitudes. **This is not Mathlib-specific.**
-
-### Ablation on combinatorial-games
-
-We also ran the T-names and T-random ablations on the same 60 candidates
-(reusing the NLs, swapping only the formalizer's context). Comparing
-ablation-judge counts side-by-side:
+### 7.2 Signatures finding (T vs T-names) replicates everywhere
 
 ```js
-display(html`<table style="border-collapse:collapse;font-size:13px;margin:12px 0">
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0">
   <thead><tr style="background:#f1f5f9">
-    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:left">Comparison</th>
-    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right">Mathlib</th>
-    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right">combinatorial-games</th>
-    <th style="padding:8px 12px;border:1px solid #e2e8f0;text-align:left">Verdict</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:left">Project</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">T wins</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Tie</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">T-names wins</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Gap (T − Tn)</th>
   </tr></thead>
   <tbody>
-    <tr>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0">T vs T-names (T wins / tie / T-names wins)</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace">33 / 16 / 11</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#16a34a;font-weight:700">33 / 14 / 13</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#16a34a">Replicates exactly — signatures are load-bearing in both projects</td>
-    </tr>
-    <tr>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0">T vs T-random (T wins / tie / T-random wins)</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace">27 / 11 / 22</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;text-align:right;font-family:monospace;color:#dc2626">20 / 18 / 22</td>
-      <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#dc2626">Does <em>not</em> replicate — T-random edges T here (within Mathlib pilot CI [−8.3, +25.0]pp)</td>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">Mathlib</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">33 (55%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">16 (27%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">11 (18%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:700">+37%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">combinatorial-games</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">33 (55%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">14 (23%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">13 (22%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:700">+33%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">PersistentDecomp</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">42 (70%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">5 (8%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">13 (22%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:700">+48%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">cam-combi</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">33 (55%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">17 (28%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">10 (17%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:700">+38%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">gibbs-measure</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb;font-weight:700">44 (73%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">8 (13%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">8 (13%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a;font-weight:700">+60%</td></tr>
+    <tr style="background:#fef3c7;font-weight:700">
+      <td style="padding:8px 14px;border:1px solid #e2e8f0">Pooled (n=300)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#2563eb">185 (61.7%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">60 (20.0%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">55 (18.3%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#16a34a">+43%</td>
     </tr>
   </tbody>
-</table>`);
+</table>
+<div style="font-size:12px;color:#64748b;margin-top:4px">
+  T wins by 33–60pp in every project. T-names is roughly as bad as B everywhere —
+  giving the formalizer only names (no types) does almost nothing. <strong>What the
+  graph buys you is type signatures, not just names.</strong>
+</div>`);
 ```
 
-**This sharpens the story.** The structural finding — that knowing *type signatures*
-of relevant declarations is essential, while knowing just their *names* adds nothing —
-is robust across both projects, with identical T-wins counts (33/60). The further
-claim that *actual predecessor* signatures beat *random same-module* signatures
-was already marginal at n=60 (CI [−8.3, +25.0]pp in Mathlib) and doesn't replicate
-on combinatorial-games. The formal graph buys you *signatures*, but choosing
-predecessor signatures over arbitrary same-module signatures is not a reliable win.
+### 7.3 Predecessor-vs-random (T vs T-random) does NOT replicate
 
-What was *not* tested here:
+```js
+display(html`<table style="border-collapse:collapse;font-size:13px;margin:14px 0">
+  <thead><tr style="background:#f1f5f9">
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:left">Project</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">T wins</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Tie</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">T-random wins</th>
+    <th style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">Gap (T − Tr)</th>
+  </tr></thead>
+  <tbody>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">Mathlib</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">27 (45%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">11 (18%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">22 (37%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">+8%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">combinatorial-games</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">20 (33%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">18 (30%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">22 (37%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">−3%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">PersistentDecomp</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">24 (40%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">10 (17%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">26 (43%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#dc2626">−3%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">cam-combi</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">23 (38%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">14 (23%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">23 (38%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">0%</td></tr>
+    <tr><td style="padding:6px 14px;border:1px solid #e2e8f0">gibbs-measure</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">27 (45%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">7 (12%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">26 (43%)</td><td style="padding:6px 14px;border:1px solid #e2e8f0;text-align:right">+2%</td></tr>
+    <tr style="background:#fef3c7;font-weight:700">
+      <td style="padding:8px 14px;border:1px solid #e2e8f0">Pooled (n=300)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">121 (40.3%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right;color:#6b7280">60 (20.0%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">119 (39.7%)</td>
+      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:right">+0.7%</td>
+    </tr>
+  </tbody>
+</table>
+<div style="font-size:12px;color:#64748b;margin-top:4px">
+  Per-project gaps span −3 to +8 percentage points. Pooled across 300 candidates,
+  the difference is +0.7%. <strong>Knowing the formal predecessors specifically is not
+  a reliable win over arbitrary same-module signatures.</strong>
+</div>`);
+```
+
+### 7.4 What the five projects tell us
+
+The three findings now have very different levels of empirical support:
+
+| Finding | Pooled gap (n=300) | Replication across 5 projects |
+| --- | ---: | --- |
+| **Any same-namespace signatures beats no context** (B vs T) | **+71 pp** | **5/5 projects, all p < 1e-5** |
+| **Signatures beat names** (T vs T-names) | **+43 pp** | **5/5 projects, every gap > +30pp** |
+| **Predecessor signatures beat random same-module** (T vs T-random) | +0.7 pp | 0/5 projects show clear effect |
+
+The original Mathlib pilot's T-vs-T-random gap (+8pp, CI [−8.3, +25.0]pp) does
+not survive replication. Across four additional projects the gap centres on zero
+(−3, −3, 0, +2). What the formal-dependency graph actually buys you at this
+formalizer scale is the *typed API of namespace-adjacent declarations* — not the
+specific selection of predecessors.
+
+This is a sharper result for the talk than "the graph helps". It says: a small,
+locally-typed context window helps the formalizer enormously, and the graph is
+a fine *source* of such a context — but if the goal is just "give the formalizer
+relevant typed API", you could draw from the same Lean module instead and get
+the same outcome. The interesting graph-specific claims live elsewhere (e.g.
+ranking, distant retrieval, multi-step proof assistance) and would require
+different experiments.
+
+What this scaled study still doesn't cover:
 - **Typecheck signal**: skipped for non-Mathlib because each project pins its own
-  Lean dependencies. To run typecheck against combinatorial-games, we'd need
-  `import CombinatorialGames` plus its own lakefile.
-- **Stratified breakdown**: combinatorial-games' eligible pool is heavily
-  small-signature, so the dense×large cell can't be populated.
-
-A natural next step is to run the same test across 4–5 more downstream projects
-(PersistentDecomp, cam-combi, etc.) for a tighter generalization claim, and to
-set up per-project typecheck environments so the second metric becomes available.
+  Lean toolchain. The Mathlib typecheck (§1) is the only "model-free validity" pass.
+- **Stratified breakdown**: only Mathlib has enough density to fill the
+  in-degree × signature-size grid.
+- **Larger n per project**: 60 is enough to detect 30pp gaps, but tying down
+  small gaps (e.g. testing if T-random truly equals T) would need n ≈ 300+.
 
 ---
 
