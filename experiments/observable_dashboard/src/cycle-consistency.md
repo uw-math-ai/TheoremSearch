@@ -67,6 +67,156 @@ names and types appear in F's signature or proof. They are the 1-hop outgoing
 neighbors of F in the formal graph (`source_id = F`, across all edge types:
 `proof`, `sig`, `def`, `field`, `extends`, `docref`).
 
+### Concrete example: what each condition actually sends
+
+The candidate below is `ack_inj_left` from `Mathlib.Computability.Ackermann` —
+7 predecessors, short signature, non-dense stratum. Toggle conditions to see
+exactly what the formalizer receives in each case.
+
+```js
+{
+  // Predecessor graph for ack_inj_left
+  const exDeps = [
+    {type:"proof", name:"Function.Injective.eq_iff"},
+    {type:"proof", name:"ack"},
+    {type:"proof", name:"ack_injective_left"},
+    {type:"sig",   name:"Eq"},
+    {type:"sig",   name:"Iff"},
+    {type:"sig",   name:"Nat"},
+    {type:"sig",   name:"ack"},
+  ];
+  const typeColor = {proof:"#2563eb", sig:"#7c3aed"};
+  const cx = 300, cy = 170, R = 130;
+  const nodeData = exDeps.map((dep, i) => {
+    const angle = (2 * Math.PI * i / exDeps.length) - Math.PI / 2;
+    return {
+      x: cx + R * Math.cos(angle),
+      y: cy + R * Math.sin(angle),
+      name: dep.name.split(".").pop(),
+      fullName: dep.name,
+      type: dep.type,
+    };
+  });
+  const linkData = nodeData.map(n => ({x1: cx, y1: cy, x2: n.x, y2: n.y, type: n.type}));
+
+  display(html`<div style="margin-bottom:4px">
+    <span style="font-size:11px;color:${typeColor.proof};font-weight:600;margin-right:14px">● proof edge</span>
+    <span style="font-size:11px;color:${typeColor.sig};font-weight:600">● sig edge</span>
+  </div>`);
+
+  display(Plot.plot({
+    width: 600, height: 340, margin: 20,
+    x: {domain:[0,600], axis:null},
+    y: {domain:[0,340], axis:null, reverse:true},
+    marks: [
+      Plot.link(linkData, {
+        x1:"x1", y1:"y1", x2:"x2", y2:"y2",
+        stroke: r => typeColor[r.type] ?? "#94a3b8",
+        strokeOpacity: 0.5, strokeWidth: 1.5,
+      }),
+      Plot.dot(nodeData, {
+        x:"x", y:"y", r: 8,
+        fill: r => typeColor[r.type] ?? "#94a3b8",
+        fillOpacity: 0.85, tip: true,
+        channels: {Name: "fullName", "Edge type": "type"},
+      }),
+      Plot.dot([{x:cx, y:cy}], {x:"x", y:"y", r:14, fill:"#0f172a", stroke:"white", strokeWidth:2}),
+      Plot.text(nodeData, {
+        x: r => r.x + (r.x > cx+5 ? 12 : r.x < cx-5 ? -12 : 0),
+        y: r => r.y + (r.y > cy+5 ? 14 : r.y < cy-5 ? -12 : 0),
+        text:"name", fontSize:10,
+        textAnchor: r => r.x > cx+5 ? "start" : r.x < cx-5 ? "end" : "middle",
+        fill: r => typeColor[r.type] ?? "#94a3b8",
+        fontWeight: 500,
+      }),
+      Plot.text([{x:cx, y:cy+22}], {x:"x", y:"y", text:["ack_inj_left"], fontSize:11, fontWeight:700, fill:"#0f172a", textAnchor:"middle"}),
+    ],
+  }));
+
+  display(html`<div style="font-size:12px;color:#64748b;margin-top:4px">
+    Target node (black) is <code>ack_inj_left</code>. Outer nodes are its 7 predecessors —
+    declarations the original Lean proof actually uses. Hover for full names.
+  </div>`);
+}
+```
+
+```js
+// Separate block so the condition selector can drive the context display reactively
+{
+  // Re-declare ex locally for the reactive output block
+  const ex2 = {
+    nl: "The Ackermann function is injective in its first argument when the second argument is held fixed: for natural numbers m₁, m₂, and n, we have ack(m₁, n) = ack(m₂, n) if and only if m₁ = m₂.",
+    deps: [
+      {type:"proof", name:"Function.Injective.eq_iff",   sig:"Function.Injective.eq_iff {α β} {f : α → β} (hf : Function.Injective f) {a b} : f a = f b ↔ a = b"},
+      {type:"proof", name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
+      {type:"proof", name:"ack_injective_left",           sig:"ack_injective_left (n : ℕ) : Function.Injective fun m => ack m n"},
+      {type:"sig",   name:"Eq",                           sig:"Eq.{u_1} {α : Sort u_1} : α → α → Prop"},
+      {type:"sig",   name:"Iff",                          sig:"Iff (a b : Prop) : Prop"},
+      {type:"sig",   name:"Nat",                          sig:"Nat : Type"},
+      {type:"sig",   name:"ack",                          sig:"ack : ℕ → ℕ → ℕ"},
+    ],
+    rand_deps: [
+      {type:"random", name:"max_ack_right",               sig:"max_ack_right (m n₁ n₂ : ℕ) : ack m (max n₁ n₂) = max (ack m n₁) (ack m n₂)"},
+      {type:"random", name:"one_lt_ack_succ_right",       sig:"one_lt_ack_succ_right (m n : ℕ) : 1 < ack m (n + 1)"},
+      {type:"random", name:"ack_lt_ack_right",            sig:"ack_lt_ack_right (m : ℕ) : StrictMono (ack m)"},
+      {type:"random", name:"ack_pos",                     sig:"ack_pos (m n : ℕ) : 0 < ack m n"},
+      {type:"random", name:"ack_succ_succ",               sig:"ack_succ_succ (m n : ℕ) : ack (m + 1) (n + 1) = ack m (ack (m + 1) n)"},
+      {type:"random", name:"Nat.Partrec.Code.primrec_pappAck", sig:"Nat.Partrec.Code.primrec_pappAck : Primrec Nat.Partrec.Code.pappAck"},
+      {type:"random", name:"ack_succ_zero",               sig:"ack_succ_zero (m : ℕ) : ack (m + 1) 0 = ack m 1"},
+    ],
+    outputs: {
+      "B — baseline":    "-- model output (type-checks ✓, but wrong theorem)\ndef ack : ℕ → ℕ → ℕ\n  | 0, n => n + 1\n  | m + 1, 0 => ack m 1\n  | m + 1, n + 1 => ack m (ack (m + 1) n)\n\ntheorem ack_injective_first_arg ...\n-- ✗ Redefined ack instead of stating injectivity",
+      "T-names":         "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
+      "T-random":        "-- model output (type-checks ✓)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ := by sorry\n-- ✓ Correct statement, wrong name, sorry proof",
+      "T — treatment":   "-- model output (type-checks ✓, judge preferred)\ntheorem ack_injective_left_iff (m₁ m₂ n : ℕ) : ack m₁ n = ack m₂ n ↔ m₁ = m₂ :=\n  (ack_injective_left n).eq_iff\n-- ✓ Correct statement + uses ack_injective_left from dep context",
+    },
+  };
+
+  const condColors = {"B — baseline":"#dc2626","T-names":"#f59e0b","T-random":"#7c3aed","T — treatment":"#2563eb"};
+
+  function buildCtx(cond, ex) {
+    const nlBlock = `-- NL (all conditions)\n${ex.nl}`;
+    if (cond === "B — baseline") return {text: nlBlock, extra: null};
+    if (cond === "T-names") {
+      return {text: nlBlock, extra: {label:"-- dep names only (no signatures)", lines: ex.deps.map(r => `-- ${r.type}\n${r.name}`).join("\n\n")}};
+    }
+    if (cond === "T-random") {
+      return {text: nlBlock, extra: {label:"-- same-module random (7 nodes)", lines: ex.rand_deps.map(r => `-- random\n${r.name} : ${r.sig}`).join("\n\n")}};
+    }
+    return {text: nlBlock, extra: {label:"-- actual predecessor signatures (from graph)", lines: ex.deps.map(r => `-- ${r.type}\n${r.name} : ${r.sig}`).join("\n\n")}};
+  }
+
+  const condPicker = view(Inputs.radio(
+    ["B — baseline","T-names","T-random","T — treatment"],
+    {value:"T — treatment", label:"Condition"}
+  ));
+
+  const ctx = buildCtx(condPicker, ex2);
+  const col = condColors[condPicker] ?? "#0f172a";
+
+  display(html`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0">
+    <div>
+      <div style="font-size:11px;font-weight:600;color:${col};text-transform:uppercase;
+                  letter-spacing:.05em;margin-bottom:6px">Input to formalizer</div>
+      <pre style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid ${col};
+                  border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;
+                  overflow:auto;max-height:280px;white-space:pre-wrap;margin:0">${ctx.text}${ctx.extra ? `\n\n${ctx.extra.label}\n\n${ctx.extra.lines}` : ""}</pre>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;color:${col};text-transform:uppercase;
+                  letter-spacing:.05em;margin-bottom:6px">Formalizer output</div>
+      <pre style="background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid ${col};
+                  border-radius:4px;padding:10px 12px;font-size:11px;line-height:1.6;
+                  overflow:auto;max-height:280px;white-space:pre-wrap;margin:0">${ex2.outputs[condPicker] ?? ""}</pre>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#64748b">
+    Target: <code>ack_inj_left {m₁ m₂ n : ℕ} : ack m₁ n = ack m₂ n ↔ m₁ = m₂</code>
+    · <code>Mathlib.Computability.Ackermann</code> · 7 predecessors · non-dense × small stratum
+  </div>`);
+}
+```
+
 ### How we scored each output
 
 **Type-check** (primary): each output is wrapped in `import Mathlib` and run
