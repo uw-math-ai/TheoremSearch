@@ -1,0 +1,552 @@
+node_id,full_name,F_signature,NL,F_T,dep_count,F_Tnames,dep_names_count,judge_T_vs_Tnames,judge_T_vs_Tnames_notes,vacuous_Tnames,edit_dist_Tnames,F_Trandom,rand_count,judge_T_vs_Trandom,judge_T_vs_Trandom_notes,vacuous_Trandom,edit_dist_Trandom
+1045416,Game.birthday_eq_zero,Game.birthday_eq_zero.{u_1} {x : Game} : Game.birthday x = 0 ↔ x = 0,"Looking at this theorem, it states that for a game `x`, the birthday of `x` equals zero if and only if `x` is the zero game. In other words, a game has birthday zero precisely when it is the zero game itself.","```lean
+theorem Game.birthday_eq_zero {x : Game} : Game.birthday x = 0 ↔ x = 0
+```",37,"```lean
+theorem Game.birthday_eq_zero_iff (x : Game) : Game.birthday x = 0 ↔ x = 0
+```",37,T,"Candidate A matches the target signature exactly with implicit x, while B makes x explicit.",False,4,"```lean
+theorem Game.birthday_eq_zero {x : Game} : Game.birthday x = 0 ↔ x = 0
+```",37,tie,Both candidates are identical and match the target signature exactly.,False,2
+1017253,IGame.toDyadic,IGame.toDyadic.{u_1} (x : IGame) [IGame.Short x] [IGame.Numeric x] : Dyadic,The function `IGame.toDyadic` converts a short numeric impartial game to a dyadic rational number.,"```lean
+def IGame.toDyadic {x : IGame} (hShort : IGame.Short x) (hNumeric : IGame.Numeric x) : Dyadic := by sorry
+```",93,"```lean
+def IGame.toDyadic : IGame.Short → Dyadic := by sorry
+```",93,T,"A matches target with implicit x, instances, and return type. B has wrong type signature.",False,9,"```lean
+def IGame.toDyadic (x : IGame) [IGame.Short x] [IGame.Numeric x] : Dyadic := by sorry
+```",93,Trandom,A uses implicit instances matching target; B uses explicit hypotheses instead of typeclass instances,False,5
+1095251,NatOrdinal.zero_le,NatOrdinal.zero_le.{u_1} (a✝ : NatOrdinal) : 0 ≤ a✝,The theorem states that zero is less than or equal to any natural ordinal.,"```lean
+theorem zero_le_natOrdinal (a : NatOrdinal) : (0 : NatOrdinal) ≤ a := by sorry
+```",14,"```lean
+theorem NatOrdinal.zero_le (n : NatOrdinal) : (0 : NatOrdinal) ≤ n := bot_le
+```",14,Tnames,"A provides a correct proof using bot_le; B uses sorry. Both match signature, neither vacuous.",False,9,"```lean
+theorem NatOrdinal.zero_le (a : NatOrdinal) : 0 ≤ a := by sorry
+```",14,Trandom,B has the exact namespace and name matching the target. A uses a different name.,False,7
+1084817,Surreal.out_eq,Surreal.out_eq.{u_1} (x : Surreal) : Surreal.mk (Surreal.out x) = x,"The theorem states that for any surreal number $x$, constructing a surreal number using the `mk` function applied to the output of `out` applied to $x$ yields back the original surreal number $x$. In other words, the `out` function followed by `mk` is the identity on surreal numbers.","```lean
+theorem Surreal.mk_out (x : Surreal) : Surreal.mk (Surreal.out x) = x
+```",15,"```lean
+theorem Surreal.mk_out (x : Surreal) : Surreal.mk (Surreal.out x) = x
+```",15,tie,Both candidates are identical and match the target signature semantically (mk_out vs out_eq are equivalent names).,False,2,"```lean
+theorem Surreal.mk_out (x : Surreal) : Surreal.mk (Surreal.out x) = x
+```",15,tie,Both candidates are identical and match the target signature semantically (out_eq vs mk_out are synonymous names for the same statement).,False,2
+1077984,SurrealHahnSeries.coeff_trunc_of_lt,"SurrealHahnSeries.coeff_trunc_of_lt.{u_1} {x : SurrealHahnSeries} {i j : Surreal} (h : i < j) :
+  SurrealHahnSeries.coeff (SurrealHahnSeries.trunc x i) j = SurrealHahnSeries.coeff x j","Looking at this Lean 4 declaration, I need to understand what it says about the `coeff` (coefficient) and `trunc` (truncation) operations on surreal Hahn series.
+
+The theorem states: For a surreal Hahn series `x` and surreal numbers `i` and `j`, if `i < j`, then the coefficient at position `j` of the truncated series `trunc x i` equals the coefficient at position `j` of the original series `x`.
+
+In other words, truncating a surreal Hahn series at position `i` does not affect the coefficients at positions strictly greater than `i`.","```lean
+theorem SurrealHahnSeries.coeff_trunc_of_lt {x : SurrealHahnSeries} {i j : Surreal} (h : i < j) : 
+  (x.trunc i).coeff j = x.coeff j := by sorry
+```",29,"```lean
+theorem SurrealHahnSeries.coeff_trunc {x : SurrealHahnSeries} {i j : Surreal} (h : i < j) :
+    (x.trunc i).coeff j = x.coeff j
+```",29,T,"Both match semantically, but A uses the exact target name 'coeff_trunc_of_lt' vs B's 'coeff_trunc'.",False,8,"```lean
+theorem SurrealHahnSeries.coeff_trunc_of_lt {x : SurrealHahnSeries} {i j : Surreal} (h : i < j) :
+  SurrealHahnSeries.coeff (SurrealHahnSeries.trunc x i) j = SurrealHahnSeries.coeff x j
+```",29,Trandom,B matches target signature exactly; A uses dot notation which changes surface form though semantically equivalent.,False,2
+1054189,Surreal.wlog_mul,"Surreal.wlog_mul.{u_1} {x y : Surreal} (hx : x ≠ 0) (hy : y ≠ 0) :
+  Surreal.wlog (x * y) = Surreal.wlog x + Surreal.wlog y","The well-ordering logarithm (wlog) of a product of two nonzero surreal numbers equals the sum of the well-ordering logarithms of the individual factors: if $x$ and $y$ are nonzero surreal numbers, then $\text{wlog}(x \cdot y) = \text{wlog}(x) + \text{wlog}(y)$.","```lean
+theorem Surreal.wlog_mul (x y : Surreal) (hx : x ≠ 0) (hy : y ≠ 0) : Surreal.wlog (x * y) = Surreal.wlog x + Surreal.wlog y := by sorry
+```",48,"```lean
+theorem Surreal.wlog_mul {x y : Surreal} (hx : x ≠ 0) (hy : y ≠ 0) : 
+  Surreal.wlog (x * y) = Surreal.wlog x + Surreal.wlog y := by sorry
+```",48,tie,Both match target: hypotheses hx/hy explicit vs implicit braces differ but semantically equivalent.,False,5,"```lean
+theorem Surreal.wlog_mul (x y : Surreal) (hx : x ≠ 0) (hy : y ≠ 0) : Surreal.wlog (x * y) = Surreal.wlog x + Surreal.wlog y
+```",48,tie,Both candidates match the target signature exactly. Candidate A uses 'by sorry' while B is an axiom; semantically equivalent.,False,4
+1043767,Nimber.groupClosure_two,Nimber.groupClosure_two.{u_1} : Nimber.groupClosure (Nimber.of 2) = Nimber.of 2,"The group closure of the nimber 2 (that is, the subgroup generated by the nimber 2 under the nimber addition operation) equals the nimber 2 itself.","```lean
+theorem nimber_groupClosure_two : Nimber.groupClosure (Nimber.of 2) = Nimber.of 2 := by sorry
+```",39,"```lean
+theorem Nimber.groupClosure_two : Nimber.groupClosure (2 : Nimber) = 2 := by sorry
+```",39,Tnames,"Candidate B uses correct type (2 : Nimber) matching coercion, while A uses Nimber.of explicitly. B is more idiomatic.",False,9,"```lean
+theorem Nimber.groupClosure_two : Nimber.groupClosure (Nimber.of 2) = Nimber.of 2
+```",39,Trandom,Both match the target signature except A uses the correct name Nimber.groupClosure_two while B uses nimber_groupClosure_two. Neither is vacuous as this requires a proof.,False,2
+1180378,Player.left_mul,Player.left_mul (p : Player) : Player.left * p = p,"The theorem states that multiplying any player $p$ on the left by the player `Player.left` results in $p$ itself, demonstrating that `Player.left` acts as a left identity element under the multiplication operation on players.","```lean
+theorem Player.left_mul (p : Player) : Player.left * p = p := by sorry
+```",11,"```lean
+theorem Player.left_mul (p : Player) : Player.left * p = p := by sorry
+```",11,tie,Both candidates are identical and match the target signature exactly.,False,4,"```lean
+Player.left_mul : (p : Player) → Player.left * p = p
+```",11,tie,Both match the target signature exactly; candidate B includes a proof skeleton which is expected for a theorem.,False,2
+1038723,IGame.Numeric.mul_congr_left,"IGame.Numeric.mul_congr_left.{u_1} {x₁ x₂ y : IGame} [IGame.Numeric x₁] [IGame.Numeric x₂] [IGame.Numeric y]
+  (he : x₁ ≈ x₂) : x₁ * y ≈ x₂ * y","The theorem states that multiplication of numeric impartial games is well-defined with respect to game equivalence on the left: if two numeric games x₁ and x₂ are equivalent, then for any numeric game y, the products x₁ * y and x₂ * y are also equivalent.","```lean
+theorem IGame.mul_left_congr {x₁ x₂ y : IGame} [IGame.Numeric x₁] [IGame.Numeric x₂] [IGame.Numeric y]
+    (h : x₁ ≈ x₂) : x₁ * y ≈ x₂ * y := by sorry
+```",278,"```lean
+theorem IGame.Numeric.mul_left_equiv {x₁ x₂ y : IGame} (hx : IGame.Numeric x₁) (hy : IGame.Numeric y) (h : AntisymmRel (· ≤ ·) x₁ x₂) : AntisymmRel (· ≤ ·) (x₁ * y) (x₂ * y) := by sorry
+```",278,T,A matches target exactly: same typeclass assumptions [Numeric] and equiv (≈). B uses explicit Numeric terms and AntisymmRel instead of (≈).,False,28,"```lean
+IGame.Numeric.mul_congr_left : {x₁ x₂ y : IGame} → [IGame.Numeric x₁] → [IGame.Numeric x₂] → [IGame.Numeric y] → x₁ ≈ x₂ → x₁ * y ≈ x₂ * y
+```",34,Trandom,A matches name and signature exactly; B has different name (mul_left_congr vs mul_congr_left) and parameter name differs.,False,9
+1196703,Nimber.oeval_inj,"Nimber.oeval_inj.{u_1} {x : Nimber} {p q : Polynomial Nimber} (hpk : ∀ (k : ℕ), Polynomial.coeff p k < x)
+  (hqk : ∀ (k : ℕ), Polynomial.coeff q k < x) : Nimber.oeval x p = Nimber.oeval x q ↔ p = q","The theorem states that for nimbers \(x\), polynomials \(p\) and \(q\) over nimbers where all coefficients of \(p\) are less than \(x\) and all coefficients of \(q\) are less than \(x\), the ordinal evaluation of \(p\) at \(x\) equals the ordinal evaluation of \(q\) at \(x\) if and only if \(p\) equals \(q\).","```lean
+theorem Nimber.oeval_eq_oeval_iff {x : Nimber} {p q : Polynomial Nimber} 
+    (hpk : ∀ (k : ℕ), Polynomial.coeff p k < x)
+    (hqk : ∀ (k : ℕ), Polynomial.coeff q k < x) : 
+    Nimber.oeval x p = Nimber.oeval x q ↔ p = q := by sorry
+```",45,"```lean
+theorem Nimber.oeval_eq_oeval_iff {x : Nimber} {p q : Polynomial Nimber} 
+    (hp : ∀ n, Polynomial.coeff p n < x) (hq : ∀ n, Polynomial.coeff q n < x) :
+    Nimber.oeval x p = Nimber.oeval x q ↔ p = q := by sorry
+```",45,tie,Both match target semantically; only differ in parameter names (hpk/hqk vs hp/hq and k vs n) which are inessential.,False,15,"```lean
+theorem Nimber.oeval_injective {x : Nimber} {p q : Polynomial Nimber} 
+    (hpk : ∀ (k : ℕ), Polynomial.coeff p k < x) 
+    (hqk : ∀ (k : ℕ), Polynomial.coeff q k < x) :
+    Nimber.oeval x p = Nimber.oeval x q ↔ p = q := by sorry
+```",45,tie,Both candidates match the target signature exactly in types and conclusion; only theorem names differ.,False,5
+1141118,LGame.stoppingTime_induction,"LGame.stoppingTime_induction.{u} (p : Player) (val : Player → LGame → WithTop NatOrdinal)
+  (hp : ∀ (x : LGame), ⨅ y ∈ LGame.moves p x, val (-p) y ≤ val p x)
+  (hnp : ∀ (x : LGame), ⨆ y ∈ LGame.moves (-p) x, val p y + 1 ≤ val (-p) x) : LGame.stoppingTime p ≤ val","The **stopping time induction principle** states that for a player `p` and any function `val` from players and games to extended natural ordinals (with top element), if `val` satisfies two conditions—(1) for any game `x`, the infimum of `val(-p, y)` over all moves `y` available to player `p` from `x` is at most `val(p, x)`, and (2) for any game `x`, the supremum of `val(p, y) + 1` over all moves `y` available to player `-p` from `x` is at most `val(-p, x)`—then the stopping time function for player `p` is pointwise less than or equal to `val`.","```lean
+theorem LGame.stoppingTime_induction (p : Player) (val : Player → LGame → WithTop NatOrdinal)
+    (h1 : ∀ x, ⨅ y ∈ LGame.moves p x, val (-p) y ≤ val p x)
+    (h2 : ∀ x, ⨆ y ∈ LGame.moves (-p) x, val p y + 1 ≤ val (-p) x) :
+    ∀ x, LGame.stoppingTime p (-p) x ≤ val p x := by sorry
+```",130,"```lean
+theorem stoppingTime_induction (p : Player) (val : Player → LGame → WithTop NatOrdinal)
+    (h1 : ∀ x : LGame, ⨅ y ∈ LGame.moves (-p) x, val (-p) y ≤ val p x)
+    (h2 : ∀ x : LGame, ⨆ y ∈ LGame.moves (-p) x, val p y + 1 ≤ val (-p) x) :
+    ∀ x : LGame, LGame.stoppingTime p x ≤ val p x := by sorry
+```",130,T,A swaps p/-p in h1 premise; B matches target hypotheses correctly despite conclusion having extra (-p) argument.,False,19,"```lean
+theorem LGame.stoppingTime_induction (p : Player) (val : Player → LGame → WithTop NatOrdinal)
+    (hp : ∀ (x : LGame), val p x ≤ ⨅ y ∈ LGame.moves p x, val (-p) y)
+    (hnp : ∀ (x : LGame), val (-p) x ≤ ⨆ y ∈ LGame.moves (-p) x, val p y + 1) :
+    ∀ (x : LGame), LGame.stoppingTime p p x ≤ val p x := by sorry
+```",4,T,"Target concludes stoppingTime p ≤ val (pointwise), B matches this pattern while A incorrectly applies stoppingTime to specific player p twice",False,28
+1019386,Surreal.wlog,Surreal.wlog.{u_1} (x : Surreal) : Surreal,"The declaration `Surreal.wlog` is a function that takes a surreal number and returns a surreal number, typically used as a helper or auxiliary construction in the context of ""without loss of generality"" arguments for surreal numbers.","```lean
+def Surreal.wlog (x : Surreal) : Surreal := by sorry
+```",16,"```lean
+def Surreal.wlog (x : Surreal) : Surreal := sorry
+```",16,tie,Both are syntactically identical definitions with sorry. Term mode vs tactic mode irrelevant here.,False,4,"```lean
+def Surreal.wlog : Surreal → Surreal
+```",16,T,"Both match the signature, but A provides a definition structure while B only gives the type. Neither is vacuous as both declare a real function.",False,4
+1017469,NatOrdinal.val_lt_iff,NatOrdinal.val_lt_iff.{u_1} {a✝ : NatOrdinal} {b✝ : Ordinal.{u_1}} : NatOrdinal.val a✝ < b✝ ↔ a✝ < NatOrdinal.of b✝,"<thinking>
+Let me parse this Lean 4 declaration carefully.
+
+The theorem is named `NatOrdinal.val_lt_iff` and it's stating an equivalence (iff, or ""if and only if"").
+
+On the left-hand side: `NatOrdinal.val a✝ < b✝`
+- `a✝` is a `NatOrdinal`
+- `b✝` is an `Ordinal`
+- `NatOrdinal.val` is presumably a function that converts a `NatOrdinal` to an `Ordinal`
+- So this says: the value of `a` (as an ordinal) is less than `b`
+
+On the right-hand side: `a✝ < NatOrdinal.of b✝`
+- `a✝` is the same `NatOrdinal`
+- `NatOrdinal.of` is presumably a function that converts an `Ordinal` to a `NatOrdinal`
+- So this says: `a` is less than the natural ordinal corresponding to `b`
+
+So the theorem states that: the value (as an ordinal) of a natural ordinal `a` is less than an ordinal `b` if and only if `a` is less than (as natural ordinals) the natural ordinal corresponding to `b`.
+
+This is essentially saying that the `val` function (from NatOrdinal to Ordinal) preserves the ordering when compared with arbitrary ordinals via the `of` function.
+</thinking>
+
+The theorem states that for a natural ordinal $a$ and an ordinal $b$, the ordinal value of $a$ is less than $b$ if and only if $a$ is less than the natural ordinal associated with $b$ (under the natural ordering on natural ordinals).","```lean
+theorem NatOrdinal.val_lt_iff {a : NatOrdinal} {b : Ordinal} : NatOrdinal.val a < b ↔ a < NatOrdinal.of b := by sorry
+```",27,"```lean
+theorem NatOrdinal.val_lt_iff {a : NatOrdinal} {b : Ordinal} : NatOrdinal.val a < b ↔ a < NatOrdinal.of b := by sorry
+```",27,tie,Both candidates are identical and match the target signature exactly.,False,12,theorem NatOrdinal.val_lt_iff {a : NatOrdinal} {b : Ordinal.{u_1}} : NatOrdinal.val a < b ↔ a < NatOrdinal.of b := by sorry,27,Trandom,"B explicitly includes universe level u_1 matching target, A omits it which may cause implicit universe issues",False,11
+1041107,IGame.Short.finite_setOf_subposition,IGame.Short.finite_setOf_subposition.{u_1} (x : IGame) [IGame.Short x] : Set.Finite {y | IGame.Subposition y x},"The theorem states that for any short impartial game, the set of all subpositions of that game is finite.","```lean
+theorem IGame.Short.finite_subpositions {x : IGame} (h : IGame.Short x) : Set.Finite {y | IGame.Subposition y x}
+```",50,"```lean
+theorem IGame.Short.finite_subpositions (g : IGame) (hg : g.Short) : Set.Finite {h | IGame.Subposition g h} := by sorry
+```",50,T,Candidate A matches target signature correctly with Subposition y x; B flips argument order to Subposition g h.,False,12,"```lean
+theorem IGame.Short.finite_subpositions (x : IGame) [IGame.Short x] : Set.Finite {y : IGame | IGame.Subposition y x}
+```",50,Trandom,B matches target signature exactly with explicit type in set builder and instance parameter; A uses hypothesis parameter instead.,False,4
+1077300,Real.toIGame_ratCast_sub_equiv,Real.toIGame_ratCast_sub_equiv.{u_1} (q : ℚ) (x : ℝ) : ↑(↑q - x) ≈ ↑q - ↑x,"The theorem states that for any rational number $q$ and any real number $x$, when converting the real number $(q - x)$ to a game (via the composition of rational cast and game conversion), the resulting game is equivalent to the difference of the game conversions of $q$ and $x$ separately.","```lean
+theorem Real.toIGame_ratCast_sub_equiv (q : ℚ) (x : ℝ) : ↑(↑q - x) ≈ ↑q - ↑x
+```",34,"```lean
+theorem Real.toIGame_ratCast_sub_equiv (q : ℚ) (x : ℝ) :
+    (↑(↑q - x) : IGame) = ↑(↑q : ℝ) - ↑x := by sorry
+```",34,T,A uses equiv ≈ matching target; B uses equality = which is semantically different for games.,False,12,"```lean
+theorem Real.toIGame_ratCast_sub_equiv (q : ℚ) (x : ℝ) : ↑(↑q - x) ≈ ↑q - ↑x := by sorry
+```",34,tie,"Both match the target signature exactly; one has sorry, one omits proof.",False,5
+1080561,Nimber.IsRing.coeff_mul_lt,"Nimber.IsRing.coeff_mul_lt.{u_1} {x : Nimber} {p q : Polynomial Nimber} (h : Nimber.IsRing x)
+  (hp : ∀ (k : ℕ), Polynomial.coeff p k < x) (hq : ∀ (k : ℕ), Polynomial.coeff q k < x) (k : ℕ) :
+  Polynomial.coeff (p * q) k < x","When $x$ is a nimber satisfying the ring property (IsRing), and $p$ and $q$ are polynomials over nimbers such that all coefficients of $p$ are less than $x$ and all coefficients of $q$ are less than $x$, then for any natural number $k$, the $k$-th coefficient of the product polynomial $p \cdot q$ is also less than $x$.","```lean
+theorem Nimber.IsRing.mul_poly_coeff_lt {x : Nimber} (h : Nimber.IsRing x) (p q : Polynomial Nimber)
+    (hp : ∀ i, Polynomial.coeff p i < x) (hq : ∀ i, Polynomial.coeff q i < x) (k : ℕ) :
+    Polynomial.coeff (p * q) k < x := by sorry
+```",50,"```lean
+theorem Nimber.IsRing.coeff_mul_lt {x : Nimber} (hx : IsRing x) {p q : Polynomial Nimber}
+    (hp : ∀ i, p.coeff i < x) (hq : ∀ i, q.coeff i < x) (k : ℕ) :
+    (p * q).coeff k < x := by sorry
+```",50,Tnames,"A uses implicit arguments for p, q matching style, B makes them explicit. Conclusion formats slightly differ but equivalent.",False,27,"```lean
+theorem Nimber.IsRing.mul_coeff_lt {x : Nimber} (h : Nimber.IsRing x) {p q : Polynomial Nimber}
+  (hp : ∀ (k : ℕ), Polynomial.coeff p k < x) (hq : ∀ (k : ℕ), Polynomial.coeff q k < x) (k : ℕ) :
+  Polynomial.coeff (p * q) k < x := by sorry
+```",50,Trandom,"B uses implicit binders for p and q matching the target, while A uses explicit binders. Argument order and names also match target better in B.",False,13
+1168139,Surreal.birthday_one,Surreal.birthday_one.{u_1} : Surreal.birthday 1 = 1,The birthday of the surreal number 1 equals the ordinal 1.,"```lean
+theorem Surreal.birthday_one : Surreal.birthday (1 : Surreal) = (1 : NatOrdinal) := by sorry
+```",25,Surreal.birthday (1 : Surreal) = (1 : NatOrdinal),25,tie,"Both express the same theorem: birthday of 1 (Surreal) equals 1 (NatOrdinal). A is statement-only, B adds proof skeleton.",False,7,"```lean
+theorem Surreal.birthday_one : Surreal.birthday 1 = 1 := by sorry
+```",19,Trandom,"Candidate B matches the target signature exactly, while A explicitly casts to NatOrdinal which may not match the intended types.",False,5
+1017420,NatOrdinal.of,NatOrdinal.of.{u_1} : Ordinal.{u_1} ≃o NatOrdinal,The function `NatOrdinal.of` establishes an order isomorphism (order-preserving bijection) between the type of ordinals and the type of natural ordinals.,"```lean
+def NatOrdinal.of : Ordinal ≃o NatOrdinal := by sorry
+```",13,"```lean
+def NatOrdinal.of : Ordinal ≃o NatOrdinal
+```",13,tie,"Both candidates have identical signatures matching the target. The only difference is A uses 'by sorry' while B has no body, both are incomplete.",False,3,"```lean
+NatOrdinal.of : Ordinal.{u_1} →o NatOrdinal
+```",13,T,"Target is order isomorphism (≃o). A gives order homomorphism (→o), B matches with ≃o.",False,2
+1185850,Nimber.IsRing.iSup,"Nimber.IsRing.iSup.{u_1, u_2} {ι : Sort u_1} [Nonempty ι] {f : ι → Nimber} (H : ∀ (i : ι), Nimber.IsRing (f i))
+  (bdd : BddAbove (Set.range f) := by apply Nimber.bddAbove_of_small) : Nimber.IsRing (⨆ i, f i)","Looking at this declaration, it states that if we have a nonempty indexed family of nimbers `f(i)` for `i` in `ι`, where each `f(i)` satisfies the `IsRing` property, and the range of `f` is bounded above (which is automatic when the indexing type is small), then the supremum `⨆ i, f(i)` also satisfies the `IsRing` property.","```lean
+theorem Nimber.IsRing.iSup {ι : Sort u_1} [Nonempty ι] {f : ι → Nimber} (H : ∀ (i : ι), Nimber.IsRing (f i))
+  (bdd : BddAbove (Set.range f) := by apply Nimber.bddAbove_of_small) : Nimber.IsRing (⨆ i, f i)
+```",39,"```lean
+theorem Nimber.IsRing.iSup {ι : Type*} {f : ι → Nimber} (hne : Nonempty ι) (hf : ∀ i, IsRing (f i)) (hbdd : BddAbove (Set.range f)) : IsRing (⨆ i, f i)
+```",39,T,"B matches target exactly: Sort u_1, typeclass Nonempty, default bdd argument. A uses Type*, explicit Nonempty hypothesis, no default.",False,20,"```lean
+theorem Nimber.IsRing.iSup {ι : Type*} [Nonempty ι] {f : ι → Nimber} (hf : ∀ i, Nimber.IsRing (f i)) :
+  Nimber.IsRing (⨆ i, f i)
+```",39,T,"B matches target exactly including universe levels, optional bdd parameter, and Sort instead of Type.",False,17
+1069363,Dyadic.upper,Dyadic.upper (x : Dyadic) : Dyadic,The function `Dyadic.upper` takes a dyadic rational number and returns another dyadic rational number that represents its upper neighbor or successor in the dyadic ordering.,"```lean
+def Dyadic.upper (x : Dyadic) : Dyadic :=
+  Dyadic.mkRat (Dyadic.num x + 1) (Dyadic.den_mem_powers x)
+```",10,"```lean
+def Dyadic.upper (d : Dyadic) : Dyadic
+```",10,T,Both match the target signature syntactically. B provides a concrete implementation while A is just a declaration. Neither is vacuous as both define a function signature.,False,2,"```lean
+def Dyadic.upper : Dyadic → Dyadic := by sorry
+```",10,T,A provides a concrete implementation while B is just a sorry. A is non-vacuous and actually computes an upper dyadic value.,True,7
+1180334,NatOrdinal.of_symm,NatOrdinal.of_symm.{u_1} : OrderIso.symm NatOrdinal.of = NatOrdinal.val,"The symmetry of the order isomorphism `NatOrdinal.of` is equal to `NatOrdinal.val`; in other words, the inverse of the order isomorphism that maps from natural ordinals to ordinals is the function that extracts the underlying ordinal from a natural ordinal.","```lean
+theorem NatOrdinal.of_symm_eq_val : NatOrdinal.of.symm = NatOrdinal.val := by sorry
+```",21,"```lean
+theorem NatOrdinal.of_symm_eq_val : (NatOrdinal.of.symm : Ordinal →o NatOrdinal) = ⟨NatOrdinal.val, fun _ _ => rfl⟩ := rfl
+```",21,T,A matches target equality; B coerces to OrderHom with extra structure. Neither vacuous—both require proof.,False,15,"```lean
+theorem NatOrdinal.symm_of_eq_val : (NatOrdinal.of : Ordinal → NatOrdinal).symm = NatOrdinal.val := by sorry
+```",21,T,"Both match semantically, but A's name of_symm_eq_val better mirrors the target of_symm.",False,10
+1139856,SurrealHahnSeries.coeff_single_of_ne,"SurrealHahnSeries.coeff_single_of_ne.{u_1} {x y : Surreal} (h : x ≠ y) (r : ℝ) :
+  SurrealHahnSeries.coeff (SurrealHahnSeries.single x r) y = 0",The coefficient at position $y$ of the surreal Hahn series that is the single term $r$ at position $x$ equals zero when $x \neq y$.,"```lean
+theorem SurrealHahnSeries.coeff_single_of_ne (x y : Surreal) (r : ℝ) (h : x ≠ y) :
+  SurrealHahnSeries.coeff (SurrealHahnSeries.single x r) y = 0 := by sorry
+```",31,"```lean
+theorem SurrealHahnSeries.coeff_single_of_ne {x y : Surreal} {r : ℝ} (h : x ≠ y) : SurrealHahnSeries.coeff (SurrealHahnSeries.single x r) y = 0 := by sorry
+```",31,T,"Target has r explicit, x y explicit. A matches exactly; B makes all implicit incorrectly.",False,11,"```lean
+SurrealHahnSeries.coeff_single_of_ne : ∀ {x y : Surreal} {r : ℝ}, x ≠ y → SurrealHahnSeries.coeff (SurrealHahnSeries.single x r) y = 0
+```",31,T,A matches target signature exactly with explicit parameter order; B has implicit r which differs from target's explicit r.,False,10
+1077551,Surreal.Cut.neg_sInf,Surreal.Cut.neg_sInf.{u_1} (s : Set Surreal.Cut) : -sInf s = sSup (-s),The negation of the infimum of a set of surreal cuts equals the supremum of the set of negations of those cuts.,"```lean
+theorem Surreal.Cut.neg_sInf_eq_sSup_neg {s : Set Surreal.Cut} : -sInf s = sSup (-s) := by sorry
+```",67,"```lean
+theorem Surreal.Cut.neg_sInf (s : Set Surreal.Cut) : -(sInf s) = sSup (fun x => -x) '' s
+```",67,T,"Candidate B matches the target signature exactly, while A uses image notation instead of the negation operator on sets.",False,10,"```lean
+Surreal.Cut.neg_sInf : ∀ (s : Set Surreal.Cut), -sInf s = sSup (Surreal.Cut.neg '' s)
+```",67,T,"Candidate B matches the target signature exactly using -s, while A uses Surreal.Cut.neg '' s which is the image notation rather than standard negation set notation.",False,8
+1149479,Surreal.Cut.mem_right_rightSurreal,Surreal.Cut.mem_right_rightSurreal.{u_1} {x y : Surreal} : y ∈ Surreal.Cut.right (Surreal.Cut.rightSurreal x) ↔ x < y,"The theorem states that for surreal numbers $x$ and $y$, the surreal number $y$ is a member of the right set of the right surreal cut of $x$ if and only if $x < y$.","```lean
+theorem Surreal.mem_rightSurreal_right_iff (x y : Surreal) : y ∈ Surreal.Cut.right (Surreal.Cut.rightSurreal x) ↔ x < y := by sorry
+```",34,"```lean
+theorem Surreal.mem_rightSurreal_iff (x y : Surreal) : y ∈ (x.rightSurreal : Set Surreal) ↔ x < y := by sorry
+```",34,T,B's signature exactly matches target with Cut.right and Cut.rightSurreal; A uses simplified notation without Cut namespace.,False,11,"```lean
+Surreal.Cut.mem_right_rightSurreal {x y : Surreal} : y ∈ Surreal.Cut.right (Surreal.Cut.rightSurreal x) ↔ x < y := by sorry
+```",34,Trandom,A matches the target signature exactly while B differs in name and explicit parameter parentheses.,False,4
+1196328,Surreal.wlog_antitoneOn,Surreal.wlog_antitoneOn.{u_1} : AntitoneOn Surreal.wlog (Set.Iio 0),"The function `Surreal.wlog` is antitone (order-reversing) on the set of negative surreal numbers, that is, on the interval $(-\infty, 0)$.","```lean
+theorem Surreal.wlog_antitoneOn : AntitoneOn Surreal.wlog (Set.Iio 0)
+```",77,"```lean
+theorem Surreal.wlog_antitoneOn : AntitoneOn Surreal.wlog (Set.Iio (0 : Surreal))
+```",77,tie,Both candidates are semantically identical; the type ascription in A is redundant but does not change meaning.,False,5,"```lean
+theorem Surreal.wlog_antitoneOn : AntitoneOn Surreal.wlog (Set.Iio 0) := by sorry
+```",77,tie,"Both declarations match the target signature exactly. Candidate A has a proof skeleton with sorry, Candidate B is axiomatic. Neither is vacuous.",False,5
+1096371,Dyadic.intCast_eq_coe,Dyadic.intCast_eq_coe {x : ℤ} {y : Dyadic} : ↑x = ↑y ↔ ↑x = y,"The theorem states that for an integer $x$ and a dyadic rational $y$, casting $x$ to the dyadic rationals equals the casting of $y$ (to some common type) if and only if casting $x$ to the dyadic rationals equals $y$ itself.","```lean
+theorem intCast_eq_iff (x : ℤ) (y : Dyadic) : (↑x : Dyadic) = ↑(↑y : ℚ) ↔ (↑x : Dyadic) = y := by sorry
+```",23,"```lean
+theorem Dyadic.coe_intCast_eq_iff (x : ℤ) (y : ℚ_dyadic) : (x : ℚ_dyadic) = (y : ℚ) ↔ (x : ℚ_dyadic) = y := by sorry
+```",23,Tnames,"Candidate A correctly interprets the signature as comparing an int cast to Dyadic with a Dyadic value cast to rationals, while B incorrectly double-casts y.",False,18,"```lean
+theorem Dyadic.coe_eq_intCast {x : ℤ} {y : Dyadic} : ↑x = (↑y : ℚ) ↔ (↑x : Dyadic) = y
+```",23,Trandom,"B matches target semantics: ↑x = ↑y means both cast to ℚ, comparing to ↑x = y in Dyadic. A has incorrect double cast ↑(↑y : ℚ).",False,8
+1006766,Surreal.Cut.leftGame_toGame,Surreal.Cut.leftGame_toGame.{u_1} (x : Surreal) : Surreal.Cut.leftGame (Surreal.toGame x) = Surreal.Cut.leftSurreal x,"The left game of a surreal number, when viewed as a game, equals the left surreal of that surreal number.","```lean
+theorem Surreal.leftGame_eq_toGame_leftSurreal (x : Surreal) : 
+  Surreal.Cut.leftGame (Surreal.toGame x) = Surreal.Cut.leftSurreal x := by sorry
+```",53,"```lean
+theorem Surreal.leftGame_eq_leftSurreal (x : Surreal) : (x.cut.leftGame : Game) = Surreal.toGame (x.cut.leftSurreal)
+```",53,T,A matches the target signature exactly. B changes the statement by introducing coercion and swapping toGame application.,False,7,"```lean
+Surreal.Cut.leftGame_toGame : (x : Surreal) → Surreal.Cut.leftGame (Surreal.toGame x) = Surreal.Cut.leftSurreal x
+```",53,Trandom,A matches target signature exactly; B renames but is semantically identical. Neither is vacuous as both express a nontrivial equality between leftGame and leftSurreal.,False,3
+1059311,IGame.Numeric.mul_neg_of_pos_of_neg,"IGame.Numeric.mul_neg_of_pos_of_neg.{u_1} {x y : IGame} [IGame.Numeric x] [IGame.Numeric y] (hx : 0 < x) (hy : y < 0) :
+  x * y < 0","**Theorem**: If `x` and `y` are numeric impartial games where `x` is positive (greater than zero) and `y` is negative (less than zero), then their product `x * y` is negative (less than zero).","```lean
+theorem mul_neg_of_pos_of_neg_igame {x y : IGame} (hx : 0 < x) (hy : y < 0) : x * y < 0 := by sorry
+```",33,"```lean
+theorem mul_neg_of_pos_of_neg {x y : IGame} (hx : 0 < x) (hy : y < 0) : x * y < 0 := by sorry
+```",33,Tnames,"Candidate A matches the exact theorem name from the target signature, while B adds an unnecessary '_igame' suffix.",False,9,"```lean
+theorem IGame.Numeric.mul_neg_of_pos_of_neg {x y : IGame} [IGame.Numeric x] [IGame.Numeric y] (hx : 0 < x) (hy : y < 0) : x * y < 0 := by sorry
+```",33,Trandom,"Candidate A includes the required Numeric instances [IGame.Numeric x] [IGame.Numeric y] which are part of the target signature, while B omits them.",False,5
+1141572,NatOrdinal.of_val,NatOrdinal.of_val.{u_1} (a✝ : NatOrdinal) : NatOrdinal.of (NatOrdinal.val a✝) = a✝,"The theorem states that for any natural ordinal $a$, applying the constructor `of` to the underlying ordinal value of $a$ (obtained via `val`) returns the original natural ordinal $a$.","```lean
+theorem NatOrdinal.of_val (a : NatOrdinal) : NatOrdinal.of (NatOrdinal.val a) = a := by sorry
+```",24,"```lean
+theorem NatOrdinal.of_val (a : NatOrdinal) : NatOrdinal.of a.val = a := rfl
+```",24,Tnames,Both match semantically; B provides actual proof (rfl) vs sorry. Neither vacuous—establishes meaningful isomorphism.,False,8,"```lean
+theorem NatOrdinal.of_val (a : NatOrdinal) : NatOrdinal.of (NatOrdinal.val a) = a := by sorry
+```",24,tie,Both candidates are identical and match the target signature exactly.,False,8
+1114190,NatOrdinal.toSurreal_zero,NatOrdinal.toSurreal_zero.{u_1} : NatOrdinal.toSurreal 0 = 0,The theorem states that the surreal number corresponding to the natural ordinal zero is equal to the surreal number zero.,"```lean
+theorem NatOrdinal.toSurreal_zero : NatOrdinal.toSurreal 0 = 0 := by sorry
+```",42,"```lean
+theorem NatOrdinal.toSurreal_zero : NatOrdinal.toSurreal 0 = 0 := by sorry
+```",42,tie,Both candidates are syntactically identical and match the target signature exactly.,False,5,"```lean
+theorem NatOrdinal.toSurreal_zero : NatOrdinal.toSurreal 0 = 0
+```",13,tie,Both candidates match the target signature exactly. Only difference is proof presence vs sorry.,False,2
+1096246,Real.toIGame_add_dyadic_equiv,Real.toIGame_add_dyadic_equiv.{u_1} (x : ℝ) (q : Dyadic) : ↑(x + ↑↑q) ≈ ↑x + ↑q,"The theorem states that for any real number $x$ and any dyadic rational number $q$, when both are converted to impartial games, the sum $x + q$ (as real numbers) converted to a game is equivalent to the sum of the individually converted games $x$ and $q$.","```lean
+theorem Real.toIGame_add_dyadic_equiv (x : ℝ) (q : Dyadic) : ↑(x + ↑q) ≈ ↑x + ↑↑q := by sorry
+```",35,"```lean
+theorem Real.toIGame_add_dyadic_equiv (x : ℝ) (q : Dyadic) : 
+  Real.toIGame (x + ↑q) ≈ Real.toIGame x + Dyadic.toIGame q := by sorry
+```",35,T,B matches target signature exactly with correct coercion levels; A has wrong coercion on RHS (single ↑q vs ↑↑q),False,12,"```lean
+theorem Real.toIGame_add_dyadicCast_equiv (x : ℝ) (q : Dyadic) : ↑(x + ↑↑q) ≈ ↑x + ↑q
+```",35,Trandom,"A matches target coercions exactly: x + ↑↑q on LHS, ↑x + ↑q on RHS. B has wrong coercion pattern.",False,2
+1058323,IGame.subposition_of_subposition_of_wsubposition,"IGame.subposition_of_subposition_of_wsubposition.{u_1} {x y z : IGame} (hxy : IGame.Subposition x y)
+  (hyz : IGame.WSubposition y z) : IGame.Subposition x z","The theorem states that if x is a subposition of y and y is a weak subposition of z in the context of impartial games, then x is a subposition of z, establishing that the subposition relation is transitive when composed with the weak subposition relation.","```lean
+theorem IGame.Subposition.trans_wsubposition {x y z : IGame} (h₁ : IGame.Subposition x y) (h₂ : IGame.WSubposition y z) : IGame.Subposition x z
+```",9,"```lean
+theorem IGame.Subposition.trans_wsubposition {x y z : IGame} (h1 : x.Subposition y) (h2 : y.WSubposition z) : x.Subposition z := by sorry
+```",9,tie,"Both candidates match the target signature semantically with identical types, differing only in argument names (h1/h₁, h2/h₂) and proof strategy (by sorry vs incomplete).",False,13,"```lean
+theorem IGame.subposition_trans_weakSubposition {x y z : IGame} (hxy : x.subposition y) (hyz : y.weakSubposition z) : x.subposition z
+```",9,T,A uses correct IGame.Subposition/WSubposition types matching target; B uses nonexistent subposition/weakSubposition field notation.,False,8
+1076144,Nimber.mul_assoc,Nimber.mul_assoc.{u_1} (a b c : Nimber) : a * b * c = a * (b * c),"The multiplication operation on nimbers is associative: for any three nimbers $a$, $b$, and $c$, the product $(a \cdot b) \cdot c$ equals $a \cdot (b \cdot c)$.","```lean
+theorem Nimber.mul_assoc (a b c : Nimber) : (a * b) * c = a * (b * c) := by sorry
+```",94,"```lean
+theorem Nimber.mul_assoc (a b c : Nimber) : (a * b) * c = a * (b * c) := by sorry
+```",94,tie,Both candidates are syntactically identical and match the target signature exactly.,False,7,"```lean
+theorem Nimber.mul_assoc (a b c : Nimber) : (a * b) * c = a * (b * c) := by sorry
+```",36,tie,Both candidates are identical and match the target signature exactly.,False,7
+1113149,LGame.MulTy.map_add,"LGame.MulTy.map_add.{u_1, u_2, u_3, u_4} {α₁ : Type u_1} {β₁ : Type u_2} {α₂ : Type u_3} {β₂ : Type u_4} (f : α₁ → α₂)
+  (g : β₁ → β₂) (x y : LGame.MulTy α₁ β₁) : LGame.MulTy.map f g (x + y) = LGame.MulTy.map f g x + LGame.MulTy.map f g y",The function `LGame.MulTy.map` applied to functions `f` and `g` distributes over addition: mapping the sum of two elements `x` and `y` in `LGame.MulTy α₁ β₁` is equal to the sum of their individual mappings.,"```lean
+theorem LGame.MulTy.map_add {α₁ : Type u_1} {β₁ : Type u_2} {α₂ : Type u_3} {β₂ : Type u_4}
+    (f : α₁ → α₂) (g : β₁ → β₂) (x y : LGame.MulTy α₁ β₁) :
+    LGame.MulTy.map f g (x + y) = LGame.MulTy.map f g x + LGame.MulTy.map f g y := by sorry
+```",12,"```lean
+theorem LGame.MulTy.map_add {α₁ β₁ α₂ β₂ : Type*} (f : α₁ → α₂) (g : β₁ → β₂) 
+    (x y : LGame.MulTy α₁ β₁) : 
+    map f g (x + y) = map f g x + map f g y := by sorry
+```",12,T,B uses explicit universe variables matching target exactly; A uses Type* which may differ from target's universe structure.,False,24,"```lean
+LGame.MulTy.map_add : ∀ {α₁ : Type u_1} {β₁ : Type u_2} {α₂ : Type u_3} {β₂ : Type u_4} {f : α₁ → α₂} {g : β₁ → β₂} (x y : LGame.MulTy α₁ β₁), LGame.MulTy.map f g (x + y) = LGame.MulTy.map f g x + LGame.MulTy.map f g y
+```",12,tie,"Both match the target signature semantically; A is syntax, B is type. Neither is vacuous.",False,10
+1043111,IGame.Short.of_mem_moves,IGame.Short.of_mem_moves.{u_1} {x y : IGame} [h : IGame.Short x] {p : Player} (hy : y ∈ IGame.moves p x) : IGame.Short y,"If a game $x$ is short and $y$ is a position reachable from $x$ by a move of some player $p$, then $y$ is also a short game.","```lean
+theorem IGame.short_move_short {x y : IGame} (hx : IGame.Short x) (p : Player) (hy : y ∈ IGame.moves p x) : IGame.Short y := by sorry
+```",16,"```lean
+theorem IGame.short_moves {x y : IGame} (hx : IGame.Short x) (p : Player) (hy : y ∈ IGame.moves x p) : IGame.Short y
+```",16,T,"Candidate A has `moves p x` matching target signature order, while B has `moves x p` which reverses arguments.",False,8,"```lean
+theorem IGame.Short.of_mem_moves {p : Player} {x y : IGame} (h : IGame.Short x) (hy : y ∈ IGame.moves p x) : IGame.Short y
+```",16,Trandom,"B matches target signature exactly: instance bracket, p implicit, h named; A has different order and names.",False,10
+1041060,Dyadic.coe_intCast,Dyadic.coe_intCast (x : ℤ) : ↑↑x = ↑x,"The theorem states that for an integer $x$, casting it to the dyadic rationals and then to the real numbers (or another target type) is equal to directly casting the integer to that target type.","```lean
+theorem Dyadic.coe_intCast_toRat_eq_intCast {α : Type*} [IntCast α] (x : ℤ) : (Dyadic.toRat (↑x : Dyadic) : α) = ↑x := by sorry
+```",10,"```lean
+theorem Dyadic.coe_intCast (x : ℤ) : ↑(↑x : Dyadic) = (↑x : ℝ) := by sorry
+```",10,Tnames,Candidate B matches the target signature structure: Dyadic→ℝ coercion of an int equals direct int→ℝ coercion. A adds unrelated type parameter and toRat.,False,10,"```lean
+theorem Dyadic.coe_intCast {α : Type*} [DivisionRing α] (x : ℤ) : ↑(↑x : Dyadic) = (↑x : α)
+```",10,Trandom,B matches target signature structure directly with coe composition; A adds intermediate toRat conversion not in target.,False,12
+1128300,Dyadic.coe_half,Dyadic.coe_half : ↑Dyadic.half = 2⁻¹,"The theorem states that the coercion of the dyadic rational number `Dyadic.half` equals $2^{-1}$ (or equivalently, $\frac{1}{2}$).","```lean
+theorem Dyadic.coe_half : (Dyadic.half : ℚ) = (2 : ℚ)⁻¹ := by sorry
+```",19,"```lean
+theorem Dyadic.half_eq : (Dyadic.half : ℚ) = (2 : ℚ)⁻¹ := by sorry
+```",19,T,B matches the target name exactly; A uses a different name. Both formalize the same statement.,False,11,"```lean
+theorem Dyadic.coe_half : (Dyadic.half : ℚ) = 2⁻¹ := by sorry
+```",19,tie,Both match the target; 2⁻¹ parses as (2 : ℚ)⁻¹ in the coercion context.,False,7
+1041721,LGame.MulTy.neg_mulOption,"LGame.MulTy.neg_mulOption.{v, w} {α : Type v} {β : Type w} (p : Player) (x y : α × β) :
+  -LGame.MulTy.mulOption p x y = LGame.MulTy.mulOption (-p) x y","The theorem states that negating the result of the `mulOption` operation for a player `p` and a pair of values `(x, y)` is equal to applying the `mulOption` operation with the negated player `-p` to the same pair `(x, y)`.","```lean
+theorem LGame.MulTy.neg_mulOption {α : Type v} {β : Type w} (p : Player) (x y : α × β) :
+  -(LGame.MulTy.mulOption p x y) = LGame.MulTy.mulOption (-p) x y
+```",34,"```lean
+theorem LGame.MulTy.neg_mulOption (p : Player) (xy : Prod (Multiset (LGame.MulTy)) (Multiset (LGame.MulTy))) : 
+  -(LGame.MulTy.mulOption p xy) = LGame.MulTy.mulOption (-p) xy
+```",34,T,"A preserves generic types α β and pair (x y), while B restricts to Multiset LGame.MulTy and single pair xy. A matches target signature better.",False,22,"```lean
+theorem LGame.MulTy.neg_mulOption {α : Type v} {β : Type w} (p : Player) (x y : α × β) :
+  -LGame.MulTy.mulOption p x y = LGame.MulTy.mulOption (-p) x y := by sorry
+```",34,tie,Both candidates have identical signatures; only difference is proof (sorry vs omitted) and parentheses which do not affect semantics.,False,5
+1121614,NatNimber.bot_eq_zero,NatNimber.bot_eq_zero : ⊥ = 0,The theorem states that the bottom element (least element) in the natural nimber system is equal to zero.,"```lean
+theorem bot_eq_zero : (⊥ : NatNimber) = 0 := rfl
+```",19,"```lean
+theorem NatNimber.bot_eq_zero : (⊥ : NatNimber) = 0 := by sorry
+```",19,T,"B proves the statement with rfl (definitional equality), while A uses sorry. Both match the signature semantically.",False,7,"```lean
+theorem NatNimber.bot_eq_zero : (⊥ : NatNimber) = 0 := by sorry
+```",19,T,"A is complete with rfl proof, B uses sorry. Both match signature, neither vacuous (bot = 0 is definitional equality).",False,7
+1115214,Nimber.Lex.mul_leadingCoeff_inv_le,Nimber.Lex.mul_leadingCoeff_inv_le.{u_1} (p : Polynomial Nimber) : p * Polynomial.C (Polynomial.leadingCoeff p)⁻¹ ≤ p,"When multiplying a polynomial over nimbers by the constant polynomial given by the inverse of its leading coefficient, the result is less than or equal to the original polynomial in the lexicographic ordering.","```lean
+theorem Nimber.Lex.mul_leadingCoeff_inv_le {p : Polynomial Nimber} (h₀ : p ≠ 0) :
+  p * Polynomial.C (Polynomial.leadingCoeff p)⁻¹ ≤ p
+```",109,"```lean
+theorem Nimber.Lex.mul_leadingCoeff_inv_le (p : Polynomial Nimber) (hp : p.leadingCoeff ≠ 0) :
+    p * Polynomial.C p.leadingCoeff⁻¹ ≤ p :=
+  sorry
+```",109,Tnames,A uses explicit argument and correct condition (leadingCoeff ≠ 0). B uses implicit argument which mismatches target signature.,False,11,"```lean
+theorem Nimber.Lex.mul_leadingCoeff_inv_le {p : Polynomial Nimber} (h₀ : p ≠ 0) :
+  p * Polynomial.C (Polynomial.leadingCoeff p)⁻¹ ≤ p
+```",109,tie,Both candidates are identical and match the target signature semantically. Neither appears vacuous.,False,9
+1092304,Game.ofSets_lf_of_mem_right,"Game.ofSets_lf_of_mem_right.{u} {s t : Set Game} [Small.{u, u + 1} ↑s] [Small.{u, u + 1} ↑t] {x : Game} (h : x ∈ t) :
+  ¬x ≤ !{s | t}","Here is the English statement of the theorem:
+
+If $s$ and $t$ are (small) sets of games and $x$ is an element of $t$, then it is not the case that $x$ is less than or equal to the game constructed from the sets $s$ and $t$ (where $s$ provides the left options and $t$ provides the right options).","```lean
+theorem Game.not_le_mkOfSets {s t : Set Game} [Small.{u, u + 1} ↑s] [Small.{u, u + 1} ↑t] (x : t) :
+  ¬(↑x ≤ OfSets.ofSets (fun p => if p = Player.left then s else t) True.intro) := by sorry
+```",62,"```lean
+theorem Game.not_right_le (s t : Set Game) [Small s] [Small t] (x : t) :
+    ¬(x.val ≤ Game.mk s t) := by sorry
+```",62,Tnames,"B matches target structure: membership in t, `Game.mk s t` corresponds to `!{s | t}`, x.val vs ↑x. A uses OfSets constructor directly which is less canonical.",False,26,"```lean
+theorem Game.not_le_ofSets_of_mem_right {u : Level} {s t : Set Game} [Small.{u, u + 1} ↑s] [Small.{u, u + 1} ↑t] {x : Game} (h : x ∈ t) : ¬(x ≤ !{s | t})
+```",62,Trandom,B matches target exactly; A changes signature with subtype and different ofSets encoding.,False,7
+1025584,Nimber.IsField.eval_embed,"Nimber.IsField.eval_embed.{u_1} {x : Nimber} (h : Nimber.IsField x) {p : Polynomial Nimber}
+  (hp : ∀ (k : ℕ), Polynomial.coeff p k < x) (y : ↥(Nimber.IsField.toSubfield h)) :
+  Polynomial.eval y (Nimber.IsField.embed h p hp) = ⟨Polynomial.eval (↑y) p, ⋯⟩","The theorem states that for a nimber $x$ satisfying the field property, and a polynomial $p$ over nimbers whose coefficients are all strictly less than $x$, evaluating the embedded polynomial at an element $y$ of the subfield determined by $x$ yields the same result (as an element of that subfield) as evaluating the original polynomial $p$ at the coercion of $y$ to nimbers.","```lean
+theorem Nimber.IsField.eval_embed {x : Nimber} (h : Nimber.IsField x) (p : Polynomial Nimber)
+    (hp : ∀ k : ℕ, Polynomial.coeff p k < x) (y : ↥(Nimber.IsField.toSubfield h)) :
+    Polynomial.eval y (Nimber.IsField.embed h p hp) = ↑(Polynomial.eval ↑y p)
+```",117,"```lean
+theorem Nimber.IsField.eval_embed {x : ℕ} (hx : Nimber.IsField x) (p : Polynomial Nimber)
+    (hp : ∀ n, n ∈ p.support → p.coeff n < x) (y : hx.toSubfield) :
+    (p.map (hx.embed)).eval ↑y = ↑((p.eval ↑y : Nimber))
+```",117,T,"A matches signature structure: embed application, hp condition, and eval relationship. B has wrong hp type and reverses map/eval order.",False,25,"```lean
+theorem Nimber.IsField.aeval_eq_map {x : Nimber} (h : Nimber.IsField x) {p : Polynomial Nimber}
+    (hpk : ∀ (k : ℕ), Polynomial.coeff p k < x) {y : Nimber.IsField.toSubfield h}
+    (hy : (y : Nimber) < x) :
+    Polynomial.aeval y (Nimber.IsField.embed h p hpk) =
+      ⟨Nimber.oeval x p, by sorry⟩ := by sorry
+```",117,T,"B matches target signature exactly in name, args, and conclusion structure (with subtype coercion). A uses different name, aeval vs eval, and wrong conclusion.",False,21
+1153267,Nimber.IsAlgClosed.isRing_opow_omega0,"Nimber.IsAlgClosed.isRing_opow_omega0.{u_1} {t : Nimber} (ht : Nimber.IsAlgClosed t) :
+  Nimber.IsRing (Nimber.of (Nimber.val t ^ Ordinal.omega0))","The theorem states that if a nimber $t$ is algebraically closed (in the sense of nimbers), then the nimber corresponding to $t^{\omega_0}$ (where $\omega_0$ is the first infinite ordinal) satisfies the ring property for nimbers.","```lean
+theorem Nimber.IsAlgClosed.isRing_opow_omega0 {t : Nimber} (h : Nimber.IsAlgClosed t) : Nimber.IsRing (Nimber.of (Nimber.val t ^ Ordinal.omega0)) := by sorry
+```",88,"```lean
+theorem Nimber.IsAlgClosed.isRing_of_opow_omega0 {t : Nimber} (ht : Nimber.IsAlgClosed t) : Nimber.IsRing (t ^ Ordinal.omega0) := by sorry
+```",88,T,B matches target signature exactly including Nimber.of and Nimber.val; A omits these and uses incorrect type.,False,8,"```lean
+theorem Nimber.IsAlgClosed.pow_omega₀_isRing {t : Nimber} (h : Nimber.IsAlgClosed t) :
+  Nimber.IsRing (Nimber.of (Nimber.val t ^ Ordinal.omega₀))
+```",41,T,B matches target name and uses omega0 (not omega₀); A has different name and notation.,False,4
+1178144,Nimber.IsAlgClosed.algClosure,Nimber.IsAlgClosed.algClosure.{u_1} (x : Nimber) : Nimber.IsAlgClosed (Nimber.algClosure x),The algebraic closure of any nimber is algebraically closed in the nimber structure.,"```lean
+theorem Nimber.IsField.algClosure_isAlgebraicallyClosed {x : Nimber} (h : Nimber.IsField x) :
+    IsAlgClosed (Nimber.algClosure x) := by sorry
+```",605,"```lean
+theorem Nimber.IsAlgClosed.algClosure : IsAlgClosed (Nimber.algClosure : Type*) := by sorry
+```",605,T,A matches target with parameter x:Nimber and conclusion about algClosure x; B incorrectly types algClosure as Type* instead of function application,False,8,"```lean
+theorem Nimber.isAlgClosed_algClosure (x : Nimber) : Nimber.IsAlgClosed (Nimber.algClosure x)
+```",41,Trandom,A matches target signature exactly; B adds unnecessary IsField hypothesis not in target,False,2
+1050271,Surreal.Cut.lt_neg,Surreal.Cut.lt_neg.{u_1} {x y : Surreal.Cut} : x < -y ↔ y < -x,"For surreal cuts $x$ and $y$, the inequality $x < -y$ holds if and only if $y < -x$ holds.","```lean
+theorem Surreal.Cut.lt_neg_iff {x y : Surreal.Cut} : x < -y ↔ y < -x := by sorry
+```",25,"```lean
+theorem Surreal.Cut.lt_neg_iff (x y : Surreal.Cut) : x < -y ↔ y < -x := by sorry
+```",25,T,"Target uses implicit binders {x y}, Candidate B matches this exactly while A uses explicit binders.",False,7,"```lean
+theorem Surreal.Cut.lt_neg {x y : Surreal.Cut} : x < -y ↔ y < -x := by sorry
+```",25,Trandom,B's name exactly matches target `lt_neg`; A uses `lt_neg_iff` instead.,False,5
+1127800,Real.toIGame_le_dyadic,Real.toIGame_le_dyadic.{u_1} {q : Dyadic} {x : ℝ} : ↑x ≤ ↑q ↔ x ≤ ↑↑q,"The theorem states that for a real number $x$ and a dyadic rational $q$, the image of $x$ under the canonical embedding into the game reals is less than or equal to the image of $q$ under the same embedding if and only if $x$ is less than or equal to $q$ when $q$ is viewed as a real number (through the natural coercion from dyadic rationals to reals).","```lean
+theorem Real.toIGame_le_toIGame_dyadic (x : ℝ) (q : Dyadic) : 
+  Real.toIGame x ≤ Dyadic.toIGame q ↔ x ≤ ↑q
+```",42,"```lean
+theorem Dyadic.toIGame_le_iff (x : ℝ) (q : ℚ_∞) :
+    Real.toIGame x ≤ Dyadic.toIGame q ↔ x ≤ ↑q
+```",42,T,Candidate B uses correct type Dyadic; A uses ℚ_∞ which is wrong. Both match semantic structure otherwise.,False,11,"```lean
+theorem Real.toIGame_le_dyadicCast {x : ℝ} {q : Dyadic} : ↑x ≤ ↑q ↔ x ≤ ↑↑q
+```",42,Trandom,B matches the target signature exactly with implicit arguments and coercion notation; A uses explicit arguments and different function names.,False,6
+1036318,Nimber.sqrt,Nimber.sqrt.{u_1} : Nimber ≃+* Nimber,"The Nimber square root is a ring isomorphism from the nimbers to themselves, establishing that the nimber field structure includes a well-defined square root operation that is both additive and multiplicative.","```lean
+def nimberSqrt : Nimber ≃+* Nimber
+```",30,"```lean
+def Nimber.sqrt : Nimber ≃+* Nimber
+```",30,Tnames,Candidate A matches the target name Nimber.sqrt exactly; B uses nimberSqrt which differs.,False,2,"```lean
+def Nimber.sqrtRingIsomorphism : Nimber →+* Nimber where
+  toFun := Nimber.sqrt
+  map_one' := sorry
+  map_mul' := Nimber.sqrt_mul
+  map_zero' := Nimber.sqrt_zero
+  map_add' := sorry
+  leftInv := Nimber.sqrt_self_mul_self
+  rightInv := Nimber.sq_sqrt
+```",30,T,B matches target type exactly (≃+*). A has malformed structure mixing RingHom (→+*) with leftInv/rightInv.,False,25
+1182507,SignExpansion.ceil_apply_of_lt_sInf,"SignExpansion.ceil_apply_of_lt_sInf.{u_1} {f : NatOrdinal → SignType} {a : NatOrdinal} (hf : a < sInf (f ⁻¹' {0})) :
+  (SignExpansion.ceil f) a = f a","When the natural ordinal `a` is less than the infimum of the preimage of zero under the function `f`, then the ceiling operation applied to the sign expansion of `f` at `a` equals `f(a)`.","```lean
+theorem SignExpansion.ceil_apply_of_lt_sInf {f : NatOrdinal → SignType} {a : NatOrdinal} (hf : a < sInf (f ⁻¹' {0})) :
+  (SignExpansion.ceil f) a = f a
+```",78,"```lean
+theorem SignExpansion.ceil_apply_of_lt_sInf {α : Type*} [ConditionallyCompleteLinearOrderBot α] (f : SignExpansion α) (a : ℕOrdinal) (h : a < sInf (f ⁻¹' {0})) : f.ceil a = f a
+```",78,T,"A matches target exactly: f: NatOrdinal→SignType, (ceil f) a. B uses different types (α generic, SignExpansion α) and method notation f.ceil.",False,15,"```lean
+theorem SignExpansion.ceil_eq_of_lt_infimum_preimage_zero (f : NatOrdinal → SignType) (a : NatOrdinal) 
+  (h : ↑a < sInf {o : ℕOrdinal | f o = 0}) : 
+  SignExpansion.ceil f a = f a := by sorry
+```",78,T,"Candidate A matches target signature exactly. B uses different variable names and {o | f o = 0} instead of f ⁻¹' {0}, and adds coercion ↑a.",False,21
+1099700,Nimber.oeval_one,Nimber.oeval_one.{u_1} (x : Nimber) : Nimber.oeval x 1 = 1,The theorem states that evaluating any nimber $x$ at the ordinal $1$ yields the nimber $1$.,"```lean
+theorem Nimber.oeval_one (x : Nimber) : Nimber.oeval x 1 = 1 := by sorry
+```",39,"```lean
+theorem Nimber.oeval_one (x : Nimber) : Nimber.oeval 1 x = 1 := by sorry
+```",39,T,B matches the target signature exactly; A has swapped argument order.,False,7,"```lean
+theorem Nimber.oeval_one (x : Nimber) : Nimber.oeval x 1 = 1 := by sorry
+```",39,tie,Both candidates are syntactically identical and match the target signature exactly.,False,5
+1122350,IGame.Numeric.lt_div_iff',"IGame.Numeric.lt_div_iff'.{u_1} {x y z : IGame} [IGame.Numeric x] [IGame.Numeric y] [IGame.Numeric z] (hz : 0 < z) :
+  x < y / z ↔ z * x < y","For numeric impartial games $x$, $y$, and $z$ where $z > 0$, the inequality $x < y/z$ holds if and only if $z \cdot x < y$.","```lean
+theorem IGame.Numeric.lt_div_iff {x y z : IGame} [IGame.Numeric x] [IGame.Numeric y] [IGame.Numeric z] (hz : 0 < z) : x < y / z ↔ z * x < y
+```",73,"```lean
+theorem IGame.Numeric.lt_div_iff {x y z : IGame} (hx : IGame.Numeric x) (hy : IGame.Numeric y) (hz : IGame.Numeric z) (hz_pos : 0 < z) : x < y / z ↔ z * x < y := by sorry
+```",73,T,A uses instance arguments matching target exactly; B uses explicit arguments instead of instances.,False,17,"```lean
+theorem IGame.Numeric.lt_div_iff_of_pos {x y z : IGame} [IGame.Numeric x] [IGame.Numeric y] [IGame.Numeric z]
+  (hz : 0 < z) : x < y / z ↔ x * z < y
+```",57,T,A matches multiplication order z*x; B has x*z. A also matches theorem name lt_div_iff vs lt_div_iff_of_pos.,False,4
+1191979,NatOrdinal.pos_iff_ne_zero,NatOrdinal.pos_iff_ne_zero.{u_1} {a✝ : NatOrdinal} : 0 < a✝ ↔ a✝ ≠ 0,"The theorem states that for a natural ordinal $a$, the condition that $0 < a$ is equivalent to the condition that $a \neq 0$.","```lean
+theorem NatOrdinal.zero_lt_iff_ne_zero {a : NatOrdinal} : 0 < a ↔ a ≠ 0 := by sorry
+```",14,"```lean
+theorem NatOrdinal.pos_iff_ne_zero {a : NatOrdinal} : 0 < a ↔ a ≠ 0 := by sorry
+```",14,Tnames,B matches target name exactly; A uses different name zero_lt_iff_ne_zero vs pos_iff_ne_zero,False,8,"```lean
+theorem NatOrdinal.zero_lt_iff_ne_zero {a : NatOrdinal} : 0 < a ↔ a ≠ 0 := by sorry
+```",14,tie,Both candidates are identical and match the target semantically (pos_iff_ne_zero and zero_lt_iff_ne_zero are equivalent names).,False,8
+1066632,Surreal.leadingCoeff_inv,Surreal.leadingCoeff_inv.{u_1} (x : Surreal) : Surreal.leadingCoeff x⁻¹ = (Surreal.leadingCoeff x)⁻¹,The leading coefficient of the inverse of a surreal number equals the inverse of the leading coefficient of that surreal number.,"```lean
+theorem Surreal.leadingCoeff_inv (x : Surreal) : Surreal.leadingCoeff (x⁻¹) = (Surreal.leadingCoeff x)⁻¹
+```",79,"```lean
+theorem Surreal.leadingCoeff_inv (x : Surreal) : Surreal.leadingCoeff (x⁻¹) = (Surreal.leadingCoeff x)⁻¹ := by sorry
+```",79,tie,"Both candidates match the target signature exactly; one has sorry proof, one has no proof term.",False,6,"```lean
+theorem Surreal.leadingCoeff_inv (x : Surreal) : Surreal.leadingCoeff x⁻¹ = (Surreal.leadingCoeff x)⁻¹ := by sorry
+```",52,tie,Both match the target signature exactly; only differ in proof presence (sorry vs omitted).,False,5
+1033598,Game.mk_natCast,Game.mk_natCast.{u_1} (n : ℕ) : Game.mk ↑n = ↑n,"The theorem states that for any natural number $n$, applying the `Game.mk` constructor to the natural number cast of $n$ (interpreted as a game) equals the natural number cast of $n$ directly as a game.","```lean
+theorem Game.mk_natCast (n : ℕ) : Game.mk (↑n : IGame) = (↑n : Game)
+```",44,"```lean
+theorem Game.mk_natCast (n : ℕ) : Game.mk (↑n : Game) = ↑n
+```",44,T,B matches target by explicitly distinguishing IGame arg from Game result; A conflates both as Game.,False,5,"```lean
+Game.mk_natCast : (n : ℕ) → Game.mk ↑n = ↑n
+```",44,T,"B explicitly annotates coercion types (IGame/Game), matching Game.mk's typical use; A leaves types implicit/ambiguous.",False,3
+1027164,Surreal.wpow_vle_wpow_iff,Surreal.wpow_vle_wpow_iff.{u_1} {x y : Surreal} : ω^ x ≤ᵥ ω^ y ↔ x ≤ y,"The theorem states that for surreal numbers \(x\) and \(y\), the surreal exponential \(\omega^x\) is less than or equal to \(\omega^y\) in the veblen order if and only if \(x\) is less than or equal to \(y\) in the standard surreal order.","```lean
+theorem Surreal.wpow_vle_iff {x y : Surreal} : ω ^ x ≤ᵥ ω ^ y ↔ x ≤ y := by sorry
+```",35,"```lean
+theorem Surreal.wpow_vle_wpow_iff (x y : Surreal) : ω ^ x ≤[v] ω ^ y ↔ x ≤ y := by sorry
+```",35,T,Candidate B matches the target signature exactly with implicit binders and correct notation ≤ᵥ. Candidate A uses explicit binders and different notation ≤[v].,False,12,"```lean
+theorem Surreal.wpow_le_wpow_iff_vle {x y : Surreal} : ω^ x ≤ᵥ ω^ y ↔ x ≤ y := by sorry
+```",35,tie,"Both candidates match the target signature exactly in type and statement, differing only in name.",False,5
+1079280,NatOrdinal.toSurreal_def,NatOrdinal.toSurreal_def.{u_1} (o : NatOrdinal) : NatOrdinal.toSurreal o = !{⇑NatOrdinal.toSurreal '' Set.Iio o | ∅},"The surreal number representation of a natural ordinal `o` is defined as the surreal number with left set being the image of all strictly smaller natural ordinals under the surreal conversion function, and empty right set.","```lean
+def NatOrdinal.toSurreal (o : NatOrdinal) : Surreal :=
+  !{⇑NatOrdinal.toSurreal '' Set.Iio o | ∅}
+```",126,"```lean
+def NatOrdinal.toSurreal (o : NatOrdinal) : Surreal :=
+  Surreal.mk
+    (Set.image NatOrdinal.toSurreal (Set.Iio o))
+    ∅
+    (by sorry)
+```",126,T,A matches target exactly with !{|} notation; B expands manually with sorry for proof obligation,False,12,"```lean
+def NatOrdinal.toSurreal (o : NatOrdinal) : Surreal :=
+  Surreal.mk ⟨fun i => NatOrdinal.toSurreal (o.enum i), fun j => 0, fun i j => by sorry, fun j i => by sorry⟩
+```
+
+Wait, let me reconsider. Based on the context, `NatOrdinal.toSurreal` already exists as an order embedding. The informal statement describes what it should be, so I need to provide the definition or a characterization. Given the context shows it's already declared, perhaps the statement is asking for a lemma characterizing it:
+
+```lean
+def NatOrdinal.toSurreal_def (o : NatOrdinal) : 
+  NatOrdinal.toSurreal o = Surreal.mk ⟨{x | ∃ i < o, x = NatOrdinal.toSurreal i}, ∅⟩ := by sorry
+```",13,T,"B directly matches the target equation, while A attempts to redefine the function instead of stating the definitional equation.",False,100
+1098490,Nimber.Lex.coe_X_pow_lt_coe_X_pow_iff,Nimber.Lex.coe_X_pow_lt_coe_X_pow_iff.{u_1} {m n : ℕ} : ↑Polynomial.X ^ m < ↑Polynomial.X ^ n ↔ m < n,"Looking at this declaration, it states that in the lexicographic ordering of nimbers (elements of `Nimber.Lex`), the power $X^m$ (where $X$ is the polynomial indeterminate, viewed as a nimber through the coercion) is less than the power $X^n$ if and only if $m < n$ as natural numbers.","```lean
+theorem Nimber.Lex.coe_X_pow_lt_coe_X_pow_iff {m n : ℕ} : (↑(Polynomial.X ^ m) : Nimber.Lex Nimber) < ↑(Polynomial.X ^ n) ↔ m < n := by sorry
+```",82,"```lean
+theorem Nimber.Lex.X_pow_lt_X_pow_iff (m n : ℕ) : (Polynomial.X : Nimber.Lex (Polynomial ℕ)) ^ m < (Polynomial.X : Nimber.Lex (Polynomial ℕ)) ^ n ↔ m < n
+```",82,T,A correctly applies coercion after exponentiation matching target; B coerces X before exponentiation giving wrong semantics.,False,14,"```lean
+theorem Nimber.Lex.X_pow_lt_X_pow_iff {m n : ℕ} : Polynomial.X ^ m < Polynomial.X ^ n ↔ m < n := by sorry
+```",82,T,A matches the target with coercions (↑) and the Lex ordering context. B omits coercions and changes the name.,False,7
+1036512,Surreal.Cut.left_subset_left_iff,Surreal.Cut.left_subset_left_iff.{u_1} {c d : Surreal.Cut} : Surreal.Cut.left c ⊆ Surreal.Cut.left d ↔ c ≤ d,A surreal cut $c$ is less than or equal to a surreal cut $d$ if and only if the left set of $c$ is a subset of the left set of $d$.,"```lean
+theorem Surreal.Cut.le_iff_left_subset (c d : Surreal.Cut) : c ≤ d ↔ c.left ⊆ d.left := by sorry
+```",21,"```lean
+theorem Surreal.Cut.le_iff (c d : Surreal.Cut) : c ≤ d ↔ c.left ⊆ d.left := by sorry
+```",21,tie,Both candidates express the biconditional in opposite direction but are logically equivalent to the target. Both are equally valid restatements.,False,13,"```lean
+theorem Surreal.Cut.le_iff_left_subset {c d : Surreal.Cut} : c ≤ d ↔ Surreal.Cut.left c ⊆ Surreal.Cut.left d := by sorry
+```",21,T,Both match semantically but B uses dot notation matching Lean style better; neither is vacuous.,False,10
+1080562,Nimber.IsRing.mul_lt,Nimber.IsRing.mul_lt.{u_1} {x : Nimber} (self : Nimber.IsRing x) ⦃y z : Nimber⦄ (hy : y < x) (hz : z < x) : y * z < x,"Looking at this declaration, it states that for a Nimber $x$ with the property `IsRing` (which marks it as being in the Cantor normal form ""ring part""), if $y < x$ and $z < x$, then $y \cdot z < x$. In other words, the product of two nimbers that are both strictly less than a ring-property nimber is also strictly less than that nimber.","```lean
+theorem Nimber.mul_lt_of_lt_of_lt_of_isRing {x y z : Nimber} (hx : IsRing x) (hy : y < x) (hz : z < x) : y * z < x
+```",10,"```lean
+theorem Nimber.mul_lt_of_lt_of_isRing {x y z : Nimber} (hx : x.IsRing) (hy : y < x) (hz : z < x) : y * z < x
+```",10,Tnames,"Target uses `Nimber.IsRing x` as instance arg; B matches with `x.IsRing`, A uses non-dot notation `IsRing x`.",False,10,"```lean
+Nimber.IsRing.mul_lt {x y z : Nimber} (h : Nimber.IsRing x) (hy : y < x) (hz : z < x) : y * z < x
+```",10,Trandom,"A matches target structure exactly with self parameter and implicit braces, B differs in parameter naming and order.",False,8
+1042605,Dyadic.num_natCast,Dyadic.num_natCast (n : ℕ) : Dyadic.num ↑n = ↑n,"The theorem states that for any natural number $n$, the numerator of $n$ when viewed as a dyadic rational (a rational number with denominator a power of 2) equals $n$ itself as an integer.","```lean
+theorem Dyadic.num_natCast (n : ℕ) : Dyadic.num ↑n = ↑n := by sorry
+```",15,"```lean
+theorem Dyadic.num_natCast (n : ℕ) : (↑n : Dyadic).num = ↑n
+```",15,Tnames,A uses sorry (incomplete proof). B matches signature exactly with explicit type ascription making coercion clear.,False,4,"```lean
+theorem Dyadic.num_natCast (n : ℕ) : Dyadic.num ↑n = n := by sorry
+```",15,T,Candidate B matches target signature exactly with ↑n on RHS; A missing coercion,False,5
+1151269,Surreal.Cut.neg_leftSurreal_image,"Surreal.Cut.neg_leftSurreal_image.{u_1} (s : Set Surreal) :
+  -⇑Surreal.Cut.leftSurreal '' s = ⇑Surreal.Cut.rightSurreal '' (-s)",The image of a set of surreal numbers under the composition of negation and the left surreal cut function equals the image of the negation of that set under the right surreal cut function.,"```lean
+theorem Surreal.Cut.image_neg_leftSurreal (s : Set Surreal) :
+    (fun x => -Surreal.Cut.leftSurreal x) '' s = Surreal.Cut.rightSurreal '' (-s) := by sorry
+```",74,"```lean
+theorem Surreal.Cut.image_neg_leftSurreal_eq_image_rightSurreal_neg (s : Set Surreal) :
+    Set.image (Neg.neg ∘ Surreal.Cut.leftSurreal) s = Set.image Surreal.Cut.rightSurreal (Set.neg s) := by sorry
+```",74,T,Target uses prefix negation on leftSurreal image. B matches this exactly with lambda. A uses composition which changes structure.,False,13,"```lean
+theorem Surreal.Cut.neg_leftSurreal_image (s : Set Surreal) :
+    (fun x => -Surreal.Cut.leftSurreal x) '' s = ⇑Surreal.Cut.rightSurreal '' (-s)
+```",74,Trandom,"Candidate B matches the target signature exactly, including the coercion notation. Candidate A differs in the function representation and omits the coercion.",False,7
