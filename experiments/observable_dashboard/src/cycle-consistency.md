@@ -122,41 +122,49 @@ paired picture is more interesting. T-names doesn't help *the same* candidates a
 — it lifts some and drops others, net zero:
 
 ```js
-display(html`<table style="border-collapse:collapse;font-size:13px;margin:12px 0">
-  <thead><tr style="background:#f1f5f9">
-    <th style="padding:8px 14px;border:1px solid #e2e8f0"></th>
-    <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names passes</th>
-    <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names fails</th>
-    <th style="padding:8px 14px;border:1px solid #e2e8f0">Row total</th>
-  </tr></thead>
-  <tbody>
-    <tr>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B passes</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f0fdf4;font-weight:700">${ctg.b_pass_tn_pass}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${ctg.b_pass_tn_fail}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_pass + ctg.b_pass_tn_fail}</td>
-    </tr>
-    <tr>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B fails</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${ctg.b_fail_tn_pass}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f8fafc">${ctg.b_fail_tn_fail}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_fail_tn_pass + ctg.b_fail_tn_fail}</td>
-    </tr>
-    <tr style="background:#f1f5f9">
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600">Col total</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_pass + ctg.b_fail_tn_pass}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${ctg.b_pass_tn_fail + ctg.b_fail_tn_fail}</td>
-      <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">60</td>
-    </tr>
-  </tbody>
-</table>
-<div style="font-size:12px;color:#64748b;margin-top:4px">
-  Green = both pass (${ctg.b_pass_tn_pass} candidates). Red = one passes, one fails (${ctg.b_pass_tn_fail + ctg.b_fail_tn_pass} candidates).
-  McNemar 95% CI on difference: [${mc.B_vs_Tnames.ci_lo}pp, ${mc.B_vs_Tnames.ci_hi}pp].
-</div>`);
+{
+  const pp = cands.filter(r => r.tc_B &&  r.tc_Tnames).length;
+  const pf = cands.filter(r => r.tc_B && !r.tc_Tnames).length;
+  const fp = cands.filter(r => !r.tc_B &&  r.tc_Tnames).length;
+  const ff = cands.filter(r => !r.tc_B && !r.tc_Tnames).length;
+  const ciLo = mc.B_vs_Tnames.ci_lo;
+  const ciHi = mc.B_vs_Tnames.ci_hi;
+  display(html`<table style="border-collapse:collapse;font-size:13px;margin:12px 0">
+    <thead><tr style="background:#f1f5f9">
+      <th style="padding:8px 14px;border:1px solid #e2e8f0"></th>
+      <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names passes</th>
+      <th style="padding:8px 14px;border:1px solid #e2e8f0;color:#f59e0b">T-names fails</th>
+      <th style="padding:8px 14px;border:1px solid #e2e8f0">Row total</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B passes</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f0fdf4;font-weight:700">${pp}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${pf}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${pp + pf}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600;color:#dc2626">B fails</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#fef2f2">${fp}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center;background:#f8fafc">${ff}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${fp + ff}</td>
+      </tr>
+      <tr style="background:#f1f5f9">
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;font-weight:600">Col total</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${pp + fp}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">${pf + ff}</td>
+        <td style="padding:8px 14px;border:1px solid #e2e8f0;text-align:center">60</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="font-size:12px;color:#64748b;margin-top:4px">
+    Green = both pass (${pp} candidates). Red = one passes, one fails (${pf + fp} candidates).
+    McNemar 95% CI on difference: [${ciLo}pp, ${ciHi}pp].
+  </div>`);
+}
 ```
 
-Only **${ctg.b_pass_tn_pass}/20** B-passes overlap with T-names passes. T-names shifts *which*
+Only **13/20** B-passes overlap with T-names passes. T-names shifts *which*
 candidates typecheck — 7 that baseline would fail it passes, and 7 that baseline
 would pass it fails. A plausible mechanism: dep names push the formalizer toward
 specific declarations in the neighbourhood; when it guesses the wrong one the
