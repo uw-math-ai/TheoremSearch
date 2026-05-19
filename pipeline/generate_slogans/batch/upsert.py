@@ -58,7 +58,6 @@ def upsert_batch_results(
     register_prompt(conn, spec)
     register_model(conn, model_name, model_config)
 
-    rows     = []
     total_in = total_out = 0
 
     on_conflict = {"with": ["statement_id", "prompt_name", "model_name"]}
@@ -68,38 +67,53 @@ def upsert_batch_results(
     # else: DO NOTHING — leave existing (statement_id, prompt_name, model_name) rows untouched.
 
     # Walk one path at a time. For s3:// paths, download is shown with a tqdm
-    # bytes bar; parse + upsert happen after the bar finishes. Each file's
-    # rows are committed before moving on, so an interrupted run leaves
-    # earlier files' rows in the DB.
+    # bytes bar; parse + upsert are chunked so progress is visible and DB work
+    # is committed incrementally (so an interrupt leaves prior chunks in the DB).
+    CHUNK = 25_000
+
+    def _flush(chunk: List[dict]) -> None:
+        if not chunk:
+            return
+        upsert_rows(conn, table="slogan", rows=chunk, on_conflict=on_conflict)
+        conn.commit()
+
+    submitted = 0
     for i, path in enumerate(paths, 1):
         print(f"[{i}/{len(paths)}] {path}", flush=True)
         local, is_temp = _materialize_local(path)
+        chunk: List[dict] = []
+        file_submitted = 0
         try:
-            before = len(rows)
-            for statement_id, text, usage in iter_batch_results([str(local)]):
-                slogan, insufficient = parse_slogan_text(text)
-                rows.append({
-                    "statement_id":         statement_id,
-                    "prompt_name":          spec.name,
-                    "model_name":           model_name,
-                    "slogan":               slogan,
-                    "insufficient_context": insufficient,
-                    "in_tokens":            usage.get("prompt_tokens"),
-                    "out_tokens":           usage.get("completion_tokens"),
-                    "created_at":           datetime.now(timezone.utc),
-                })
-                total_in  += usage.get("prompt_tokens",     0)
-                total_out += usage.get("completion_tokens", 0)
+            with tqdm(unit="rows", unit_scale=True, desc="  parse+upsert", leave=False) as pbar:
+                for statement_id, text, usage in iter_batch_results([str(local)]):
+                    slogan, insufficient = parse_slogan_text(text)
+                    chunk.append({
+                        "statement_id":         statement_id,
+                        "prompt_name":          spec.name,
+                        "model_name":           model_name,
+                        "slogan":               slogan,
+                        "insufficient_context": insufficient,
+                        "in_tokens":            usage.get("prompt_tokens"),
+                        "out_tokens":           usage.get("completion_tokens"),
+                        "created_at":           datetime.now(timezone.utc),
+                    })
+                    total_in  += usage.get("prompt_tokens",     0)
+                    total_out += usage.get("completion_tokens", 0)
+                    if len(chunk) >= CHUNK:
+                        _flush(chunk)
+                        file_submitted += len(chunk)
+                        pbar.update(len(chunk))
+                        chunk = []
+                _flush(chunk)
+                file_submitted += len(chunk)
+                pbar.update(len(chunk))
         finally:
             if is_temp:
                 local.unlink(missing_ok=True)
-        new = rows[before:]
-        if new:
-            upsert_rows(conn, table="slogan", rows=new, on_conflict=on_conflict)
-            conn.commit()
-            print(f"           upserted {len(new):,} rows (running total: {len(rows):,})", flush=True)
+        submitted += file_submitted
+        print(f"           upserted {file_submitted:,} rows (running total: {submitted:,})", flush=True)
 
-    return {"submitted": len(rows), "total_in": total_in, "total_out": total_out}
+    return {"submitted": submitted, "total_in": total_in, "total_out": total_out}
 
 
 if __name__ == "__main__":
