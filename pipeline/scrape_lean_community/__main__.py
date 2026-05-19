@@ -33,6 +33,7 @@ from typing import Iterable, Optional
 from urllib.parse import urljoin, urlparse
 
 import requests
+from psycopg2.extras import execute_values
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
@@ -433,6 +434,188 @@ def process_project(title: str, repo_url: str, overwrite: bool) -> tuple[str, st
 
 
 # ---------------------------------------------------------------------------
+# \lean{...} backfill (writes only to informal_metadata.lean; never touches
+# paper, statement, or any other column on informal_metadata)
+# ---------------------------------------------------------------------------
+
+LABEL_RE = re.compile(r"\\label\{([^}]+)\}")
+LEAN_RE  = re.compile(r"\\lean\{([^}]+)\}")
+# A \label block ends at the next \end{...} or the next \label{...}.
+BLOCK_END_RE = re.compile(r"\\end\{[^}]+\}|\\label\{")
+
+
+def _strip_tex_comments(tex: str) -> str:
+    """Drop LaTeX line comments while preserving escaped \\%."""
+    return re.sub(r"(?<!\\)%.*?$", "", tex, flags=re.MULTILINE)
+
+
+def extract_label_lean_pairs(tex: str) -> list[tuple[str, list[str]]]:
+    """
+    Return [(label, [lean_decl, ...]), ...]. For each \\label{X} found, looks
+    forward up to the next \\end{...} or \\label{...} and collects every
+    \\lean{Y} command inside that window. \\lean{a, b} splits into ["a", "b"].
+    """
+    tex = _strip_tex_comments(tex)
+    pairs: list[tuple[str, list[str]]] = []
+    for m in LABEL_RE.finditer(tex):
+        label = m.group(1).strip()
+        rest = tex[m.end():]
+        end = BLOCK_END_RE.search(rest)
+        block = rest[:end.start()] if end else rest
+        decls: list[str] = []
+        for lm in LEAN_RE.finditer(block):
+            for d in lm.group(1).split(","):
+                d = d.strip()
+                if d:
+                    decls.append(d)
+        if decls:
+            pairs.append((label, decls))
+    return pairs
+
+
+def _checkout_blueprint(slug: str, branch: str, src_path: str, dest: Path) -> Path:
+    """Shallow + sparse clone of just src_path on the given branch. Returns
+    the absolute path to src_path inside the working tree."""
+    subprocess.run(
+        [
+            "git", "clone", "--quiet",
+            "--depth", "1",
+            "--branch", branch,
+            "--filter=blob:none",
+            "--no-checkout",
+            f"https://github.com/{slug}.git", str(dest),
+        ],
+        check=True, capture_output=True, text=True,
+    )
+    subprocess.run(
+        ["git", "sparse-checkout", "set", "--no-cone", src_path],
+        cwd=dest, check=True, capture_output=True, text=True,
+    )
+    subprocess.run(
+        ["git", "checkout", branch, "--", src_path],
+        cwd=dest, check=True, capture_output=True, text=True,
+    )
+    paper_dir = dest / src_path
+    if not paper_dir.is_dir():
+        raise RuntimeError(f"{slug}: expected source at {src_path} not found after checkout")
+    return paper_dir
+
+
+def _iter_tex_files(paper_dir: Path) -> Iterable[tuple[Path, str]]:
+    for tex in paper_dir.rglob("*.tex"):
+        try:
+            yield tex, tex.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+
+
+def _fetch_lean_community_papers(conn, match: Optional[str], limit: Optional[int]) -> list[tuple]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT p.paper_id, p.external_id, p.title, m.branch, m.src_path
+              FROM paper p
+              JOIN lean_community_paper_metadata m ON m.repo_slug = p.external_id
+             WHERE p.source = %s
+             ORDER BY p.title
+            """,
+            (SOURCE,),
+        )
+        papers = cur.fetchall()
+    if match:
+        pat = re.compile(match, re.IGNORECASE)
+        papers = [p for p in papers if pat.search(p[1]) or (p[2] and pat.search(p[2]))]
+    if limit is not None:
+        papers = papers[:limit]
+    return papers
+
+
+def backfill_lean(match: Optional[str], limit: Optional[int]) -> None:
+    """
+    Read each registered Lean Community paper's blueprint LaTeX, extract
+    every (\\label, \\lean) pair, and write the \\lean value to
+    informal_metadata.lean for the matching existing row. Touches no other
+    columns; does not touch paper, statement, or insert any new rows.
+    """
+    print_script_header(
+        action="Backfilling informal_metadata.lean from blueprint \\lean{} commands",
+        params={"match?": match, "limit?": limit},
+    )
+
+    conn = get_rds_connection("v2")
+    papers = _fetch_lean_community_papers(conn, match, limit)
+    print(f"{len(papers)} Lean Community paper(s) in scope.")
+
+    totals = {"papers_done": 0, "papers_no_pairs": 0, "papers_error": 0,
+              "rows_updated": 0, "pairs_unmatched": 0}
+
+    pbar = tqdm(papers, dynamic_ncols=True)
+    for paper_id, slug, title, branch, src_path in pbar:
+        pbar.set_description(slug[:40])
+        try:
+            with tempfile.TemporaryDirectory(prefix="lean-community-backfill-") as tmp:
+                repo_dir = Path(tmp) / "repo"
+                paper_dir = _checkout_blueprint(slug, branch, src_path, repo_dir)
+
+                label_to_lean: dict[str, str] = {}
+                for _, content in _iter_tex_files(paper_dir):
+                    for label, decls in extract_label_lean_pairs(content):
+                        # First occurrence wins on a duplicate label across files.
+                        label_to_lean.setdefault(label, ", ".join(decls))
+
+            if not label_to_lean:
+                totals["papers_no_pairs"] += 1
+                pbar.write(f"  {slug}: no \\lean pairs found")
+                continue
+
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT im.statement_id, im.label
+                      FROM informal_metadata im
+                      JOIN statement s ON s.statement_id = im.statement_id
+                     WHERE s.paper_id = %s AND im.label = ANY(%s)
+                    """,
+                    (paper_id, list(label_to_lean.keys())),
+                )
+                matched = cur.fetchall()
+
+            unmatched = len(label_to_lean) - len(matched)
+            totals["pairs_unmatched"] += unmatched
+
+            if matched:
+                # update_rows' WHERE doesn't accept casts, so inline the
+                # UPDATE with an explicit ::uuid on the joined column.
+                with conn.cursor() as cur:
+                    execute_values(
+                        cur,
+                        """
+                        UPDATE informal_metadata AS t
+                           SET lean = v.lean
+                          FROM (VALUES %s) AS v(statement_id, lean)
+                         WHERE t.statement_id = v.statement_id::uuid
+                        """,
+                        [(str(sid), label_to_lean[label]) for sid, label in matched],
+                    )
+                conn.commit()
+                totals["rows_updated"]  += len(matched)
+                totals["papers_done"]   += 1
+                pbar.write(f"  {slug}: updated {len(matched)} rows ({unmatched} unmatched labels)")
+            else:
+                totals["papers_no_pairs"] += 1
+                pbar.write(f"  {slug}: {len(label_to_lean)} \\lean pairs, none matched existing labels")
+
+        except Exception as e:
+            conn.rollback()
+            totals["papers_error"] += 1
+            pbar.write(f"  {slug}: error: {e}")
+
+    print("\nSummary:")
+    for k, v in totals.items():
+        print(f"  {k}: {v}")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -484,6 +667,17 @@ if __name__ == "__main__":
         help="Re-register projects that already exist (source='Lean Community').",
     )
     arg_parser.add_argument(
+        "--backfill-lean",
+        action="store_true",
+        dest="backfill_lean",
+        help=(
+            "Skip the normal scrape. Walk each registered Lean Community paper's "
+            "blueprint LaTeX, extract (\\label, \\lean) pairs, and write the "
+            "\\lean value to informal_metadata.lean for the matching existing row. "
+            "No paper / statement / other-metadata writes."
+        ),
+    )
+    arg_parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -496,6 +690,12 @@ if __name__ == "__main__":
         help="Case-insensitive regex; only projects whose title or repo URL matches are processed.",
     )
     args = arg_parser.parse_args()
+
+    if args.backfill_lean:
+        if args.overwrite:
+            print("--backfill-lean ignores --overwrite (no paper/metadata writes happen).",
+                  file=sys.stderr)
+        sys.exit(backfill_lean(match=args.match, limit=args.limit))
 
     sys.exit(scrape_lean_community(
         overwrite=args.overwrite,

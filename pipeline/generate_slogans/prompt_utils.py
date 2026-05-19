@@ -8,6 +8,12 @@ import jinja2
 from psycopg2.extensions import connection
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+# All prompt templates live flat in prompts/<name>.j2. Mode is supplied at
+# load time; it controls budget-frontmatter parsing and the runtime context
+# fetcher (see formal_prompt_utils.fetch_formal_contexts).
+
+# Frontmatter marker for formal templates: {# budget: 4000 #}
+_BUDGET_RE = re.compile(r"\{#\s*budget\s*:\s*(\d+)\s*#\}")
 
 # Fields that live in arxiv_paper_metadata but are exposed under the "paper" namespace.
 _ARXIV_META_FIELDS = frozenset({
@@ -46,10 +52,20 @@ class PromptSpec:
     name: str
     template: jinja2.Template
     source: str    # raw template string, used for namespace detection
+    budget: int | None = None  # only meaningful for formal templates
 
 
-def load_prompt(name: str) -> PromptSpec:
-    """Load a prompt template from prompts/<name>.j2."""
+def _parse_budget(source: str) -> int | None:
+    m = _BUDGET_RE.search(source)
+    return int(m.group(1)) if m else None
+
+
+def load_prompt(name: str, mode: str = "informal") -> PromptSpec:
+    """Load prompts/<name>.j2. ``mode`` only affects whether frontmatter
+    ``{# budget: N #}`` is parsed into ``PromptSpec.budget`` (formal-only)."""
+    if mode not in ("formal", "informal"):
+        raise ValueError(f"unknown mode {mode!r}; expected 'formal' or 'informal'")
+
     template_path = PROMPTS_DIR / f"{name}.j2"
     if not template_path.exists():
         raise FileNotFoundError(f"Prompt not found: {template_path}")
@@ -62,7 +78,12 @@ def load_prompt(name: str) -> PromptSpec:
     )
     template = env.from_string(source)  # raises TemplateSyntaxError if malformed
 
-    return PromptSpec(name=name, template=template, source=source)
+    return PromptSpec(
+        name=name,
+        template=template,
+        source=source,
+        budget=_parse_budget(source) if mode == "formal" else None,
+    )
 
 
 def load_model_config(name: str) -> Dict[str, Any]:

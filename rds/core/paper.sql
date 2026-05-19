@@ -49,16 +49,16 @@ COMMENT ON TABLE lean_community_paper_metadata IS
 'Extension table for Lean Community blueprints. Stores the GitHub coordinates needed to re-fetch the LaTeX source plus the parsed preamble/bibliography. Join to paper on external_id.';
 
 -- Project-level metadata for Lean repositories ingested via the lean-graph
--- pipeline (formalized_graph_v2). Keyed by the project name from the upstream
--- corpus DB (projects.name) which becomes paper.external_id when source='Lean Graph'.
-CREATE TABLE lean_graph_paper_metadata (
-    project_name    TEXT PRIMARY KEY,    -- references paper(external_id) where source = 'Lean Graph'
-    repo_url        TEXT,                -- upstream repo URL (projects.url)
-    lean_toolchain  TEXT,                -- e.g. "leanprover/lean4:v4.29.0"
+-- pipeline (formalized_graph_v2). Keyed by the repo slug from the upstream
+-- corpus DB (projects.name, e.g. "Mathlib", "apap") which becomes
+-- paper.external_id when source='Lean Repo'.
+CREATE TABLE lean_repo_metadata (
+    repo_slug       TEXT PRIMARY KEY,    -- references paper(external_id) where source = 'Lean Repo'
+    repo_url        TEXT,                -- upstream repo URL; populated manually
+    lean_toolchain  TEXT,                -- e.g. "v4.29.0"
     mathlib_rev     TEXT,                -- Mathlib git revision pinned at extraction
-    git_commit      TEXT,                -- this project's git revision at extraction
-    extracted_at    TIMESTAMPTZ          -- when lean-graph emitted the snapshot
+    git_commit      TEXT                 -- this project's git revision at extraction
 );
 
-COMMENT ON TABLE lean_graph_paper_metadata IS
-'Extension table for Lean repositories ingested via lean-graph. Pins the toolchain/git revisions of the snapshot the corresponding statement/formal_metadata rows were extracted from. Join to paper on external_id.';
+COMMENT ON TABLE lean_repo_metadata IS
+'Extension table for Lean repositories ingested via lean-graph. Pins the toolchain/git revisions of the snapshot the corresponding statement/formal_metadata rows were extracted from. On ingest, paper.title = repo_slug and paper.updated_at = the snapshot timestamp (UTC). Join to paper on external_id.';

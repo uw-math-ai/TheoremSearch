@@ -13,9 +13,10 @@ COMMENT ON TABLE statement IS
 'A single mathematical statement extracted from a paper or formal source.';
 
 -- For formal rows, statement.body holds the lean-graph signature (the
--- pretty-printed type) and statement.proof holds the tactic_summary. The
--- extension table below carries only the location/identification fields plus
--- the docstring.
+-- pretty-printed type) and statement.proof holds the tactic_summary when
+-- emitted by the source (NULL otherwise; e.g. the corpus_v2 snapshot does
+-- not carry tactic summaries). The extension table below carries only the
+-- location/identification fields plus the docstring.
 CREATE TABLE formal_metadata (
     statement_id  UUID PRIMARY KEY REFERENCES statement(statement_id) ON DELETE CASCADE,
     file_path TEXT,          -- path within the repo (NULL when unknown, e.g. unresolved decls)
@@ -32,6 +33,7 @@ CREATE TABLE informal_metadata (
     ordinal      INT NOT NULL,  -- 0-based position of this statement in document order
     ref TEXT, -- e.g. "3.2"
     label TEXT, -- LaTeX \label value
+    lean TEXT,
     note TEXT, -- env optional [] argument
     pre_context TEXT,
     post_context TEXT

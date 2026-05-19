@@ -1,0 +1,11 @@
+{# budget: 4000 #}
+Write a 1-3 sentence, plain-English standalone summary of the following Lean mathematical declaration.
+Use ASCII characters only — no LaTeX, no Unicode math.
+Describe what the declaration says without referring to it as "this theorem" / "this declaration".
+
+{{ target_block }}
+
+{% if deps_text %}
+Related context ({{ deps_included }}/{{ deps_available }} dependencies):
+{{ deps_text }}
+{% endif %}

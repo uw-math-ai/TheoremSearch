@@ -20,6 +20,9 @@ from .prompt_utils import (
     condition_joins, parse_slogan_text,
     PROMPTS_DIR,
 )
+from .formal_prompt_utils import (
+    FormalContextSpec, fetch_formal_contexts, _DEFAULT_BUDGET as _FORMAL_DEFAULT_BUDGET,
+)
 
 _BATCH_PHASES = ("prepare", "run", "poll", "upsert")
 _DEFAULT_CHAIN = ("minimal", "standard", "comprehensive", "final")
@@ -52,15 +55,24 @@ def generate_slogans(
     n_shards: int,
     only_insufficient: bool = False,
     test: bool = False,
+    mode: str = "informal",
 ):
-    spec = load_prompt(prompt_name)
+    spec = load_prompt(prompt_name, mode=mode)
     model_config = load_model_config(model_name)
 
-    joins = detect_needed_joins(spec.source)
+    is_formal = mode == "formal"
+    # Informal templates pick joins by introspection; formal mode uses a
+    # fixed fetcher (formal_prompt_utils.fetch_formal_contexts) and a budget.
+    joins      = None if is_formal else detect_needed_joins(spec.source)
+    formal_ctx = FormalContextSpec(
+        prompt_name=prompt_name,
+        budget=spec.budget or _FORMAL_DEFAULT_BUDGET,
+    ) if is_formal else None
 
     print_script_header(
         action="Generating slogans",
         params={
+            "mode":              mode,
             "test mode?":        test or None,
             "prompt":            prompt_name,
             "model":             model_name,
@@ -71,10 +83,13 @@ def generate_slogans(
             "batch size":        batch_size,
             "workers":           workers,
             "shard?":            f"{shard}/{n_shards}" if n_shards > 1 else None,
+            "char budget":       formal_ctx.budget if is_formal else None,
         }
     )
 
     base_query = "SELECT statement.statement_id FROM statement" + condition_joins(condition)
+    # Formal mode auto-restricts to formal statements.
+    formality_clause = "statement.formality = 'formal'" if is_formal else None
 
     conn = get_rds_connection("v2")
 
@@ -82,6 +97,11 @@ def generate_slogans(
         test_query, test_params = build_query(
             base_query=base_query,
             where_clauses=[
+                {
+                    "if": is_formal,
+                    "condition": formality_clause or "",
+                    "params": [],
+                },
                 {
                     "if": bool(condition),
                     "condition": condition or "",
@@ -104,7 +124,10 @@ def generate_slogans(
             print("No matching statements found.")
             return
         sid = str(page[0]["statement_id"])
-        contexts = fetch_contexts(conn, [sid], joins)
+        if is_formal:
+            contexts = fetch_formal_contexts(conn, [sid], formal_ctx)
+        else:
+            contexts = fetch_contexts(conn, [sid], joins)
         if sid not in contexts:
             print(f"Could not fetch context for statement {sid}.")
             return
@@ -126,6 +149,11 @@ def generate_slogans(
     query, params = build_query(
         base_query=base_query,
         where_clauses=[
+            {
+                "if": is_formal,
+                "condition": formality_clause or "",
+                "params": [],
+            },
             {
                 "if": not overwrite,
                 "condition": """
@@ -195,7 +223,10 @@ def generate_slogans(
             page_size=batch_size,
         ):
             statement_ids = [str(row["statement_id"]) for row in page]
-            contexts = fetch_contexts(conn, statement_ids, joins)
+            if is_formal:
+                contexts = fetch_formal_contexts(conn, statement_ids, formal_ctx)
+            else:
+                contexts = fetch_contexts(conn, statement_ids, joins)
 
             fut_to_sid = {}
             for sid in statement_ids:
@@ -250,11 +281,21 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--mode",
+        choices=("informal", "formal"),
+        default="informal",
+        help=(
+            "informal (default): informal_metadata-aware context. "
+            "formal: parses {# budget: N #} frontmatter and uses "
+            "formal_metadata + ranked formal_dependency edges under the budget."
+        ),
+    )
+    parser.add_argument(
         "-p", "--prompt",
         type=str,
         required=False,
         dest="prompt_name",
-        help="Name of the prompt folder inside pipeline/generate_slogans/prompts/. Required unless --chain is used.",
+        help="Prompt template name (without .j2) under pipeline/generate_slogans/prompts/. Required unless --chain is used.",
     )
     parser.add_argument(
         "--chain",
@@ -386,6 +427,9 @@ if __name__ == "__main__":
     else:
         chain = None
 
+    if args.mode == "formal" and args.batch is not None:
+        _err("--mode formal does not yet support --batch (online mode only)")
+
     # ── Chain mode ───────────────────────────────────────────────────────
     if chain is not None:
         for i, prompt_name in enumerate(chain):
@@ -403,6 +447,7 @@ if __name__ == "__main__":
                 n_shards=args.n_shards,
                 only_insufficient=(i > 0),
                 test=False,
+                mode=args.mode,
             )
         sys.exit(0)
 
@@ -532,6 +577,7 @@ if __name__ == "__main__":
 
     # ── Online mode ──────────────────────────────────────────────────────
     generate_slogans(
+        mode=args.mode,
         prompt_name=args.prompt_name,
         model_name=args.model_name,
         condition=condition,
