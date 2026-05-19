@@ -41,30 +41,37 @@ def upsert_batch_results(
     rows     = []
     total_in = total_out = 0
 
-    for statement_id, text, usage in iter_batch_results(paths):
-        slogan, insufficient = parse_slogan_text(text)
-        rows.append({
-            "statement_id":         statement_id,
-            "prompt_name":          spec.name,
-            "model_name":           model_name,
-            "slogan":               slogan,
-            "insufficient_context": insufficient,
-            "in_tokens":            usage.get("prompt_tokens"),
-            "out_tokens":           usage.get("completion_tokens"),
-            "created_at":           datetime.now(timezone.utc),
-        })
-        total_in  += usage.get("prompt_tokens",     0)
-        total_out += usage.get("completion_tokens", 0)
-
     on_conflict = {"with": ["statement_id", "prompt_name", "model_name"]}
     if overwrite:
         # created_at intentionally excluded: preserves original creation time
         on_conflict["replace"] = ["slogan", "insufficient_context", "in_tokens", "out_tokens"]
     # else: DO NOTHING — leave existing (statement_id, prompt_name, model_name) rows untouched.
 
-    if rows:
-        upsert_rows(conn, table="slogan", rows=rows, on_conflict=on_conflict)
-        conn.commit()
+    # Walk one path at a time so progress is visible. Each path's rows are
+    # upserted before moving on, so an interrupted run leaves earlier files'
+    # rows committed.
+    for i, path in enumerate(paths, 1):
+        print(f"[{i}/{len(paths)}] {path}", flush=True)
+        before = len(rows)
+        for statement_id, text, usage in iter_batch_results([path]):
+            slogan, insufficient = parse_slogan_text(text)
+            rows.append({
+                "statement_id":         statement_id,
+                "prompt_name":          spec.name,
+                "model_name":           model_name,
+                "slogan":               slogan,
+                "insufficient_context": insufficient,
+                "in_tokens":            usage.get("prompt_tokens"),
+                "out_tokens":           usage.get("completion_tokens"),
+                "created_at":           datetime.now(timezone.utc),
+            })
+            total_in  += usage.get("prompt_tokens",     0)
+            total_out += usage.get("completion_tokens", 0)
+        new = rows[before:]
+        if new:
+            upsert_rows(conn, table="slogan", rows=new, on_conflict=on_conflict)
+            conn.commit()
+            print(f"           upserted {len(new):,} rows (running total: {len(rows):,})", flush=True)
 
     return {"submitted": len(rows), "total_in": total_in, "total_out": total_out}
 
