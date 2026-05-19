@@ -25,7 +25,13 @@ from ..prompt_utils import load_prompt, load_model_config, register_prompt, regi
 from .prepare import _default_output_dir
 
 
-def upsert_batch_results(conn, paths: List[str], prompt_name: str, model_name: str) -> dict:
+def upsert_batch_results(
+    conn,
+    paths: List[str],
+    prompt_name: str,
+    model_name: str,
+    overwrite: bool = False,
+) -> dict:
     spec         = load_prompt(prompt_name)
     model_config = load_model_config(model_name)
 
@@ -50,20 +56,17 @@ def upsert_batch_results(conn, paths: List[str], prompt_name: str, model_name: s
         total_in  += usage.get("prompt_tokens",     0)
         total_out += usage.get("completion_tokens", 0)
 
+    on_conflict = {"with": ["statement_id", "prompt_name", "model_name"]}
+    if overwrite:
+        # created_at intentionally excluded: preserves original creation time
+        on_conflict["replace"] = ["slogan", "insufficient_context", "in_tokens", "out_tokens"]
+    # else: DO NOTHING — leave existing (statement_id, prompt_name, model_name) rows untouched.
+
     if rows:
-        upsert_rows(
-            conn,
-            table="slogan",
-            rows=rows,
-            on_conflict={
-                "with":    ["statement_id", "prompt_name", "model_name"],
-                "replace": ["slogan", "insufficient_context", "in_tokens", "out_tokens"],
-                # created_at intentionally excluded: preserves original creation time
-            },
-        )
+        upsert_rows(conn, table="slogan", rows=rows, on_conflict=on_conflict)
         conn.commit()
 
-    return {"written": len(rows), "total_in": total_in, "total_out": total_out}
+    return {"submitted": len(rows), "total_in": total_in, "total_out": total_out}
 
 
 if __name__ == "__main__":
@@ -74,6 +77,10 @@ if __name__ == "__main__":
                         help="Model name used when preparing the batch (e.g. qwen3-235b).")
     parser.add_argument("-i", "--input", type=str, nargs="+", default=None, dest="input_paths",
                         help="Results JSONL file(s) or S3 dir. Defaults to the per-pair S3 output dir.")
+    parser.add_argument("-o", "--overwrite", action="store_true",
+                        help="Replace existing slogan rows on conflict. Without this flag, "
+                             "rows whose (statement_id, prompt_name, model_name) already exists "
+                             "are skipped.")
 
     args = parser.parse_args()
 
@@ -90,17 +97,22 @@ if __name__ == "__main__":
     print_script_header(
         action="Upserting slogan batch results",
         params={
-            "prompt": args.prompt_name,
-            "model":  args.model_name,
-            "input":  args.input_paths or default_output,
+            "prompt":    args.prompt_name,
+            "model":     args.model_name,
+            "input":     args.input_paths or default_output,
+            "overwrite": args.overwrite,
         },
     )
 
     conn  = get_rds_connection("v2")
-    stats = upsert_batch_results(conn, input_paths, args.prompt_name, args.model_name)
+    stats = upsert_batch_results(
+        conn, input_paths, args.prompt_name, args.model_name,
+        overwrite=args.overwrite,
+    )
 
+    verb = "upserted" if args.overwrite else "submitted (existing rows skipped)"
     print(
-        f"\nDone. {stats['written']} slogan rows upserted."
+        f"\nDone. {stats['submitted']} slogan rows {verb}."
         f"\n  Input tokens:  {stats['total_in']:,}"
         f"\n  Output tokens: {stats['total_out']:,}"
     )

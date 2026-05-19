@@ -509,16 +509,21 @@ if __name__ == "__main__":
             print_script_header(
                 action="Upserting slogan batch results",
                 params={
-                    "prompt": args.prompt_name,
-                    "model":  args.model_name,
-                    "input":  args.batch_input or default_output,
+                    "prompt":    args.prompt_name,
+                    "model":     args.model_name,
+                    "input":     args.batch_input or default_output,
+                    "overwrite": args.overwrite,
                     **({"shard": f"{args.shard}/{args.n_shards}"} if args.n_shards > 1 else {}),
                 },
             )
             conn  = get_rds_connection("v2")
-            stats = upsert_batch_results(conn, input_paths, args.prompt_name, args.model_name)
+            stats = upsert_batch_results(
+                conn, input_paths, args.prompt_name, args.model_name,
+                overwrite=args.overwrite,
+            )
+            verb = "upserted" if args.overwrite else "submitted (existing rows skipped)"
             print(
-                f"\nDone. {stats['written']} slogan rows upserted."
+                f"\nDone. {stats['submitted']} slogan rows {verb}."
                 f"\n  Input tokens:  {stats['total_in']:,}"
                 f"\n  Output tokens: {stats['total_out']:,}"
             )

@@ -93,8 +93,13 @@ def _llm_extract_batch(client, model_config: dict, template, statements: list,
 
 
 def _paper_query(condition, condition_params, shard, n_shards):
+    base = (
+        "SELECT paper.paper_id FROM paper"
+        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
+        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
+    )
     return build_query(
-        base_query="SELECT paper.paper_id FROM paper",
+        base_query=base,
         where_clauses=[
             {
                 "if":        True,

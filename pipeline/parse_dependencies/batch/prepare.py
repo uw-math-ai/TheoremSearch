@@ -132,9 +132,14 @@ def prepare_batch(
         template = None
         system_prompt = (_PROMPTS_DIR / "intrapaper_judge_system.j2").read_text()
 
+    base = (
+        "SELECT paper.paper_id FROM paper"
+        + (" LEFT JOIN arxiv_paper_metadata AS apm ON apm.arxiv_id = paper.external_id" if condition and "apm." in condition else "")
+        + (" LEFT JOIN arxiv_parse_status AS aps ON aps.arxiv_id = paper.external_id" if condition and "aps." in condition else "")
+    )
     query, params = build_query(
         sample=sample,
-        base_query="SELECT paper.paper_id FROM paper",
+        base_query=base,
         where_clauses=[
             {
                 "if":        True,
