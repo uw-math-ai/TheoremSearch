@@ -27,13 +27,20 @@ from .formal_prompt_utils import (
 _BATCH_PHASES = ("prepare", "run", "poll", "upsert")
 _DEFAULT_CHAIN = ("minimal", "standard", "comprehensive", "final")
 
-# Selects statements whose every existing slogan is marked insufficient_context.
-# Implicitly requires the statement to have at least one slogan (empty groups don't appear).
+# Selects statements that (a) have at least one insufficient slogan and
+# (b) have NO sufficient slogan. Equivalent to the old bool_and(insufficient_context)
+# group filter, but written as two EXISTS clauses so each can use an index
+# (idx_slogan_insufficient / idx_slogan_sufficient partial indexes).
 _INSUFFICIENT_ONLY_SQL = """
-    statement.statement_id IN (
-        SELECT statement_id FROM slogan
-        GROUP BY statement_id
-        HAVING bool_and(insufficient_context)
+    EXISTS (
+        SELECT 1 FROM slogan
+        WHERE slogan.statement_id = statement.statement_id
+          AND slogan.insufficient_context
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM slogan
+        WHERE slogan.statement_id = statement.statement_id
+          AND NOT slogan.insufficient_context
     )
 """
 

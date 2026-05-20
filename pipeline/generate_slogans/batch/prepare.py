@@ -18,8 +18,7 @@ from typing import Union
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
-from rds.utils.query import build_query, get_query_count
-from rds.utils.paginate import paginate_query
+from rds.utils.query import build_query
 from s3.utils.io import clear_folder, indexed_path, open_output, finalize_output
 from ...printing import print_script_header
 from ..prompt_utils import (
@@ -115,10 +114,15 @@ def prepare_batch(
             {
                 "if": only_insufficient,
                 "condition": """
-                    statement.statement_id IN (
-                        SELECT statement_id FROM slogan
-                        GROUP BY statement_id
-                        HAVING bool_and(insufficient_context)
+                    EXISTS (
+                        SELECT 1 FROM slogan
+                        WHERE slogan.statement_id = statement.statement_id
+                          AND slogan.insufficient_context
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM slogan
+                        WHERE slogan.statement_id = statement.statement_id
+                          AND NOT slogan.insufficient_context
                     )
                 """,
                 "params": [],
@@ -131,7 +135,18 @@ def prepare_batch(
         ],
     )
 
-    total = get_query_count(conn, query, params)
+    # One-shot candidate fetch: pulls every matching statement_id, ordered,
+    # in a single query. Avoids re-executing the filter per page (which the
+    # planner can't always avoid via keyset pagination on subquery-heavy
+    # WHERE clauses) and skips the separate get_query_count pass.
+    print("Selecting candidate statement_ids ...", flush=True)
+    select_query = f"{query} ORDER BY statement.statement_id"
+    with conn.cursor() as cur:
+        cur.execute(select_query, params)
+        all_ids = [str(r[0]) for r in cur.fetchall()]
+    total = len(all_ids)
+    print(f"  {total:,} candidate statement(s) to prepare", flush=True)
+
     skipped = written = 0
     file_index   = 0
     rows_in_file = 0
@@ -139,9 +154,8 @@ def prepare_batch(
     current_local, f_out = open_output(current_dest)
 
     with tqdm(total=total, dynamic_ncols=True, unit=" statements", desc="Preparing") as pbar:
-        for page in paginate_query(conn, base_query=query, base_params=params,
-                                   order_by="statement_id", page_size=batch_size):
-            statement_ids = [str(row["statement_id"]) for row in page]
+        for start in range(0, total, batch_size):
+            statement_ids = all_ids[start:start + batch_size]
             contexts = fetch_contexts(conn, statement_ids, joins)
 
             for sid in statement_ids:
@@ -160,7 +174,7 @@ def prepare_batch(
                 written      += 1
                 rows_in_file += 1
 
-            pbar.update(len(page))
+            pbar.update(len(statement_ids))
             pbar.set_postfix({"written": written, "skipped": skipped})
 
     finalize_output(f_out, current_local, current_dest)
