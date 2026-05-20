@@ -1,4 +1,5 @@
 import sys
+import time
 from argparse import ArgumentParser
 from datetime import datetime, timezone
 from typing import List, Optional
@@ -7,8 +8,7 @@ from pgvector.psycopg2 import register_vector
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
-from rds.utils.query import build_query, get_query_count
-from rds.utils.paginate import paginate_query
+from rds.utils.query import build_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
 from ..generate_slogans.prompt_utils import condition_joins
@@ -95,24 +95,29 @@ def generate_embeddings(
     instruction = model_config.get("instruction")
     normalize = bool(model_config.get("normalized", True))
 
-    total = get_query_count(conn, query, params)
-    if total == 0:
+    # One-shot candidate fetch. Replaces the previous (a) get_query_count
+    # full-scan + (b) paginate_query's per-page filter re-execution — both
+    # of which re-ran the NOT EXISTS / -c condition chain repeatedly. Now
+    # the planner executes the WHERE chain exactly once, streams the result
+    # over the wire, and we iterate in Python.
+    print("Selecting slogans to embed ...", flush=True)
+    t0 = time.perf_counter()
+    with conn.cursor() as cur:
+        cur.execute(f"{query} ORDER BY slogan.slogan_id", params)
+        rows_all = cur.fetchall()
+    print(f"  {len(rows_all):,} slogans selected in {time.perf_counter() - t0:.1f}s",
+          flush=True)
+    if not rows_all:
         print("No slogans to embed.")
         return
 
     status_counts = {"success": 0, "failed": 0}
-    pbar = tqdm(total=total, dynamic_ncols=True)
 
-    with pbar:
-        for page in paginate_query(
-            conn,
-            base_query=query,
-            base_params=params,
-            order_by="slogan_id",
-            page_size=batch_size,
-        ):
-            slogan_ids = [str(r["slogan_id"]) for r in page]
-            texts = [r["slogan"] for r in page]
+    with tqdm(total=len(rows_all), dynamic_ncols=True) as pbar:
+        for start in range(0, len(rows_all), batch_size):
+            page = rows_all[start:start + batch_size]
+            slogan_ids = [str(r[0]) for r in page]
+            texts      = [r[1]      for r in page]
 
             try:
                 vectors = encoder.encode(
