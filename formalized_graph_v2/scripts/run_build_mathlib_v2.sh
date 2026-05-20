@@ -15,6 +15,6 @@ export PATH="$HOME/.elan/bin:$PATH"
 
 cd /gscratch/amath/simku22/TheoremSearch/formalized_graph_v2/data/mathlib4
 
-echo "=== Building Mathlib + ImportGraph ==="
-lake build ImportGraph 2>&1
+echo "=== Building Mathlib + LeanGraph ==="
+lake build LeanGraph 2>&1
 echo "=== Done ==="
