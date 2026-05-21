@@ -1,18 +1,16 @@
-import os
 import sys
 from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from openai import OpenAI
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
-from rds.utils.query import build_query, get_query_count
-from rds.utils.paginate import paginate_query
+from rds.utils.query import build_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
+from .clients import make_client
 from .prompt_utils import (
     load_prompt, load_model_config,
     detect_needed_joins, fetch_contexts, render_prompt,
@@ -23,6 +21,8 @@ from .prompt_utils import (
 from .formal_prompt_utils import (
     FormalContextSpec, fetch_formal_contexts, _DEFAULT_BUDGET as _FORMAL_DEFAULT_BUDGET,
 )
+
+_PROVIDERS = ("nebius", "bedrock")
 
 _BATCH_PHASES = ("prepare", "run", "poll", "upsert")
 _DEFAULT_CHAIN = ("minimal", "standard", "comprehensive", "final")
@@ -63,9 +63,20 @@ def generate_slogans(
     only_insufficient: bool = False,
     test: bool = False,
     mode: str = "informal",
+    provider: str = "nebius",
 ):
     spec = load_prompt(prompt_name, mode=mode)
     model_config = load_model_config(model_name)
+
+    # Provider validation: bedrock requires the per-entry 'bedrock_model' override.
+    # We surface this here (early, with a friendly message) rather than letting
+    # make_client raise after register_prompt / register_model have already run.
+    if provider == "bedrock" and not model_config.get("bedrock_model"):
+        _err(
+            f"--provider bedrock requires a 'bedrock_model' field on models.json "
+            f"entry '{model_name}'. Add e.g. "
+            f"\"bedrock_model\": \"qwen.qwen3-...-v1:0\"."
+        )
 
     is_formal = mode == "formal"
     # Informal templates pick joins by introspection; formal mode uses a
@@ -79,6 +90,7 @@ def generate_slogans(
     print_script_header(
         action="Generating slogans",
         params={
+            "provider":          provider,
             "mode":              mode,
             "test mode?":        test or None,
             "prompt":            prompt_name,
@@ -148,10 +160,7 @@ def generate_slogans(
     register_prompt(conn, spec)
     register_model(conn, model_name, model_config)
 
-    client = OpenAI(
-        api_key=os.environ["NEBIUS_API_KEY"],
-        base_url="https://api.studio.nebius.ai/v1/",
-    )
+    client = make_client(provider, model_config)
 
     query, params = build_query(
         base_query=base_query,
@@ -191,26 +200,36 @@ def generate_slogans(
         ],
     )
 
-    total = get_query_count(conn, query, params)
+    # One-shot candidate fetch. Replaces (a) get_query_count's upfront full
+    # filter scan + (b) paginate_query's per-page re-execution of the same
+    # NOT EXISTS / EXISTS chain — both of which made every page pay for the
+    # whole filter on tables with millions of slogans.
+    print("Selecting statement_ids to process ...", flush=True)
+    with conn.cursor() as cur:
+        cur.execute(f"{query} ORDER BY statement.statement_id", params)
+        all_ids = [str(r[0]) for r in cur.fetchall()]
+    total = len(all_ids)
+    print(f"  {total:,} statement(s) to process", flush=True)
+    if total == 0:
+        return
+
     status_counts = {"success": 0, "failed": 0}
 
     def call_llm(statement_id: str, prompt_text: str) -> dict:
-        response = client.chat.completions.create(
-            model=model_config["model"],
-            messages=[{"role": "user", "content": prompt_text}],
+        text, usage = client.complete(
+            prompt_text,
             temperature=model_config.get("temperature", 0.7),
             max_tokens=model_config.get("max_tokens", 512),
         )
-        usage = response.usage
-        slogan, insufficient = parse_slogan_text(response.choices[0].message.content)
+        slogan, insufficient = parse_slogan_text(text)
         return {
             "statement_id":         statement_id,
             "prompt_name":          spec.name,
             "model_name":           model_name,
             "slogan":               slogan,
             "insufficient_context": insufficient,
-            "in_tokens":            usage.prompt_tokens     if usage else None,
-            "out_tokens":           usage.completion_tokens if usage else None,
+            "in_tokens":            usage.get("prompt_tokens"),
+            "out_tokens":           usage.get("completion_tokens"),
             "created_at":           datetime.now(timezone.utc),
         }
 
@@ -222,14 +241,8 @@ def generate_slogans(
     pbar = tqdm(total=total, dynamic_ncols=True)
 
     with pbar, ThreadPoolExecutor(max_workers=workers) as ex:
-        for page in paginate_query(
-            conn,
-            base_query=query,
-            base_params=params,
-            order_by="statement_id",
-            page_size=batch_size,
-        ):
-            statement_ids = [str(row["statement_id"]) for row in page]
+        for start in range(0, total, batch_size):
+            statement_ids = all_ids[start:start + batch_size]
             if is_formal:
                 contexts = fetch_formal_contexts(conn, statement_ids, formal_ctx)
             else:
@@ -295,6 +308,19 @@ if __name__ == "__main__":
             "informal (default): informal_metadata-aware context. "
             "formal: parses {# budget: N #} frontmatter and uses "
             "formal_metadata + ranked formal_dependency edges under the budget."
+        ),
+    )
+    parser.add_argument(
+        "--provider",
+        choices=_PROVIDERS,
+        default="nebius",
+        help=(
+            "LLM provider for online mode. nebius (default) uses the Nebius "
+            "OpenAI-compatible endpoint via NEBIUS_API_KEY. bedrock uses AWS "
+            "Bedrock Converse API via default boto3 credentials (AWS_REGION "
+            "/ AWS_DEFAULT_REGION must be set). The chosen --provider must "
+            "match the model entry's `provider` field in models.json. "
+            "bedrock is online-only — incompatible with --batch."
         ),
     )
     parser.add_argument(
@@ -436,6 +462,8 @@ if __name__ == "__main__":
 
     if args.mode == "formal" and args.batch is not None:
         _err("--mode formal does not yet support --batch (online mode only)")
+    if args.provider != "nebius" and args.batch is not None:
+        _err(f"--provider {args.provider} is online-only; remove --batch")
 
     # ── Chain mode ───────────────────────────────────────────────────────
     if chain is not None:
@@ -455,6 +483,7 @@ if __name__ == "__main__":
                 only_insufficient=(i > 0),
                 test=False,
                 mode=args.mode,
+                provider=args.provider,
             )
         sys.exit(0)
 
@@ -585,6 +614,7 @@ if __name__ == "__main__":
     # ── Online mode ──────────────────────────────────────────────────────
     generate_slogans(
         mode=args.mode,
+        provider=args.provider,
         prompt_name=args.prompt_name,
         model_name=args.model_name,
         condition=condition,

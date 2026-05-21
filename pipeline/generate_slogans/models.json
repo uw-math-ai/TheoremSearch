@@ -8,6 +8,7 @@
     },
     "qwen3-235b": {
         "model": "Qwen/Qwen3-235B-A22B-Instruct-2507",
+        "bedrock_model": "qwen.qwen3-235b-a22b-2507-v1:0",
         "temperature": 0.3,
         "max_tokens": 256,
         "cost_per_1m_in": 0.20,
