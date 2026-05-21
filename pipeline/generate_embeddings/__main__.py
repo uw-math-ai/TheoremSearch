@@ -112,6 +112,7 @@ def generate_embeddings(
         return
 
     status_counts = {"success": 0, "failed": 0}
+    cum_enc = cum_ups = cum_com = 0.0
 
     with tqdm(total=len(rows_all), dynamic_ncols=True) as pbar:
         for start in range(0, len(rows_all), batch_size):
@@ -120,12 +121,14 @@ def generate_embeddings(
             texts      = [r[1]      for r in page]
 
             try:
+                t0 = time.perf_counter()
                 vectors = encoder.encode(
                     texts,
                     instruction=instruction,
                     batch_size=encode_batch_size,
                     normalize=normalize,
                 )
+                cum_enc += time.perf_counter() - t0
             except Exception as e:
                 status_counts["failed"] += len(page)
                 pbar.update(len(page))
@@ -142,6 +145,7 @@ def generate_embeddings(
                 }
                 for sid, vec in zip(slogan_ids, vectors)
             ]
+            t0 = time.perf_counter()
             upsert_rows(
                 conn,
                 table="embedding",
@@ -151,12 +155,18 @@ def generate_embeddings(
                     "replace": ["embedding"],
                 },
             )
+            cum_ups += time.perf_counter() - t0
+            t0 = time.perf_counter()
             conn.commit()
+            cum_com += time.perf_counter() - t0
             status_counts["success"] += len(rows)
             pbar.update(len(page))
             done = sum(status_counts.values())
             pbar.set_postfix({
                 "success": f"{100.0 * status_counts['success'] / done:.1f}%",
+                "enc": f"{cum_enc:.1f}s",
+                "ups": f"{cum_ups:.1f}s",
+                "com": f"{cum_com:.1f}s",
             })
 
 
