@@ -1,18 +1,59 @@
+import io
 import sys
 import time
 from argparse import ArgumentParser
 from datetime import datetime, timezone
 from typing import List, Optional
 
+import numpy as np
 from pgvector.psycopg2 import register_vector
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
 from rds.utils.query import build_query
-from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
 from ..generate_slogans.prompt_utils import condition_joins
 from .embed_utils import load_model_config, make_encoder, register_model
+
+
+_STAGE_TABLE = "_emb_stage"
+
+
+def _init_stage(conn) -> None:
+    """Create a session-local staging table for COPY-based bulk upsert.
+    Lives until the connection closes; we TRUNCATE between batches."""
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            CREATE TEMP TABLE IF NOT EXISTS {_STAGE_TABLE} (
+                slogan_id  UUID,
+                model_name TEXT,
+                embedding  vector,
+                created_at TIMESTAMPTZ
+            )
+        """)
+
+
+def _bulk_upsert(conn, slogan_ids, model_name, vectors, created_at) -> None:
+    """COPY rows into the staging table, then merge into `embedding`."""
+    buf = io.StringIO()
+    iso = created_at.isoformat()
+    for sid, vec in zip(slogan_ids, vectors):
+        # pgvector text format: "[v1,v2,...]". .9g preserves fp32 roundtrip.
+        vec_str = "[" + ",".join(f"{float(x):.9g}" for x in np.asarray(vec).ravel()) + "]"
+        buf.write(f"{sid}\t{model_name}\t{vec_str}\t{iso}\n")
+    buf.seek(0)
+    with conn.cursor() as cur:
+        cur.copy_expert(
+            f"COPY {_STAGE_TABLE} (slogan_id, model_name, embedding, created_at) FROM STDIN",
+            buf,
+        )
+        cur.execute(f"""
+            INSERT INTO embedding (slogan_id, model_name, embedding, created_at)
+            SELECT slogan_id, model_name, embedding, created_at FROM {_STAGE_TABLE}
+            ON CONFLICT (slogan_id, model_name) DO UPDATE
+                SET embedding = EXCLUDED.embedding
+        """)
+        cur.execute(f"TRUNCATE {_STAGE_TABLE}")
 
 
 def _err(msg: str):
@@ -89,6 +130,7 @@ def generate_embeddings(
 
     register_model(conn, model_name, model_config)
     register_vector(conn)
+    _init_stage(conn)
 
     print(f"Loading {model_config['model']} via {device} ...")
     encoder = make_encoder(model_config, device=device)
@@ -136,30 +178,13 @@ def generate_embeddings(
                 continue
 
             now = datetime.now(timezone.utc)
-            rows = [
-                {
-                    "slogan_id":  sid,
-                    "model_name": model_name,
-                    "embedding":  vec,
-                    "created_at": now,
-                }
-                for sid, vec in zip(slogan_ids, vectors)
-            ]
             t0 = time.perf_counter()
-            upsert_rows(
-                conn,
-                table="embedding",
-                rows=rows,
-                on_conflict={
-                    "with":    ["slogan_id", "model_name"],
-                    "replace": ["embedding"],
-                },
-            )
+            _bulk_upsert(conn, slogan_ids, model_name, vectors, now)
             cum_ups += time.perf_counter() - t0
             t0 = time.perf_counter()
             conn.commit()
             cum_com += time.perf_counter() - t0
-            status_counts["success"] += len(rows)
+            status_counts["success"] += len(slogan_ids)
             pbar.update(len(page))
             done = sum(status_counts.values())
             pbar.set_postfix({
