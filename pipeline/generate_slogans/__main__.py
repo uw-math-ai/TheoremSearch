@@ -64,6 +64,7 @@ def generate_slogans(
     test: bool = False,
     mode: str = "informal",
     provider: str = "nebius",
+    region: Optional[str] = None,
 ):
     spec = load_prompt(prompt_name, mode=mode)
     model_config = load_model_config(model_name)
@@ -91,6 +92,7 @@ def generate_slogans(
         action="Generating slogans",
         params={
             "provider":          provider,
+            "region?":           region if provider == "bedrock" else None,
             "mode":              mode,
             "test mode?":        test or None,
             "prompt":            prompt_name,
@@ -160,7 +162,7 @@ def generate_slogans(
     register_prompt(conn, spec)
     register_model(conn, model_name, model_config)
 
-    client = make_client(provider, model_config)
+    client = make_client(provider, model_config, region=region)
 
     query, params = build_query(
         base_query=base_query,
@@ -324,6 +326,17 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
+        "--region",
+        type=str,
+        default=None,
+        help=(
+            "AWS region for --provider bedrock (e.g. us-west-2). Overrides the "
+            "models.json 'region' field and AWS_REGION / AWS_DEFAULT_REGION env "
+            "vars. Use to shard Bedrock traffic across regions for more aggregate "
+            "throughput. Ignored for non-bedrock providers."
+        ),
+    )
+    parser.add_argument(
         "-p", "--prompt",
         type=str,
         required=False,
@@ -465,6 +478,9 @@ if __name__ == "__main__":
     if args.provider != "nebius" and args.batch is not None:
         _err(f"--provider {args.provider} is online-only; remove --batch")
 
+    if args.region and args.provider != "bedrock":
+        _err("--region only applies to --provider bedrock")
+
     # ── Chain mode ───────────────────────────────────────────────────────
     if chain is not None:
         for i, prompt_name in enumerate(chain):
@@ -484,6 +500,7 @@ if __name__ == "__main__":
                 test=False,
                 mode=args.mode,
                 provider=args.provider,
+                region=args.region,
             )
         sys.exit(0)
 
@@ -615,6 +632,7 @@ if __name__ == "__main__":
     generate_slogans(
         mode=args.mode,
         provider=args.provider,
+        region=args.region,
         prompt_name=args.prompt_name,
         model_name=args.model_name,
         condition=condition,

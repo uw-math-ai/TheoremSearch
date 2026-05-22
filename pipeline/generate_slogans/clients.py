@@ -116,11 +116,19 @@ def resolve_model_id(provider: str, model_config: Dict[str, Any]) -> str:
     raise ValueError(f"Unknown provider: {provider!r}")
 
 
-def make_client(provider: str, model_config: Dict[str, Any]) -> LLMClient:
-    """Build a client routed to ``provider`` using the matching model ID."""
+def make_client(
+    provider: str,
+    model_config: Dict[str, Any],
+    region: Optional[str] = None,
+) -> LLMClient:
+    """Build a client routed to ``provider`` using the matching model ID.
+
+    ``region`` (if given) overrides the models.json ``region`` entry; used to
+    shard Bedrock traffic across regions for higher aggregate quota.
+    """
     model_id = resolve_model_id(provider, model_config)
     if provider == "nebius":
         return NebiusClient(model_id)
     if provider == "bedrock":
-        return BedrockClient(model_id, region=model_config.get("region"))
+        return BedrockClient(model_id, region=region or model_config.get("region"))
     raise ValueError(f"Unknown provider: {provider!r}")
