@@ -55,9 +55,9 @@ class SearchResponse(BaseModel):
     theorems: List[TheoremResult]
 
 
-# ── v2 search ────────────────────────────────────────────────────────────────
+# ── /graph/embedding ─────────────────────────────────────────────────────────
 
-class V2SearchResult(BaseModel):
+class EmbeddingSearchResult(BaseModel):
     statement_id: str
     paper_id: str
     name: str
@@ -73,8 +73,8 @@ class V2SearchResult(BaseModel):
     score: float
 
 
-class V2SearchResponse(BaseModel):
-    results: List[V2SearchResult]
+class EmbeddingSearchResponse(BaseModel):
+    results: List[EmbeddingSearchResult]
 
 
 # Graph route models — minimal; use hydration endpoints for full content
@@ -88,13 +88,16 @@ class StatementNode(BaseModel):
 
 class DependencyEdge(BaseModel):
     src_id: str
-    dep_id: Optional[str] = None       # resolved intrapaper target statement
+    dep_id: Optional[str] = None       # resolved target statement
+    # Informal-only:
     cite_id: Optional[str] = None      # resolved interpaper target paper
     cite_key: Optional[str] = None     # set for all interpaper deps
     dep_name: Optional[str] = None     # e.g. "Theorem 3.2" (LLM-extracted or stored)
     dep_key: Optional[str] = None      # verbatim phrase for LLM-only deps
-    location: str
-    methods: List[str]
+    location: Optional[str] = None
+    methods: Optional[List[str]] = None
+    # Formal-only:
+    edge_type: Optional[str] = None    # 'sig' | 'def' | 'proof' | 'extends' | 'field' | 'docref'
 
 
 class SubgraphResponse(BaseModel):

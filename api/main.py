@@ -4,10 +4,8 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes.search import router as search_router
-from routes.search_v2 import router as search_v2_router
 from routes.mcp import router as mcp_router
 from routes.graph import router as graph_router
-from routes.graph_mcp import router as graph_mcp_router
 from routes.paper_search import router as paper_search_router
 
 app = FastAPI()
@@ -24,8 +22,10 @@ app.add_middleware(
 )
 
 app.include_router(search_router)
-app.include_router(search_v2_router, prefix="/v2")
 app.include_router(mcp_router)
-app.include_router(graph_mcp_router)
 app.include_router(graph_router)
 app.include_router(paper_search_router)
+
+# routes.graph_mcp is intentionally not registered: it imports from the
+# deleted routes.search_v2 module and needs to be updated to call the new
+# /graph/embedding handler before it can be wired up again.
