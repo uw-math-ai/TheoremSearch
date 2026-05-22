@@ -303,13 +303,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--mode",
-        choices=("informal", "formal"),
-        default="informal",
+        "--formal",
+        action="store_true",
         help=(
-            "informal (default): informal_metadata-aware context. "
-            "formal: parses {# budget: N #} frontmatter and uses "
-            "formal_metadata + ranked formal_dependency edges under the budget."
+            "Generate formal slogans: restricts to formality='formal' statements "
+            "and uses formal_metadata + ranked formal_dependency edges under a "
+            "char budget. The prompt is fixed to 'formal' (prompts/formal.j2); "
+            "incompatible with -p/--prompt, --chain, and --batch. Without this "
+            "flag, the script runs in informal mode."
         ),
     )
     parser.add_argument(
@@ -341,7 +342,11 @@ if __name__ == "__main__":
         type=str,
         required=False,
         dest="prompt_name",
-        help="Prompt template name (without .j2) under pipeline/generate_slogans/prompts/. Required unless --chain is used.",
+        help=(
+            "Prompt template name (without .j2) under pipeline/generate_slogans/prompts/. "
+            "Required unless --chain or --formal is used. In --formal mode the prompt "
+            "is always 'formal' and this flag must be omitted."
+        ),
     )
     parser.add_argument(
         "--chain",
@@ -457,8 +462,19 @@ if __name__ == "__main__":
         condition = args.condition[0] if args.condition else None
         condition_params = []
 
-    # ── Validate -p / --chain / mode combinations ────────────────────────
-    if args.chain is not None:
+    # ── Validate --formal / -p / --chain combinations ────────────────────
+    mode = "formal" if args.formal else "informal"
+
+    if args.formal:
+        if args.prompt_name:
+            _err("--formal fixes the prompt to 'formal'; do not pass -p/--prompt")
+        if args.chain is not None:
+            _err("--formal is single-prompt; --chain is not supported")
+        if args.batch is not None:
+            _err("--formal does not yet support --batch (online mode only)")
+        args.prompt_name = "formal"
+        chain = None
+    elif args.chain is not None:
         if args.prompt_name:
             _err("--chain cannot be combined with -p/--prompt")
         if args.batch is not None:
@@ -469,12 +485,10 @@ if __name__ == "__main__":
         if not chain:
             _err("--chain requires at least one prompt name")
     elif not args.prompt_name:
-        _err("either -p/--prompt or --chain is required")
+        _err("either -p/--prompt, --chain, or --formal is required")
     else:
         chain = None
 
-    if args.mode == "formal" and args.batch is not None:
-        _err("--mode formal does not yet support --batch (online mode only)")
     if args.provider != "nebius" and args.batch is not None:
         _err(f"--provider {args.provider} is online-only; remove --batch")
 
@@ -498,7 +512,7 @@ if __name__ == "__main__":
                 n_shards=args.n_shards,
                 only_insufficient=(i > 0),
                 test=False,
-                mode=args.mode,
+                mode=mode,
                 provider=args.provider,
                 region=args.region,
             )
@@ -630,7 +644,7 @@ if __name__ == "__main__":
 
     # ── Online mode ──────────────────────────────────────────────────────
     generate_slogans(
-        mode=args.mode,
+        mode=mode,
         provider=args.provider,
         region=args.region,
         prompt_name=args.prompt_name,
