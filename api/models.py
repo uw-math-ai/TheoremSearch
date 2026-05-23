@@ -60,12 +60,14 @@ class SearchResponse(BaseModel):
 class EmbeddingSearchResult(BaseModel):
     statement_id: str
     paper_id: str
-    name: str
+    # All metadata is optional so minimal mode can omit it via
+    # response_model_exclude_none=True without changing the schema.
+    name: Optional[str] = None
     body: Optional[str] = None
-    slogan: str
+    slogan: Optional[str] = None
     source: Optional[str] = None
     title: Optional[str] = None
-    authors: List[str] = []
+    authors: Optional[List[str]] = None
     url: Optional[str] = None
     external_id: Optional[str] = None
     citation_count: Optional[int] = None
@@ -81,9 +83,8 @@ class EmbeddingSearchResponse(BaseModel):
 
 class StatementNode(BaseModel):
     statement_id: str
-    name: str                          # e.g. "Theorem 3.2"
+    name: Optional[str] = None         # e.g. "Theorem 3.2". None in minimal mode.
     slogan: Optional[str] = None       # first slogan with insufficient_context = FALSE, if any exist
-    depth: Optional[int] = None        # BFS depth from traversal origin; None for non-traversal endpoints
 
 
 class DependencyEdge(BaseModel):
@@ -100,9 +101,19 @@ class DependencyEdge(BaseModel):
     edge_type: Optional[str] = None    # 'sig' | 'def' | 'proof' | 'extends' | 'field' | 'docref'
 
 
+class StatementRepresentation(BaseModel):
+    """Another statement whose slogan embedding is semantically close to the
+    centered statement's. Sourced from a different paper to surface cross-paper
+    restatements / equivalent results."""
+    statement_id: str
+    paper_id: str
+    similarity: float
+
+
 class SubgraphResponse(BaseModel):
-    nodes: List[StatementNode]
-    edges: List[DependencyEdge]
+    nodes: Optional[List[StatementNode]] = None
+    edges: Optional[List[DependencyEdge]] = None
+    representations: Optional[List[StatementRepresentation]] = None
 
 
 # Hydration models
@@ -138,7 +149,11 @@ class PaperDetail(BaseModel):
 # (paper_id+title only / statement_id+name only / src+cite+dep only) without
 # carrying a wall of nulls — the routes set response_model_exclude_none=True.
 
-GraphPaperItem = Literal["paper", "statements", "dependencies"]
+GraphPaperReturn     = Literal["paper", "statements", "dependencies"]
+GraphStatementReturn = Literal["nodes", "edges", "representations"]
+Mode                 = Literal["full", "minimal"]
+# Back-compat alias; the public param was renamed to `return`.
+GraphPaperItem       = GraphPaperReturn
 
 
 class PaperItem(BaseModel):

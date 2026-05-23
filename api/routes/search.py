@@ -1,3 +1,4 @@
+import math
 import os
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException
@@ -21,13 +22,19 @@ def get_openai_client() -> OpenAI:
 
 
 def embed_query(query: str, prompt: Optional[str] = None) -> List[float]:
+    """Embed and L2-normalize. Corpus embeddings are stored normalized
+    (embedding_model.normalized=TRUE for qwen3-8b); we keep the query side
+    normalized too so any consumer that takes a raw dot product gets a
+    true cosine."""
     text = (prompt + query) if prompt is not None else (DEFAULT_QUERY_PROMPT + query)
     response = get_openai_client().embeddings.create(
         model="Qwen/Qwen3-Embedding-8B",
         input=text,
         encoding_format="float",
     )
-    return response.data[0].embedding
+    vec = response.data[0].embedding
+    norm = math.sqrt(sum(x * x for x in vec))
+    return [x / norm for x in vec] if norm > 0 else vec
 
 
 def row_to_dict(cursor, row):

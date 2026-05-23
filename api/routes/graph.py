@@ -6,6 +6,7 @@ Three subroutes:
   - /graph/statement    : center the graph at a statement and traverse out.
   - /graph/embedding    : semantic search via slogan embeddings.
 """
+import math
 import os
 from typing import Dict, List, Literal, Optional, Tuple
 
@@ -14,9 +15,10 @@ from openai import OpenAI
 
 from db import rds_conn
 from models import (
-    StatementNode, DependencyEdge, SubgraphResponse,
+    StatementNode, DependencyEdge, SubgraphResponse, StatementRepresentation,
     IdsRequest, StatementDetail, PaperDetail,
-    GraphPaperItem, GraphPaperResponse, PaperItem, StatementItem, DependencyItem,
+    GraphPaperReturn, GraphStatementReturn, GraphPaperResponse, Mode,
+    PaperItem, StatementItem, DependencyItem,
     EmbeddingSearchResponse, EmbeddingSearchResult,
 )
 
@@ -44,7 +46,14 @@ _SOURCE_METADATA = {
     },
 }
 
-_ALL_ITEMS: List[GraphPaperItem] = ["paper", "statements", "dependencies"]
+_ALL_PAPER_RETURN:     List[GraphPaperReturn]     = ["paper", "statements", "dependencies"]
+_ALL_STATEMENT_RETURN: List[GraphStatementReturn] = ["nodes", "edges"]
+# `representations` is opt-in by default — it hits the embedding index and is
+# heavier than the local subgraph fetch.
+
+# Semantic-similarity cutoff for /graph/statement representations. Cosine
+# similarity on qwen3-8b slogan embeddings; tune here if recall/precision is off.
+_REPRESENTATION_SIMILARITY_THRESHOLD = 0.8
 
 Direction = Literal["src", "dep", "both"]
 Formality = Literal["informal", "formal"]
@@ -74,83 +83,88 @@ def _fetch_slogans(cur, statement_ids: list) -> Dict[str, str]:
 def _traverse(
     cur,
     start_ids: list,
-    depth: int,
     direction: Direction,
     formality: Formality,
-) -> Dict[str, int]:
-    """All reachable statements within `depth` hops, with their BFS depth."""
+) -> List[str]:
+    """All statements reachable in one hop from ``start_ids`` (plus the
+    origins themselves)."""
     dep_table = "formal_dependency" if formality == "formal" else "informal_dependency"
     # informal_dependency.dep_id can be NULL (unresolved cites); formal can't.
     out_filter = "" if formality == "formal" else "AND d.dep_id IS NOT NULL"
 
     out_sql = (
-        f"SELECT d.dep_id, t.depth + 1 "
-        f"FROM traversal t "
-        f"JOIN {dep_table} d ON d.src_id = t.statement_id "
-        f"WHERE t.depth < %s {out_filter}"
+        f"SELECT d.dep_id "
+        f"FROM {dep_table} d "
+        f"WHERE d.src_id = ANY(%s::uuid[]) {out_filter}"
     )
     in_sql = (
-        f"SELECT d.src_id, t.depth + 1 "
-        f"FROM traversal t "
-        f"JOIN {dep_table} d ON d.dep_id = t.statement_id "
-        f"WHERE t.depth < %s"
+        f"SELECT d.src_id "
+        f"FROM {dep_table} d "
+        f"WHERE d.dep_id = ANY(%s::uuid[])"
     )
 
     if direction == "src":
-        recursive_sql, params = out_sql, (start_ids, depth)
+        neighbor_sql, params = out_sql, (start_ids,)
     elif direction == "dep":
-        recursive_sql, params = in_sql, (start_ids, depth)
+        neighbor_sql, params = in_sql, (start_ids,)
     else:
-        recursive_sql, params = f"{out_sql} UNION {in_sql}", (start_ids, depth, depth)
+        neighbor_sql, params = f"{out_sql} UNION {in_sql}", (start_ids, start_ids)
 
     cur.execute(
         f"""
-        WITH RECURSIVE traversal(statement_id, depth) AS (
-            SELECT s.statement_id, 0
-            FROM statement s
-            WHERE s.statement_id = ANY(%s::uuid[])
-            UNION ALL
-            {recursive_sql}
-        )
-        SELECT statement_id, MIN(depth) FROM traversal GROUP BY statement_id
+        SELECT statement_id FROM (
+            SELECT unnest(%s::uuid[]) AS statement_id
+            UNION
+            {neighbor_sql}
+        ) t
         """,
-        params,
+        (start_ids, *params),
     )
-    return {row[0]: row[1] for row in cur.fetchall()}
+    return [row[0] for row in cur.fetchall()]
 
 
 def _build_subgraph(
     cur,
-    node_depth: Dict,
+    node_ids: List[str],
     formality: Formality,
+    mode: Mode,
 ) -> SubgraphResponse:
-    node_ids = list(node_depth.keys())
-
     if formality == "formal":
-        cur.execute(
-            """
-            SELECT s.statement_id, s.kind, fm.decl_name
-            FROM statement s
-            JOIN formal_metadata fm ON fm.statement_id = s.statement_id
-            WHERE s.statement_id = ANY(%s::uuid[])
-            """,
-            (node_ids,),
-        )
-        stmt_rows = cur.fetchall()
-        slogans = _fetch_slogans(cur, [r[0] for r in stmt_rows])
-        nodes = [
-            StatementNode(
-                statement_id=str(r[0]),
-                name=r[2] or f"<unnamed {str(r[0])[:8]}>",
-                slogan=slogans.get(str(r[0])),
-                depth=node_depth[r[0]],
+        if mode == "minimal":
+            cur.execute(
+                """
+                SELECT s.statement_id
+                FROM statement s
+                WHERE s.statement_id = ANY(%s::uuid[])
+                """,
+                (node_ids,),
             )
-            for r in stmt_rows
-        ]
+            nodes = [StatementNode(statement_id=str(r[0])) for r in cur.fetchall()]
+        else:
+            cur.execute(
+                """
+                SELECT s.statement_id, fm.decl_name
+                FROM statement s
+                JOIN formal_metadata fm ON fm.statement_id = s.statement_id
+                WHERE s.statement_id = ANY(%s::uuid[])
+                """,
+                (node_ids,),
+            )
+            stmt_rows = cur.fetchall()
+            slogans = _fetch_slogans(cur, [r[0] for r in stmt_rows])
+            nodes = [
+                StatementNode(
+                    statement_id=str(r[0]),
+                    name=r[1] or f"<unnamed {str(r[0])[:8]}>",
+                    slogan=slogans.get(str(r[0])),
+                )
+                for r in stmt_rows
+            ]
 
+        edge_cols = "src_id, dep_id" if mode == "minimal" else "src_id, dep_id, edge_type"
         cur.execute(
-            """
-            SELECT src_id, dep_id, edge_type
+            f"""
+            SELECT {edge_cols}
             FROM formal_dependency
             WHERE src_id = ANY(%s::uuid[])
             """,
@@ -160,61 +174,164 @@ def _build_subgraph(
             DependencyEdge(
                 src_id=str(r[0]),
                 dep_id=str(r[1]),
-                edge_type=r[2],
+                edge_type=(r[2] if mode == "full" else None),
             )
             for r in cur.fetchall()
         ]
         return SubgraphResponse(nodes=nodes, edges=edges)
 
     # informal
-    cur.execute(
-        """
-        SELECT s.statement_id, s.kind, im.ref
-        FROM statement s
-        LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
-        WHERE s.statement_id = ANY(%s::uuid[])
-        """,
-        (node_ids,),
-    )
-    stmt_rows = cur.fetchall()
-    slogans = _fetch_slogans(cur, [r[0] for r in stmt_rows])
-    nodes = [
-        StatementNode(
-            statement_id=str(r[0]),
-            name=r[1].capitalize() + (f" {r[2]}" if r[2] else ""),
-            slogan=slogans.get(str(r[0])),
-            depth=node_depth[r[0]],
+    if mode == "minimal":
+        cur.execute(
+            """
+            SELECT s.statement_id
+            FROM statement s
+            WHERE s.statement_id = ANY(%s::uuid[])
+            """,
+            (node_ids,),
         )
-        for r in stmt_rows
-    ]
+        nodes = [StatementNode(statement_id=str(r[0])) for r in cur.fetchall()]
+    else:
+        cur.execute(
+            """
+            SELECT s.statement_id, s.kind, im.ref
+            FROM statement s
+            LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+            WHERE s.statement_id = ANY(%s::uuid[])
+            """,
+            (node_ids,),
+        )
+        stmt_rows = cur.fetchall()
+        slogans = _fetch_slogans(cur, [r[0] for r in stmt_rows])
+        nodes = [
+            StatementNode(
+                statement_id=str(r[0]),
+                name=r[1].capitalize() + (f" {r[2]}" if r[2] else ""),
+                slogan=slogans.get(str(r[0])),
+            )
+            for r in stmt_rows
+        ]
 
-    cur.execute(
-        """
-        SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
-               d.dep_name, d.dep_key, d.location, d.methods
-        FROM informal_dependency d
-        WHERE d.src_id = ANY(%s::uuid[])
-          AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
-        """,
-        (node_ids,),
-    )
-    edges = [
-        DependencyEdge(
-            src_id=str(r[0]),
-            dep_id=str(r[1]) if r[1] else None,
-            cite_id=str(r[2]) if r[2] else None,
-            cite_key=r[3],
-            dep_name=r[4],
-            dep_key=r[5],
-            location=r[6],
-            methods=r[7],
+    if mode == "minimal":
+        cur.execute(
+            """
+            SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key
+            FROM informal_dependency d
+            WHERE d.src_id = ANY(%s::uuid[])
+              AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+            """,
+            (node_ids,),
         )
-        for r in cur.fetchall()
-    ]
+        edges = [
+            DependencyEdge(
+                src_id=str(r[0]),
+                dep_id=str(r[1]) if r[1] else None,
+                cite_id=str(r[2]) if r[2] else None,
+                cite_key=r[3],
+            )
+            for r in cur.fetchall()
+        ]
+    else:
+        cur.execute(
+            """
+            SELECT d.src_id, d.dep_id, d.cite_id, d.cite_key,
+                   d.dep_name, d.dep_key, d.location, d.methods
+            FROM informal_dependency d
+            WHERE d.src_id = ANY(%s::uuid[])
+              AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+            """,
+            (node_ids,),
+        )
+        edges = [
+            DependencyEdge(
+                src_id=str(r[0]),
+                dep_id=str(r[1]) if r[1] else None,
+                cite_id=str(r[2]) if r[2] else None,
+                cite_key=r[3],
+                dep_name=r[4],
+                dep_key=r[5],
+                location=r[6],
+                methods=r[7],
+            )
+            for r in cur.fetchall()
+        ]
     return SubgraphResponse(nodes=nodes, edges=edges)
 
 
-@router.get("/graph/statement/{statement_id}", response_model=SubgraphResponse)
+def _fetch_representations(
+    cur,
+    statement_id: str,
+    n_representations: int,
+) -> List[StatementRepresentation]:
+    """Statements (from a different paper) whose slogan embedding is most
+    similar to ``statement_id``'s, above ``_REPRESENTATION_SIMILARITY_THRESHOLD``.
+
+    Two-stage search: binary-quantized HNSW for the candidate pool, then
+    full-precision cosine rerank. Mirrors /graph/embedding's pattern. If the
+    target has no sufficient slogan embedding under ``_EMBED_MODEL``, returns
+    an empty list.
+    """
+    ann_k = max(n_representations * 4, 200)
+    cur.execute(
+        """
+        WITH target AS (
+            SELECT e.embedding AS vec, s.paper_id
+            FROM embedding e
+            JOIN slogan sl   ON sl.slogan_id    = e.slogan_id
+            JOIN statement s ON s.statement_id  = sl.statement_id
+            WHERE s.statement_id = %(target_id)s
+              AND e.model_name   = %(model)s
+              AND NOT sl.insufficient_context
+            ORDER BY sl.created_at
+            LIMIT 1
+        ),
+        ann AS (
+            SELECT e.embedding, st.statement_id, st.paper_id
+            FROM target t,
+                 embedding e
+            JOIN slogan sl   ON sl.slogan_id   = e.slogan_id
+            JOIN statement st ON st.statement_id = sl.statement_id
+            WHERE e.model_name = %(model)s
+              AND st.paper_id != t.paper_id
+              AND NOT sl.insufficient_context
+            ORDER BY binary_quantize(e.embedding)::bit(4096)
+                   <~>
+                   binary_quantize(t.vec)::bit(4096)
+            LIMIT %(ann_k)s
+        ),
+        deduped AS (
+            SELECT DISTINCT ON (a.statement_id)
+                a.statement_id, a.paper_id,
+                1.0 - (a.embedding <=> t.vec) AS similarity
+            FROM ann a, target t
+            ORDER BY a.statement_id, a.embedding <=> t.vec
+        )
+        SELECT statement_id, paper_id, similarity
+        FROM deduped
+        WHERE similarity >= %(threshold)s
+        ORDER BY similarity DESC
+        LIMIT %(k)s
+        """,
+        {
+            "target_id": statement_id,
+            "model":     _EMBED_MODEL,
+            "threshold": _REPRESENTATION_SIMILARITY_THRESHOLD,
+            "ann_k":     ann_k,
+            "k":         n_representations,
+        },
+    )
+    return [
+        StatementRepresentation(
+            statement_id=str(r[0]),
+            paper_id=str(r[1]),
+            similarity=float(r[2]),
+        )
+        for r in cur.fetchall()
+    ]
+
+
+@router.get("/graph/statement/{statement_id}", response_model=SubgraphResponse,
+            response_model_exclude_none=True)
 async def graph_statement(
     statement_id: str,
     direction: Direction = Query(
@@ -229,20 +346,65 @@ async def graph_statement(
         default="informal",
         description="Use informal_dependency or formal_dependency edges.",
     ),
+    return_: Optional[List[GraphStatementReturn]] = Query(
+        default=None,
+        alias="return",
+        description=(
+            "Which top-level keys to populate: nodes, edges, representations. "
+            "Repeat for multiple. Default: nodes+edges (representations is opt-in "
+            "since it hits the embedding index)."
+        ),
+    ),
+    n_representations: int = Query(
+        default=10, ge=1, le=100,
+        description="Max representations to return when 'representations' is requested.",
+    ),
+    mode: Mode = Query(
+        default="full",
+        description=(
+            "full: include node names/slogans and edge annotations. "
+            "minimal: return only statement_ids on nodes and src/dep/cite ids on edges."
+        ),
+    ),
 ):
+    chosen = set(return_ or _ALL_STATEMENT_RETURN)
+
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute("SELECT 1 FROM statement WHERE statement_id = %s", (statement_id,))
         if cur.fetchone() is None:
             raise HTTPException(status_code=404, detail=f"No statement with id '{statement_id}'")
-        node_depth = _traverse(cur, [statement_id], 1, direction, formality)
-        return _build_subgraph(cur, node_depth, formality)
+
+        nodes = edges = None
+        if "nodes" in chosen or "edges" in chosen:
+            node_ids = _traverse(cur, [statement_id], direction, formality)
+            sub = _build_subgraph(cur, node_ids, formality, mode)
+            nodes = sub.nodes if "nodes" in chosen else None
+            edges = sub.edges if "edges" in chosen else None
+
+        representations = (
+            _fetch_representations(cur, statement_id, n_representations)
+            if "representations" in chosen else None
+        )
+
+        return SubgraphResponse(
+            nodes=nodes,
+            edges=edges,
+            representations=representations,
+        )
 
 
 # ------------------------------------------------------------------ #
 # /graph/paper                                                        #
 # ------------------------------------------------------------------ #
 
-def _fetch_paper_item(cur, paper_id: str) -> PaperItem:
+def _fetch_paper_item(cur, paper_id: str, mode: Mode) -> PaperItem:
+    if mode == "minimal":
+        cur.execute("SELECT paper_id, title FROM paper WHERE paper_id = %s", (paper_id,))
+        row = cur.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
+        return PaperItem(paper_id=str(row[0]), title=row[1])
+
     cur.execute(
         """
         SELECT paper_id, kind, source, title, authors, url, external_id, categories, updated_at
@@ -281,7 +443,20 @@ def _fetch_paper_item(cur, paper_id: str) -> PaperItem:
     return PaperItem(**data)
 
 
-def _fetch_informal_statements(cur, paper_id: str) -> List[StatementItem]:
+def _fetch_informal_statements(cur, paper_id: str, mode: Mode) -> List[StatementItem]:
+    if mode == "minimal":
+        cur.execute(
+            """
+            SELECT s.statement_id
+            FROM statement s
+            LEFT JOIN informal_metadata im ON im.statement_id = s.statement_id
+            WHERE s.paper_id = %s AND s.formality = 'informal'
+            ORDER BY im.ordinal
+            """,
+            (paper_id,),
+        )
+        return [StatementItem(statement_id=str(r[0])) for r in cur.fetchall()]
+
     cur.execute(
         """
         SELECT s.statement_id, s.formality, s.kind, s.body, s.proof,
@@ -310,9 +485,22 @@ def _fetch_informal_statements(cur, paper_id: str) -> List[StatementItem]:
     ]
 
 
-def _fetch_formal_statements(cur, paper_id: str) -> List[StatementItem]:
+def _fetch_formal_statements(cur, paper_id: str, mode: Mode) -> List[StatementItem]:
     def _name(decl_name: Optional[str], sid) -> str:
         return decl_name or f"<unnamed {str(sid)[:8]}>"
+
+    if mode == "minimal":
+        cur.execute(
+            """
+            SELECT s.statement_id
+            FROM statement s
+            JOIN formal_metadata fm ON fm.statement_id = s.statement_id
+            WHERE s.paper_id = %s AND s.formality = 'formal'
+            ORDER BY fm.decl_name
+            """,
+            (paper_id,),
+        )
+        return [StatementItem(statement_id=str(r[0])) for r in cur.fetchall()]
 
     cur.execute(
         """
@@ -344,7 +532,28 @@ def _fetch_formal_statements(cur, paper_id: str) -> List[StatementItem]:
     ]
 
 
-def _fetch_informal_dependencies(cur, paper_id: str) -> List[DependencyItem]:
+def _fetch_informal_dependencies(cur, paper_id: str, mode: Mode) -> List[DependencyItem]:
+    if mode == "minimal":
+        cur.execute(
+            """
+            SELECT d.src_id, d.cite_id, d.dep_id, d.cite_key
+            FROM informal_dependency d
+            JOIN statement s ON s.statement_id = d.src_id
+            WHERE s.paper_id = %s
+              AND (d.cite_key IS NULL OR d.cite_id IS NOT NULL)
+            """,
+            (paper_id,),
+        )
+        return [
+            DependencyItem(
+                src_id=str(r[0]),
+                cite_id=str(r[1]) if r[1] else None,
+                dep_id=str(r[2]) if r[2] else None,
+                cite_key=r[3],
+            )
+            for r in cur.fetchall()
+        ]
+
     cur.execute(
         """
         SELECT d.src_id, d.cite_id, d.dep_id, d.cite_key, d.dep_key, d.dep_name,
@@ -371,10 +580,11 @@ def _fetch_informal_dependencies(cur, paper_id: str) -> List[DependencyItem]:
     ]
 
 
-def _fetch_formal_dependencies(cur, paper_id: str) -> List[DependencyItem]:
+def _fetch_formal_dependencies(cur, paper_id: str, mode: Mode) -> List[DependencyItem]:
+    edge_cols = "d.src_id, d.dep_id" if mode == "minimal" else "d.src_id, d.dep_id, d.edge_type"
     cur.execute(
-        """
-        SELECT d.src_id, d.dep_id, d.edge_type
+        f"""
+        SELECT {edge_cols}
         FROM formal_dependency d
         JOIN statement s ON s.statement_id = d.src_id
         WHERE s.paper_id = %s
@@ -385,29 +595,29 @@ def _fetch_formal_dependencies(cur, paper_id: str) -> List[DependencyItem]:
         DependencyItem(
             src_id=str(r[0]),
             dep_id=str(r[1]),
-            edge_type=r[2],
+            edge_type=(r[2] if mode == "full" else None),
         )
         for r in cur.fetchall()
     ]
 
 
 def _graph_paper_response(
-    cur, paper_id: str, items: List[GraphPaperItem],
+    cur, paper_id: str, return_: List[GraphPaperReturn], mode: Mode,
 ) -> GraphPaperResponse:
-    chosen = set(items)
+    chosen = set(return_)
     cur.execute("SELECT kind FROM paper WHERE paper_id = %s", (paper_id,))
     row = cur.fetchone()
     if row is None:
         raise HTTPException(status_code=404, detail=f"No paper with id '{paper_id}'")
     is_formal = row[0] == "lean_repo"
 
-    paper = _fetch_paper_item(cur, paper_id) if "paper" in chosen else None
+    paper = _fetch_paper_item(cur, paper_id, mode) if "paper" in chosen else None
     statements_fn   = _fetch_formal_statements   if is_formal else _fetch_informal_statements
     dependencies_fn = _fetch_formal_dependencies if is_formal else _fetch_informal_dependencies
     return GraphPaperResponse(
         paper=paper,
-        statements=statements_fn(cur, paper_id) if "statements" in chosen else None,
-        dependencies=dependencies_fn(cur, paper_id) if "dependencies" in chosen else None,
+        statements=statements_fn(cur, paper_id, mode) if "statements" in chosen else None,
+        dependencies=dependencies_fn(cur, paper_id, mode) if "dependencies" in chosen else None,
     )
 
 
@@ -417,25 +627,50 @@ def _graph_paper_response(
     response_model_exclude_none=True,
 )
 async def graph_paper_by_source(
-    source: str = Query(..., description="paper.source, e.g. 'arXiv' or 'Lean Community'"),
-    external_id: str = Query(..., description="paper.external_id within that source"),
-    items: Optional[List[GraphPaperItem]] = Query(
+    external_id: str = Query(..., description="paper.external_id"),
+    sources: List[str] = Query(
+        default=[],
+        description=(
+            "Filter by paper.source (repeat for multiple), e.g. 'arXiv', "
+            "'Lean Community'. If omitted, all sources are searched."
+        ),
+    ),
+    return_: Optional[List[GraphPaperReturn]] = Query(
         default=None,
-        description="Which top-level keys to populate. Defaults to all three.",
+        alias="return",
+        description=(
+            "Which top-level keys to populate: paper, statements, dependencies. "
+            "Repeat for multiple. Default: all three."
+        ),
+    ),
+    mode: Mode = Query(
+        default="full",
+        description=(
+            "full: include all metadata and source-specific fields. "
+            "minimal: paper={paper_id,title}, statements=[{statement_id}], "
+            "dependencies=[{src_id,dep_id,cite_id,cite_key}]."
+        ),
     ),
 ):
     with rds_conn("v2") as conn, conn.cursor() as cur:
-        cur.execute(
-            "SELECT paper_id FROM paper WHERE source = %s AND external_id = %s",
-            (source, external_id),
-        )
+        if sources:
+            cur.execute(
+                "SELECT paper_id FROM paper WHERE external_id = %s AND source = ANY(%s)",
+                (external_id, sources),
+            )
+        else:
+            cur.execute(
+                "SELECT paper_id FROM paper WHERE external_id = %s",
+                (external_id,),
+            )
         row = cur.fetchone()
         if row is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No paper with source={source!r} external_id={external_id!r}",
+            detail = (
+                f"No paper with external_id={external_id!r}"
+                + (f" in sources={sources!r}" if sources else "")
             )
-        return _graph_paper_response(cur, str(row[0]), items or _ALL_ITEMS)
+            raise HTTPException(status_code=404, detail=detail)
+        return _graph_paper_response(cur, str(row[0]), return_ or _ALL_PAPER_RETURN, mode)
 
 
 @router.get(
@@ -445,13 +680,25 @@ async def graph_paper_by_source(
 )
 async def graph_paper(
     paper_id: str,
-    items: Optional[List[GraphPaperItem]] = Query(
+    return_: Optional[List[GraphPaperReturn]] = Query(
         default=None,
-        description="Which top-level keys to populate. Defaults to all three.",
+        alias="return",
+        description=(
+            "Which top-level keys to populate: paper, statements, dependencies. "
+            "Repeat for multiple. Default: all three."
+        ),
+    ),
+    mode: Mode = Query(
+        default="full",
+        description=(
+            "full: include all metadata and source-specific fields. "
+            "minimal: paper={paper_id,title}, statements=[{statement_id}], "
+            "dependencies=[{src_id,dep_id,cite_id,cite_key}]."
+        ),
     ),
 ):
     with rds_conn("v2") as conn, conn.cursor() as cur:
-        return _graph_paper_response(cur, paper_id, items or _ALL_ITEMS)
+        return _graph_paper_response(cur, paper_id, return_ or _ALL_PAPER_RETURN, mode)
 
 
 # ------------------------------------------------------------------ #
@@ -491,13 +738,21 @@ def _embed_model_info(model_alias: str) -> Tuple[str, Optional[str]]:
 
 
 def _embed_query(query: str) -> List[float]:
+    """Embed and L2-normalize the query vector. Corpus embeddings are stored
+    normalized (see embedding_model.normalized = TRUE for qwen3-8b); keeping
+    the query side normalized too guarantees any consumer that takes a raw
+    dot product gets a true cosine. pgvector's <=> already normalizes
+    internally, but we don't want to depend on every code path going through
+    it."""
     provider_model, _ = _embed_model_info(_EMBED_MODEL)
     resp = _embed_client().embeddings.create(
         model=provider_model,
         input=_QUERY_INSTRUCTION + query,
         encoding_format="float",
     )
-    return resp.data[0].embedding
+    vec = resp.data[0].embedding
+    norm = math.sqrt(sum(x * x for x in vec))
+    return [x / norm for x in vec] if norm > 0 else vec
 
 
 # Two-stage: binary-quantized HNSW narrows candidates by Hamming distance,
@@ -558,8 +813,60 @@ ORDER BY score DESC
 LIMIT %(n)s;
 """
 
+# Minimal mode: drop the SELECTed columns we don't need (name, body, slogan,
+# source, title, authors, url, external_id, citation_count) — joins to
+# informal_metadata and paper-text columns are skipped entirely. paper and
+# arxiv_paper_metadata are still joined to support the filter set.
+_EMBEDDING_SQL_MINIMAL = """
+WITH ann AS (
+    SELECT e.slogan_id, e.embedding
+    FROM embedding e
+    JOIN slogan s ON s.slogan_id = e.slogan_id
+    WHERE e.model_name = %(model)s
+      AND s.model_name = ANY(%(slogan_models)s)
+    ORDER BY
+        binary_quantize(e.embedding)::bit(4096)
+        <~>
+        binary_quantize(%(q)s::vector(4096))::bit(4096)
+    LIMIT %(ann_k)s
+),
+ranked AS (
+    SELECT
+        st.statement_id,
+        st.paper_id,
+        apm.citation_count,
+        1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
+    FROM ann
+    JOIN slogan s     ON s.slogan_id = ann.slogan_id
+    JOIN statement st ON st.statement_id = s.statement_id
+    JOIN paper p      ON p.paper_id = st.paper_id
+    LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
+    WHERE NOT s.insufficient_context
+      AND (%(sources)s::text[] IS NULL OR p.source = ANY(%(sources)s))
+      AND (%(types)s::text[]   IS NULL OR LOWER(st.kind) = ANY(%(types)s))
+      AND (%(author_patterns)s::text[] IS NULL OR EXISTS (
+              SELECT 1 FROM unnest(p.authors) a
+              WHERE LOWER(a) LIKE ANY(%(author_patterns)s)
+      ))
+      AND COALESCE(apm.citation_count, 0) >= %(min_citations)s
+      AND (%(in_journal)s::boolean IS NULL
+           OR (apm.journal_ref IS NOT NULL) = %(in_journal)s)
+    ORDER BY ann.embedding <=> %(q)s::vector(4096)
+    LIMIT %(top_k)s
+)
+SELECT statement_id, paper_id, similarity,
+    similarity + %(cw)s * CASE
+        WHEN COALESCE(citation_count, 0) > 0 THEN ln(COALESCE(citation_count, 0)::float)
+        ELSE 0
+    END AS score
+FROM ranked
+ORDER BY score DESC
+LIMIT %(n)s;
+"""
 
-@router.get("/graph/embedding", response_model=EmbeddingSearchResponse)
+
+@router.get("/graph/embedding", response_model=EmbeddingSearchResponse,
+            response_model_exclude_none=True)
 async def graph_embedding(
     query: str = Query(..., min_length=1, description="Natural-language search query."),
     n_results: int = Query(10, ge=1, le=100),
@@ -569,6 +876,13 @@ async def graph_embedding(
     min_citations: int = Query(0, ge=0),
     citation_weight: float = Query(0.0, ge=0.0),
     in_journal: Optional[bool] = Query(None),
+    mode: Mode = Query(
+        default="full",
+        description=(
+            "full: include name, body, slogan, paper title/authors/url/source, citation_count. "
+            "minimal: only statement_id, paper_id, similarity, score."
+        ),
+    ),
 ):
     try:
         query_vec = _embed_query(query)
@@ -590,12 +904,24 @@ async def graph_embedding(
             "n":               n_results,
         }
 
+        sql = _EMBEDDING_SQL_MINIMAL if mode == "minimal" else _EMBEDDING_SQL
         with rds_conn("v2") as conn, conn.cursor() as cur:
             cur.execute("SET LOCAL hnsw.ef_search = %s;", (max(ann_k, 200),))
             cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
-            cur.execute(_EMBEDDING_SQL, params)
+            cur.execute(sql, params)
             cols = [d[0] for d in cur.description]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+
+        if mode == "minimal":
+            return EmbeddingSearchResponse(results=[
+                EmbeddingSearchResult(
+                    statement_id=str(r["statement_id"]),
+                    paper_id=str(r["paper_id"]),
+                    similarity=float(r["similarity"]),
+                    score=float(r["score"]),
+                )
+                for r in rows
+            ])
 
         return EmbeddingSearchResponse(results=[
             EmbeddingSearchResult(

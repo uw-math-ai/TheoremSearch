@@ -13,6 +13,7 @@ Conventions:
 - All IDs are UUIDs.
 - Empty / missing fields are omitted from responses (`response_model_exclude_none=True`).
 - Filter params that take lists are repeated, e.g. `?sources=arXiv&sources=Stacks Project`.
+- Every subroute accepts `?mode=full` (default) or `?mode=minimal`. Minimal trims the response to IDs + the bare minimum needed to wire results back into another call. Use it when you only need structure (e.g. drawing a graph, paginating a hitlist) and intend to hydrate full records later via `/statement/{id}` or `/paper/{id}`. Minimal skips the heavier joins (slogans, source-specific metadata, edge annotations).
 
 ---
 
@@ -27,16 +28,20 @@ A paper is either an arXiv paper, a Lean Community blueprint, a Lean repo, etc. 
 
 ```http
 GET /graph/paper/{paper_id}
-GET /graph/paper?source=arXiv&external_id=2301.00001
+GET /graph/paper?external_id=2301.00001
+GET /graph/paper?external_id=2301.00001&sources=arXiv
 ```
 
-Use the UUID form if you already have it (from `/graph/embedding` or a previous response). Use `?source=&external_id=` if you only have the external identifier (arXiv ID, repo slug, etc.).
+Use the UUID form if you already have it (from `/graph/embedding` or a previous response). Use `?external_id=` if you only have the external identifier (arXiv ID, repo slug, etc.); optionally narrow it down with `sources`.
 
 ### Query params
 
 | Param | Type | Default | Notes |
 |---|---|---|---|
-| `items` | list of `paper` / `statements` / `dependencies` | all three | Which keys to populate. Repeat for multiple, e.g. `?items=paper&items=statements`. |
+| `external_id` | str | required (for the `?external_id=` form) | The paper's external identifier, e.g. arXiv ID or repo slug. |
+| `sources` | list of str | all sources | Filter by `paper.source` (repeat for multiple), e.g. `?sources=arXiv&sources=Lean Community`. Omit to search across all sources. |
+| `return` | list of `paper` / `statements` / `dependencies` | all three | Which top-level keys to populate. Repeat for multiple, e.g. `?return=paper&return=statements`. |
+| `mode` | `full` / `minimal` | `full` | Minimal returns `paper={paper_id,title}`, `statements=[{statement_id}]`, `dependencies=[{src_id,dep_id,cite_id,cite_key}]`. Skips source-specific metadata, slogans, and edge annotations. |
 
 ### Response
 
@@ -97,6 +102,9 @@ Center the dependency graph on a single statement and walk outward.
 |---|---|---|---|
 | `direction` | `src` / `dep` / `both` | `src` | `src`: traverse what this statement uses. `dep`: traverse what uses this statement. `both`: union. |
 | `formality` | `informal` / `formal` | `informal` | Which dependency table to walk. |
+| `return` | list of `nodes` / `edges` / `representations` | `nodes`+`edges` | Which top-level keys to populate. `representations` is opt-in — it hits the embedding index. Repeat for multiple. |
+| `n_representations` | int, 1–100 | 10 | Cap on representations returned. Ignored unless `representations` is in `return`. |
+| `mode` | `full` / `minimal` | `full` | Minimal returns `nodes=[{statement_id}]` and `edges=[{src_id,dep_id,cite_id,cite_key}]`. Skips slogans, names, and edge annotations. `representations` are unaffected (already minimal). |
 
 ### Response
 
@@ -106,23 +114,33 @@ Center the dependency graph on a single statement and walk outward.
     {
       "statement_id": "…",
       "name": "Theorem 3.2",   // or Lean decl_name in formal mode
-      "slogan": "…",
-      "depth": 0               // 0 = the origin; 1 = a direct neighbor
+      "slogan": "…"
     }
   ],
   "edges": [
     // Same shape as /graph/paper's "dependencies" entries.
+  ],
+  "representations": [
+    {
+      "statement_id": "…",     // a different paper's statement
+      "paper_id":     "…",
+      "similarity":   0.83     // cosine on slogan embeddings
+    }
   ]
 }
 ```
 
-### Example
+**About `representations`:** statements (from a *different* paper) whose slogan embedding is semantically closest to this statement's. Filtered by a fixed cosine similarity threshold (0.8) and capped at `n_representations`. Useful for surfacing restatements, equivalent formulations, or known parallel results across the corpus.
+
+### Examples
 
 ```http
 GET /graph/statement/abc-…?direction=src
+GET /graph/statement/abc-…?return=representations&n_representations=5
+GET /graph/statement/abc-…?return=nodes&return=edges&return=representations
 ```
 
-Returns the statement and its direct dependencies (one hop), along with the edges connecting them.
+The first call returns the one-hop dependency neighborhood. The second skips the subgraph entirely and just returns the 5 most similar statements from other papers. The third returns everything.
 
 ---
 
@@ -143,6 +161,7 @@ Semantic search. Embeds the query and matches against the slogan-embedding index
 | `min_citations` | int, ≥0 | 0 | Lower bound on arXiv citation count. |
 | `citation_weight` | float, ≥0 | 0.0 | Boost score by `citation_weight × ln(citations)`. |
 | `in_journal` | bool | — | Restrict to journal-published / non-journal papers. |
+| `mode` | `full` / `minimal` | `full` | Minimal returns only `{statement_id, paper_id, similarity, score}` per result. Skips paper metadata and statement text — use this for paginated hitlists, hydrate full records via `/graph/paper/{id}` or `/statement/{id}`. |
 
 ### Response
 
