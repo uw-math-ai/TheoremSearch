@@ -258,6 +258,52 @@ def _build_subgraph(
     return SubgraphResponse(nodes=nodes, edges=edges)
 
 
+# ANN search for representations. Mirrors _EMBEDDING_SQL exactly:
+#   * query vector is a bound parameter (planner can match the HNSW index)
+#   * slogan.model_name filter restricts to one canonical slogan per
+#     statement, so the top-ann_k candidates cover ~ann_k *distinct*
+#     statements instead of being inflated by per-statement slogan duplicates
+#   * paper_id exclusion happens AFTER the ANN stage (no statement column
+#     pgvector can push into the index scan), so ann_k must be large enough
+#     to leave room after the target paper's statements are filtered out
+_REPRESENTATIONS_SQL = """
+WITH ann AS (
+    SELECT e.slogan_id, e.embedding
+    FROM embedding e
+    JOIN slogan s ON s.slogan_id = e.slogan_id
+    WHERE e.model_name = %(model)s
+      AND s.model_name = ANY(%(slogan_models)s)
+    ORDER BY
+        binary_quantize(e.embedding)::bit(4096)
+        <~>
+        binary_quantize(%(q)s::vector(4096))::bit(4096)
+    LIMIT %(ann_k)s
+),
+ranked AS (
+    SELECT
+        st.statement_id,
+        st.paper_id,
+        1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
+    FROM ann
+    JOIN slogan s     ON s.slogan_id    = ann.slogan_id
+    JOIN statement st ON st.statement_id = s.statement_id
+    WHERE NOT s.insufficient_context
+      AND st.paper_id != %(exclude_paper)s
+),
+deduped AS (
+    SELECT DISTINCT ON (statement_id)
+        statement_id, paper_id, similarity
+    FROM ranked
+    ORDER BY statement_id, similarity DESC
+)
+SELECT statement_id, paper_id, similarity
+FROM deduped
+WHERE similarity >= %(threshold)s
+ORDER BY similarity DESC
+LIMIT %(k)s;
+"""
+
+
 def _fetch_representations(
     cur,
     statement_id: str,
@@ -266,58 +312,48 @@ def _fetch_representations(
     """Statements (from a different paper) whose slogan embedding is most
     similar to ``statement_id``'s, above ``_REPRESENTATION_SIMILARITY_THRESHOLD``.
 
-    Two-stage search: binary-quantized HNSW for the candidate pool, then
-    full-precision cosine rerank. Mirrors /graph/embedding's pattern. If the
-    target has no sufficient slogan embedding under ``_EMBED_MODEL``, returns
-    an empty list.
+    Two-stage: HNSW ANN by binary-quantized Hamming, then full-precision
+    cosine rerank. Done as two round-trips (target vector fetch, then
+    search) so the vector is a bound parameter and the HNSW index can be
+    used — same pattern as /graph/embedding. Returns [] if the target has
+    no sufficient slogan embedding under _EMBED_MODEL.
     """
-    ann_k = max(n_representations * 4, 200)
     cur.execute(
         """
-        WITH target AS (
-            SELECT e.embedding AS vec, s.paper_id
-            FROM embedding e
-            JOIN slogan sl   ON sl.slogan_id    = e.slogan_id
-            JOIN statement s ON s.statement_id  = sl.statement_id
-            WHERE s.statement_id = %(target_id)s
-              AND e.model_name   = %(model)s
-              AND NOT sl.insufficient_context
-            ORDER BY sl.created_at
-            LIMIT 1
-        ),
-        ann AS (
-            SELECT e.embedding, st.statement_id, st.paper_id
-            FROM target t,
-                 embedding e
-            JOIN slogan sl   ON sl.slogan_id   = e.slogan_id
-            JOIN statement st ON st.statement_id = sl.statement_id
-            WHERE e.model_name = %(model)s
-              AND st.paper_id != t.paper_id
-              AND NOT sl.insufficient_context
-            ORDER BY binary_quantize(e.embedding)::bit(4096)
-                   <~>
-                   binary_quantize(t.vec)::bit(4096)
-            LIMIT %(ann_k)s
-        ),
-        deduped AS (
-            SELECT DISTINCT ON (a.statement_id)
-                a.statement_id, a.paper_id,
-                1.0 - (a.embedding <=> t.vec) AS similarity
-            FROM ann a, target t
-            ORDER BY a.statement_id, a.embedding <=> t.vec
-        )
-        SELECT statement_id, paper_id, similarity
-        FROM deduped
-        WHERE similarity >= %(threshold)s
-        ORDER BY similarity DESC
-        LIMIT %(k)s
+        SELECT e.embedding, s.paper_id
+        FROM embedding e
+        JOIN slogan sl   ON sl.slogan_id   = e.slogan_id
+        JOIN statement s ON s.statement_id = sl.statement_id
+        WHERE s.statement_id = %s
+          AND e.model_name   = %s
+          AND NOT sl.insufficient_context
+        ORDER BY sl.created_at
+        LIMIT 1
         """,
+        (statement_id, _EMBED_MODEL),
+    )
+    row = cur.fetchone()
+    if row is None:
+        return []
+    target_vec, target_paper_id = row
+
+    # With slogan_models pinning to one slogan per statement, the top-ann_k
+    # ANN candidates cover ~ann_k distinct statements; only a tiny handful
+    # ever clear the similarity threshold (EXPLAIN on a real target: 7 of
+    # 2000 pass >= 0.8). Bigger ann_k just buys more cold-cache I/O on the
+    # HNSW index. 200 matches /graph/embedding and keeps the scan tight.
+    ann_k = max(n_representations * 20, 200)
+    cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(ann_k, 1000),))
+    cur.execute(
+        _REPRESENTATIONS_SQL,
         {
-            "target_id": statement_id,
-            "model":     _EMBED_MODEL,
-            "threshold": _REPRESENTATION_SIMILARITY_THRESHOLD,
-            "ann_k":     ann_k,
-            "k":         n_representations,
+            "q":             target_vec,
+            "model":         _EMBED_MODEL,
+            "slogan_models": _SLOGAN_MODELS,
+            "exclude_paper": target_paper_id,
+            "threshold":     _REPRESENTATION_SIMILARITY_THRESHOLD,
+            "ann_k":         ann_k,
+            "k":             n_representations,
         },
     )
     return [
@@ -332,7 +368,7 @@ def _fetch_representations(
 
 @router.get("/graph/statement/{statement_id}", response_model=SubgraphResponse,
             response_model_exclude_none=True)
-async def graph_statement(
+def graph_statement(
     statement_id: str,
     direction: Direction = Query(
         default="src",
@@ -626,7 +662,7 @@ def _graph_paper_response(
     response_model=GraphPaperResponse,
     response_model_exclude_none=True,
 )
-async def graph_paper_by_source(
+def graph_paper_by_source(
     external_id: str = Query(..., description="paper.external_id"),
     sources: List[str] = Query(
         default=[],
@@ -678,7 +714,7 @@ async def graph_paper_by_source(
     response_model=GraphPaperResponse,
     response_model_exclude_none=True,
 )
-async def graph_paper(
+def graph_paper(
     paper_id: str,
     return_: Optional[List[GraphPaperReturn]] = Query(
         default=None,
@@ -867,7 +903,7 @@ LIMIT %(n)s;
 
 @router.get("/graph/embedding", response_model=EmbeddingSearchResponse,
             response_model_exclude_none=True)
-async def graph_embedding(
+def graph_embedding(
     query: str = Query(..., min_length=1, description="Natural-language search query."),
     n_results: int = Query(10, ge=1, le=100),
     sources: List[str] = Query(default=[], description="Paper sources, e.g. 'arXiv'."),
@@ -952,7 +988,7 @@ async def graph_embedding(
 # ------------------------------------------------------------------ #
 
 @router.get("/statement/{statement_id}", response_model=StatementDetail)
-async def get_statement(statement_id: str):
+def get_statement(statement_id: str):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -984,7 +1020,7 @@ async def get_statement(statement_id: str):
 
 
 @router.get("/paper/{paper_id}", response_model=PaperDetail)
-async def get_paper(paper_id: str):
+def get_paper(paper_id: str):
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -1012,7 +1048,7 @@ async def get_paper(paper_id: str):
 
 
 @router.post("/statements", response_model=List[StatementDetail])
-async def batch_statements(body: IdsRequest):
+def batch_statements(body: IdsRequest):
     if not body.ids:
         return []
     with rds_conn("v2") as conn, conn.cursor() as cur:
@@ -1046,7 +1082,7 @@ async def batch_statements(body: IdsRequest):
 
 
 @router.post("/papers", response_model=List[PaperDetail])
-async def batch_papers(body: IdsRequest):
+def batch_papers(body: IdsRequest):
     if not body.ids:
         return []
     with rds_conn("v2") as conn, conn.cursor() as cur:
@@ -1076,7 +1112,7 @@ async def batch_papers(body: IdsRequest):
 
 
 @router.get("/papers")
-async def list_papers():
+def list_papers():
     with rds_conn("v2") as conn, conn.cursor() as cur:
         cur.execute(
             """

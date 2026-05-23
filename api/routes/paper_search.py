@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 @router.get("/paper-search")
-async def paper_search(q: str = "", limit: int = 8):
+def paper_search(q: str = "", limit: int = 8):
     """Autocomplete: search all papers by title or external_id."""
     q = q.strip()
     if not q:
