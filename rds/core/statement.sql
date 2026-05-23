@@ -19,10 +19,11 @@ COMMENT ON TABLE statement IS
 -- location/identification fields plus the docstring.
 CREATE TABLE formal_metadata (
     statement_id  UUID PRIMARY KEY REFERENCES statement(statement_id) ON DELETE CASCADE,
-    file_path TEXT,          -- path within the repo (NULL when unknown, e.g. unresolved decls)
-    decl_name TEXT,          -- fully qualified declaration name (Lean FQN)
-    module    TEXT,          -- defining Lean module (lean-graph nodes.module)
-    docstring TEXT           -- Lean docstring from lean-graph statements.jsonl
+    file_path   TEXT,          -- path within the repo (NULL when unknown, e.g. unresolved decls)
+    decl_name   TEXT,          -- fully qualified declaration name (Lean FQN)
+    module      TEXT,          -- defining Lean module (lean-graph nodes.module)
+    docstring   TEXT,          -- Lean docstring from lean-graph statements.jsonl
+    is_instance BOOLEAN NOT NULL DEFAULT false   -- Lean.Meta.isInstanceCore; used for proof/def instance demotion
 );
 
 COMMENT ON TABLE formal_metadata IS

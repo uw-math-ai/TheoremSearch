@@ -111,7 +111,7 @@ def main():
 
     cur_sqlite = sconn.execute(
         f"""
-        SELECT project_id, full_name, kind, module, file_path, signature, docstring
+        SELECT project_id, full_name, kind, module, file_path, signature, docstring, is_instance
           FROM nodes {where}
          ORDER BY id
         """,
@@ -150,10 +150,11 @@ def main():
                     # proof intentionally omitted → NULL
                 })
                 new_meta_rows.append({
-                    "decl_name": decl_name,
-                    "file_path": n["file_path"],
-                    "module":    n["module"],
-                    "docstring": n["docstring"],
+                    "decl_name":   decl_name,
+                    "file_path":   n["file_path"],
+                    "module":      n["module"],
+                    "docstring":   n["docstring"],
+                    "is_instance": bool(n["is_instance"]),
                 })
             elif args.overwrite:
                 upd_stmt_rows.append({
@@ -167,6 +168,7 @@ def main():
                     "file_path":    n["file_path"],
                     "module":       n["module"],
                     "docstring":    n["docstring"],
+                    "is_instance":  bool(n["is_instance"]),
                 })
             else:
                 skipped += 1

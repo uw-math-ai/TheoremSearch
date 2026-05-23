@@ -41,6 +41,11 @@ CREATE TABLE formal_dependency (
                         'docref'    -- referenced from docstring
                     )),
     tactic_context  TEXT,   -- optional: tactic or term excerpt that triggered this dependency
+    -- lean-graph sig-edge metadata (NULL for non-sig edges)
+    position        TEXT CHECK (position IS NULL OR position IN ('conclusion', 'hyp')),
+    binder          TEXT CHECK (binder   IS NULL OR binder   IN ('explicit', 'inst', 'implicit', 'strict')),
+    role            TEXT CHECK (role     IS NULL OR role     IN ('fn', 'arg')),
+    via_proj        BOOLEAN,
     PRIMARY KEY (src_id, dep_id, edge_type)
 );
 

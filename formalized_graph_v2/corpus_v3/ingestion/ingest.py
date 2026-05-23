@@ -83,19 +83,28 @@ def ingest_project(
             name = obj["name"]
             kind = obj.get("decl_type", "unknown")
             module = obj.get("module", "")
+            is_instance = bool(obj.get("is_instance", False))
 
-            nodes[name] = {"kind": kind, "module": module}
+            nodes[name] = {"kind": kind, "module": module, "is_instance": is_instance}
 
             for edge in obj.get("edges", []):
                 target = edge["target"]
                 edge_type = edge["kind"]
                 if edge_type not in VALID_EDGE_TYPES:
                     continue
-                raw_edges.append((name, target, edge_type))
+                # sig edges carry position/binder/role/via_proj; other kinds don't.
+                via = edge.get("via_proj")
+                raw_edges.append((
+                    name, target, edge_type,
+                    edge.get("position"),
+                    edge.get("binder"),
+                    edge.get("role"),
+                    None if via is None else (1 if via else 0),
+                ))
                 # Target may live in a dep package outside this project's
                 # NDJSON — stub it in so edges can resolve.
                 if target not in nodes:
-                    nodes[target] = {"kind": "unknown", "module": ""}
+                    nodes[target] = {"kind": "unknown", "module": "", "is_instance": False}
 
     print(f"    {len(nodes)} nodes, {len(raw_edges)} edges")
 
@@ -107,8 +116,9 @@ def ingest_project(
         signature = stmt.get("signature", "")
         docstring = stmt.get("docstring", "")
         file_path = module_to_filepath(module) if module else ""
+        is_instance = 1 if info.get("is_instance") else 0
         node_rows.append((
-            project_id, name, kind, module, file_path, signature, docstring
+            project_id, name, kind, module, file_path, signature, docstring, is_instance
         ))
 
     CHUNK = 10_000
@@ -120,13 +130,13 @@ def ingest_project(
     name_to_id = db.get_name_to_id()
     edge_rows = []
     unresolved = 0
-    for src_name, tgt_name, edge_type in raw_edges:
+    for src_name, tgt_name, edge_type, position, binder, role, via_proj in raw_edges:
         src_id = name_to_id.get(src_name)
         tgt_id = name_to_id.get(tgt_name)
         if src_id is None or tgt_id is None:
             unresolved += 1
             continue
-        edge_rows.append((src_id, tgt_id, edge_type))
+        edge_rows.append((src_id, tgt_id, edge_type, position, binder, role, via_proj))
 
     total_edges = 0
     for i in range(0, len(edge_rows), CHUNK):

@@ -93,24 +93,39 @@ def _module_distance_bonus(target_module: str | None, dep_module: str | None) ->
     return max(len(t), len(d)) - shared
 
 
-def _edge_priority(
-    edge_type: str,
-    dep_target: str,
-    dep_last_component: str,
-    sig_tokens: set[str],
-) -> int:
-    """Base priority before the module bonus / instance cap / plumbing filter."""
-    if edge_type == "sig":
-        # Elaboration artifact: the dep's name doesn't appear in the stated
-        # signature string. Demote below proof/def.
-        if dep_target not in sig_tokens and dep_last_component not in sig_tokens:
+def _edge_priority(edge: Dict[str, Any], sig_tokens: set[str]) -> int:
+    """Base priority before the module bonus / instance cap / plumbing filter.
+    Mirrors lean-graph/scripts/CONTEXT_DESIGN.txt:
+      sig conclusion           → 100 + 10  (+1 if role='fn')
+      sig hyp explicit         → 100 +  6  (+1 if role='fn')
+      sig hyp inst             → 100 +  4  (+1 if role='fn')
+      sig hyp implicit         → 100 +  2  (+1 if role='fn')
+      sig hyp strict           → 100 +  0  (+1 if role='fn')
+      sig elaboration artifact →  15
+      extends / field          →  50
+      proof / def              →  20
+      docref                   →   5
+    """
+    etype = edge.get("edge_type", "")
+    if etype == "sig":
+        target    = edge.get("decl_name") or ""
+        last_comp = target.rsplit(".", 1)[-1]
+        # Elaboration artifact: name doesn't appear in stated signature → demote below proof/def.
+        if target not in sig_tokens and last_comp not in sig_tokens:
             return 15
-        return 105
-    if edge_type in ("extends", "field"):
+        if edge.get("position") == "conclusion":
+            pos_score = 10
+        else:
+            pos_score = {"explicit": 6, "inst": 4, "implicit": 2, "strict": 0}.get(
+                edge.get("binder") or "", 0
+            )
+        role_score = 1 if edge.get("role") == "fn" else 0
+        return 100 + pos_score + role_score
+    if etype in ("extends", "field"):
         return 50
-    if edge_type in ("proof", "def"):
+    if etype in ("proof", "def"):
         return 20
-    if edge_type == "docref":
+    if etype == "docref":
         return 5
     return 0
 
@@ -261,11 +276,13 @@ def _fetch_edges(conn: connection, src_ids: List[str]) -> Dict[str, List[Dict[st
         cur.execute(
             """
             SELECT fd.src_id, fd.dep_id, fd.edge_type,
-                   dep_s.kind        AS dep_kind,
-                   dep_s.body        AS dep_body,
-                   dep_fm.decl_name  AS dep_decl_name,
-                   dep_fm.module     AS dep_module,
-                   dep_fm.docstring  AS dep_docstring
+                   fd.position, fd.binder, fd.role, fd.via_proj,
+                   dep_s.kind         AS dep_kind,
+                   dep_s.body         AS dep_body,
+                   dep_fm.decl_name   AS dep_decl_name,
+                   dep_fm.module      AS dep_module,
+                   dep_fm.docstring   AS dep_docstring,
+                   dep_fm.is_instance AS dep_is_instance
               FROM formal_dependency fd
               JOIN statement dep_s        ON dep_s.statement_id = fd.dep_id
               JOIN formal_metadata dep_fm ON dep_fm.statement_id = fd.dep_id
@@ -278,13 +295,18 @@ def _fetch_edges(conn: connection, src_ids: List[str]) -> Dict[str, List[Dict[st
         for row in cur.fetchall():
             r = dict(zip(cols, row))
             out[str(r["src_id"])].append({
-                "dep_id":    str(r["dep_id"]),
-                "edge_type": r["edge_type"],
-                "kind":      r["dep_kind"],
-                "body":      r["dep_body"],
-                "decl_name": r["dep_decl_name"],
-                "module":    r["dep_module"],
-                "docstring": r["dep_docstring"],
+                "dep_id":      str(r["dep_id"]),
+                "edge_type":   r["edge_type"],
+                "position":    r["position"],
+                "binder":      r["binder"],
+                "role":        r["role"],
+                "via_proj":    r["via_proj"],
+                "kind":        r["dep_kind"],
+                "body":        r["dep_body"],
+                "decl_name":   r["dep_decl_name"],
+                "module":      r["dep_module"],
+                "docstring":   r["dep_docstring"],
+                "is_instance": r["dep_is_instance"],
             })
         return dict(out)
 
@@ -388,10 +410,11 @@ def fetch_formal_contexts(
             if etype in ("proof", "def") and _is_logic_plumbing(dep_module):
                 continue
 
-            last_comp = (e["decl_name"] or "").rsplit(".", 1)[-1]
-            base = _edge_priority(etype, e["decl_name"] or "", last_comp, sig_tokens)
+            base = _edge_priority(e, sig_tokens)
             # Cap silently-synthesized instance edges below docref.
-            if e.get("kind") == "instance" and base < 100:
+            # Use the is_instance boolean (Lean.Meta.isInstanceCore) — `kind` is
+            # the surface decl kind, which is 'inst' (not 'instance') in lean-graph.
+            if e.get("is_instance") and base < 100:
                 base = min(base, _INSTANCE_CAP)
             score = base + _module_distance_bonus(target.get("module"), dep_module)
 
