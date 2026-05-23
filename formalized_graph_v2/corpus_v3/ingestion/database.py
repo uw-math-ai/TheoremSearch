@@ -57,7 +57,8 @@ class Corpus:
                 module      TEXT,
                 file_path   TEXT,
                 signature   TEXT,
-                docstring   TEXT
+                docstring   TEXT,
+                is_instance INTEGER NOT NULL DEFAULT 0  -- from lean-graph is_instance flag
             )
         """)
 
@@ -66,6 +67,11 @@ class Corpus:
                 source_id   INTEGER NOT NULL REFERENCES nodes(id),
                 target_id   INTEGER NOT NULL REFERENCES nodes(id),
                 edge_type   TEXT NOT NULL,
+                -- lean-graph sig-edge metadata (NULL for non-sig edges)
+                position    TEXT,
+                binder      TEXT,
+                role        TEXT,
+                via_proj    INTEGER,
                 PRIMARY KEY (source_id, target_id, edge_type)
             )
         """)
@@ -105,22 +111,22 @@ class Corpus:
         return row["id"]
 
     def bulk_insert_nodes(self, rows: list[tuple]) -> int:
-        """Insert (project_id, full_name, kind, module, file_path, signature, docstring)."""
+        """Insert (project_id, full_name, kind, module, file_path, signature, docstring, is_instance)."""
         c = self.conn.cursor()
         c.executemany("""
             INSERT OR IGNORE INTO nodes
-                (project_id, full_name, kind, module, file_path, signature, docstring)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                (project_id, full_name, kind, module, file_path, signature, docstring, is_instance)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, rows)
         self.conn.commit()
         return c.rowcount
 
     def bulk_insert_edges(self, rows: list[tuple]) -> int:
-        """Insert (source_id, target_id, edge_type)."""
+        """Insert (source_id, target_id, edge_type, position, binder, role, via_proj)."""
         c = self.conn.cursor()
         c.executemany("""
-            INSERT OR IGNORE INTO edges (source_id, target_id, edge_type)
-            VALUES (?, ?, ?)
+            INSERT OR IGNORE INTO edges (source_id, target_id, edge_type, position, binder, role, via_proj)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, rows)
         self.conn.commit()
         return c.rowcount

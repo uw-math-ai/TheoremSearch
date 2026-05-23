@@ -30,7 +30,10 @@ from rds.utils.connect import get_rds_connection
 DEFAULT_DB = Path("/home/ericleonen/TheoremSearch/formalized_graph/corpus_v3.db")
 SOURCE = "Lean Repo"
 
-_COPY_SQL = "COPY formal_dependency (src_id, dep_id, edge_type) FROM STDIN"
+_COPY_SQL = (
+    "COPY formal_dependency (src_id, dep_id, edge_type, position, binder, role, via_proj) "
+    "FROM STDIN WITH (NULL '\\N')"
+)
 
 
 def _fetch_paper_id_by_slug(conn) -> dict[str, str]:
@@ -123,7 +126,8 @@ def main():
     print(f"edges to process: {total:,}")
 
     cur_sqlite = sconn.execute(
-        f"SELECT source_id, target_id, edge_type FROM edges {where}",
+        f"SELECT source_id, target_id, edge_type, position, binder, role, via_proj "
+        f"FROM edges {where}",
         params,
     )
 
@@ -131,6 +135,16 @@ def main():
     pbar = tqdm(total=total, dynamic_ncols=True)
     buf = io.StringIO()
     get_sid = sid_by_node.get  # local-name lookup is faster in the hot loop
+
+    def _t(v):
+        # COPY NULL marker is \N; otherwise stringify (only used for TEXT cols).
+        return "\\N" if v is None else str(v)
+
+    def _b(v):
+        # via_proj is INTEGER 0/1 in SQLite or None; Postgres BOOLEAN accepts 't'/'f'.
+        if v is None:
+            return "\\N"
+        return "t" if v else "f"
 
     with conn.cursor() as cur:
         try:
@@ -148,14 +162,21 @@ def main():
                     if src is None or dep is None:
                         unresolved_edges += 1
                         continue
-                    # TSV: src \t dep \t edge_type \n. No values contain \t or \n
-                    # (UUIDs and edge_type ∈ {sig,def,proof,extends,field,docref}),
-                    # so no escaping is needed.
+                    # TSV: 7 columns. No edge_type / position / binder / role
+                    # value contains \t or \n, so no escaping needed.
                     buf.write(src)
                     buf.write("\t")
                     buf.write(dep)
                     buf.write("\t")
                     buf.write(e["edge_type"])
+                    buf.write("\t")
+                    buf.write(_t(e["position"]))
+                    buf.write("\t")
+                    buf.write(_t(e["binder"]))
+                    buf.write("\t")
+                    buf.write(_t(e["role"]))
+                    buf.write("\t")
+                    buf.write(_b(e["via_proj"]))
                     buf.write("\n")
                     kept += 1
 
