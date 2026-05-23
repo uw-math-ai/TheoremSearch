@@ -2,7 +2,7 @@
 
 Three subroutes:
   - /graph/paper        : find a paper (by id or by source+external_id) plus
-                          its statements and dependencies.
+                          its statements and dependency edges.
   - /graph/statement    : center the graph at a statement and traverse out.
   - /graph/embedding    : semantic search via slogan embeddings.
 """
@@ -16,6 +16,7 @@ from openai import OpenAI
 from db import rds_conn
 from models import (
     StatementNode, DependencyEdge, SubgraphResponse, StatementRepresentation,
+    StatementRoot,
     IdsRequest, StatementDetail, PaperDetail,
     GraphPaperReturn, GraphStatementReturn, GraphPaperResponse, Mode,
     PaperItem, StatementItem, DependencyItem,
@@ -46,8 +47,8 @@ _SOURCE_METADATA = {
     },
 }
 
-_ALL_PAPER_RETURN:     List[GraphPaperReturn]     = ["paper", "statements", "dependencies"]
-_ALL_STATEMENT_RETURN: List[GraphStatementReturn] = ["nodes", "edges"]
+_ALL_PAPER_RETURN:     List[GraphPaperReturn]     = ["paper", "statements", "edges"]
+_ALL_STATEMENT_RETURN: List[GraphStatementReturn] = ["root", "nodes", "edges"]
 # `representations` is opt-in by default — it hits the embedding index and is
 # heavier than the local subgraph fetch.
 
@@ -283,20 +284,23 @@ ranked AS (
     SELECT
         st.statement_id,
         st.paper_id,
+        p.source,
         1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
     FROM ann
     JOIN slogan s     ON s.slogan_id    = ann.slogan_id
     JOIN statement st ON st.statement_id = s.statement_id
+    JOIN paper p      ON p.paper_id     = st.paper_id
     WHERE NOT s.insufficient_context
       AND st.paper_id != %(exclude_paper)s
+      AND (%(rep_sources)s::text[] IS NULL OR p.source = ANY(%(rep_sources)s))
 ),
 deduped AS (
     SELECT DISTINCT ON (statement_id)
-        statement_id, paper_id, similarity
+        statement_id, paper_id, source, similarity
     FROM ranked
     ORDER BY statement_id, similarity DESC
 )
-SELECT statement_id, paper_id, similarity
+SELECT statement_id, paper_id, source, similarity
 FROM deduped
 WHERE similarity >= %(threshold)s
 ORDER BY similarity DESC
@@ -308,6 +312,7 @@ def _fetch_representations(
     cur,
     statement_id: str,
     n_representations: int,
+    representation_sources: Optional[List[str]] = None,
 ) -> List[StatementRepresentation]:
     """Statements (from a different paper) whose slogan embedding is most
     similar to ``statement_id``'s, above ``_REPRESENTATION_SIMILARITY_THRESHOLD``.
@@ -351,6 +356,7 @@ def _fetch_representations(
             "model":         _EMBED_MODEL,
             "slogan_models": _SLOGAN_MODELS,
             "exclude_paper": target_paper_id,
+            "rep_sources":   representation_sources or None,
             "threshold":     _REPRESENTATION_SIMILARITY_THRESHOLD,
             "ann_k":         ann_k,
             "k":             n_representations,
@@ -360,10 +366,78 @@ def _fetch_representations(
         StatementRepresentation(
             statement_id=str(r[0]),
             paper_id=str(r[1]),
-            similarity=float(r[2]),
+            source=r[2],
+            similarity=float(r[3]),
         )
         for r in cur.fetchall()
     ]
+
+
+def _fetch_statement_root(cur, statement_id: str, mode: Mode) -> StatementRoot:
+    """Hydrate the centered statement.
+
+    minimal -> {statement_id, name}.
+    full    -> minimal + nested StatementDetail and PaperDetail.
+    """
+    # One query covers both modes — informal_metadata for informal statements
+    # and formal_metadata.decl_name for formal ones — so the same shape works
+    # whether the caller knows the formality or not.
+    cur.execute(
+        """
+        SELECT
+            s.statement_id, s.formality, s.kind, s.body, s.proof,
+            im.ref, im.note,
+            fm.decl_name,
+            p.paper_id, p.external_id, p.title, p.source, p.authors, p.url,
+            apm.abstract
+        FROM statement s
+        JOIN paper p                         ON p.paper_id = s.paper_id
+        LEFT JOIN informal_metadata im       ON im.statement_id = s.statement_id
+        LEFT JOIN formal_metadata fm         ON fm.statement_id = s.statement_id
+        LEFT JOIN arxiv_paper_metadata apm   ON apm.arxiv_id = p.external_id
+        WHERE s.statement_id = %s
+        """,
+        (statement_id,),
+    )
+    row = cur.fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail=f"No statement with id '{statement_id}'")
+    (sid, formality, kind, body, proof, ref, note, decl_name,
+     paper_id, paper_ext_id, paper_title, paper_source, paper_authors, paper_url,
+     paper_abstract) = row
+
+    if formality == "formal":
+        name = decl_name or f"<unnamed {str(sid)[:8]}>"
+    else:
+        name = kind.capitalize() + (f" {ref}" if ref else "")
+
+    if mode == "minimal":
+        return StatementRoot(statement_id=str(sid), name=name)
+
+    return StatementRoot(
+        statement_id=str(sid),
+        name=name,
+        statement=StatementDetail(
+            statement_id=str(sid),
+            kind=kind,
+            ref=ref,
+            body=body or "",
+            proof=proof,
+            note=note,
+            paper_id=str(paper_id),
+            paper_external_id=paper_ext_id,
+            paper_title=paper_title,
+        ),
+        paper=PaperDetail(
+            paper_id=str(paper_id),
+            external_id=paper_ext_id,
+            title=paper_title,
+            authors=paper_authors or [],
+            abstract=paper_abstract,
+            url=paper_url,
+            source=paper_source,
+        ),
+    )
 
 
 @router.get("/graph/statement/{statement_id}", response_model=SubgraphResponse,
@@ -386,8 +460,8 @@ def graph_statement(
         default=None,
         alias="return",
         description=(
-            "Which top-level keys to populate: nodes, edges, representations. "
-            "Repeat for multiple. Default: nodes+edges (representations is opt-in "
+            "Which top-level keys to populate: root, nodes, edges, representations. "
+            "Repeat for multiple. Default: root+nodes+edges (representations is opt-in "
             "since it hits the embedding index)."
         ),
     ),
@@ -395,11 +469,20 @@ def graph_statement(
         default=10, ge=1, le=100,
         description="Max representations to return when 'representations' is requested.",
     ),
+    representation_sources: List[str] = Query(
+        default=[],
+        description=(
+            "Filter representations by paper.source (repeat for multiple), e.g. "
+            "'arXiv', 'Lean Community'. Omit to search across all sources. "
+            "Representations are always from a different paper than the centered "
+            "statement's regardless of this filter."
+        ),
+    ),
     mode: Mode = Query(
         default="full",
         description=(
-            "full: include node names/slogans and edge annotations. "
-            "minimal: return only statement_ids on nodes and src/dep/cite ids on edges."
+            "full: include node names/slogans, edge annotations, and full root details. "
+            "minimal: return only IDs on nodes/edges and {statement_id, name} on root."
         ),
     ),
 ):
@@ -410,6 +493,8 @@ def graph_statement(
         if cur.fetchone() is None:
             raise HTTPException(status_code=404, detail=f"No statement with id '{statement_id}'")
 
+        root = _fetch_statement_root(cur, statement_id, mode) if "root" in chosen else None
+
         nodes = edges = None
         if "nodes" in chosen or "edges" in chosen:
             node_ids = _traverse(cur, [statement_id], direction, formality)
@@ -418,11 +503,15 @@ def graph_statement(
             edges = sub.edges if "edges" in chosen else None
 
         representations = (
-            _fetch_representations(cur, statement_id, n_representations)
+            _fetch_representations(
+                cur, statement_id, n_representations,
+                representation_sources=representation_sources or None,
+            )
             if "representations" in chosen else None
         )
 
         return SubgraphResponse(
+            root=root,
             nodes=nodes,
             edges=edges,
             representations=representations,
@@ -653,7 +742,7 @@ def _graph_paper_response(
     return GraphPaperResponse(
         paper=paper,
         statements=statements_fn(cur, paper_id, mode) if "statements" in chosen else None,
-        dependencies=dependencies_fn(cur, paper_id, mode) if "dependencies" in chosen else None,
+        edges=dependencies_fn(cur, paper_id, mode) if "edges" in chosen else None,
     )
 
 
@@ -675,7 +764,7 @@ def graph_paper_by_source(
         default=None,
         alias="return",
         description=(
-            "Which top-level keys to populate: paper, statements, dependencies. "
+            "Which top-level keys to populate: paper, statements, edges. "
             "Repeat for multiple. Default: all three."
         ),
     ),
@@ -684,7 +773,7 @@ def graph_paper_by_source(
         description=(
             "full: include all metadata and source-specific fields. "
             "minimal: paper={paper_id,title}, statements=[{statement_id}], "
-            "dependencies=[{src_id,dep_id,cite_id,cite_key}]."
+            "edges=[{src_id,dep_id,cite_id,cite_key}]."
         ),
     ),
 ):
@@ -720,7 +809,7 @@ def graph_paper(
         default=None,
         alias="return",
         description=(
-            "Which top-level keys to populate: paper, statements, dependencies. "
+            "Which top-level keys to populate: paper, statements, edges. "
             "Repeat for multiple. Default: all three."
         ),
     ),
@@ -729,7 +818,7 @@ def graph_paper(
         description=(
             "full: include all metadata and source-specific fields. "
             "minimal: paper={paper_id,title}, statements=[{statement_id}], "
-            "dependencies=[{src_id,dep_id,cite_id,cite_key}]."
+            "edges=[{src_id,dep_id,cite_id,cite_key}]."
         ),
     ),
 ):

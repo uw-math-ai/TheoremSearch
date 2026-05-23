@@ -4,7 +4,7 @@ The main entry point is `/graph` — a small set of endpoints for navigating the
 
 | Subroute | Use it to... |
 |---|---|
-| [`GET /graph/paper`](#graph-paper) | Look up a paper and its statements + dependencies. |
+| [`GET /graph/paper`](#graph-paper) | Look up a paper and its statements + edges. |
 | [`GET /graph/statement`](#graph-statement) | Center the dependency graph on a statement and walk outward. |
 | [`GET /graph/embedding`](#graph-embedding) | Semantic search by query string. |
 
@@ -20,7 +20,7 @@ Conventions:
 <a id="graph-paper"></a>
 ## `GET /graph/paper`
 
-Look up a paper. Returns the paper, its statements, and its dependencies — in one shot.
+Look up a paper. Returns the paper, its statements, and its dependency edges — in one shot.
 
 A paper is either an arXiv paper, a Lean Community blueprint, a Lean repo, etc. (see `paper.kind`). Lean repos return their formal statements and `formal_dependency` edges; everything else returns informal statements and `informal_dependency` edges.
 
@@ -40,8 +40,8 @@ Use the UUID form if you already have it (from `/graph/embedding` or a previous 
 |---|---|---|---|
 | `external_id` | str | required (for the `?external_id=` form) | The paper's external identifier, e.g. arXiv ID or repo slug. |
 | `sources` | list of str | all sources | Filter by `paper.source` (repeat for multiple), e.g. `?sources=arXiv&sources=Lean Community`. Omit to search across all sources. |
-| `return` | list of `paper` / `statements` / `dependencies` | all three | Which top-level keys to populate. Repeat for multiple, e.g. `?return=paper&return=statements`. |
-| `mode` | `full` / `minimal` | `full` | Minimal returns `paper={paper_id,title}`, `statements=[{statement_id}]`, `dependencies=[{src_id,dep_id,cite_id,cite_key}]`. Skips source-specific metadata, slogans, and edge annotations. |
+| `return` | list of `paper` / `statements` / `edges` | all three | Which top-level keys to populate. Repeat for multiple, e.g. `?return=paper&return=statements`. |
+| `mode` | `full` / `minimal` | `full` | Minimal returns `paper={paper_id,title}`, `statements=[{statement_id}]`, `edges=[{src_id,dep_id,cite_id,cite_key}]`. Skips source-specific metadata, slogans, and edge annotations. |
 
 ### Response
 
@@ -72,7 +72,7 @@ Use the UUID form if you already have it (from `/graph/embedding` or a previous 
       // …formality-specific fields (docstring, module, note, …)
     }
   ],
-  "dependencies": [
+  "edges": [
     {
       "src_id": "…",
       "dep_id": "…",           // resolved target (may be null for unresolved interpaper cites)
@@ -102,14 +102,40 @@ Center the dependency graph on a single statement and walk outward.
 |---|---|---|---|
 | `direction` | `src` / `dep` / `both` | `src` | `src`: traverse what this statement uses. `dep`: traverse what uses this statement. `both`: union. |
 | `formality` | `informal` / `formal` | `informal` | Which dependency table to walk. |
-| `return` | list of `nodes` / `edges` / `representations` | `nodes`+`edges` | Which top-level keys to populate. `representations` is opt-in — it hits the embedding index. Repeat for multiple. |
+| `return` | list of `root` / `nodes` / `edges` / `representations` | `root`+`nodes`+`edges` | Which top-level keys to populate. `representations` is opt-in — it hits the embedding index. Repeat for multiple. |
 | `n_representations` | int, 1–100 | 10 | Cap on representations returned. Ignored unless `representations` is in `return`. |
-| `mode` | `full` / `minimal` | `full` | Minimal returns `nodes=[{statement_id}]` and `edges=[{src_id,dep_id,cite_id,cite_key}]`. Skips slogans, names, and edge annotations. `representations` are unaffected (already minimal). |
+| `representation_sources` | list of str | all sources | Filter `representations` by `paper.source` (repeat for multiple), e.g. `?representation_sources=arXiv`. Representations are always from a *different paper* regardless of this filter. |
+| `mode` | `full` / `minimal` | `full` | Minimal returns `nodes=[{statement_id}]`, `edges=[{src_id,dep_id,cite_id,cite_key}]`, and `root={statement_id, name}`. Skips slogans, edge annotations, and full statement/paper hydration on `root`. `representations` are unaffected. |
 
 ### Response
 
 ```jsonc
 {
+  "root": {
+    "statement_id": "…",
+    "name": "Theorem 3.2",   // informal: kind+ref;  formal: Lean decl_name
+    // Full mode only:
+    "statement": {
+      "statement_id": "…",
+      "kind": "theorem",
+      "ref": "3.2",
+      "body": "…",
+      "proof": "…",
+      "note": "…",
+      "paper_id": "…",
+      "paper_external_id": "2301.00001",
+      "paper_title": "…"
+    },
+    "paper": {
+      "paper_id": "…",
+      "external_id": "2301.00001",
+      "title": "…",
+      "authors": ["…"],
+      "abstract": "…",        // arXiv only
+      "url": "…",
+      "source": "arXiv"
+    }
+  },
   "nodes": [
     {
       "statement_id": "…",
@@ -118,29 +144,31 @@ Center the dependency graph on a single statement and walk outward.
     }
   ],
   "edges": [
-    // Same shape as /graph/paper's "dependencies" entries.
+    // Same shape as /graph/paper's "edges" entries.
   ],
   "representations": [
     {
       "statement_id": "…",     // a different paper's statement
       "paper_id":     "…",
+      "source":       "arXiv", // paper.source of the representation's paper
       "similarity":   0.83     // cosine on slogan embeddings
     }
   ]
 }
 ```
 
-**About `representations`:** statements (from a *different* paper) whose slogan embedding is semantically closest to this statement's. Filtered by a fixed cosine similarity threshold (0.8) and capped at `n_representations`. Useful for surfacing restatements, equivalent formulations, or known parallel results across the corpus.
+**About `representations`:** statements (from a *different* paper, always) whose slogan embedding is semantically closest to this statement's. Filtered by a fixed cosine similarity threshold (0.8) and capped at `n_representations`. Useful for surfacing restatements, equivalent formulations, or known parallel results across the corpus. Use `representation_sources` to restrict to specific paper sources.
 
 ### Examples
 
 ```http
 GET /graph/statement/abc-…?direction=src
 GET /graph/statement/abc-…?return=representations&n_representations=5
-GET /graph/statement/abc-…?return=nodes&return=edges&return=representations
+GET /graph/statement/abc-…?return=representations&representation_sources=arXiv
+GET /graph/statement/abc-…?return=root&return=nodes&return=edges&return=representations
 ```
 
-The first call returns the one-hop dependency neighborhood. The second skips the subgraph entirely and just returns the 5 most similar statements from other papers. The third returns everything.
+The first call returns the root + one-hop dependency neighborhood (default). The second skips the subgraph entirely and just returns the 5 most similar statements from other papers. The third restricts representations to arXiv. The fourth returns everything.
 
 ---
 

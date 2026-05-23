@@ -107,10 +107,22 @@ class StatementRepresentation(BaseModel):
     restatements / equivalent results."""
     statement_id: str
     paper_id: str
+    source: Optional[str] = None       # paper.source of the representation's paper
     similarity: float
 
 
+class StatementRoot(BaseModel):
+    """The centered statement plus its paper. In minimal mode only
+    `statement_id` and `name` are populated; in full mode the nested
+    `statement` and `paper` details are filled in too."""
+    statement_id: str
+    name: Optional[str] = None
+    statement: Optional["StatementDetail"] = None
+    paper: Optional["PaperDetail"] = None
+
+
 class SubgraphResponse(BaseModel):
+    root: Optional[StatementRoot] = None
     nodes: Optional[List[StatementNode]] = None
     edges: Optional[List[DependencyEdge]] = None
     representations: Optional[List[StatementRepresentation]] = None
@@ -149,8 +161,8 @@ class PaperDetail(BaseModel):
 # (paper_id+title only / statement_id+name only / src+cite+dep only) without
 # carrying a wall of nulls — the routes set response_model_exclude_none=True.
 
-GraphPaperReturn     = Literal["paper", "statements", "dependencies"]
-GraphStatementReturn = Literal["nodes", "edges", "representations"]
+GraphPaperReturn     = Literal["paper", "statements", "edges"]
+GraphStatementReturn = Literal["root", "nodes", "edges", "representations"]
 Mode                 = Literal["full", "minimal"]
 # Back-compat alias; the public param was renamed to `return`.
 GraphPaperItem       = GraphPaperReturn
@@ -220,4 +232,9 @@ class DependencyItem(BaseModel):
 class GraphPaperResponse(BaseModel):
     paper: Optional[PaperItem] = None
     statements: Optional[List[StatementItem]] = None
-    dependencies: Optional[List[DependencyItem]] = None
+    edges: Optional[List[DependencyItem]] = None
+
+
+# Resolve forward references in StatementRoot (declared above
+# StatementDetail / PaperDetail).
+StatementRoot.model_rebuild()
