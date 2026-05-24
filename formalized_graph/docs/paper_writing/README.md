@@ -14,6 +14,8 @@ without re-deriving anything from the live system.
 | [`api_reference.md`](./api_reference.md) | Thin pointer to `api/README.md` (canonical) plus paper-writing-relevant gotchas (e.g. legacy `/search` integer-IDs are not graph-addressable). |
 | [`leansearch_v2_comparison.md`](./leansearch_v2_comparison.md) | Working notes comparing our corpus + pipeline against LeanSearch v2. |
 | [`prior_work_summary.md`](./prior_work_summary.md) | Distilled facts from the group's prior paper (arXiv:2602.05216) — locked corpus/retrieval/metric choices and what the new EMNLP paper adds on top. PDF lives in [`../prior_work/`](../prior_work/). |
+| [`cycle_consistency.md`](./cycle_consistency.md) | Verified pilot numbers for the F → NL → F' experiment (Mathlib + 4 extension repos, n=300). Headline: dep context lifts Mathlib typecheck 33→63% and is judge-preferred in 79.3% of cases. Caveats + pending rerun tracked. |
+| [`bidirectional_matching.md`](./bidirectional_matching.md) | Headline Hit@k/MRR numbers for the blueprint gold-pair NL↔FL matching experiment (1,595 pairs, qwen3-8b embedding, both directions). Code in `experiments/nl_fl_matching/`. |
 
 ## Contributor prompt
 
