@@ -1,4 +1,6 @@
 .env
+.env.local
+.env.*.local
 *.json
 *.tex
 *.bib
