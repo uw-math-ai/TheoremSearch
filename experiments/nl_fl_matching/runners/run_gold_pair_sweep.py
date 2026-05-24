@@ -19,6 +19,12 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import List
+
+# Flush partial results to RDS every N queries. Means an interrupted run
+# can be resumed by simply re-launching with the same args — idempotent
+# upsert on the PK overwrites stale rows.
+WRITE_FLUSH_EVERY = 100
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
@@ -73,10 +79,10 @@ def main() -> None:
     cfg = CONFIG[args.direction]
     conn = get_rds_connection("v2")
 
-    print(f"[1/4] ensuring nl_fl_match_pilot exists...", flush=True)
+    print(f"[1/3] ensuring nl_fl_match_pilot exists...", flush=True)
     store.ensure_table(conn)
 
-    print(f"[2/4] loading gold pairs...", flush=True)
+    print(f"[2/3] loading gold pairs...", flush=True)
     t0 = time.perf_counter()
     g = gold.load_gold(conn, embedding_model=EMBEDDING_MODEL)
     print(f"      {len(g.informals)} informals, {len(g.formals)} formals, "
@@ -99,11 +105,12 @@ def main() -> None:
     if cleared:
         print(f"      cleared {cleared} prior rows", flush=True)
 
-    print(f"[3/4] running topk ({cfg['mode']}) vs '{cfg['candidate_pool']}' "
-          f"(k={cfg['k']})...", flush=True)
+    print(f"[3/3] running topk ({cfg['mode']}) vs '{cfg['candidate_pool']}' "
+          f"(k={cfg['k']})  — streaming writes every {WRITE_FLUSH_EVERY} queries",
+          flush=True)
     t0 = time.perf_counter()
-    all_rows = []
     empty = 0
+    total_written = 0
 
     if cfg["mode"] == "ann":
         result_stream = topk.embedding_topk(
@@ -129,24 +136,42 @@ def main() -> None:
     else:
         raise SystemExit(f"unknown mode: {cfg['mode']}")
 
+    # Stream writes: flush every WRITE_FLUSH_EVERY queries so a mid-run
+    # crash leaves the table in a partially-populated but useful state.
+    # Idempotent upsert on the PK means a restart with the same args
+    # safely overwrites prior partial rows.
+    pending: List = []
+    queries_done = 0
     for results in result_stream:
+        queries_done += 1
         if not results:
             empty += 1
-            continue
-        all_rows.extend(results)
+        else:
+            pending.extend(results)
+        if queries_done % WRITE_FLUSH_EVERY == 0 and pending:
+            n = store.write_rows(
+                conn, pending,
+                direction=args.direction, exclusion=args.exclusion,
+                pool_descriptor=cfg["pool_descriptor"],
+                embedding_model=EMBEDDING_MODEL,
+            )
+            total_written += n
+            pending.clear()
+            print(f"      [{queries_done}/{len(queries)}] flushed "
+                  f"{total_written} rows so far", flush=True)
+    if pending:
+        n = store.write_rows(
+            conn, pending,
+            direction=args.direction, exclusion=args.exclusion,
+            pool_descriptor=cfg["pool_descriptor"],
+            embedding_model=EMBEDDING_MODEL,
+        )
+        total_written += n
+
     elapsed = time.perf_counter() - t0
-    print(f"      {len(all_rows)} rows in {elapsed:.1f}s "
+    print(f"      done. {total_written} rows in {elapsed:.1f}s "
           f"({elapsed/max(1,len(queries))*1000:.0f} ms/q, "
           f"{empty} empty)", flush=True)
-
-    print(f"[4/4] writing to RDS...", flush=True)
-    written = store.write_rows(
-        conn, all_rows,
-        direction=args.direction, exclusion=args.exclusion,
-        pool_descriptor=cfg["pool_descriptor"],
-        embedding_model=EMBEDDING_MODEL,
-    )
-    print(f"      wrote {written} rows", flush=True)
     conn.close()
     print(f"done.", flush=True)
 
