@@ -13,6 +13,7 @@ without re-deriving anything from the live system.
 | [`samples.md`](./samples.md) | Two real rows per table, chosen so embedding / `lean` / `decl_name` / `docstring` are populated. Embedding vectors shown as `<dim, norm, head, tail>`. |
 | [`api_reference.md`](./api_reference.md) | Thin pointer to `api/README.md` (canonical) plus paper-writing-relevant gotchas (e.g. legacy `/search` integer-IDs are not graph-addressable). |
 | [`leansearch_v2_comparison.md`](./leansearch_v2_comparison.md) | Working notes comparing our corpus + pipeline against LeanSearch v2. |
+| [`prior_work_summary.md`](./prior_work_summary.md) | Distilled facts from the group's prior paper (arXiv:2602.05216) — locked corpus/retrieval/metric choices and what the new EMNLP paper adds on top. PDF lives in [`../prior_work/`](../prior_work/). |
 
 ## Contributor prompt
 
