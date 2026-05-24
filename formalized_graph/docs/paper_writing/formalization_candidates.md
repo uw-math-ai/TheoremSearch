@@ -100,6 +100,34 @@ looks like it formalizes results from this paper that nobody flagged."
   candidates per direction at first pass (refresh by running the snippet
   above)
 
+## Per-anchor dependency neighborhoods
+
+The CSVs above give you anchor↔candidate pairs but not the *graph
+context* an anchor sits in. For that we walk the
+`informal_dependency` table around each of the 500 anchors and
+classify every k=1 / k=2 neighbor as resolved / annotated_only /
+matched_only / none. Output:
+
+| artifact | location | rows |
+|---|---|---:|
+| Per-anchor aggregate (counts only) | `experiments/nl_fl_matching/data/neighborhoods.csv` | 500 |
+| Per-neighbor detail (JSONL, gitignored) | `experiments/nl_fl_matching/data/neighborhoods_detail.jsonl` | 500 lines, ~9.6 MB |
+| Per-neighbor detail (queryable) | RDS table `formalization_candidate_neighborhood`, db `v2` | 14,084 |
+| Selection script | `experiments/nl_fl_matching/analysis/walk_neighborhoods.py` | — |
+| Table DDL | `experiments/nl_fl_matching/schema_neighborhoods.sql` | — |
+
+**Headline numbers** (gold-pool anchors, 2026-05-24):
+- 500 anchors → 2,639 distinct k=1 neighbors, 11,445 k=2 (k=1 excluded)
+- k=1: **91.6% resolved**, 6.9% none, 1.6% annotated_only, 0 matched_only
+- k=2: 85.1% resolved, 12.8% none, 2.1% annotated_only
+- **110 anchors** have ≥5 resolved k=1 siblings AND ≥1 unformalized k=1 hole — the prime "graph helps prover" candidate set
+- Two repos dominate the top: `RemyDegenne/brownian-motion` and `teorth/pfr`
+
+Concrete smoke-test slate distilled from this pool:
+[`smoke_test_candidates.md`](./smoke_test_candidates.md) — 3 verified
+candidates (A, B, F) selected after grepping the target repos to filter
+out false negatives.
+
 ## Caveats for the next agent
 
 1. **Slogans, not raw text.** Embeddings were computed on LLM-generated

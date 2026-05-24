@@ -16,7 +16,8 @@ without re-deriving anything from the live system.
 | [`prior_work_summary.md`](./prior_work_summary.md) | Distilled facts from the group's prior paper (arXiv:2602.05216) — locked corpus/retrieval/metric choices and what the new EMNLP paper adds on top. PDF lives in [`../prior_work/`](../prior_work/). |
 | [`cycle_consistency.md`](./cycle_consistency.md) | Verified pilot numbers for the F → NL → F' experiment (Mathlib + 4 extension repos, n=300). Headline: dep context lifts Mathlib typecheck 33→63% and is judge-preferred in 79.3% of cases. Caveats + pending rerun tracked. |
 | [`bidirectional_matching.md`](./bidirectional_matching.md) | Headline Hit@k/MRR numbers for the blueprint gold-pair NL↔FL matching experiment (1,595 pairs, qwen3-8b embedding, both directions). Code in `experiments/nl_fl_matching/`. |
-| [`formalization_candidates.md`](./formalization_candidates.md) | Schema + how-to-query for the 27,065-row match dataset (CSV + JSONL under `experiments/nl_fl_matching/data/`). Aimed at agents looking for low-hanging fruit to formalize. |
+| [`formalization_candidates.md`](./formalization_candidates.md) | Schema + how-to-query for the 27,065-row match dataset (CSV + JSONL under `experiments/nl_fl_matching/data/`). Aimed at agents looking for low-hanging fruit to formalize. Includes the 500-anchor dependency-neighborhood walk (RDS table `formalization_candidate_neighborhood`, 14,084 rows). |
+| [`smoke_test_candidates.md`](./smoke_test_candidates.md) | The 3 verified unformalized blueprint statements (A, B, F) chosen to drive the first "graph helps prover" comparison. Includes the grep-verification methodology that catches blueprint annotations missing a `\lean{}` macro. |
 
 ## Contributor prompt
 
