@@ -18,6 +18,7 @@ without re-deriving anything from the live system.
 | [`bidirectional_matching.md`](./bidirectional_matching.md) | Headline Hit@k/MRR numbers for the blueprint gold-pair NL↔FL matching experiment (1,595 pairs, qwen3-8b embedding, both directions). Code in `experiments/nl_fl_matching/`. |
 | [`formalization_candidates.md`](./formalization_candidates.md) | Schema + how-to-query for the 27,065-row match dataset (CSV + JSONL under `experiments/nl_fl_matching/data/`). Aimed at agents looking for low-hanging fruit to formalize. Includes the 500-anchor dependency-neighborhood walk (RDS table `formalization_candidate_neighborhood`, 14,084 rows). |
 | [`smoke_test_candidates.md`](./smoke_test_candidates.md) | The 3 verified unformalized blueprint statements (A, B, F) chosen to drive the first "graph helps prover" comparison. Includes the grep-verification methodology that catches blueprint annotations missing a `\lean{}` macro. |
+| [`harness_design.md`](./harness_design.md) | Aristotle-based proof-only comparison harness. Two arms per candidate: no-graph (target + sorry) vs with-graph (target + k=1 resolved-sibling premise pack). Draft Lean signatures, success metrics, budget. |
 
 ## Contributor prompt
 
