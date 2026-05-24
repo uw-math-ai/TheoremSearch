@@ -96,7 +96,8 @@ are populated. Long text fields are truncated at
 
 ## `lean_repo_metadata`
 
-_(no matching sample row)_
+30 rows (one per Lean repo) but every non-key column is currently NULL.
+Schema-only — no useful sample row to show.
 
 ## `statement`
 
@@ -116,7 +117,7 @@ _(no matching sample row)_
 | field | value |
 |---|---|
 | `statement_id` | c731122f-2b99-4497-ae0e-e814994a8300 |
-| `paper_id` | 2f5fd1d1-8e18-435f-a048-3d00c6e50f15 |
+| `paper_id` | c82bacc0-c373-420c-a8b9-930a2ac2adaa (Mathlib_v427) |
 | `formality` | formal |
 | `kind` | instance |
 | `body` | Lean.instInhabitedStructureInfo : Inhabited Lean.StructureInfo |
