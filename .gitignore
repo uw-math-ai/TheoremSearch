@@ -20,6 +20,7 @@ parsed_papers/
 !pipeline/generate_embeddings/models.json
 *pyc
 *.csv
+*.jsonl
 
 # Allow MATLAS comparison experiment artifacts
 !experiments/matlas-comparison/data/*.json
@@ -76,3 +77,6 @@ formalized_graph/data/
 
 # External reference clones used for paper-writing comparisons (not vendored).
 formalized_graph/docs/paper_writing/leansearch_v2_external/
+
+# Allow curated NL↔FL matching CSVs (small) but exclude the giant raw JSONL.
+!experiments/nl_fl_matching/data/*.csv
