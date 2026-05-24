@@ -200,7 +200,7 @@ class PaperItem(BaseModel):
 
 class StatementItem(BaseModel):
     statement_id: str
-    name: str                          # informal: "Theorem 3.2"; formal: Lean decl_name
+    name: Optional[str] = None         # informal: "Theorem 3.2"; formal: Lean decl_name. None in minimal mode.
     # Full mode (both formalities):
     formality: Optional[str] = None
     kind: Optional[str] = None         # 'theorem', 'definition', 'lemma', …

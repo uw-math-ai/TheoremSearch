@@ -6,14 +6,18 @@ Three subroutes:
   - /graph/statement    : center the graph at a statement and traverse out.
   - /graph/embedding    : semantic search via slogan embeddings.
 """
+import logging
 import math
 import os
 from typing import Dict, List, Literal, Optional, Tuple
 
+import psycopg2
 from fastapi import APIRouter, HTTPException, Query
 from openai import OpenAI
 
 from db import rds_conn
+
+logger = logging.getLogger(__name__)
 from models import (
     StatementNode, DependencyEdge, SubgraphResponse, StatementRepresentation,
     StatementRoot,
@@ -349,19 +353,39 @@ def _fetch_representations(
     # HNSW index. 200 matches /graph/embedding and keeps the scan tight.
     ann_k = max(n_representations * 20, 200)
     cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(ann_k, 1000),))
-    cur.execute(
-        _REPRESENTATIONS_SQL,
-        {
-            "q":             target_vec,
-            "model":         _EMBED_MODEL,
-            "slogan_models": _SLOGAN_MODELS,
-            "exclude_paper": target_paper_id,
-            "rep_sources":   representation_sources or None,
-            "threshold":     _REPRESENTATION_SIMILARITY_THRESHOLD,
-            "ann_k":         ann_k,
-            "k":             n_representations,
-        },
-    )
+
+    # Representations are a "nice-to-have" enrichment on /graph/statement —
+    # a slow or failing ANN scan should not 500 the whole endpoint. Wrap
+    # the search in a SAVEPOINT so any failure (statement_timeout, an
+    # unindexed source value, a malformed row) rolls back cleanly and we
+    # return []. The transaction stays alive for the rest of the response.
+    cur.execute("SAVEPOINT repr_search")
+    try:
+        cur.execute(
+            _REPRESENTATIONS_SQL,
+            {
+                "q":             target_vec,
+                "model":         _EMBED_MODEL,
+                "slogan_models": _SLOGAN_MODELS,
+                "exclude_paper": target_paper_id,
+                "rep_sources":   representation_sources or None,
+                "threshold":     _REPRESENTATION_SIMILARITY_THRESHOLD,
+                "ann_k":         ann_k,
+                "k":             n_representations,
+            },
+        )
+        rows = cur.fetchall()
+        cur.execute("RELEASE SAVEPOINT repr_search")
+    except psycopg2.Error as e:
+        cur.execute("ROLLBACK TO SAVEPOINT repr_search")
+        cur.execute("RELEASE SAVEPOINT repr_search")
+        logger.warning(
+            "representations search failed for statement %s "
+            "(sources=%r): %s: %s",
+            statement_id, representation_sources, type(e).__name__, e,
+        )
+        return []
+
     return [
         StatementRepresentation(
             statement_id=str(r[0]),
@@ -369,7 +393,7 @@ def _fetch_representations(
             source=r[2],
             similarity=float(r[3]),
         )
-        for r in cur.fetchall()
+        for r in rows
     ]
 
 
