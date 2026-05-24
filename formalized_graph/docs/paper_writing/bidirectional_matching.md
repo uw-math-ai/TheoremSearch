@@ -51,6 +51,23 @@ bidirectional design. This is the "mutual NN as quality signal" claim
 from Artetxe & Schwenk (ACL 2019) imported to NL↔FL theorem matching,
 where it has no prior precedent.
 
+## Mutual rank-1 nearest neighbours
+
+Stricter signal than the bucket above: same (informal, formal) pair must be
+top-1 in **both** directions (not just any gold sibling).
+
+| metric | count | note |
+|---|---:|---|
+| total mutual rank-1 pairs | 400 | f→i top-1 = i AND i→f top-1 = f |
+| mutual ∩ gold | 355 | 88.8% of mutuals are blueprint-annotated |
+| mutual ∖ gold | 45 | non-gold mutuals = strongest backfill candidates |
+| gold ∩ mutual | 355 / 1,595 | 22.3% of gold pairs recovered as mutual |
+
+Per-pair list at `experiments/nl_fl_matching/data/mutual_rank1_pairs.csv`
+(regenerate with `python -m experiments.nl_fl_matching.analysis.mutual_nn`).
+The 45 non-gold mutuals are the **highest-confidence formalization backfill
+candidates** — see [`formalization_candidates.md`](./formalization_candidates.md).
+
 ## Lexical baseline correlation (task 4)
 
 Spearman ρ on a 500-sample of f2i rank-1 pairs (query slogan ↔ top-1
@@ -70,6 +87,43 @@ with surface-level lexical overlap, indicating it is not surfacing
 spurious non-lexical matches. char_4gram is the closest lexical proxy
 (captures stem-level overlap most cleanly). Per-pair scores saved to
 `/tmp/nl_corr_f2i.csv` for a paper figure.
+
+## Failure modes ("neither" bucket, n=15 sampled)
+
+15 random pairs from the 619 "neither" pairs (seed=20260524) were eyeballed
+with hydrated slogans + top-5 per direction (raw at
+`experiments/nl_fl_matching/data/neither_cases.md`).
+**12 / 15 had the gold at rank ≤ 5 in at least one direction** — the
+single-direction rank-1 metric understates how close the embedding actually
+gets. Observed failure modes:
+
+| mode | n | example | what the embedding returned at rank 1 |
+|---|---:|---|---|
+| Sibling-lemma adjacency (same paper, many near-identical statements) | 3 | sphere-packing `H₄`, carleson `pairwiseDisjoint_E1` | a sister lemma about the same object |
+| Equation/property-of-X ranked over definition-of-X | 3 | pfr `condMutualInfo`, brownian-motion `gaussianReal` | `*_eq` / `*_iff` form of the gold decl |
+| Additive/multiplicative or fun-vs-value twin (`to_additive`-style) | 2 | toric `MonoidAlgebra.span_isGroupLikeElem` | the `AddMonoidAlgebra` mirror |
+| Multiple correct formalizations exist; canonical form wins | 2 | sphere-packing `Submodule.E8` | `E8Packing_lattice` (sim 0.90 vs gold 0.84) |
+| Terminology drift between blueprint and Lean code | 1 | carleson 7.1.2 ("cubes" → `tiles`) | a different cube-union lemma |
+| Compound / multi-clause informal statement dilutes embedding | 1 | carleson 11.3.5 | a topically-adjacent but different inequality |
+| Bad / under-specified blueprint `\lean{}` annotation | 2 | FLT 10.9, ClassFieldTheory 24 | unrelated decl (annotation appears wrong) |
+| Generalization gap (project-specific informal ↔ general Mathlib lemma) | 1 | brownian-motion 2.2.3 ↔ Mathlib `infClosure` | the wrong Mathlib infClosure variant |
+| Lexical hijack by surface triggers (e.g. "successor order") | 1 | brownian-motion `rightCont_eq_self` | `Filter.cofinite_hasBasis_Ici` |
+
+**Two implications for the paper:**
+
+1. Three failure modes (sibling adjacency, equation/def confusion,
+   additive/multiplicative twin) account for 8/15 cases. All three are
+   **structural artefacts of the Lean corpus** (paper authors write
+   many parallel lemmas; Mathlib emits both `MonoidAlgebra` and
+   `AddMonoidAlgebra` forms via `to_additive`). They are not
+   embedding-quality failures — every "wrong" rank-1 match is itself a
+   correct paraphrase of the gold statement. **A reranker that uses
+   formal-side metadata (paper context, `decl_name` stem, `kind`) could
+   recover most of them.**
+2. ≥2/15 sampled pairs have a **wrong blueprint annotation** (FLT 10.9
+   → an additive Haar-measure lemma is clearly mis-targeted). The
+   "neither" bucket is therefore inflated by blueprint noise; the true
+   alignment ceiling is higher than the 61.2% either-direction number.
 
 ## Findings (paper-ready)
 

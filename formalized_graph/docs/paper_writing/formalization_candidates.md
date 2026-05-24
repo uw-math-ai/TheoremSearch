@@ -15,6 +15,9 @@ Three views, all in `experiments/nl_fl_matching/data/`:
 | `top_formalization_candidates.csv` | 500 | top-500 **rank-1** i→f pairs sorted by similarity desc | ✅ |
 | `top_validation_candidates.csv` | 500 | top-500 **rank-1** f→i pairs sorted by similarity desc | ✅ |
 | `sample_formalization_candidates.csv` | 5 | smallest sanity-check slice, easy to eyeball | ✅ |
+| `mutual_rank1_pairs.csv` | 400 | mutual rank-1 (top-1 in both f→i and i→f) | ✅ |
+| `mutual_rank1_hydrated.csv` | 400 | mutual + slogans + decl_name + paper context | ✅ |
+| `mutual_rank1_nongold.csv` | 45 | mutuals **not** flagged as blueprint gold — strongest backfill | ✅ |
 
 To regenerate the JSONL + CSVs:
 ```bash
@@ -105,11 +108,12 @@ looks like it formalizes results from this paper that nobody flagged."
    formalization detail (e.g., one is "for all rings" and the other is
    "for all commutative rings"). Always cross-check the raw `*_body`
    before declaring a match.
-2. **No reciprocal-NN flag yet.** Some pairs surface in both directions
-   (a true mutual nearest-neighbour). These are higher-confidence than
-   one-sided rank-1 matches. Compute by intersecting `q_sid` ↔ `c_sid`
-   across f2i and i2f rank-1 rows. See
-   `analysis/agreement.py` for the bucketing logic.
+2. **Mutual nearest-neighbours = highest-confidence subset.** 400 pairs
+   are rank-1 in both directions; 88.8% of these (355) are blueprint gold,
+   so the 45 non-gold mutuals at `mutual_rank1_nongold.csv` are the
+   strongest backfill candidates. Regenerate via
+   `python -m experiments.nl_fl_matching.analysis.mutual_nn` then
+   `python -m experiments.nl_fl_matching.analysis.mutual_hydrated`.
 3. **`is_blueprint_gold=False` ≠ "needs formalization".** The blueprint
    gold set is the union of `\lean{...}` annotations. Many statements
    not in this set may already be formalized — their authors just didn't
