@@ -107,6 +107,47 @@ Formal-side per-statement metadata. `decl_name` is the fully-qualified Lean name
 | `docstring` | `text` | yes |
 | `is_instance` | `bool` | no |
 
+### Distribution across Lean repos (`paper.source = 'Lean Repo'`)
+
+Counted by joining `statement` → `formal_metadata` → `paper`. Each row is
+attributed to one paper; multi-version libraries (Mathlib) attribute a
+declaration to the *earliest* version that contained it.
+
+| repo                       | statements |
+|---                         |       ---: |
+| `Mathlib_v427`             |    330,409 |
+| `Mathlib_v429`             |     14,041 |
+| `physlib`                  |      8,205 |
+| `Mathlib_v428`             |      6,947 |
+| `PrimeNumberTheoremAnd`    |      5,108 |
+| `sphere-packing-math-inc`  |      4,125 |
+| `carleson`                 |      2,852 |
+| `combinatorial-games`      |      2,702 |
+| `FLT`                      |      2,368 |
+| `cslib`                    |      2,273 |
+| `ClassFieldTheory`         |      1,387 |
+| `sphere-eversion`          |      1,208 |
+| `pfr`                      |      1,073 |
+| `brownian-motion`          |      1,071 |
+| `Sphere-Packing-Lean`      |        821 |
+| `apap`                     |        670 |
+| `formal-conjectures`       |        639 |
+| `toric`                    |        485 |
+| `misc-yd`                  |        362 |
+| `flt-regular`              |        344 |
+| `HarderNarasimhan`         |        309 |
+| `add-combi`                |        190 |
+| `PersistentDecomp`         |        161 |
+| `cam-combi`                |        132 |
+| `gibbs-measure`            |        113 |
+| `forbidden-matrix`         |         86 |
+| `chandra-furst-lipton`     |         24 |
+| **TOTAL (27 repos)**       | **388,105** |
+
+`Batteries_v427` / `v428` / `v429` are present in `paper` (30 Lean Repo rows
+total) but have 0 attributed statements — every `Std.*` / `Batteries.*`
+declaration is attributed to the Mathlib version that first imported it.
+
 ## `informal_dependency`  (18,321,208 rows)
 
 Informal edges. Each row is a (`src_id` → `dep_id`/`cite_id`) reference detected in the source paper. `methods` records *how* it was detected (deterministic / heuristic / LLM / judge); used by the `comprehensive` slogan prompt as a trust score.
