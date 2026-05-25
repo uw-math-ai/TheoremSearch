@@ -36,11 +36,16 @@ from experiments.nl_fl_matching.harness import tools  # noqa: E402
 POLL_INTERVAL_S = 60
 HARD_TIMEOUT_S = 6 * 3600   # don't sit forever
 
-# DONE removed — aristotle's project lifecycle ends with one of these.
-# IDLE means the project finished but the user hasn't re-engaged; we
-# need to inspect the *task* status (PROVED/PARTIAL/FAILED/etc.) for
-# the real outcome.
-TERMINAL_STATES = {"PROVED", "PARTIAL", "FAILED", "ERROR", "CANCELED", "CANCELLED"}
+# Aristotle's real task-status enum (learned empirically 2026-05-24/25):
+# - IN_PROGRESS / QUEUED: still working
+# - COMPLETE_WITH_ERRORS: returned a result but didn't fully prove
+#   (sorry may remain; partial / annotated source). Treat as terminal.
+# - PROVED / PARTIAL / FAILED / ERROR / CANCELED / CANCELLED: as named.
+# IDLE is project-level not task-level; we filter on task.
+TERMINAL_STATES = {
+    "PROVED", "PARTIAL", "FAILED", "ERROR",
+    "CANCELED", "CANCELLED", "COMPLETE_WITH_ERRORS",
+}
 
 
 def _parse_trajectory_counts(traj_path: Path | None) -> dict:
@@ -108,28 +113,42 @@ def main():
         time.sleep(POLL_INTERVAL_S)
 
     print(f"[2/3] downloading project files", flush=True)
-    dest = args.target_file.parent / f"_rescue_{args.label}_{args.arm}_{pid[:8]}"
-    dl = tools.aristotle_download(pid, destination=str(dest), cwd=str(args.project_dir))
-    print(f"      ok={dl.get('ok')}  destination={dest}", flush=True)
+    dest_root = args.target_file.parent / f"_rescue_{args.label}_{args.arm}_{pid[:8]}"
+    dest_root.mkdir(parents=True, exist_ok=True)
+    dl = tools.aristotle_download(pid, destination=str(dest_root),
+                                  cwd=str(args.project_dir))
+    print(f"      ok={dl.get('ok')}  blob={dl.get('destination')}", flush=True)
     if dl.get("stderr"):
         print(f"      stderr: {dl['stderr'][:300]}", flush=True)
 
-    # Find the downloaded version of our target file to count remaining sorries.
-    candidate_files = list(dest.rglob(args.target_file.name))
+    # tools.aristotle_download extracts the blob to <dest>_unpacked/ and
+    # returns the path. Find the staged target's returned counterpart.
+    unpack_dir = Path(dl.get("unpack_dir", ""))
+    candidate_files = (list(unpack_dir.rglob(args.target_file.name))
+                       if unpack_dir.exists() else [])
     if candidate_files:
         returned = candidate_files[0].read_text()
         sorry_count_final = returned.count("sorry")
         final_source = returned
+        print(f"      returned file: {candidate_files[0]}", flush=True)
+        print(f"      sorry {sorry_count_initial} -> {sorry_count_final}", flush=True)
     else:
-        print(f"      WARN: could not find {args.target_file.name} in download", flush=True)
+        print(f"      WARN: could not find {args.target_file.name} in {unpack_dir}",
+              flush=True)
         sorry_count_final = None
         final_source = ""
 
     # Map task status to our digest status enum. Note: `DONE` is the
     # project lifecycle marker, NOT a task outcome — we treat unknown
     # last_status as "error" rather than silently mapping to "proved".
+    # COMPLETE_WITH_ERRORS = Aristotle made progress but didn't fully
+    # prove; we map to 'partial' so paired-arm analysis treats it
+    # consistently with PARTIAL.
     status_map = {
-        "PROVED": "proved", "PARTIAL": "partial", "FAILED": "failed",
+        "PROVED": "proved",
+        "PARTIAL": "partial",
+        "COMPLETE_WITH_ERRORS": "partial",
+        "FAILED": "failed",
         "ERROR": "error", "CANCELED": "error", "CANCELLED": "error",
     }
 

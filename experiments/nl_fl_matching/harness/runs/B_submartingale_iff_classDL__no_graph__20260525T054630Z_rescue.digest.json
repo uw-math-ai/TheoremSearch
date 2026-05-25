@@ -1,0 +1,22 @@
+{
+  "run_id": "912b6407-3ecb-4c49-a09f-4cc0d72c8b8b",
+  "candidate_label": "B_submartingale_iff_classDL",
+  "arm": "no_graph",
+  "status": "partial",
+  "summary": "Rescued from orphan project ac0d5abc-90d0-47e6-b925-1b603446c277; final task status COMPLETE_WITH_ERRORS.",
+  "sorry_count_initial": 1,
+  "sorry_count_final": 3,
+  "aristotle_submits": 2,
+  "aristotle_asks": 0,
+  "subagent_turns": 4,
+  "wall_time_s": null,
+  "rescue_poll_time_s": 5409.976947307587,
+  "subagent_tokens_in": 12513,
+  "subagent_tokens_out": 517,
+  "trajectory_jsonl_path": "/gscratch/amath/simku22/TheoremSearch/experiments/nl_fl_matching/harness/runs/B_submartingale_iff_classDL__no_graph__20260525T054630Z.jsonl",
+  "subagent_model": "(rescue: no subagent)",
+  "final_lean_source": "/-\nCandidate B \u2014 no-graph arm.\n\nBlueprint (brownian-motion / local_martingales.tex:913):\n  \"A nonnegative local submartingale is a cadlag submartingale if and\n   only if it is of class DL.\"\n\nOnly the project imports needed for the goal to elaborate.\n-/\n\nimport Mathlib.Tactic\nimport BrownianMotion.StochasticIntegral.LocalMartingale\nimport BrownianMotion.StochasticIntegral.ClassD\nimport BrownianMotion.StochasticIntegral.Cadlag\n\nopen MeasureTheory\n\nnamespace ProbabilityTheory\n\nvariable {\u03b9 \u03a9 : Type*}\n  [LinearOrder \u03b9] [OrderBot \u03b9] [TopologicalSpace \u03b9] [OrderTopology \u03b9]\n  [MeasurableSpace \u03b9] [BorelSpace \u03b9]\n  {m\u03a9 : MeasurableSpace \u03a9} {P : Measure \u03a9}\n  {X : \u03b9 \u2192 \u03a9 \u2192 \u211d} {\ud835\udcd5 : Filtration \u03b9 m\u03a9}\n\n/-- A nonnegative local submartingale is a cadlag submartingale if and\nonly if it is of class DL. -/\ntheorem IsLocalSubmartingale.submartingale_iff_classDL_of_nonnegative\n    (hX : IsLocalSubmartingale X \ud835\udcd5 P)\n    (hX_nonneg : \u2200 t \u03c9, 0 \u2264 X t \u03c9) :\n    Submartingale X \ud835\udcd5 P \u2194 ClassDL X \ud835\udcd5 P := by\n  constructor\n  \u00b7 -- Forward: Submartingale \u2192 ClassDL\n    intro hSub\n    constructor\n    \u00b7 -- ProgMeasurable: from the localizing sequence, stopped processes are prog-measurable.\n      -- As n \u2192 \u221e, they converge to X pointwise a.e.\n      -- Combined with StronglyAdapted from Submartingale, this gives ProgMeasurable.\n      sorry\n    \u00b7 -- UniformIntegrable for each t: from the submartingale property + nonneg + local cadlag,\n      -- stopped values at times \u2264 t are dominated by condExp of X_t.\n      intro t\n      sorry\n  \u00b7 -- Backward: ClassDL \u2192 Submartingale\n    intro hDL\n    refine \u27e8hDL.progMeasurable.stronglyAdapted, ?_, ?_\u27e9\n    \u00b7 -- condExp inequality: X i \u2264\u1d50 P[X j | \ud835\udcd5 i]\n      -- From IsLocalSubmartingale, stopped processes satisfy this.\n      -- ClassDL gives L\u00b9 convergence of stopped processes to X.\n      -- Pass inequality to limit.\n      intro i j hij\n      -- Extract localizing sequence\n      obtain \u27e8\u03c4, h\u03c4_seq, h\u03c4_prop\u27e9 := hX\n      -- For each n, stopped process is submartingale\n      -- On {\u03c9 : \u03c4_n(\u03c9) > j, \u22a5 < \u03c4_n(\u03c9)}, stopped process agrees with X at times i and j\n      -- As n \u2192 \u221e, this set covers a.e. \u03c9\n      -- The submartingale inequality for stopped process + convergence \u2192 inequality for X\n      sorry\n    \u00b7 -- Integrable at each time\n      intro t\n      -- From ClassDL, the constant stopping time at t gives X t in the UI family\n      have hUI := hDL.uniformIntegrable t\n      have : stoppedValue X (fun _ \u21a6 (t : WithTop \u03b9)) = X t := by\n        ext \u03c9; simp [stoppedValue]\n      have hmem := hUI.memLp \u27e8fun _ \u21a6 (t : WithTop \u03b9), isStoppingTime_const \ud835\udcd5 t, fun _ \u21a6 le_rfl\u27e9\n      rw [this] at hmem\n      exact memLp_one_iff_integrable.mp hmem\n\nend ProbabilityTheory\n",
+  "rescue": true,
+  "aristotle_project_id": "ac0d5abc-90d0-47e6-b925-1b603446c277",
+  "final_task_status_raw": "COMPLETE_WITH_ERRORS"
+}

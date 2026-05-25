@@ -87,4 +87,11 @@ formalized_graph/docs/paper_writing/leansearch_v2_external/
 # Aristotle harness — keep code + per-candidate .lean targets, but JSONL
 # trajectories and digest files stay local (they can contain raw
 # Aristotle output and Claude prompts).
-experiments/nl_fl_matching/harness/runs/
+# Ignore JSONL trajectories (large, may contain raw prompts) but keep the
+# digest JSONs and the canonical returned-proof archive — those are the
+# experimental record we'd cite. Tarballs are kept too; raw unpacked dirs
+# are intermediate and excluded.
+experiments/nl_fl_matching/harness/runs/*
+!experiments/nl_fl_matching/harness/runs/*.digest.json
+!experiments/nl_fl_matching/harness/runs/returned_proofs/
+experiments/nl_fl_matching/harness/runs/returned_proofs/_raw/

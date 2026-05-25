@@ -208,12 +208,23 @@ def run(*, candidate_label: str, arm: str, target_path: Path,
         MAX_ASKS=MAX_ARISTOTLE_ASKS,
         MAX_TURNS=MAX_TURNS,
     )
+    arm_note = ""
+    if arm == "aesop":
+        arm_note = (
+            "\n\n**ARM = aesop**: this is a tactic-only baseline. The target file already "
+            "contains `by aesop` as the proof attempt (no `sorry`). DO NOT ask Aristotle to "
+            "search for its own proof — submit ONCE with a prompt like "
+            "'Verify the file compiles as written. Do not modify the proof.' "
+            "If Aristotle returns PROVED with no edits, aesop closed the goal. "
+            "If it returns any other status, aesop failed — report final immediately. "
+            "Do not use your second submit budget."
+        )
     user_msg = (
         f"You are working on candidate `{candidate_label}`, arm `{arm}`.\n"
         f"Target file: `{target_path}`\n"
         f"Project directory (pass this to aristotle): `{project_dir}`\n"
         f"Initial sorry count: {sorry_count_initial}\n\n"
-        "Start by reading the target file."
+        f"Start by reading the target file.{arm_note}"
     )
     messages = [{"role": "user", "content": user_msg}]
     traj.log("user_msg", content=user_msg)
@@ -378,7 +389,7 @@ def run(*, candidate_label: str, arm: str, target_path: Path,
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--candidate-label", required=True)
-    p.add_argument("--arm", required=True, choices=["no_graph", "with_graph"])
+    p.add_argument("--arm", required=True, choices=["no_graph", "with_graph", "aesop"])
     p.add_argument("--target", required=True, type=Path)
     p.add_argument("--project-dir", required=True, type=Path)
     p.add_argument("--trajectory", required=True, type=Path)

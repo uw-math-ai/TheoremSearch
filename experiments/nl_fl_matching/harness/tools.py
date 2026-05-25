@@ -156,13 +156,44 @@ def aristotle_tasks(project_id: str, limit: int = 5,
 
 def aristotle_download(project_id: str, destination: str,
                        cwd: str | None = None) -> dict[str, Any]:
-    """Pull the current project files (the proof, if completed)."""
-    Path(destination).mkdir(parents=True, exist_ok=True)
-    r = _run_cli(["download", project_id, "--destination", destination],
+    """Pull the current project files (the proof, if completed).
+
+    Aristotle returns ONE gzipped tarball — `--destination` is a *filepath*,
+    not a directory (confirmed empirically 2026-05-25; the CLI help is
+    misleading). We write the blob to `<destination>.tar.gz` and extract
+    it into `<destination>_unpacked/`, returning both paths.
+    """
+    import tarfile
+    dest_dir = Path(destination)
+    if dest_dir.exists() and dest_dir.is_dir():
+        # caller passed a dir; aristotle download would IsADirectoryError.
+        # Write the blob inside it.
+        blob_path = dest_dir / f"{project_id}.tar.gz"
+        unpack_dir = dest_dir / f"{project_id}_unpacked"
+    else:
+        blob_path = dest_dir.with_suffix(dest_dir.suffix + ".tar.gz") \
+            if dest_dir.suffix else dest_dir.with_suffix(".tar.gz")
+        unpack_dir = dest_dir.with_name(dest_dir.name + "_unpacked") \
+            if not dest_dir.suffix else dest_dir.with_suffix("_unpacked")
+    blob_path.parent.mkdir(parents=True, exist_ok=True)
+
+    r = _run_cli(["download", project_id, "--destination", str(blob_path)],
                  cwd=cwd, timeout=180)
     r["tool"] = "aristotle_download"
     r["project_id"] = project_id
-    r["destination"] = destination
+    r["destination"] = str(blob_path)
+    r["unpack_dir"] = str(unpack_dir)
+
+    if r.get("ok") and blob_path.exists():
+        try:
+            unpack_dir.mkdir(parents=True, exist_ok=True)
+            with tarfile.open(blob_path, "r:gz") as tf:
+                tf.extractall(unpack_dir, filter="data")
+            r["extracted"] = True
+            r["lean_files"] = [str(p) for p in unpack_dir.rglob("*.lean")][:50]
+        except Exception as e:
+            r["extracted"] = False
+            r["extract_error"] = str(e)
     return r
 
 
@@ -212,7 +243,10 @@ def lean_typecheck(project_dir: str, file_relpath: str) -> dict[str, Any]:
 
 _PROJECT_ID_RE = re.compile(r"project[_ -]?id[:\s]+([a-z0-9-]{8,})", re.I)
 _STATUS_RE = re.compile(r"status[:\s]+([A-Z_]+)")
-_TASK_STATUS_RE = re.compile(r"\b(QUEUED|IN_PROGRESS|PROVED|PARTIAL|FAILED|ERROR|CANCELED|CANCELLED|DONE|IDLE)\b")
+_TASK_STATUS_RE = re.compile(
+    r"\b(QUEUED|IN_PROGRESS|PROVED|PARTIAL|FAILED|ERROR"
+    r"|CANCELED|CANCELLED|COMPLETE_WITH_ERRORS|DONE|IDLE)\b"
+)
 
 
 def _extract_task_status(text: str) -> str | None:

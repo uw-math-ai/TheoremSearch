@@ -1,0 +1,20 @@
+{
+  "run_id": "fc830906-3c9a-4322-8b76-85ac73a3e317",
+  "candidate_label": "A_martingale_iff_classDL",
+  "arm": "no_graph",
+  "status": "out_of_budget",
+  "summary": "Recovered from orphan project ddb6ae7f-4934-47f7-a730-afa2722214c4; final task status OUT_OF_BUDGET. Aristotle proved 3 helper lemmas (stopped_process_eq_of_lt, ae_tendsto_stopped_of_localizing, ClassDL.integrable) before hitting budget; both iff directions remain as sorry.",
+  "sorry_count_initial": 1,
+  "sorry_count_final": 2,
+  "aristotle_submits": 1,
+  "aristotle_asks": 0,
+  "subagent_turns": null,
+  "wall_time_s": null,
+  "rescue_poll_time_s": null,
+  "trajectory_jsonl_path": null,
+  "subagent_model": "(recovered: no live subagent; digest synthesized from final state)",
+  "final_lean_source": "/-\nCandidate A — no-graph arm.\n\nBlueprint statement (brownian-motion / local_martingales.tex:902):\n  \"A local martingale is a cadlag martingale if and only if it is of class DL.\"\n-/\n\nimport Mathlib\nimport BrownianMotion.StochasticIntegral.LocalMartingale\n\nopen MeasureTheory Filter\n\nnamespace ProbabilityTheory\n\nvariable {ι Ω E : Type*}\n  [LinearOrder ι] [OrderBot ι] [TopologicalSpace ι] [OrderTopology ι]\n  [MeasurableSpace ι] [BorelSpace ι]\n  [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]\n  {mΩ : MeasurableSpace Ω} {P : Measure Ω}\n  {X : ι → Ω → E} {𝓕 : Filtration ι mΩ}\n\n/-- A stochastic process is of class DL. -/\nstructure ClassDL (X : ι → Ω → E) (𝓕 : Filtration ι mΩ) (P : Measure Ω) : Prop where\n  progMeasurable : ProgMeasurable 𝓕 X\n  uniformIntegrable (t : ι) : UniformIntegrable\n    (fun (τ : {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t}) ↦ stoppedValue X τ.1) 1 P\n\nomit [TopologicalSpace ι] [OrderTopology ι] [MeasurableSpace ι] [BorelSpace ι]\n  [NormedSpace ℝ E] [CompleteSpace E] in\n/-- The stopped process equals X when τ > t. -/\nlemma stopped_process_eq_of_lt\n    {τ : Ω → WithTop ι} {t : ι} {ω : Ω}\n    (hτ : (t : WithTop ι) < τ ω) :\n    stoppedProcess (fun i => {ω | ⊥ < τ ω}.indicator (X i)) τ t ω = X t ω := by\n  simp +decide [stoppedProcess, hτ.le]\n  aesop\n\n/-- The stopped processes converge a.e. to X. -/\nlemma ae_tendsto_stopped_of_localizing\n    {τ : ℕ → Ω → WithTop ι}\n    (hτ_loc : IsLocalizingSequence 𝓕 τ P) (t : ι) :\n    ∀ᵐ ω ∂P, ∃ N, ∀ n ≥ N,\n      stoppedProcess (fun i => {ω' | ⊥ < τ n ω'}.indicator (X i)) (τ n) t ω = X t ω := by\n  filter_upwards [hτ_loc.tendsto_top] with ω hω\n  have := hω.eventually (lt_mem_nhds (show ⊤ > (t : WithTop ι) from WithTop.coe_lt_top t))\n  exact eventually_atTop.mp this |>.imp fun N hN n hn => stopped_process_eq_of_lt (hN n hn)\n\n/-- From ClassDL, X at any fixed time is integrable. -/\nlemma ClassDL.integrable (hDL : ClassDL X 𝓕 P) (t : ι) : Integrable (X t) P := by\n  have hui := hDL.uniformIntegrable t\n  have hmemLp := hui.memLp (⟨fun _ => t, isStoppingTime_const 𝓕 t, fun _ => le_rfl⟩ :\n    {T : Ω → WithTop ι | IsStoppingTime 𝓕 T ∧ ∀ ω, T ω ≤ t})\n  rw [memLp_one_iff_integrable] at hmemLp\n  convert hmemLp using 1\n\n/-- Backward direction: A local martingale of class DL is a martingale. -/\nlemma IsLocalMartingale.martingale_of_classDL\n    (hX : IsLocalMartingale X 𝓕 P) (hDL : ClassDL X 𝓕 P) :\n    Martingale X 𝓕 P := by\n  sorry\n\n/-- Forward direction: A martingale that is a local martingale is of class DL. -/\nlemma IsLocalMartingale.classDL_of_martingale\n    (hX : IsLocalMartingale X 𝓕 P) (hM : Martingale X 𝓕 P) :\n    ClassDL X 𝓕 P := by\n  sorry\n\n/-- A local martingale is a cadlag martingale if and only if it is of class DL. -/\ntheorem IsLocalMartingale.martingale_iff_classDL\n    (hX : IsLocalMartingale X 𝓕 P) :\n    Martingale X 𝓕 P ↔ ClassDL X 𝓕 P :=\n  ⟨fun hM => hX.classDL_of_martingale hM, fun hDL => hX.martingale_of_classDL hDL⟩\n\nend ProbabilityTheory\n",
+  "rescue": true,
+  "aristotle_project_id": "ddb6ae7f-4934-47f7-a730-afa2722214c4",
+  "final_task_status_raw": "OUT_OF_BUDGET"
+}
