@@ -21,6 +21,7 @@ without re-deriving anything from the live system.
 | [`harness_design.md`](./harness_design.md) | Aristotle-based proof-only comparison harness. Two arms per candidate: no-graph (target + sorry) vs with-graph (target + k=1 resolved-sibling premise pack). Draft Lean signatures, success metrics, budget. |
 | [`cross_project_twins.md`](./cross_project_twins.md) | f→f cross-project NN sweep (36,708 project formals, paper-exclusion). **446 twins at sim ≥ 0.85 after excluding two parallel-formalization repo-pairs** (raw count 1,391); 14 at sim ≥ 0.95. |
 | [`nongold_random_sweep.md`](./nongold_random_sweep.md) | Strand G: n=500 random non-gold project formals → top-K informals. 9.3% have rank-1 sim ≥ 0.85; ~80% of those are cross-source (Lean ↔ arxiv) matches that the corpus does not yet record. |
+| [`figure_style.md`](./figure_style.md) | **Prescriptive** figure-style spec for the paper. Palette (hex), typography, layout, drop-in matplotlib `rcParams` block, drop-in TikZ preamble, prompt template for invoking Claude as a figure emitter. §11 codifies the **dual-plane theme** (red informal / blue formal / green `\lean{}` links). Two worked examples under [`figures/src/`](./figures/src/): `anchor_neighborhood.{tex,py}` is the micro view (one anchor + neighbors, TikZ); `candidate_in_context.py` is the macro view (60+55 nodes spotlit in 3D matplotlib). |
 
 ## Contributor prompt
 

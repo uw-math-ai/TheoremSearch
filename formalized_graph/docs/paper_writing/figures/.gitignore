@@ -1,0 +1,23 @@
+# Re-include paper-figure sources & vector outputs. The repo-level
+# .gitignore excludes *.tex / *.pdf / *.png globally; this directory is
+# the one place those files SHOULD be tracked.
+!*.tex
+!*.pdf
+!*.png
+
+# pdflatex byproducts — never commit these
+*.aux
+*.log
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.toc
+*.nav
+*.snm
+*.out
+*.bbl
+*.blg
+
+# python
+__pycache__/
+*.pyc
