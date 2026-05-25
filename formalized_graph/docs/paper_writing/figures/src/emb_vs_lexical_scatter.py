@@ -41,10 +41,10 @@ BUCKET_COLOR = {
     "neither":      PAL["accent_red"],      # #C8553D
 }
 BUCKET_LABEL = {
-    "both_correct": "both correct",
-    "f2i_only":     "f$\\to$i only",
-    "i2f_only":     "i$\\to$f only",
-    "neither":      "neither",
+    "both_correct": "Both directions rank-1 correct",
+    "f2i_only":     "Only formal$\\to$informal correct",
+    "i2f_only":     "Only informal$\\to$formal correct",
+    "neither":      "Neither direction rank-1 correct",
 }
 BUCKET_ORDER = ["both_correct", "f2i_only", "i2f_only", "neither"]
 
@@ -75,8 +75,9 @@ mpl.rcParams.update({
     "ps.fonttype":        42,
 })
 
-# Single-column width 3.3in, 4:3 aspect.
-FIGSIZE_1COL = (3.3, 2.475)
+# Single-column width 3.3in. Height bumped by 0.3in over the 4:3 base
+# (2.475 -> 2.775) to make room for a left-aligned title above the panel.
+FIGSIZE_1COL = (3.3, 2.775)
 SHARED_XLIM = (0.0, 1.0)
 SHARED_YLIM = (0.0, 1.0)
 
@@ -125,16 +126,16 @@ def plot_bucket(name: str, color: str, pts: list[tuple[float, float]],
     ax.set_xlabel("Char-4gram Jaccard similarity")
     ax.set_ylabel("Embedding cosine similarity")
 
-    # Headline: bucket + n, top-left, in bucket color.
-    ax.text(0.03, 0.97,
-            f"{BUCKET_LABEL[name]} (n={n})",
-            transform=ax.transAxes, ha="left", va="top",
-            fontsize=10, color=color, fontweight="bold")
-    # Spearman rho, bottom-right.
-    ax.text(0.97, 0.03,
-            f"$\\rho = {rho:.2f}$",
-            transform=ax.transAxes, ha="right", va="bottom",
-            fontsize=9, color=PAL["gray_text"])
+    # Title: left-aligned ABOVE the panel (not inside it). 10pt, bucket
+    # color, includes n and Spearman rho so the panel interior stays clean.
+    # Use fig.text in figure coords so it sits in the header region we
+    # carved out by adding 0.3in to the figure height. The axes are
+    # positioned to leave room above.
+    fig.subplots_adjust(top=0.86)
+    fig.text(0.005, 0.955,
+             f"{BUCKET_LABEL[name]} (n={n}, $\\rho={rho:.2f}$)",
+             ha="left", va="top",
+             fontsize=10, color=color, fontweight="bold")
 
     fig.savefig(out_pdf, format="pdf")
     fig.savefig(out_png, format="png", dpi=300)
