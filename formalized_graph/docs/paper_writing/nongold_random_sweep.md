@@ -29,13 +29,16 @@
 
 ## Rank-1 similarity distribution
 
-| bucket | n | share |
+| bucket | n | share [95% CI] |
 |---|---:|---:|
-| sim ≥ 0.95 | 3 | 0.8% |
-| sim ≥ 0.90 | 8 | 2.1% |
-| sim ≥ 0.85 | **36** | **9.3%** |
-| sim ≥ 0.80 | 109 | 28.2% |
-| sim ≥ 0.70 | 350 | 90.7% |
+| sim ≥ 0.95 | 3 | 0.8% — |
+| sim ≥ 0.90 | 8 | 2.1% — |
+| sim ≥ 0.85 | **36** | **9.3% [6.5, 12.4]** |
+| sim ≥ 0.80 | 109 | 28.2% — |
+| sim ≥ 0.70 | 350 | 90.7% — |
+
+CIs from `bootstrap_ci.py` (2,000 bootstrap resamples over the n=386
+evaluable subset).
 
 **Calibration vs blueprint gold pool (f2i):** the gold-pool sweep returned
 Hit@1 = 0.426 — but that's against a known gold partner. Here without a

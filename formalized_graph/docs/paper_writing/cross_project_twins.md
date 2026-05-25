@@ -18,23 +18,24 @@ Data: `experiments/nl_fl_matching/data/ff_cross_project_*`.
 
 ## Headline numbers
 
-**All cross-project rank-1 matches (raw):**
+**All cross-project rank-1 matches (raw, n=36,708 rank-1 rows):**
 
-| threshold | twins | share |
+| threshold | twins [95% CI] | share |
 |---|---:|---:|
-| sim ≥ 0.95 | 131 | 0.4% |
-| sim ≥ 0.85 | 1,391 | 3.8% |
-| sim ≥ 0.80 | 3,042 | 8.3% |
+| sim ≥ 0.95 | 131 [109, 154] | 0.4% |
+| sim ≥ 0.85 | 1,391 [1,318, 1,462] | 3.8% |
+| sim ≥ 0.80 | 3,042 [2,938, 3,146] | 8.3% |
 
 **Corrected — excluding the two parallel-formalization repo-pairs**
 (Sphere-Packing-Lean ↔ sphere-packing-math-inc; add-combi ↔ apap; the
-latter is independent additive-combinatorics work, not a fork):
+latter is independent additive-combinatorics work, not a fork). n=33,373
+remaining rank-1 rows. 95% CIs are bootstrap over `bootstrap_ci.py`:
 
-| threshold | twins | share |
+| threshold | twins [95% CI] | share |
 |---|---:|---:|
-| sim ≥ 0.95 | **14** | **0.04%** |
-| sim ≥ 0.85 | **446** | **1.3%** |
-| sim ≥ 0.80 | 1,502 | 4.5% |
+| sim ≥ 0.95 | **14 [7, 22]** | **0.04%** |
+| sim ≥ 0.85 | **446 [406, 488]** | **1.3%** |
+| sim ≥ 0.80 | 1,502 [1,431, 1,578] | 4.5% |
 
 The two parallel-formalization repo-pairs contribute **945/1,391 (68%)** of
 high-sim twins, including **117/131 (89%) of the sim ≥ 0.95 matches**.

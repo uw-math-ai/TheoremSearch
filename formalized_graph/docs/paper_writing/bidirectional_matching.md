@@ -3,6 +3,52 @@
 **Status (2026-05-24):** complete pilot run. All numbers below grounded in
 `experiments/nl_fl_matching/` against db `v2`, embedding = `qwen3-8b`.
 
+## Related work and differentiation
+
+This work sits in a crowded landscape of Lean-side retrieval / autoformalization
+papers from 2025 onward. Brief positioning (full discussion in the paper):
+
+- **LeanSearch v2** (Tao et al., arXiv:2605.13137, May 2026) is the
+  closest competitor on the *formal-side retrieval* axis: staged
+  embedding + Qwen3-Reranker-8B over a hierarchy-informalized Mathlib
+  corpus, with a reasoning-mode sketch-retrieve-reflect loop. Their
+  MathlibQR benchmark reports nDCG@10 = 0.62 (with reranker). Our
+  parallel replication harness lives at
+  `experiments/leansearch_v2_replication/`; we are *not* claiming
+  Mathlib-formal-retrieval SOTA.
+- **Lean Finder** (Yang et al., ICLR 2026, arXiv:2510.15940) fine-tunes
+  embeddings on synthetic user-intent queries and beats LeanSearch +
+  GPT-4o on user preference (81.6%). Lean Finder's i→f setup is closest
+  to ours; the differentiation is that they fine-tune for retrieval
+  quality, while we run off-the-shelf qwen3-8b but report *both*
+  directions on a shared gold set.
+- **Herald** (Gao et al., ICLR 2025, arXiv:2410.10878) ships 580k NL-FL
+  Mathlib statement pairs via RAG-driven informalization. Their corpus
+  is much larger than our blueprint gold set but covers Mathlib only;
+  ours bridges 21 blueprint repos + 1.84M arxiv papers + 30 project
+  formal repos.
+- **RLM25 / BEq+ / ProofNet#** (Liu et al., EMNLP 2025,
+  `2025.emnlp-main.907`) curates 619 research-level NL-FL pairs from
+  6 formalization projects with a reliable-evaluation framework. We
+  overlap substantially in scope but differ in that they evaluate
+  autoformalization quality with structural metrics, whereas we
+  evaluate *retrieval* over an explicit gold set.
+- **Graph-augmented premise selection** (arXiv:2510.23637, Oct 2025) uses
+  structural dependency-graph signal to beat ReProver by +25% on
+  LeanDojo. Our embeddings are text-only; the persistent dependency
+  graph in our schema (`formal_dependency`, 11.3M edges) is queryable
+  but not exploited for retrieval in this paper — a clear extension.
+
+**Our four claims that none of these papers report:**
+(a) bidirectional matching on a shared gold set with agreement-bucketing
+(42.6% → 61.2% recovery from combining directions, §Bidirectional
+agreement); (b) audited mutual-NN precision as a method
+(audited ≈60% broad / ≈15% strict, §Mutual rank-1); (c) cross-project
+parallel-formalization twin detection (446 corrected twins at
+sim ≥ 0.85, [`cross_project_twins.md`](./cross_project_twins.md)); and
+(d) a dual-rater LLM audit characterizing 12-27% noise in blueprint
+`\lean{...}` gold annotations.
+
 ## Setup
 
 - **Gold pairs:** 1,595 (informal, formal) pairs derived from
@@ -25,10 +71,19 @@
 
 ## Headline table
 
-| direction | evaluated | Hit@1 | Hit@5 | Hit@10 | MRR@10 |
+All intervals are bootstrap 95% CIs over 2,000 resamples (per-query resampling
+with replacement). Code: `experiments/nl_fl_matching/analysis/bootstrap_ci.py`.
+Full report: `experiments/nl_fl_matching/data/bootstrap_ci.{json,md}`.
+
+| direction | evaluated | Hit@1 [95% CI] | Hit@5 | Hit@10 | MRR@10 |
 |---|---:|---:|---:|---:|---:|
-| **f → i** | 1,562 / 1,577 (99.0%) | **0.426** | 0.643 | 0.698 | 0.518 |
-| **i → f** | 1,308 / 1,308 (100.0%) | **0.426** | 0.670 | 0.717 | 0.531 |
+| **f → i** | 1,562 / 1,577 (99.0%) | **0.426** [0.401, 0.449] | 0.643 [0.620, 0.668] | 0.698 [0.675, 0.720] | 0.518 [0.496, 0.540] |
+| **i → f** | 1,308 / 1,308 (100.0%) | **0.426** [0.400, 0.453] | 0.670 [0.644, 0.696] | 0.717 [0.693, 0.741] | 0.531 [0.507, 0.555] |
+
+The two directions' Hit@1 CIs overlap heavily — the apparent equality
+(0.426 = 0.426) is well within sampling noise, reinforcing why we
+retract the "directional symmetry" framing (see Findings §reporting
+note).
 
 For comparison, the group's prior paper (arXiv:2602.05216, 111 expert
 queries against 9.2M informal corpus, with reranker) headline was
@@ -37,19 +92,21 @@ task (mathematician-written queries vs. blueprint-curated pairs).
 
 ## Bidirectional agreement (1,595 pairs)
 
-| bucket | count | pct |
+| bucket | count | pct [95% CI] |
 |---|---:|---:|
-| both_correct (both directions hit rank 1) | 410 | 25.7% |
-| f2i_only | 269 | 16.9% |
-| i2f_only | 297 | 18.6% |
-| neither | 619 | 38.8% |
-| **either direction hits at rank 1** | **976** | **61.2%** |
+| both_correct (both directions hit rank 1) | 410 | 25.7% [23.7, 27.9] |
+| f2i_only | 269 | 16.9% [15.0, 18.7] |
+| i2f_only | 297 | 18.6% [16.7, 20.5] |
+| neither | 619 | 38.8% [36.4, 41.2] |
+| **either direction hits at rank 1** | **976** | **61.2% [58.7, 63.6]** |
 
 Combining directions lifts top-1 recovery from **42.6% (single-direction)
 → 61.2% (either)** — a ~45% relative gain attributable to the
-bidirectional design. This is the "mutual NN as quality signal" claim
-from Artetxe & Schwenk (ACL 2019) imported to NL↔FL theorem matching,
-where it has no prior precedent.
+bidirectional design. The single→either jump from 42.6% to 61.2% is
+statistically unambiguous: the CIs are disjoint
+([40.1, 44.9] vs [58.7, 63.6]). This is the "mutual NN as quality
+signal" claim from Artetxe & Schwenk (ACL 2019) imported to NL↔FL
+theorem matching, where it has no prior precedent.
 
 ## Mutual rank-1 nearest neighbours
 
@@ -61,7 +118,7 @@ top-1 in **both** directions (not just any gold sibling).
 | total mutual rank-1 pairs | 400 | f→i top-1 = i AND i→f top-1 = f |
 | mutual ∩ gold | 355 | 88.8% of mutuals overlap an existing blueprint annotation |
 | mutual ∖ gold | 45 | candidates outside the gold set |
-| gold ∩ mutual | 355 / 1,595 | 22.3% of gold pairs recovered as mutual |
+| gold ∩ mutual | 355 / 1,595 | **22.3% [20.3, 24.3]** of gold pairs recovered as mutual |
 
 Per-pair list at `experiments/nl_fl_matching/data/mutual_rank1_pairs.csv`
 (regenerate with `python -m experiments.nl_fl_matching.analysis.mutual_nn`).
@@ -72,10 +129,10 @@ The 88.8% headline is *not* precision — it's overlap with the gold set
 (which itself has 12-27% annotation noise; see §gold-set audit). True
 precision requires auditing both the gold-overlap and non-overlap halves:
 
-| subset | n | dual-rater (Sonnet 4.5 + Haiku 4.5) |
+| subset | n | dual-rater (Sonnet 4.5 + Haiku 4.5) — bootstrap 95% CIs |
 |---|---:|---|
-| **mutual ∩ gold** (355) | inherits gold-audit noise | both 'correct': 16% / both 'correct or partial': 65% / either 'wrong': 27% |
-| **mutual ∖ gold** (45)  | direct audit on all 45 | both 'correct': 6.7% (n=3) / both 'correct or partial': 24% (n=11) / either 'wrong': 73% |
+| **mutual ∩ gold** (355) | inherits gold-audit noise (n=150) | both 'correct': 16.0% [10.7, 22.0] / both 'correct or partial': 65.3% [58.0, 72.7] / either 'wrong': 26.7% [20.0, 34.0] |
+| **mutual ∖ gold** (45)  | direct audit on all 45 | both 'correct': 6.7% [0.0, 15.6] / both 'correct or partial': 24.4% [13.3, 37.8] / either 'wrong': 73.3% [60.0, 84.4] |
 
 Combining:
 - **Strict precision** (both raters say "correct"): ≈ (355 × 0.16 + 3) / 400 = **15.0%**
@@ -162,13 +219,13 @@ Claude Sonnet 4.5 (primary) + Claude Haiku 4.5 (secondary) via Bedrock.
 Code: `experiments/nl_fl_matching/analysis/gold_pair_audit.py`.
 Data: `experiments/nl_fl_matching/data/gold_pair_audit.{csv,json}`.
 
-| status (both raters) | n | share |
+| status (both raters) | n | share [95% CI] |
 |---|---:|---:|
-| both 'correct' | 24 | 16.0% |
-| both 'partial' (same theorem, generality mismatch) | 31 | 20.7% |
-| both 'wrong' (annotation broken) | **18** | **12.0%** |
-| disagree (mostly correct↔partial: n=43) | 70 | 46.7% |
-| at least one 'ambiguous' | 7 | 4.7% |
+| both 'correct' | 24 | 16.0% [10.7, 22.0] |
+| both 'partial' (same theorem, generality mismatch) | 31 | 20.7% — |
+| both 'wrong' (annotation broken) | **18** | **12.0% [7.3, 17.3]** |
+| disagree (mostly correct↔partial: n=43) | 70 | 46.7% — |
+| at least one 'wrong' | 40 | 26.7% [20.0, 34.0] |
 
 **Inter-rater agreement: Cohen's κ = 0.296** (fair; partial-vs-correct
 boundary is judge-dependent). Observed agreement = 0.487.
@@ -212,9 +269,9 @@ are documented here so the next session can pick up without re-deriving.
 
 | task | informs | est wall |
 |---|---|---|
-| Bootstrap CIs on Hit@1 numbers (both directions, mutual NN, non-gold high-sim rate) | every point estimate in this doc | ~1 hr |
+| ~~Bootstrap CIs on Hit@1 numbers (both directions, mutual NN, non-gold high-sim rate)~~ ✅ done — see headline table + `data/bootstrap_ci.{json,md}` | every point estimate in this doc | done (2026-05-24) |
 | Expand "neither" failure-mode sample to n≥50 with two-rater agreement | currently n=15 one-author taxonomy | ~3 hr |
-| Cite + position vs Herald (ICLR 2025), RLM25 (EMNLP 2025), LSv2 (arXiv:2605.13137), Lean Finder (ICLR 2026), graph-aug premise selection (arXiv:2510.23637) | reviewer attack: "did you read the lit" | ~30 min |
+| ~~Cite + position vs Herald (ICLR 2025), RLM25 (EMNLP 2025), LSv2 (arXiv:2605.13137), Lean Finder (ICLR 2026), graph-aug premise selection (arXiv:2510.23637)~~ ✅ done — see top of doc | reviewer attack: "did you read the lit" | done (2026-05-24) |
 | BM25 / char-4gram baseline on the same 1,562 + 1,308 gold queries | reviewer attack: "no baseline" | ~2 hr |
 
 **Nice-to-have (after deadline if time)**
