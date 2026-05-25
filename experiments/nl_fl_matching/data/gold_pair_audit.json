@@ -1,0 +1,23 @@
+{
+  "n": 150,
+  "kappa": 0.295774647887324,
+  "observed_agreement": 0.4866666666666667,
+  "expected_agreement": 0.2710666666666667,
+  "primary_label_distribution": {
+    "correct": 74,
+    "wrong": 33,
+    "partial": 36,
+    "ambiguous": 7
+  },
+  "secondary_label_distribution": {
+    "partial": 87,
+    "wrong": 25,
+    "correct": 28,
+    "ambiguous": 10
+  },
+  "both_correct": 24,
+  "either_wrong": 40,
+  "primary_model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "secondary_model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "seed": 42
+}

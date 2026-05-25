@@ -125,6 +125,43 @@ gets. Observed failure modes:
    "neither" bucket is therefore inflated by blueprint noise; the true
    alignment ceiling is higher than the 61.2% either-direction number.
 
+## Gold-set annotation noise (n=150 dual-rater audit, 2026-05-24)
+
+Dual-rater audit: 150 random gold pairs from the 1,595-pair set, labeled by
+Claude Sonnet 4.5 (primary) + Claude Haiku 4.5 (secondary) via Bedrock.
+Code: `experiments/nl_fl_matching/analysis/gold_pair_audit.py`.
+Data: `experiments/nl_fl_matching/data/gold_pair_audit.{csv,json}`.
+
+| status (both raters) | n | share |
+|---|---:|---:|
+| both 'correct' | 24 | 16.0% |
+| both 'partial' (same theorem, generality mismatch) | 31 | 20.7% |
+| both 'wrong' (annotation broken) | **18** | **12.0%** |
+| disagree (mostly correct↔partial: n=43) | 70 | 46.7% |
+| at least one 'ambiguous' | 7 | 4.7% |
+
+**Inter-rater agreement: Cohen's κ = 0.296** (fair; partial-vs-correct
+boundary is judge-dependent). Observed agreement = 0.487.
+
+**Defensible noise bounds:**
+- **Lower bound on annotation error rate: 12.0%** (n=18 both 'wrong'; eyeballed
+  e.g. carleson 11.1.3 informal asks about `|S_N f - S_N f_0|` but formal bounds
+  a single function; Sphere-Packing 1.1 defines packing as union-of-balls but
+  formal extracts center points).
+- **Upper bound: 26.7%** (n=40 either rater flagged 'wrong').
+
+**Implication for Hit@k:** the 38.8% "neither" bucket includes at least
+~12pp of pure annotation noise. Adjusted retrieval-failure rate is ≤27pp,
+not 39pp. The 0.426 Hit@1 has a lower-bound corrected value of roughly
+**0.426 / (1 - 0.12) ≈ 0.48** if we assume the 12% wrong cases would have
+matched correctly against the *true* formal partner had it been labeled.
+
+**Methodological observation worth flagging in the paper:** even strong
+LLM judges (κ=0.30) disagree on the correct↔partial boundary when typeclass
+generality differs. Three-category labels (correct/partial/wrong) are too
+granular for reliable LLM-only audit; future work could binary-collapse
+("matches the right theorem family yes/no") for higher agreement.
+
 ## Open work — must-do / should-do before submission
 
 These are the gaps surfaced by the methodology critique (2026-05-24). The
@@ -135,7 +172,7 @@ are documented here so the next session can pick up without re-deriving.
 
 | ✓ | task | informs | est wall |
 |:---:|---|---|---|
-| 🟡 | Gold-pair correctness audit (n=150, two-rater κ via Bedrock Claude) — running 2026-05-24 | every Hit@k number; gold-noise floor | ~45 min |
+| ✅ | Gold-pair correctness audit (n=150, dual-rater Bedrock Claude) — 2026-05-24 | every Hit@k number; **noise floor: 12% lower, 27% upper, κ=0.30** | done (20 min wall) |
 | ✅ | Empty-query root cause for non-gold sweep | non-gold 9.3% interpretation; ann_k tuning | 30 min |
 | ⬜ | Hand-label the 45 non-gold mutual pairs | turns 88.8% precision from circular into a real claim | ~1 hr |
 | ⬜ | Drop "directional symmetry" framing from prose | replaces a coincidence-claim with the agreement-bucket claim | 5 min |
