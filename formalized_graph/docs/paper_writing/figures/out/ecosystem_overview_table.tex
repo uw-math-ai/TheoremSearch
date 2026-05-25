@@ -1,0 +1,40 @@
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{4pt}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    \textbf{Project} & \textbf{Statements} & \textbf{Edges$\to$Mathlib} & \textbf{NL links} \\
+    \midrule
+    \texttt{brownian-motion}                 &   1,071 &  94.2\% & \textbf{112}\textsuperscript{\(\star\)} \\
+    \texttt{pfr}                             &   1,073 &  91.5\% & \textbf{87}\textsuperscript{\(\star\)} \\
+    \texttt{carleson}                        &   2,852 &  86.7\% & \textbf{48}\textsuperscript{\(\star\)} \\
+    \texttt{FLT}                             &   2,368 &  90.7\% & \textbf{40}\textsuperscript{\(\star\)} \\
+    \texttt{toric}                           &     485 &  86.8\% & \textbf{24}\textsuperscript{\(\star\)} \\
+    \texttt{sphere-eversion}                 &   1,208 &  88.3\% &                             21 \\
+    \texttt{ClassFieldTheory}                &   1,387 &  91.8\% &                             20 \\
+    \texttt{sphere-packing-math-inc}         &   4,125 &  91.6\% &                             18 \\
+    \texttt{gibbs-measure}                   &     113 &  91.6\% &                             13 \\
+    \texttt{apap}                            &     670 &  91.7\% &                              7 \\
+    \texttt{chandra-furst-lipton}            &      24 &  85.2\% &                              6 \\
+    \texttt{flt-regular}                     &     344 &  94.7\% &                              2 \\
+    \texttt{Sphere-Packing-Lean}             &     821 &  94.5\% &                              1 \\
+    \texttt{add-combi}                       &     190 &  94.0\% &                              1 \\
+    \texttt{physlib}                         &   8,205 &  80.0\% &                              0 \\
+    \texttt{PrimeNumberTheoremAnd}           &   5,108 &  93.3\% &                              0 \\
+    \texttt{combinatorial-games}             &   2,702 &  69.5\% &                              0 \\
+    \texttt{cslib}                           &   2,273 &  67.7\% &                              0 \\
+    \texttt{formal-conjectures}              &     639 &  94.1\% &                              0 \\
+    \texttt{misc-yd}                         &     362 &  91.2\% &                              0 \\
+    \texttt{HarderNarasimhan}                &     309 &  83.0\% &                              0 \\
+    \texttt{PersistentDecomp}                &     161 &  79.8\% &                              0 \\
+    \texttt{cam-combi}                       &     132 &  95.8\% &                              0 \\
+    \texttt{forbidden-matrix}                &      86 &  92.9\% &                              0 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Per-project statistics for the ecosystem overview (Fig.~\ref{fig:ecosystem-overview}).
+           Stars indicate the top-5 most NL-linked projects (gold rings in figure).
+           NL links = mutual rank-1 pairs anchored to the project; Edges$\to$Mathlib =
+           fraction of outgoing \texttt{formal\_dependency} edges that target Mathlib.}
+  \label{tab:ecosystem-overview}
+\end{table}

@@ -1,17 +1,21 @@
 """Scatter: embedding cosine vs char-4gram Jaccard for f->i rank-1 gold pairs,
-colored by bidirectional agreement bucket.
+emitted as FOUR independent single-column figures (one per bidirectional
+agreement bucket) so each can be inserted standalone in the paper.
 
-Shows that the qwen3-8b embedding aligns with a lexical baseline
-(Spearman rho ~ 0.66, n=500) but carries non-lexical signal in the
-off-diagonal mass — high-emb low-lex matches sit in `both_correct`,
-low-emb high-lex matches concentrate in `neither`/`f2i_only`.
+Shared 0-1 axes across all four PDFs make them mentally overlay-able. Each
+panel carries its own headline (bucket + n) in the bucket color, its own
+Spearman rho, and full axis labels because each PDF stands alone in print.
 
 Data prep: /tmp/build_emb_vs_lexical.py (reproduces nl_corr's f2i seed=0
 sample, attaches IDs and agreement bucket per pair). Cached snapshot at
 `emb_vs_lexical_scatter_data.csv` next to this script.
 
 Build:  python emb_vs_lexical_scatter.py
-Output: ../out/emb_vs_lexical_scatter.pdf  (+ .png)
+Outputs:
+  ../out/emb_vs_lexical_both_correct.pdf  (+ .png)
+  ../out/emb_vs_lexical_f2i_only.pdf      (+ .png)
+  ../out/emb_vs_lexical_i2f_only.pdf      (+ .png)
+  ../out/emb_vs_lexical_neither.pdf       (+ .png)
 """
 from __future__ import annotations
 import csv
@@ -42,8 +46,7 @@ BUCKET_LABEL = {
     "i2f_only":     "i$\\to$f only",
     "neither":      "neither",
 }
-# Draw order: smaller / informative classes last (on top).
-BUCKET_ORDER = ["neither", "f2i_only", "i2f_only", "both_correct"]
+BUCKET_ORDER = ["both_correct", "f2i_only", "i2f_only", "neither"]
 
 # ---- rcParams (figure_style.md §5) --------------------------------------
 mpl.rcParams.update({
@@ -72,7 +75,10 @@ mpl.rcParams.update({
     "ps.fonttype":        42,
 })
 
-FIGSIZE_1COL = (3.3, 2.5)
+# Single-column width 3.3in, 4:3 aspect.
+FIGSIZE_1COL = (3.3, 2.475)
+SHARED_XLIM = (0.0, 1.0)
+SHARED_YLIM = (0.0, 1.0)
 
 
 def _spearman(xs, ys):
@@ -98,6 +104,44 @@ def _spearman(xs, ys):
     return num / (dx * dy)
 
 
+def plot_bucket(name: str, color: str, pts: list[tuple[float, float]],
+                out_pdf: Path, out_png: Path) -> float:
+    """Render one single-column scatter figure for `name`. Returns Spearman rho."""
+    xs, ys = zip(*pts)
+    rho = _spearman(list(xs), list(ys))
+    n = len(pts)
+
+    fig, ax = plt.subplots(figsize=FIGSIZE_1COL)
+
+    ax.scatter(xs, ys,
+               s=17, alpha=0.55,
+               c=color, edgecolor="none")
+
+    ax.set_xlim(*SHARED_XLIM)
+    ax.set_ylim(*SHARED_YLIM)
+    ax.set_xticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
+
+    ax.set_xlabel("Char-4gram Jaccard similarity")
+    ax.set_ylabel("Embedding cosine similarity")
+
+    # Headline: bucket + n, top-left, in bucket color.
+    ax.text(0.03, 0.97,
+            f"{BUCKET_LABEL[name]} (n={n})",
+            transform=ax.transAxes, ha="left", va="top",
+            fontsize=10, color=color, fontweight="bold")
+    # Spearman rho, bottom-right.
+    ax.text(0.97, 0.03,
+            f"$\\rho = {rho:.2f}$",
+            transform=ax.transAxes, ha="right", va="bottom",
+            fontsize=9, color=PAL["gray_text"])
+
+    fig.savefig(out_pdf, format="pdf")
+    fig.savefig(out_png, format="png", dpi=300)
+    plt.close(fig)
+    return rho
+
+
 # ---- Load data ----------------------------------------------------------
 HERE = Path(__file__).resolve().parent
 CSV_PATH = HERE / "emb_vs_lexical_scatter_data.csv"
@@ -110,47 +154,26 @@ for r in rows:
         continue
     by_bucket[b].append((float(r["char_4gram"]), float(r["emb_cos"])))
 
-xs_all = [float(r["char_4gram"]) for r in rows]
-ys_all = [float(r["emb_cos"]) for r in rows]
-rho = _spearman(xs_all, ys_all)
-n_total = len(rows)
-
-# ---- Plot ---------------------------------------------------------------
-fig, ax = plt.subplots(figsize=FIGSIZE_1COL)
-
-for bucket in BUCKET_ORDER:
-    pts = by_bucket[bucket]
-    if not pts:
-        continue
-    xs, ys = zip(*pts)
-    ax.scatter(xs, ys,
-               s=17, alpha=0.55,
-               c=BUCKET_COLOR[bucket], edgecolor="none",
-               label=f"{BUCKET_LABEL[bucket]} (n={len(pts)})")
-
-ax.set_xlim(0, 1)
-ax.set_ylim(0, 1)
-ax.set_xlabel("Char-4gram Jaccard similarity")
-ax.set_ylabel("Embedding cosine similarity")
-ax.set_xticks([0.0, 0.25, 0.5, 0.75, 1.0])
-ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
-
-# Correlation annotation, top-left (legend goes bottom-right where data is sparse).
-ax.text(0.03, 0.97,
-        f"$\\rho = {rho:.2f}$, $n = {n_total}$",
-        transform=ax.transAxes, ha="left", va="top",
-        fontsize=8.5, color=PAL["gray_text"])
-
-leg = ax.legend(loc="lower right", frameon=False,
-                handletextpad=0.3, borderaxespad=0.2,
-                labelspacing=0.25)
-
-# ---- Save ---------------------------------------------------------------
+# ---- Emit one PDF per bucket --------------------------------------------
 out_dir = HERE.parent / "out"
 out_dir.mkdir(parents=True, exist_ok=True)
-pdf = out_dir / "emb_vs_lexical_scatter.pdf"
-png = out_dir / "emb_vs_lexical_scatter.png"
-fig.savefig(pdf, format="pdf")
-fig.savefig(png, format="png", dpi=300)
-print(f"wrote {pdf}")
-print(f"wrote {png}")
+
+summary = []
+for bucket in BUCKET_ORDER:
+    pdf = out_dir / f"emb_vs_lexical_{bucket}.pdf"
+    png = out_dir / f"emb_vs_lexical_{bucket}.png"
+    rho = plot_bucket(bucket, BUCKET_COLOR[bucket], by_bucket[bucket], pdf, png)
+    summary.append((bucket, len(by_bucket[bucket]), rho))
+    print(f"wrote {pdf}")
+    print(f"wrote {png}")
+
+# ---- Cleanup old combined output ----------------------------------------
+for stale in ("emb_vs_lexical_scatter.pdf", "emb_vs_lexical_scatter.png"):
+    p = out_dir / stale
+    if p.exists():
+        p.unlink()
+        print(f"removed stale {p}")
+
+print("per-bucket summary:")
+for bucket, n_b, rho_b in summary:
+    print(f"  {bucket:14s} n={n_b:3d}  rho={rho_b:+.3f}")
