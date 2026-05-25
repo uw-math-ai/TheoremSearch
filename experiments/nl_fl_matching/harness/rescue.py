@@ -36,7 +36,41 @@ from experiments.nl_fl_matching.harness import tools  # noqa: E402
 POLL_INTERVAL_S = 60
 HARD_TIMEOUT_S = 6 * 3600   # don't sit forever
 
-TERMINAL_STATES = {"PROVED", "PARTIAL", "FAILED", "ERROR", "CANCELED", "CANCELLED", "DONE"}
+# DONE removed — aristotle's project lifecycle ends with one of these.
+# IDLE means the project finished but the user hasn't re-engaged; we
+# need to inspect the *task* status (PROVED/PARTIAL/FAILED/etc.) for
+# the real outcome.
+TERMINAL_STATES = {"PROVED", "PARTIAL", "FAILED", "ERROR", "CANCELED", "CANCELLED"}
+
+
+def _parse_trajectory_counts(traj_path: Path | None) -> dict:
+    """Pull submit/ask/turn counts and (if present) the prover's
+    advertised wall-time start from a prior trajectory JSONL, so the
+    rescue digest reflects the original run's true call counts.
+    """
+    out = {"aristotle_submits": 0, "aristotle_asks": 0, "subagent_turns": 0,
+           "subagent_tokens_in": 0, "subagent_tokens_out": 0, "run_start_ts": None}
+    if not traj_path or not traj_path.exists():
+        return out
+    with traj_path.open() as fh:
+        for line in fh:
+            try:
+                r = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            k = r.get("kind")
+            if k == "tool_call":
+                tn = r.get("tool")
+                if tn == "aristotle_submit": out["aristotle_submits"] += 1
+                elif tn == "aristotle_ask": out["aristotle_asks"] += 1
+            elif k == "assistant_msg":
+                out["subagent_turns"] = max(out["subagent_turns"], r.get("turn", 0))
+                u = r.get("usage") or {}
+                out["subagent_tokens_in"] += u.get("in", 0)
+                out["subagent_tokens_out"] += u.get("out", 0)
+            elif k == "run_start":
+                out["run_start_ts"] = r.get("ts")
+    return out
 
 
 def main():
@@ -91,11 +125,18 @@ def main():
         sorry_count_final = None
         final_source = ""
 
-    # Map task status to our digest status enum
+    # Map task status to our digest status enum. Note: `DONE` is the
+    # project lifecycle marker, NOT a task outcome — we treat unknown
+    # last_status as "error" rather than silently mapping to "proved".
     status_map = {
         "PROVED": "proved", "PARTIAL": "partial", "FAILED": "failed",
-        "ERROR": "error", "CANCELED": "error", "CANCELLED": "error", "DONE": "proved",
+        "ERROR": "error", "CANCELED": "error", "CANCELLED": "error",
     }
+
+    # Carry over true call counts from the prior (timed-out) trajectory
+    # so the rescue digest doesn't corrupt arm-comparison stats.
+    prior = _parse_trajectory_counts(args.existing_trajectory)
+
     digest = {
         "run_id": str(uuid.uuid4()),
         "candidate_label": args.label,
@@ -104,17 +145,21 @@ def main():
         "summary": f"Rescued from orphan project {pid}; final task status {last_status}.",
         "sorry_count_initial": sorry_count_initial,
         "sorry_count_final": sorry_count_final,
-        "aristotle_submits": 1,
-        "aristotle_asks": 0,
-        "subagent_turns": 0,     # no subagent — rescue is non-agentic
-        "wall_time_s": time.time() - t0,
-        "subagent_tokens_in": 0,
-        "subagent_tokens_out": 0,
+        "aristotle_submits": prior["aristotle_submits"] or 1,
+        "aristotle_asks": prior["aristotle_asks"],
+        "subagent_turns": prior["subagent_turns"],
+        # Polling-only time, not prover wall-time. Recorded separately so
+        # downstream analysis can pick the right one per question.
+        "wall_time_s": None,                 # unknown — original timed out
+        "rescue_poll_time_s": time.time() - t0,
+        "subagent_tokens_in": prior["subagent_tokens_in"],
+        "subagent_tokens_out": prior["subagent_tokens_out"],
         "trajectory_jsonl_path": str(args.existing_trajectory or ""),
         "subagent_model": "(rescue: no subagent)",
         "final_lean_source": final_source[:8000],
         "rescue": True,
         "aristotle_project_id": pid,
+        "final_task_status_raw": last_status,
     }
     if args.existing_trajectory:
         out = args.existing_trajectory.with_name(args.existing_trajectory.stem + "_rescue.digest.json")

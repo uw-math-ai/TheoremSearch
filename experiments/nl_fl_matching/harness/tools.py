@@ -216,7 +216,22 @@ _TASK_STATUS_RE = re.compile(r"\b(QUEUED|IN_PROGRESS|PROVED|PARTIAL|FAILED|ERROR
 
 
 def _extract_task_status(text: str) -> str | None:
-    """Pull the first task-status token out of an `aristotle tasks` table."""
+    """Pull the latest task-status token out of an `aristotle tasks` table.
+
+    The CLI prints a column header + a row of dashes + zero or more
+    task rows in descending-by-date order. We want the most recent
+    task's status — i.e., the first DATA row, NOT the header.
+
+    Strategy: scan rows that look like tabular task data (start with a
+    UUID-like token), match the status enum against those rows only.
+    Falls back to a plain scan if no UUID-prefixed line exists.
+    """
+    uuid_prefix = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-")
+    for line in text.splitlines():
+        if uuid_prefix.match(line.strip()):
+            m = _TASK_STATUS_RE.search(line)
+            if m:
+                return m.group(1)
     m = _TASK_STATUS_RE.search(text)
     return m.group(1) if m else None
 

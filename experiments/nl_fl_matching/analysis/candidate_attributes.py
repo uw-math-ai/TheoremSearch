@@ -81,8 +81,7 @@ REPO_CATEGORY: dict[str, list[str]] = {
 }
 
 SCHEMA = """
-DROP TABLE IF EXISTS candidate_attributes;
-CREATE TABLE candidate_attributes (
+CREATE TABLE IF NOT EXISTS candidate_attributes (
     statement_id              UUID PRIMARY KEY,
     math_category             TEXT[] NOT NULL DEFAULT '{}',
     distance_undirected       SMALLINT,
@@ -97,10 +96,10 @@ CREATE TABLE candidate_attributes (
     max_hops                  SMALLINT NOT NULL DEFAULT 5,
     computed_at               TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_ca_distance_undirected      ON candidate_attributes (distance_undirected);
-CREATE INDEX idx_ca_distance_prereq_to_cons  ON candidate_attributes (distance_prereq_to_cons);
-CREATE INDEX idx_ca_nearest_interface_kind   ON candidate_attributes (nearest_interface_kind);
-CREATE INDEX idx_ca_math_category            ON candidate_attributes USING gin (math_category);
+CREATE INDEX IF NOT EXISTS idx_ca_distance_undirected      ON candidate_attributes (distance_undirected);
+CREATE INDEX IF NOT EXISTS idx_ca_distance_prereq_to_cons  ON candidate_attributes (distance_prereq_to_cons);
+CREATE INDEX IF NOT EXISTS idx_ca_nearest_interface_kind   ON candidate_attributes (nearest_interface_kind);
+CREATE INDEX IF NOT EXISTS idx_ca_math_category            ON candidate_attributes USING gin (math_category);
 """
 
 
@@ -293,12 +292,26 @@ def main():
             if stmt.strip():
                 cur.execute(stmt + ";")
         conn.commit()
+        # Upsert only the graph-derived columns. NEVER touch
+        # pass_rate / attempts_to_pass / sorry_trajectory — those are
+        # owned by the prover-run pipeline; if we DROP+RECREATE we'd
+        # lose them on every rerun of this script.
         execute_values(cur, """
             INSERT INTO candidate_attributes
               (statement_id, math_category,
                distance_undirected, distance_prereq_to_cons, distance_cite_to_dep,
                nearest_interface_id, nearest_interface_kind, true_inference, max_hops)
             VALUES %s
+            ON CONFLICT (statement_id) DO UPDATE SET
+                math_category           = EXCLUDED.math_category,
+                distance_undirected     = EXCLUDED.distance_undirected,
+                distance_prereq_to_cons = EXCLUDED.distance_prereq_to_cons,
+                distance_cite_to_dep    = EXCLUDED.distance_cite_to_dep,
+                nearest_interface_id    = EXCLUDED.nearest_interface_id,
+                nearest_interface_kind  = EXCLUDED.nearest_interface_kind,
+                true_inference          = EXCLUDED.true_inference,
+                max_hops                = EXCLUDED.max_hops,
+                computed_at             = now()
         """, rows, page_size=500)
     conn.commit()
     print(f"      wrote {len(rows)} rows to candidate_attributes", flush=True)

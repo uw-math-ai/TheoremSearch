@@ -26,7 +26,7 @@ per-anchor neighborhood walk documented there.
 4. For each shortlisted neighbor, **grep the project repo's `*.lean` files**
    to eliminate false negatives (statements that are formalized but where
    the blueprint just omits the `\lean{}` annotation). See
-   [[feedback-grep-before-formalize]] in memory and the false-positive
+   the `feedback_grep_before_formalize` memory note and the false-positive
    example below.
 
 **False positive caught.** Initial slate included pfr's `rho-init`
@@ -172,6 +172,6 @@ SELECT n.neighbor_statement_id, n.status,
 
 | step | doc |
 |---|---|
-| Design the prover comparison harness (Aristotle, proof-only) | to be added as `harness_design.md` |
-| Hand-write Lean signatures for A, B, F | to be added |
+| Design the prover comparison harness (Aristotle, proof-only) | [`harness_design.md`](./harness_design.md) ✅ |
+| Hand-write Lean signatures for A, B, F | ✅ — files under `experiments/nl_fl_matching/harness/{A,B,F}*/{no_graph,with_graph}.lean` |
 | Cycle 2: expand anchor pool beyond blueprint gold (arXiv anchors with formalized neighbors) | see [bidirectional_matching.md](./bidirectional_matching.md) §"What we did NOT run" |

@@ -247,9 +247,10 @@ and the [harmonic-ai/IMO2025](https://github.com/harmonic-ai/IMO2025) repo.
   slow cadence.
 
 **Per-candidate plan:**
-- 1 attempt per arm at the API's default budget (record wall-time, status,
-  returned source).
-- 3 repetitions per (candidate, arm) to estimate run-to-run variance.
+- Up to **2 aristotle submits + 1 ask** per (candidate, arm) per the
+  agent-driven harness section above. Record wall-time, status,
+  returned source, premise utilization.
+- **3 repetitions per (candidate, arm)** to estimate run-to-run variance.
 
 ## Toolchain risk
 
@@ -311,11 +312,9 @@ Cheap. Run it.
 
 ## Files to create when running
 
-- `experiments/nl_fl_matching/harness/A_martingale_iff_classDL/{no_graph,with_graph}.lean` ✅ landed.
-- `experiments/nl_fl_matching/harness/B_submartingale_iff_classDL/{no_graph,with_graph}.lean`
-- `experiments/nl_fl_matching/harness/F_eta_def/{no_graph,with_graph}.lean`
-- `experiments/nl_fl_matching/harness/run_aristotle.py` — orchestrator that submits each file, records results to RDS table `prover_run` (DDL TBD).
-- `experiments/nl_fl_matching/harness/results.md` — human-readable summary after the run.
+- `experiments/nl_fl_matching/harness/{A_martingale_iff_classDL,B_submartingale_iff_classDL,F_eta_def}/{no_graph,with_graph}.lean` ✅ all landed.
+- `experiments/nl_fl_matching/harness/orchestrator.py` + `subagent.py` + `tools.py` + `promote.py` + `rescue.py` ✅ landed. Records results to RDS table `prover_run` (DDL in `prover_run_schema.sql`).
+- `experiments/nl_fl_matching/harness/analyze_trajectories.py` ✅ — per-run breakdown table + paired no_graph/with_graph delta; produces `data/trajectory_analysis.json` for downstream plots.
 
 ## Operator setup (one-time)
 

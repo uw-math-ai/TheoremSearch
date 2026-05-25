@@ -195,12 +195,12 @@ def run(*, candidate_label: str, arm: str, target_path: Path,
     initial_source = target_path.read_text()
     sorry_count_initial = initial_source.count("sorry")
 
-    # AnthropicBedrock picks up:
-    #   - bearer token from AWS_BEARER_TOKEN_BEDROCK env var
-    #     (we set this below from BEDROCK_API_KEY for compatibility)
-    #   - region from AWS_REGION env var
-    if "AWS_BEARER_TOKEN_BEDROCK" not in os.environ and "BEDROCK_API_KEY" in os.environ:
-        os.environ["AWS_BEARER_TOKEN_BEDROCK"] = os.environ["BEDROCK_API_KEY"]
+    # AnthropicBedrock uses the standard boto3 credential chain
+    # (AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY from .env work for our
+    # account; the BEDROCK_API_KEY bearer token does NOT — verified
+    # empirically 2026-05-24). Explicitly clear any stale bearer token
+    # so it doesn't shadow SigV4.
+    os.environ.pop("AWS_BEARER_TOKEN_BEDROCK", None)
     client = AnthropicBedrock(aws_region=os.environ.get("AWS_REGION", "us-west-2"))
 
     system_prompt = SYSTEM_PROMPT.format(
@@ -328,9 +328,30 @@ def run(*, candidate_label: str, arm: str, target_path: Path,
         # while-else: hit turn cap without reporting
         final_digest = {"status": "budget_exhausted", "summary": f"hit MAX_TURNS={MAX_TURNS} without final report"}
 
-    final_source = target_path.read_text() if target_path.exists() else ""
+    # The staged target file is what we submitted — Aristotle writes the
+    # filled-in source to the per-submit destination dir, NOT back to
+    # the staged file. Look for the returned counterpart of the staged
+    # file in the most recent submit destination; fall back to the
+    # staged file only if nothing was returned.
+    final_source = ""
+    final_source_origin = "staged"  # for trajectory transparency
+    for n in range(submits, 0, -1):
+        dest = trajectory_path.parent / f"submit_{n}_destination"
+        if not dest.exists():
+            continue
+        for candidate_file in dest.rglob(target_path.name):
+            final_source = candidate_file.read_text()
+            final_source_origin = str(candidate_file)
+            break
+        if final_source:
+            break
+    if not final_source and target_path.exists():
+        final_source = target_path.read_text()
     sorry_count_final = final_source.count("sorry")
     wall = time.time() - t0
+    traj.log("final_source_resolution", origin=final_source_origin,
+             sorry_count_initial=sorry_count_initial,
+             sorry_count_final=sorry_count_final)
     digest = {
         "run_id": run_id,
         "candidate_label": candidate_label,
