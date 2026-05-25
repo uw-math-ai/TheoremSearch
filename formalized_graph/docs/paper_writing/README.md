@@ -20,6 +20,7 @@ without re-deriving anything from the live system.
 | [`smoke_test_candidates.md`](./smoke_test_candidates.md) | The 3 verified unformalized blueprint statements (A, B, F) chosen to drive the first "graph helps prover" comparison. Includes the grep-verification methodology that catches blueprint annotations missing a `\lean{}` macro. |
 | [`harness_design.md`](./harness_design.md) | Aristotle-based proof-only comparison harness. Two arms per candidate: no-graph (target + sorry) vs with-graph (target + k=1 resolved-sibling premise pack). Draft Lean signatures, success metrics, budget. |
 | [`cross_project_twins.md`](./cross_project_twins.md) | f→f cross-project NN sweep (36,708 project formals, paper-exclusion). 1,391 twins at sim ≥ 0.85; Sphere-Packing-Lean ↔ sphere-packing-math-inc (706) and add-combi ↔ apap (239) are the two parallel-formalization pairs. |
+| [`nongold_random_sweep.md`](./nongold_random_sweep.md) | Strand G: n=500 random non-gold project formals → top-K informals. 9.3% have rank-1 sim ≥ 0.85; ~80% of those are cross-source (Lean ↔ arxiv) matches that the corpus does not yet record. |
 
 ## Contributor prompt
 

@@ -151,8 +151,10 @@ gets. Observed failure modes:
   add-combi ↔ apap) account for 68% of high-sim matches.
 - (F) i→i same-formality nearest-neighbour: deferred — 11.7M × 11.7M
   is too expensive for the current deadline.
-- (G) random sample of 5k non-gold formals to characterize the distribution
-  outside the blueprint subset: deferred.
+- (G) random sample of 5k non-gold formals: **DONE 2026-05-24** at n=500
+  scale. See [`nongold_random_sweep.md`](./nongold_random_sweep.md) —
+  9.3% have rank-1 sim ≥ 0.85, ~80% of those are cross-source Lean↔arxiv
+  matches the corpus does not record.
 
 All three were scoped as P2 in the deadline plan; the headline result
 (Hit@k + MRR table + agreement + correlation) is complete without them.
