@@ -74,19 +74,26 @@ From `data/ff_cross_project_top20.md`:
 
 ## Findings (paper-ready)
 
-1. **Cross-project duplication is concrete and measurable.** 1,391 project
-   formals (3.8% of the corpus) have a sim ≥ 0.85 twin in a different
-   repo. These are real duplicates — the top-20 are nearly identical
-   slogans with different decl names.
-2. **Two repo pairs account for 68% of all high-confidence twins**:
-   the Sphere-Packing-Lean ↔ sphere-packing-math-inc fork (706) and the
-   add-combi ↔ apap convolution overlap (239). The corpus has at least
-   two cases of fully parallel formalization that the community could
-   consolidate.
+1. **Cross-project duplication is concrete and measurable.** After
+   excluding the two parallel-formalization repo-pairs (see §Headline
+   numbers), **446 project formals (1.3% of the corpus) have a sim ≥ 0.85
+   twin in a genuinely distinct repo** — 14 of those at sim ≥ 0.95.
+   These are real duplicates: the top examples are nearly identical
+   slogans with different decl names. The raw count (1,391) is the
+   pre-exclusion number; do not cite without the exclusion context.
+2. **Two repo pairs account for 68% of all high-confidence twins**
+   (945 / 1,391 raw): the Sphere-Packing-Lean ↔ sphere-packing-math-inc
+   fork (706) and the add-combi ↔ apap convolution overlap (239). The
+   corpus has at least two cases of fully parallel formalization that
+   the community could consolidate. After excluding those, the
+   remaining 446 twins represent independent re-formalizations across
+   genuinely distinct projects — the more interesting subset for an
+   upstream-merging argument.
 3. **This experiment is directly useful for an upstream-merging agent:**
    `data/ff_cross_project_twins.csv` is 36,708 rows of
-   (decl_a, decl_b, sim) sorted by sim — the top 1,391 are the
-   high-confidence dedup queue.
+   (decl_a, decl_b, sim) sorted by sim. The high-confidence dedup
+   queue is the **446-row corrected slice** (or 1,391 raw if you want
+   to triage the parallel-formalization pairs too).
 
 ## Reproducing
 
