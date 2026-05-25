@@ -23,23 +23,37 @@ import time
 from pathlib import Path
 from typing import Any
 
+# Load TheoremSearch/.env so ARISTOTLE_API_KEY / AWS_REGION /
+# BEDROCK_API_KEY propagate to subprocesses without manual `export`.
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+try:
+    import dotenv
+    dotenv.load_dotenv(_REPO_ROOT / ".env")
+except ImportError:
+    pass
 
-# How long we let `aristotle submit --wait` block. The Aristotle docs
-# say jobs can run for hours, but the smoke test should converge fast
-# or we abort.
-SUBMIT_WAIT_TIMEOUT_S = 30 * 60   # 30 min
 
-# Make sure `uv` itself is findable. Common klone install paths.
-_UV_PATH_EXTRAS = [
+# How long we let `aristotle submit --wait` block. Aristotle advertises
+# 24h max wall-time; Putnam-25 reproductions show real jobs at
+# 30 min – 7 hrs. We set 6 hours as a safe upper bound — long enough
+# that we don't time out before the prover does, short enough that a
+# stuck job doesn't burn the harness all day.
+SUBMIT_WAIT_TIMEOUT_S = 6 * 3600   # 6 hours
+
+# PATH additions for subprocesses. uv lives under ~/.local/bin or
+# ~/.cargo/bin; lake (the Lean build tool) is under ~/.elan/bin after
+# elan is installed.
+_PATH_EXTRAS = [
     f"{os.path.expanduser('~')}/.local/bin",
     f"{os.path.expanduser('~')}/.cargo/bin",
+    f"{os.path.expanduser('~')}/.elan/bin",
 ]
 
 
 def _env_with_uv() -> dict[str, str]:
     env = dict(os.environ)
     existing = env.get("PATH", "")
-    extras = ":".join(p for p in _UV_PATH_EXTRAS if p not in existing)
+    extras = ":".join(p for p in _PATH_EXTRAS if p not in existing)
     if extras:
         env["PATH"] = f"{extras}:{existing}"
     return env
@@ -122,6 +136,36 @@ def aristotle_show(project_id: str, limit: int = 10,
     return r
 
 
+def aristotle_tasks(project_id: str, limit: int = 5,
+                    cwd: str | None = None) -> dict[str, Any]:
+    """Fast (non-streaming) status check for a project's tasks.
+
+    Returns the task table. Status column is one of QUEUED / IN_PROGRESS /
+    PROVED / PARTIAL / FAILED / ERROR / CANCELED. Use this for polling
+    (`show` streams events and blocks).
+    """
+    r = _run_cli(["tasks", project_id, "--limit", str(limit)],
+                 cwd=cwd, timeout=60)
+    r["tool"] = "aristotle_tasks"
+    r["project_id"] = project_id
+    # Parse the most recent task's status from the table.
+    out = r.get("stdout", "")
+    r["latest_task_status"] = _extract_task_status(out)
+    return r
+
+
+def aristotle_download(project_id: str, destination: str,
+                       cwd: str | None = None) -> dict[str, Any]:
+    """Pull the current project files (the proof, if completed)."""
+    Path(destination).mkdir(parents=True, exist_ok=True)
+    r = _run_cli(["download", project_id, "--destination", destination],
+                 cwd=cwd, timeout=180)
+    r["tool"] = "aristotle_download"
+    r["project_id"] = project_id
+    r["destination"] = destination
+    return r
+
+
 # Local file-IO tools so the subagent can read / edit the target lean file.
 
 def read_target_file(path: str) -> dict[str, Any]:
@@ -153,6 +197,7 @@ def lean_typecheck(project_dir: str, file_relpath: str) -> dict[str, Any]:
         proc = subprocess.run(
             ["lake", "env", "lean", file_relpath],
             cwd=project_dir, capture_output=True, text=True, timeout=600,
+            env=_env_with_uv(),
         )
         return {"tool": "lean_typecheck", "ok": proc.returncode == 0,
                 "returncode": proc.returncode,
@@ -167,6 +212,13 @@ def lean_typecheck(project_dir: str, file_relpath: str) -> dict[str, Any]:
 
 _PROJECT_ID_RE = re.compile(r"project[_ -]?id[:\s]+([a-z0-9-]{8,})", re.I)
 _STATUS_RE = re.compile(r"status[:\s]+([A-Z_]+)")
+_TASK_STATUS_RE = re.compile(r"\b(QUEUED|IN_PROGRESS|PROVED|PARTIAL|FAILED|ERROR|CANCELED|CANCELLED|DONE|IDLE)\b")
+
+
+def _extract_task_status(text: str) -> str | None:
+    """Pull the first task-status token out of an `aristotle tasks` table."""
+    m = _TASK_STATUS_RE.search(text)
+    return m.group(1) if m else None
 
 
 def _extract_project_id(text: str) -> str | None:
