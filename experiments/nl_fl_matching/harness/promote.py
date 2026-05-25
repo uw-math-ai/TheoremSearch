@@ -28,9 +28,9 @@ PROMOTABLE_STATUSES = {"proved", "partial", "failed", "budget_exhausted"}
 # Hand-managed label → candidate_statement_id (UUID in `statement`)
 # Update when adding new candidates.
 LABEL_TO_SID = {
-    "A_martingale_iff_classDL": "b8f7c652-f29c-48cb-9b59-8c8652e3699f",
-    "B_submartingale_iff_classDL": "5cfea075-c00e-43d2-8ca7-d76f51b3e92c",
-    "F_eta_def": "3be0d32c-3c33-4b86-9d33-4a18c69d2c20",
+    "A_martingale_iff_classDL":    "b8f7c652-f29c-48cb-9b59-8c8652e3699f",
+    "B_submartingale_iff_classDL": "5cfea075-2d86-4da0-8054-ec281e70e84e",
+    "F_eta_def":                   "3be0d32c-0ba1-47ec-80ce-63dc00097e38",
 }
 
 
