@@ -125,6 +125,38 @@ gets. Observed failure modes:
    "neither" bucket is therefore inflated by blueprint noise; the true
    alignment ceiling is higher than the 61.2% either-direction number.
 
+## Open work — must-do / should-do before submission
+
+These are the gaps surfaced by the methodology critique (2026-05-24). The
+gold-pair audit and empty-query root-cause are running / done; the others
+are documented here so the next session can pick up without re-deriving.
+
+**Must-do (defends primary claims)**
+
+| ✓ | task | informs | est wall |
+|:---:|---|---|---|
+| 🟡 | Gold-pair correctness audit (n=150, two-rater κ via Bedrock Claude) — running 2026-05-24 | every Hit@k number; gold-noise floor | ~45 min |
+| ✅ | Empty-query root cause for non-gold sweep | non-gold 9.3% interpretation; ann_k tuning | 30 min |
+| ⬜ | Hand-label the 45 non-gold mutual pairs | turns 88.8% precision from circular into a real claim | ~1 hr |
+| ⬜ | Drop "directional symmetry" framing from prose | replaces a coincidence-claim with the agreement-bucket claim | 5 min |
+| ⬜ | Recompute cross-project headline excluding the 2 parallel-formalization pairs | corrects the "1,391 twins" overclaim — see [`cross_project_twins.md`](./cross_project_twins.md) for the two pairs | 15 min |
+
+**Should-do (closes obvious reviewer attacks)**
+
+| task | informs | est wall |
+|---|---|---|
+| Bootstrap CIs on Hit@1 numbers (both directions, mutual NN, non-gold high-sim rate) | every point estimate in this doc | ~1 hr |
+| Expand "neither" failure-mode sample to n≥50 with two-rater agreement | currently n=15 one-author taxonomy | ~3 hr |
+| Cite + position vs Herald (ICLR 2025), RLM25 (EMNLP 2025), LSv2 (arXiv:2605.13137), Lean Finder (ICLR 2026), graph-aug premise selection (arXiv:2510.23637) | reviewer attack: "did you read the lit" | ~30 min |
+| BM25 / char-4gram baseline on the same 1,562 + 1,308 gold queries | reviewer attack: "no baseline" | ~2 hr |
+
+**Nice-to-have (after deadline if time)**
+
+- Headline figure: scatter of (emb_cos, char_4gram) on gold pairs, colored by agreement-bucket
+- One alternate embedding model ablation (Llama-Embed-Nemotron-8B is the strongest open challenger)
+- Re-run the n=500 non-gold sweep at ann_k=500 from the start so the 9.3% headline reflects the corrected coverage
+- Expand non-gold sweep to n=1k–2k for tighter CI on the 9.3% rate
+
 ## Findings (paper-ready)
 
 1. **Directional asymmetry is essentially zero at Hit@1** (both = 0.426).

@@ -13,8 +13,18 @@
   binary-quantized HNSW Hamming shortlist (`ann_k=50`) → cosine rerank.
 - **Exclusion:** statement-level. Top-10 retained per query.
 - **Wall:** 8 min 11 s (1.0 q/s; bottleneck is RDS ANN).
-- **Empty queries:** 114 / 500 (slogan or embedding missing). Final rank-1
-  evaluable set: **386 queries**.
+- **Empty queries (at ann_k=50):** 114 / 500. Root cause established
+  (`analysis/diagnose_empties.py`, 2026-05-24): all 114 queries have a
+  valid slogan and qwen3-8b embedding; the emptiness is caused by the
+  50-NN binary-HNSW shortlist being entirely formal for deep-Mathlib-style
+  queries — every shortlist entry is killed by the
+  `st.formality='informal'` filter.
+- **Empty-query rescue at ann_k=500:** re-ran the 114 empties via
+  `runners/run_nongold_empties_retry.py` (pool_descriptor
+  `nongold_random_f2i_annk500`). **23 / 114 (20.2%) rescued.** The
+  remaining 91 still return 0 informals — these queries are inside a
+  dense formal cluster in embedding space with no nearby informal
+  partner. Total evaluable set after rescue: **409 queries**.
 - **Store:** `direction='f2i'`, `pool_descriptor='nongold_random_f2i'`.
 
 ## Rank-1 similarity distribution
