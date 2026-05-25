@@ -72,17 +72,17 @@ def tool_call_breakdown(traj: list[dict]) -> Counter:
     return counts
 
 
-def find_digest(jsonl_path: Path) -> dict | None:
-    """Look for a paired digest file (subagent or rescue)."""
-    for suffix in (".digest.json", "_rescue.digest.json"):
-        candidate = jsonl_path.with_name(jsonl_path.stem + suffix)
-        if candidate.exists():
-            return json.loads(candidate.read_text())
-    # also try sibling rescue files without matching prefix
-    for sibling in jsonl_path.parent.glob("*_rescue.digest.json"):
-        d = json.loads(sibling.read_text())
-        if d.get("trajectory_jsonl_path") == str(jsonl_path):
-            return d
+def find_trajectory_jsonl(digest: dict, runs_dir: Path) -> Path | None:
+    """Locate the JSONL trajectory for a digest, if one exists.
+
+    Three possible sources:
+    1. digest["trajectory_jsonl_path"] points at a real file
+    2. there's a same-stem .jsonl next to the digest (subagent.py convention)
+    3. neither — this digest was synthesized after the live process died
+    """
+    p = digest.get("trajectory_jsonl_path")
+    if p and Path(p).exists():
+        return Path(p)
     return None
 
 
@@ -109,13 +109,10 @@ def count_premise_uses(proof_source: str, premises: list[str]) -> dict:
 
 def collect_runs() -> list[dict]:
     out = []
-    for jsonl in sorted(RUNS_DIR.glob("*.jsonl")):
-        digest = find_digest(jsonl)
-        if not digest:
-            # subagent crashed before writing digest; treat as in-flight
-            continue
-        traj = load_trajectory(jsonl)
-        tools = tool_call_breakdown(traj)
+    for digest_path in sorted(RUNS_DIR.glob("*.digest.json")):
+        digest = json.loads(digest_path.read_text())
+        jsonl = find_trajectory_jsonl(digest, RUNS_DIR)
+        tools = tool_call_breakdown(load_trajectory(jsonl)) if jsonl else Counter()
 
         cand = digest.get("candidate_label")
         arm = digest.get("arm")
@@ -124,7 +121,8 @@ def collect_runs() -> list[dict]:
         usage = count_premise_uses(digest.get("final_lean_source", ""), premises)
 
         out.append({
-            "trajectory_path": str(jsonl),
+            "digest_path": str(digest_path),
+            "trajectory_path": str(jsonl) if jsonl else None,
             "candidate": cand,
             "arm": arm,
             "is_rescue": digest.get("rescue", False),
@@ -139,6 +137,8 @@ def collect_runs() -> list[dict]:
             "subagent_tokens_out": digest.get("subagent_tokens_out"),
             "tool_calls": dict(tools),
             "premise_utilization": usage,
+            "aristotle_project_id": digest.get("aristotle_project_id"),
+            "final_task_status_raw": digest.get("final_task_status_raw"),
         })
     return out
 
@@ -185,19 +185,19 @@ def render_markdown(runs: list[dict]) -> str:
         by_arm[r["arm"]].append(r)
 
     lines.append("## Aggregate by arm")
-    lines.append("| arm | n | proved | partial | failed/error | mean turns | mean submits | mean wall (s) |")
-    lines.append("|---|---:|---:|---:|---:|---:|---:|---:|")
+    lines.append("| arm | n | proved | partial | out_of_budget | canceled | failed/error |")
+    lines.append("|---|---:|---:|---:|---:|---:|---:|")
     for arm, rs in sorted(by_arm.items()):
         n = len(rs)
         proved = sum(1 for x in rs if x["status"] == "proved")
         partial = sum(1 for x in rs if x["status"] == "partial")
-        failed = sum(1 for x in rs if x["status"] in ("failed", "error", "budget_exhausted"))
+        oob = sum(1 for x in rs if x["status"] == "out_of_budget")
+        canceled = sum(1 for x in rs if x["status"] == "canceled")
+        failed = sum(1 for x in rs if x["status"] in ("failed", "error", "budget_exhausted", "unknown"))
         def m(key):
             xs = [x[key] for x in rs if x[key] is not None]
             return sum(xs) / len(xs) if xs else 0
-        lines.append(f"| {arm} | {n} | {proved} | {partial} | {failed} | "
-                     f"{m('subagent_turns'):.1f} | {m('aristotle_submits'):.1f} | "
-                     f"{m('wall_time_s'):.0f} |")
+        lines.append(f"| {arm} | {n} | {proved} | {partial} | {oob} | {canceled} | {failed} |")
     lines.append("")
 
     # Paired per-candidate delta
