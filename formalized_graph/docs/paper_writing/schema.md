@@ -148,6 +148,14 @@ declaration to the *earliest* version that contained it.
 total) but have 0 attributed statements — every `Std.*` / `Batteries.*`
 declaration is attributed to the Mathlib version that first imported it.
 
+**Important consequence of the earliest-version attribution rule:**
+"retrieve over Mathlib v4.29" does NOT mean `WHERE paper.external_id =
+'Mathlib_v429'` — that returns only 14,041 rows (the new-in-v429 decls).
+The full set of decls *that existed* at v4.29 is the union
+`{Mathlib_v427, Mathlib_v428, Mathlib_v429}` (~351k decls). Held-out
+experiments retrieving "over 4.29" against held-out 4.30 theorems must
+union all three.
+
 ## `informal_dependency`  (18,321,208 rows)
 
 Informal edges. Each row is a (`src_id` → `dep_id`/`cite_id`) reference detected in the source paper. `methods` records *how* it was detected (deterministic / heuristic / LLM / judge); used by the `comprehensive` slogan prompt as a trust score.
@@ -190,7 +198,7 @@ Per-statement notation glossary (LaTeX pattern → English description). Generat
 | `description` | `text` | no |
 | `created_at` | `timestamptz` | no |
 
-## `slogan_prompt`  (8 rows)
+## `slogan_prompt`  (9 rows)
 
 Immutable prompt-template registry. `slogan.prompt_name` foreign-keys here. Each template is a Jinja string consumed by the slogan generator.
 
@@ -212,7 +220,7 @@ LLM registry for slogan generation. `slogan.model_name` foreign-keys here.
 | `max_tokens` | `int4` | yes |
 | `created_at` | `timestamptz` | no |
 
-## `slogan`  (16,468,862 rows)
+## `slogan`  (16,665,987 rows)
 
 The natural-language summary attached to a `statement` by (`prompt_name`, `model_name`). One statement can have many slogans (different prompts/models). `insufficient_context=true` means the LLM refused — these are excluded from embedding and matching.
 
@@ -228,9 +236,22 @@ The natural-language summary attached to a `statement` by (`prompt_name`, `model
 | `created_at` | `timestamptz` | no |
 | `insufficient_context` | `bool` | no |
 
-## `embedding_model`  (1 rows)
+## `embedding_model`  (3 rows)
 
 Embedding-model registry. `instruction` is prepended to slogan text at embed time (Qwen3 retrieval prefix). `dim` is the native dimensionality (4096 for qwen3-8b).
+
+Active variants (as of 2026-05-25):
+
+| name | created | rows in `embedding` |
+|---|---|---:|
+| `qwen3-8b` | 2026-05-15 | 12,237,647 |
+| `qwen3-8b-augminimal` | 2026-05-25 05:53 UTC | 337,356 |
+| `qwen3-8b-lsv2slogan` | 2026-05-25 11:07 UTC | 100,010 |
+
+All three share the same Qwen3-Embedding-8B base and retrieval prefix.
+**Only `qwen3-8b` covers the full corpus** — the two newer variants
+were created today and are still backfilling. For full-corpus
+retrieval as of this writing, use `qwen3-8b`.
 
 | column | type | null |
 |---|---|---|
@@ -241,7 +262,7 @@ Embedding-model registry. `instruction` is prepended to slogan text at embed tim
 | `normalized` | `bool` | no |
 | `created_at` | `timestamptz` | no |
 
-## `embedding`  (12,137,638 rows)
+## `embedding`  (12,675,013 rows)
 
 The vector store. One row per (`slogan_id`, `model_name`). `embedding` is `vector(4096)` for qwen3-8b. Indexed by binary-quantized HNSW (`bit(4096)`) for shortlist search and queried with cosine (`<=>`) for full-precision rerank.
 
