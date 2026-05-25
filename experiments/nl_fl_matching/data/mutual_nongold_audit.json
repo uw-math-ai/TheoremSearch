@@ -1,0 +1,24 @@
+{
+  "n": 45,
+  "input_csv": "experiments/nl_fl_matching/data/mutual_rank1_nongold.csv",
+  "kappa": 0.4478527607361963,
+  "observed_agreement": 0.6888888888888889,
+  "expected_agreement": 0.4365432098765432,
+  "primary_label_distribution": {
+    "wrong": 30,
+    "partial": 7,
+    "ambiguous": 1,
+    "correct": 7
+  },
+  "secondary_label_distribution": {
+    "wrong": 25,
+    "partial": 16,
+    "ambiguous": 1,
+    "correct": 3
+  },
+  "both_correct": 3,
+  "either_wrong": 33,
+  "both_correct_or_partial": 11,
+  "primary_model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "secondary_model": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+}

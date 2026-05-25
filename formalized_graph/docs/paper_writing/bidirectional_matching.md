@@ -59,14 +59,44 @@ top-1 in **both** directions (not just any gold sibling).
 | metric | count | note |
 |---|---:|---|
 | total mutual rank-1 pairs | 400 | f→i top-1 = i AND i→f top-1 = f |
-| mutual ∩ gold | 355 | 88.8% of mutuals are blueprint-annotated |
-| mutual ∖ gold | 45 | non-gold mutuals = strongest backfill candidates |
+| mutual ∩ gold | 355 | 88.8% of mutuals overlap an existing blueprint annotation |
+| mutual ∖ gold | 45 | candidates outside the gold set |
 | gold ∩ mutual | 355 / 1,595 | 22.3% of gold pairs recovered as mutual |
 
 Per-pair list at `experiments/nl_fl_matching/data/mutual_rank1_pairs.csv`
 (regenerate with `python -m experiments.nl_fl_matching.analysis.mutual_nn`).
-The 45 non-gold mutuals are the **highest-confidence formalization backfill
-candidates** — see [`formalization_candidates.md`](./formalization_candidates.md).
+
+### Audited precision (2026-05-24)
+
+The 88.8% headline is *not* precision — it's overlap with the gold set
+(which itself has 12-27% annotation noise; see §gold-set audit). True
+precision requires auditing both the gold-overlap and non-overlap halves:
+
+| subset | n | dual-rater (Sonnet 4.5 + Haiku 4.5) |
+|---|---:|---|
+| **mutual ∩ gold** (355) | inherits gold-audit noise | both 'correct': 16% / both 'correct or partial': 65% / either 'wrong': 27% |
+| **mutual ∖ gold** (45)  | direct audit on all 45 | both 'correct': 6.7% (n=3) / both 'correct or partial': 24% (n=11) / either 'wrong': 73% |
+
+Combining:
+- **Strict precision** (both raters say "correct"): ≈ (355 × 0.16 + 3) / 400 = **15.0%**
+- **Broad precision** (both raters say "correct" or "partial"): ≈ (355 × 0.65 + 11) / 400 = **60.4%**
+- **Hostile upper bound on error** (at least one rater says "wrong"): ≈ (355 × 0.27 + 33) / 400 = **32.2%**
+
+Cohen's κ on the 45-pair non-gold audit is **0.448** (moderate), higher
+than the gold audit's 0.30 — judges agree more strongly when the answer
+is "wrong" (the dominant label here).
+
+**Takeaway for the paper:** mutual-NN is *not* a 88.8%-precision filter
+in absolute terms — it's a high-overlap-with-gold signal. Audited
+precision lands at ~60% (broad) / ~15% (strict). Still substantially
+above a random baseline, and the 22.3% gold-recall number is unaffected.
+
+Eyeballed non-gold mutual failures fall into the same taxonomy as the
+"neither" bucket (sibling-lemma adjacency, equation-vs-definition
+confusion, definition-vs-derived-property) — see e.g. PFR 3.26 ↔
+`condRuzsaDist_diff_le'` (4 vs 3 random variables; near-twin formula),
+brownian-motion 2.2.34 ↔ `MeasurableSet.isPavingAnalytic_fst` (analytic
+weakened to measurable).
 
 ## Lexical baseline correlation (task 4)
 
@@ -174,7 +204,7 @@ are documented here so the next session can pick up without re-deriving.
 |:---:|---|---|---|
 | ✅ | Gold-pair correctness audit (n=150, dual-rater Bedrock Claude) — 2026-05-24 | every Hit@k number; **noise floor: 12% lower, 27% upper, κ=0.30** | done (20 min wall) |
 | ✅ | Empty-query root cause for non-gold sweep | non-gold 9.3% interpretation; ann_k tuning | 30 min |
-| ⬜ | Hand-label the 45 non-gold mutual pairs | turns 88.8% precision from circular into a real claim | ~1 hr |
+| ✅ | Hand-label the 45 non-gold mutual pairs (Bedrock dual-rater) | **3/45 (6.7%) correct, 11/45 (24.4%) correct-or-partial; mutual-NN audited precision ~60% broad / ~15% strict** (2026-05-24) | done |
 | ✅ | Drop "directional symmetry" framing from prose | replaced with the agreement-bucket claim (2026-05-24) | done |
 | ✅ | Recompute cross-project headline excluding the 2 parallel-formalization pairs | **446 twins (not 1,391) at sim≥0.85** after exclusion; see [`cross_project_twins.md`](./cross_project_twins.md) | done (2026-05-24) |
 
@@ -202,13 +232,14 @@ are documented here so the next session can pick up without re-deriving.
    42.6% to 61.2% — a ~45% relative gain over a single direction.**
    No prior NL↔FL retrieval paper reports both directions on a shared
    gold set; this is the headline result.
-2. **Mutual rank-1 nearest neighbours as a high-precision filter:**
-   400 (informal, formal) pairs are rank-1 in both directions. 88.8%
-   (355/400) match the blueprint gold partner exactly, and a dual-rater
-   audit of the 45 non-gold mutuals (see below) puts ~X% of them at
-   "correct OR partial." Mutual-NN is the strongest "same statement"
-   signal the pipeline produces — paper-worthy as a method, not just an
-   observation.
+2. **Mutual rank-1 nearest neighbours as a precision filter:** 400
+   (informal, formal) pairs are rank-1 in both directions; 88.8% overlap
+   the blueprint gold set. Combined with the gold-set audit (12-27%
+   noise) and a direct audit of the 45 non-gold mutuals (24% correct-or-
+   partial), the **audited precision lands at ≈60% (broad: correct or
+   partial) / ≈15% (strict: both correct).** Lower than the headline
+   88.8% but still high-precision relative to a random baseline. Mutual-
+   NN is paper-worthy as a *filter*, not as a 9-in-10 oracle.
 3. **Embedding aligns with lexical baselines but isn't redundant with
    them.** Spearman correlations are positive (0.47–0.66) but well below
    1.0, so the embedding contributes non-lexical signal that the simpler

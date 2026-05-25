@@ -219,12 +219,23 @@ predecessors are its prerequisites).
    formalization detail (e.g., one is "for all rings" and the other is
    "for all commutative rings"). Always cross-check the raw `*_body`
    before declaring a match.
-2. **Mutual nearest-neighbours = highest-confidence subset.** 400 pairs
-   are rank-1 in both directions; 88.8% of these (355) are blueprint gold,
-   so the 45 non-gold mutuals at `mutual_rank1_nongold.csv` are the
-   strongest backfill candidates. Regenerate via
-   `python -m experiments.nl_fl_matching.analysis.mutual_nn` then
-   `python -m experiments.nl_fl_matching.analysis.mutual_hydrated`.
+2. **Mutual nearest-neighbours: lower precision than the 88.8% gold-overlap
+   number suggests.** 400 mutual rank-1 pairs; 88.8% overlap gold. The 45
+   non-gold mutuals at `mutual_rank1_nongold.csv` were audited dual-rater
+   (Bedrock Claude Sonnet 4.5 + Haiku 4.5, 2026-05-24): **3/45 (6.7%)
+   both 'correct'**, **11/45 (24.4%) 'correct or partial'**, **33/45
+   (73%) at least one rater flags 'wrong'**. Most are topical near-misses
+   not backfill candidates. Use this CSV for *exploration*, not as a
+   curated backfill queue. See
+   [`bidirectional_matching.md`](./bidirectional_matching.md)
+   §mutual-NN-precision for the noise-adjusted bounds.
+   Regenerate via
+   `python -m experiments.nl_fl_matching.analysis.mutual_nn`,
+   `python -m experiments.nl_fl_matching.analysis.mutual_hydrated`, then
+   `python -m experiments.nl_fl_matching.analysis.audit_pairs_from_csv \
+       --in experiments/nl_fl_matching/data/mutual_rank1_nongold.csv \
+       --out-csv experiments/nl_fl_matching/data/mutual_nongold_audit.csv \
+       --out-json experiments/nl_fl_matching/data/mutual_nongold_audit.json`.
 3. **`is_blueprint_gold=False` ≠ "needs formalization".** The blueprint
    gold set is the union of `\lean{...}` annotations. Many statements
    not in this set may already be formalized — their authors just didn't
