@@ -85,6 +85,41 @@ The two directions' Hit@1 CIs overlap heavily — the apparent equality
 retract the "directional symmetry" framing (see Findings §reporting
 note).
 
+## BM25 baseline (added 2026-05-25)
+
+Tokenized (whitespace + alphanumeric) BM25Okapi over the same gold
+queries. Source: `experiments/nl_fl_matching/runners/run_bm25_baseline.py`
++ `analysis/bm25_vs_embedding.py`. Persisted under `embedding_model='bm25'`
+in `nl_fl_match_pilot`. Bootstrap 95% CIs over 2,000 resamples.
+
+| sweep | n | Hit@1 | Hit@5 | Hit@10 | MRR@10 |
+|---|---:|---:|---:|---:|---:|
+| qwen3-8b — f→i (vs 11.7M informals) | 1,562 | 42.6% [40.2, 45.1] | 64.3% [61.9, 66.6] | 69.8% [67.6, 72.2] | 51.8% [49.6, 53.9] |
+| BM25 — f→i (vs **2,544 blueprint** informals) | 1,577 | **43.5% [41.0, 45.8]** | 72.4% [70.1, 74.6] | 79.8% [77.7, 81.8] | 55.7% [53.7, 57.7] |
+| qwen3-8b — i→f (vs 36,708 project formals) | 1,308 | **42.6% [39.8, 45.3]** | 67.0% [64.4, 69.5] | 71.7% [69.2, 74.2] | 53.1% [50.8, 55.5] |
+| BM25 — i→f (vs 36,708 project formals) | 1,308 | 31.3% [28.9, 33.9] | 53.7% [51.0, 56.4] | 61.0% [58.4, 63.7] | 41.0% [38.7, 43.4] |
+
+**Two messages, neither flattering nor catastrophic:**
+
+1. **f→i: BM25 wins slightly on the smaller pool.** BM25 over the
+   2,544-blueprint pool beats qwen3-8b over the 11.7M pool at every k.
+   This is *not* a fair comparison (the pools differ by 4 orders of
+   magnitude), but it does mean the embedding's f→i value-add is
+   **robustness to haystack size**, not raw discriminative power. The
+   2,544-pool BM25 is the strongest comparison we can run within
+   memory limits; full-11.7M-pool BM25 would degrade.
+2. **i→f: qwen3-8b beats BM25 by ~11 pp on the same pool.** Hit@1 CIs
+   are disjoint ([39.8, 45.3] vs [28.9, 33.9]) — statistically clean.
+   This is the headline embedding-adds-value finding: identical 36,708
+   project-formal pool, identical 1,308 queries, qwen3-8b wins
+   decisively.
+
+**Paper framing:** report both. The asymmetry is itself a finding:
+embeddings dominate i→f (where the surface lexical overlap between
+informal blueprint LaTeX and Lean syntactic decl names is low) but
+roughly tie on f→i within a blueprint pool (where the gold is
+specifically authored to lexically resemble Lean decl identifiers).
+
 For comparison, the group's prior paper (arXiv:2602.05216, 111 expert
 queries against 9.2M informal corpus, with reranker) headline was
 Hit@1=0.189, Hit@10=0.432, MRR@20=0.270 on a fundamentally different
@@ -272,7 +307,7 @@ are documented here so the next session can pick up without re-deriving.
 | ~~Bootstrap CIs on Hit@1 numbers (both directions, mutual NN, non-gold high-sim rate)~~ ✅ done — see headline table + `data/bootstrap_ci.{json,md}` | every point estimate in this doc | done (2026-05-24) |
 | Expand "neither" failure-mode sample to n≥50 with two-rater agreement | currently n=15 one-author taxonomy | ~3 hr |
 | ~~Cite + position vs Herald (ICLR 2025), RLM25 (EMNLP 2025), LSv2 (arXiv:2605.13137), Lean Finder (ICLR 2026), graph-aug premise selection (arXiv:2510.23637)~~ ✅ done — see top of doc | reviewer attack: "did you read the lit" | done (2026-05-24) |
-| BM25 / char-4gram baseline on the same 1,562 + 1,308 gold queries | reviewer attack: "no baseline" | ~2 hr |
+| ~~BM25 / char-4gram baseline on the same 1,562 + 1,308 gold queries~~ ✅ done — see §BM25 baseline; qwen3-8b wins i→f by 11pp, BM25 wins f→i on smaller pool | reviewer attack: "no baseline" | done (2026-05-25) |
 
 **Nice-to-have (after deadline if time)**
 
