@@ -1,0 +1,31 @@
+{
+  "n": 50,
+  "kappa": 0.3120926864590875,
+  "observed_agreement": 0.62,
+  "expected_agreement": 0.44760000000000005,
+  "primary_distribution": {
+    "sibling_lemma_adjacency": 38,
+    "bad_blueprint_annotation": 3,
+    "multiple_correct_formalizations": 3,
+    "equation_vs_definition": 2,
+    "lexical_hijack": 2,
+    "to_additive_or_fun_value_twin": 1,
+    "compound_statement_dilution": 1
+  },
+  "secondary_distribution": {
+    "compound_statement_dilution": 4,
+    "multiple_correct_formalizations": 13,
+    "sibling_lemma_adjacency": 28,
+    "bad_blueprint_annotation": 4,
+    "terminology_drift": 1
+  },
+  "agreement_distribution": {
+    "sibling_lemma_adjacency": 25,
+    "bad_blueprint_annotation": 2,
+    "multiple_correct_formalizations": 3,
+    "compound_statement_dilution": 1
+  },
+  "primary_model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "secondary_model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "seed": 20260525
+}

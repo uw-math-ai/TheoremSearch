@@ -210,42 +210,53 @@ spurious non-lexical matches. char_4gram is the closest lexical proxy
 (captures stem-level overlap most cleanly). Per-pair scores saved to
 `/tmp/nl_corr_f2i.csv` for a paper figure.
 
-## Failure modes ("neither" bucket, n=15 sampled)
+## Failure modes ("neither" bucket, n=50 dual-rater)
 
-15 random pairs from the 619 "neither" pairs (seed=20260524) were eyeballed
-with hydrated slogans + top-5 per direction (raw at
-`experiments/nl_fl_matching/data/neither_cases.md`).
-**12 / 15 had the gold at rank ≤ 5 in at least one direction** — the
-single-direction rank-1 metric understates how close the embedding actually
-gets. Observed failure modes:
+50 random pairs from the 619 "neither" pairs (seed=20260525), labeled by
+Claude Sonnet 4.5 (primary) + Claude Haiku 4.5 (secondary) via Bedrock,
+hydrated with gold pair + top-5 per direction. Replaces the earlier n=15
+one-author taxonomy.
+Code: `experiments/nl_fl_matching/analysis/failure_modes_n50.py`.
+Data: `experiments/nl_fl_matching/data/neither_failure_modes_n50.{csv,json}`.
 
-| mode | n | example | what the embedding returned at rank 1 |
-|---|---:|---|---|
-| Sibling-lemma adjacency (same paper, many near-identical statements) | 3 | sphere-packing `H₄`, carleson `pairwiseDisjoint_E1` | a sister lemma about the same object |
-| Equation/property-of-X ranked over definition-of-X | 3 | pfr `condMutualInfo`, brownian-motion `gaussianReal` | `*_eq` / `*_iff` form of the gold decl |
-| Additive/multiplicative or fun-vs-value twin (`to_additive`-style) | 2 | toric `MonoidAlgebra.span_isGroupLikeElem` | the `AddMonoidAlgebra` mirror |
-| Multiple correct formalizations exist; canonical form wins | 2 | sphere-packing `Submodule.E8` | `E8Packing_lattice` (sim 0.90 vs gold 0.84) |
-| Terminology drift between blueprint and Lean code | 1 | carleson 7.1.2 ("cubes" → `tiles`) | a different cube-union lemma |
-| Compound / multi-clause informal statement dilutes embedding | 1 | carleson 11.3.5 | a topically-adjacent but different inequality |
-| Bad / under-specified blueprint `\lean{}` annotation | 2 | FLT 10.9, ClassFieldTheory 24 | unrelated decl (annotation appears wrong) |
-| Generalization gap (project-specific informal ↔ general Mathlib lemma) | 1 | brownian-motion 2.2.3 ↔ Mathlib `infClosure` | the wrong Mathlib infClosure variant |
-| Lexical hijack by surface triggers (e.g. "successor order") | 1 | brownian-motion `rightCont_eq_self` | `Filter.cofinite_hasBasis_Ici` |
+**Distribution and inter-rater agreement (κ = 0.312, po = 0.620):**
 
-**Two implications for the paper:**
+| failure mode | primary n (Sonnet 4.5) | secondary n (Haiku 4.5) | both-raters-agree |
+|---|---:|---:|---:|
+| **sibling_lemma_adjacency** | **38** | **28** | **25** |
+| multiple_correct_formalizations | 3 | 13 | 3 |
+| bad_blueprint_annotation | 3 | 4 | 2 |
+| equation_vs_definition | 2 | 0 | 0 |
+| lexical_hijack | 2 | 0 | 0 |
+| compound_statement_dilution | 1 | 4 | 1 |
+| to_additive_or_fun_value_twin | 1 | 0 | 0 |
+| terminology_drift | 0 | 1 | 0 |
+| generalization_gap | 0 | 0 | 0 |
+| other | 0 | 0 | 0 |
 
-1. Three failure modes (sibling adjacency, equation/def confusion,
-   additive/multiplicative twin) account for 8/15 cases. All three are
-   **structural artefacts of the Lean corpus** (paper authors write
-   many parallel lemmas; Mathlib emits both `MonoidAlgebra` and
-   `AddMonoidAlgebra` forms via `to_additive`). They are not
-   embedding-quality failures — every "wrong" rank-1 match is itself a
-   correct paraphrase of the gold statement. **A reranker that uses
-   formal-side metadata (paper context, `decl_name` stem, `kind`) could
-   recover most of them.**
-2. ≥2/15 sampled pairs have a **wrong blueprint annotation** (FLT 10.9
-   → an additive Haar-measure lemma is clearly mis-targeted). The
-   "neither" bucket is therefore inflated by blueprint noise; the true
-   alignment ceiling is higher than the 61.2% either-direction number.
+**Three implications for the paper:**
+
+1. **Sibling-lemma adjacency dominates.** Both raters agree on
+   sibling-lemma-adjacency in 25/50 cases (50%); Sonnet alone calls it
+   38/50 (76%). The dominant κ contribution is at the
+   sibling↔multiple-correct-formalizations boundary, where Haiku is
+   more willing to call something a "different correct formalization"
+   that Sonnet labels a "sibling lemma." Both are **structural
+   artifacts of the corpus**, not retrieval-quality failures.
+2. **Bad blueprint annotations are rarer than the n=15 pilot suggested.**
+   Earlier 2/15 (13%) extrapolation was unstable. Dual-rater agreement
+   here puts bad_blueprint_annotation at 2/50 (4%) of "neither"
+   failures — still real, but a smaller share. Note: the gold-set
+   audit (separate study, n=150) shows 12% set-level annotation noise;
+   the two are consistent because annotation errors don't all manifest
+   as "neither"-bucket failures (some manifest as "wrong rank-1
+   retrieved" instead).
+3. **Reranker prediction holds.** A reranker that uses formal-side
+   metadata (`decl_name` stem, sibling/parent-of disambiguation,
+   `kind` constraint) is exactly the right intervention for
+   sibling_lemma_adjacency + multiple_correct_formalizations, which
+   together account for ≥41/50 (82%) of "neither" cases by either
+   rater.
 
 ## Gold-set annotation noise (n=150 dual-rater audit, 2026-05-24)
 
@@ -305,7 +316,7 @@ are documented here so the next session can pick up without re-deriving.
 | task | informs | est wall |
 |---|---|---|
 | ~~Bootstrap CIs on Hit@1 numbers (both directions, mutual NN, non-gold high-sim rate)~~ ✅ done — see headline table + `data/bootstrap_ci.{json,md}` | every point estimate in this doc | done (2026-05-24) |
-| Expand "neither" failure-mode sample to n≥50 with two-rater agreement | currently n=15 one-author taxonomy | ~3 hr |
+| ~~Expand "neither" failure-mode sample to n≥50 with two-rater agreement~~ ✅ done — see §Failure modes (n=50); sibling_lemma_adjacency dominates (38-76% by rater) | currently n=15 one-author taxonomy | done (2026-05-25) |
 | ~~Cite + position vs Herald (ICLR 2025), RLM25 (EMNLP 2025), LSv2 (arXiv:2605.13137), Lean Finder (ICLR 2026), graph-aug premise selection (arXiv:2510.23637)~~ ✅ done — see top of doc | reviewer attack: "did you read the lit" | done (2026-05-24) |
 | ~~BM25 / char-4gram baseline on the same 1,562 + 1,308 gold queries~~ ✅ done — see §BM25 baseline; qwen3-8b wins i→f by 11pp, BM25 wins f→i on smaller pool | reviewer attack: "no baseline" | done (2026-05-25) |
 
