@@ -4,3 +4,5 @@ psycopg2-binary
 pgvector
 python-dotenv
 boto3
+numpy
+scipy

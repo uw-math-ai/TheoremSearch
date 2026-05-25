@@ -7,6 +7,7 @@ from routes.search import router as search_router
 from routes.mcp import router as mcp_router
 from routes.graph import router as graph_router
 from routes.paper_search import router as paper_search_router
+from routes.pagerank import router as pagerank_router
 
 app = FastAPI()
 
@@ -25,6 +26,7 @@ app.include_router(search_router)
 app.include_router(mcp_router)
 app.include_router(graph_router)
 app.include_router(paper_search_router)
+app.include_router(pagerank_router)
 
 # routes.graph_mcp is intentionally not registered: it imports from the
 # deleted routes.search_v2 module and needs to be updated to call the new
