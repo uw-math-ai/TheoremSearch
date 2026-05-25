@@ -7,6 +7,10 @@ The aristotle CLI is async-by-default: `submit` returns a project_id;
 `show` polls; `ask` instructs an existing project. We do almost
 everything synchronously by passing `--wait` to `submit` (the
 aristotlelib client blocks until the job finishes server-side).
+
+Invocation pattern: `uv run aristotle <subcommand> ...`. UV resolves
+aristotlelib via the local pyproject / tool-install and launches it in
+its own env. We DO NOT assume `aristotle` is on PATH directly.
 """
 from __future__ import annotations
 
@@ -25,17 +29,40 @@ from typing import Any
 # or we abort.
 SUBMIT_WAIT_TIMEOUT_S = 30 * 60   # 30 min
 
+# Make sure `uv` itself is findable. Common klone install paths.
+_UV_PATH_EXTRAS = [
+    f"{os.path.expanduser('~')}/.local/bin",
+    f"{os.path.expanduser('~')}/.cargo/bin",
+]
 
-def _run_cli(args: list[str], stdin_text: str | None = None,
+
+def _env_with_uv() -> dict[str, str]:
+    env = dict(os.environ)
+    existing = env.get("PATH", "")
+    extras = ":".join(p for p in _UV_PATH_EXTRAS if p not in existing)
+    if extras:
+        env["PATH"] = f"{extras}:{existing}"
+    return env
+
+
+def _run_cli(args: list[str], cwd: str | None = None,
+             stdin_text: str | None = None,
              timeout: int | None = None) -> dict[str, Any]:
-    """Run the aristotle CLI. Captures stdout + stderr + duration."""
+    """Run the aristotle CLI via `uv run aristotle ...`.
+
+    cwd matters: `uv run` looks for a pyproject.toml in the cwd hierarchy
+    to resolve aristotlelib. Pass the lean project root (where the user
+    has `uv run aristotle submit ... --project-dir .` working) or
+    omit to use process cwd.
+    """
     t0 = time.time()
     try:
         proc = subprocess.run(
-            ["aristotle", *args],
+            ["uv", "run", "aristotle", *args],
             capture_output=True, text=True,
             timeout=timeout, input=stdin_text,
-            env={**os.environ},
+            env=_env_with_uv(),
+            cwd=cwd,
         )
         ok = proc.returncode == 0
         return {
@@ -56,29 +83,39 @@ def aristotle_submit(prompt: str, project_dir: str, destination: str,
                      wait: bool = True) -> dict[str, Any]:
     """Submit the lean project at `project_dir`. If wait=True, blocks
     until completion and writes the filled-in source to `destination`.
+
+    Run with cwd=project_dir so `uv run` resolves the right env.
     """
     Path(destination).mkdir(parents=True, exist_ok=True)
-    args = ["submit", prompt, "--project-dir", project_dir, "--destination", destination]
+    # When invoked from inside project_dir we can pass "." for the
+    # --project-dir flag (matches the documented "uv run aristotle
+    # submit ... --project-dir ." pattern) and an absolute path for
+    # --destination.
+    args = ["submit", prompt, "--project-dir", ".", "--destination", destination]
     if wait:
         args.append("--wait")
-    r = _run_cli(args, timeout=SUBMIT_WAIT_TIMEOUT_S if wait else 120)
+    r = _run_cli(args, cwd=project_dir,
+                 timeout=SUBMIT_WAIT_TIMEOUT_S if wait else 120)
     r["tool"] = "aristotle_submit"
     r["project_id"] = _extract_project_id(r.get("stdout", ""))
     r["status"] = _extract_status(r.get("stdout", ""))
     return r
 
 
-def aristotle_ask(project_id: str, prompt: str) -> dict[str, Any]:
+def aristotle_ask(project_id: str, prompt: str,
+                  cwd: str | None = None) -> dict[str, Any]:
     """Send a follow-up instruction to an existing project."""
-    r = _run_cli(["ask", project_id, prompt], timeout=120)
+    r = _run_cli(["ask", project_id, prompt], cwd=cwd, timeout=120)
     r["tool"] = "aristotle_ask"
     r["project_id"] = project_id
     return r
 
 
-def aristotle_show(project_id: str, limit: int = 10) -> dict[str, Any]:
+def aristotle_show(project_id: str, limit: int = 10,
+                   cwd: str | None = None) -> dict[str, Any]:
     """Pull recent events / status for a project."""
-    r = _run_cli(["show", project_id, "--limit", str(limit)], timeout=60)
+    r = _run_cli(["show", project_id, "--limit", str(limit)],
+                 cwd=cwd, timeout=60)
     r["tool"] = "aristotle_show"
     r["project_id"] = project_id
     r["status"] = _extract_status(r.get("stdout", ""))

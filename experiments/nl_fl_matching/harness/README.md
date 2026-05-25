@@ -47,15 +47,24 @@ first runs land and tighten from there.
 ## Pre-run setup
 
 ```bash
-# 1. Env vars (.env in repo root)
-export ARISTOTLE_API_KEY=...    # from Aristotle dashboard
-export ANTHROPIC_API_KEY=...    # from Anthropic console
+# 1. Env vars in TheoremSearch/.env (gitignored)
+#    ARISTOTLE_API_KEY=...    # from aristotle.harmonic.fun dashboard
+#    BEDROCK_API_KEY=...      # AWS Bedrock bearer token; already populated
+#    AWS_REGION=us-west-2     # already populated
+# (The subagent uses Bedrock-hosted Claude — no ANTHROPIC_API_KEY needed.)
+# Override the Bedrock model ID via SUBAGENT_MODEL env var; defaults to
+# the latest Sonnet on Bedrock (us.anthropic.claude-sonnet-4-5-20250929-v1:0).
 
-# 2. Install
-python3 -m pip install --user aristotlelib anthropic
-export PATH=$HOME/.local/bin:$PATH
+# 2. Install aristotle via uv tool (matches Harmonic's recommendation;
+#    see https://aristotle.harmonic.fun/dashboard/docs)
+uv tool install aristotlelib
+# Invocation pattern is `uv run aristotle ...`. tools.py does this for
+# you and runs with cwd=project_dir so uv finds aristotlelib correctly.
 
-# 3. Warm the brownian-motion build cache (once; takes ~30 min first time)
+# 3. Anthropic SDK for the subagent
+python3 -m pip install --user anthropic    # OR: uv add anthropic in a pyproject
+
+# 4. Warm the brownian-motion build cache (once; takes ~30 min first time)
 cd /tmp/simku22/repos/brownian-motion
 lake build
 ```

@@ -31,10 +31,18 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 
-# Lazy import so users without anthropic SDK installed still see the
-# helpful error message instead of an obscure stack trace.
+# Load TheoremSearch/.env so BEDROCK_API_KEY / AWS_REGION pick up the
+# repo-managed values without the operator having to `export` them.
 try:
-    from anthropic import Anthropic
+    import dotenv
+    dotenv.load_dotenv(REPO_ROOT / ".env")
+except ImportError:
+    pass  # dotenv is optional; falls back to plain os.environ
+
+# Use AWS Bedrock as the Claude backend (no separate ANTHROPIC_API_KEY
+# required; BEDROCK_API_KEY in .env is sufficient).
+try:
+    from anthropic import AnthropicBedrock
 except ImportError as e:
     print("ERROR: anthropic SDK not installed. `pip install --user anthropic`.",
           file=sys.stderr)
@@ -48,7 +56,15 @@ from experiments.nl_fl_matching.harness import tools  # noqa: E402
 MAX_ARISTOTLE_SUBMITS = 2
 MAX_ARISTOTLE_ASKS = 1
 MAX_TURNS = 25            # claude turns; safety cap to prevent loops
-SUBAGENT_MODEL = "claude-sonnet-4-6"  # cheaper than Opus for the agent loop
+
+# Bedrock model ID. Override via SUBAGENT_MODEL env var if you want a
+# different snapshot. Bedrock IDs of the form
+# us.anthropic.claude-<family>-<rev>-<date>-v1:0 (the `us.` prefix
+# enables cross-region inference profiles).
+SUBAGENT_MODEL = os.environ.get(
+    "SUBAGENT_MODEL",
+    "us.anthropic.claude-sonnet-4-5-20250929-v1:0",  # latest Sonnet on Bedrock as of 2026-05; bump when 4.6/4.7 land
+)
 MAX_TOKENS_PER_TURN = 4000
 
 # === tool schema for the model ===
@@ -179,7 +195,13 @@ def run(*, candidate_label: str, arm: str, target_path: Path,
     initial_source = target_path.read_text()
     sorry_count_initial = initial_source.count("sorry")
 
-    client = Anthropic()  # picks up ANTHROPIC_API_KEY from env
+    # AnthropicBedrock picks up:
+    #   - bearer token from AWS_BEARER_TOKEN_BEDROCK env var
+    #     (we set this below from BEDROCK_API_KEY for compatibility)
+    #   - region from AWS_REGION env var
+    if "AWS_BEARER_TOKEN_BEDROCK" not in os.environ and "BEDROCK_API_KEY" in os.environ:
+        os.environ["AWS_BEARER_TOKEN_BEDROCK"] = os.environ["BEDROCK_API_KEY"]
+    client = AnthropicBedrock(aws_region=os.environ.get("AWS_REGION", "us-west-2"))
 
     system_prompt = SYSTEM_PROMPT.format(
         MAX_SUBMITS=MAX_ARISTOTLE_SUBMITS,
