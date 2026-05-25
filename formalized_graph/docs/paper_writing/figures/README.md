@@ -37,6 +37,8 @@ data without rerunning everything.
 | `anchor_neighborhood` | TikZ | **§11 micro view** — one anchor + k=1 neighbors, dual-plane theme | [`src/anchor_neighborhood.tex`](./src/anchor_neighborhood.tex) |
 | `anchor_neighborhood_mpl` | matplotlib | matplotlib fallback for the above (when no TeX toolchain available) | [`src/anchor_neighborhood.py`](./src/anchor_neighborhood.py) |
 | `candidate_in_context` | mplot3d | **§11 macro view** — two-panel 3D, gold candidate spotlit against faded corpus, k=1 reach vs k=2 reach | [`src/candidate_in_context.py`](./src/candidate_in_context.py) |
+| `emb_vs_lexical_scatter` | matplotlib | **embedding vs lexical baseline** — emb-cos vs char-4gram Jaccard for f$\to$i rank-1 gold pairs ($\rho{=}0.66$, $n{=}500$), colored by bidirectional agreement bucket; shows non-lexical signal in off-diagonal mass | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
+| `ecosystem_overview` | matplotlib | **§1 / teaser** — Mathlib at center, 24 Lean project repos as a ring; area = stmt count (exp=0.42), overlap with Mathlib = fraction of decls citing Mathlib, opacity = NL-graph mutual-rank-1 link strength | [`src/ecosystem_overview.py`](./src/ecosystem_overview.py) |
 
 Pattern these. The shared palette, plane semantics, status encoding,
 and labeling conventions are in [`../figure_style.md`](../figure_style.md)
