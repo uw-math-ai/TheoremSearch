@@ -144,10 +144,15 @@ gets. Observed failure modes:
 
 ## What we did NOT run (deferred)
 
-- (E) f→f same-formality nearest-neighbour (exclude self / exclude paper)
-- (F) i→i same-formality nearest-neighbour
+- (E) f→f same-formality nearest-neighbour: **DONE 2026-05-24** with
+  cross-project (`exclusion='paper'`) constraint. See
+  [`cross_project_twins.md`](./cross_project_twins.md) — 1,391 twins at
+  sim ≥ 0.85, two repo-pairs (Sphere-Packing-Lean ↔ sphere-packing-math-inc,
+  add-combi ↔ apap) account for 68% of high-sim matches.
+- (F) i→i same-formality nearest-neighbour: deferred — 11.7M × 11.7M
+  is too expensive for the current deadline.
 - (G) random sample of 5k non-gold formals to characterize the distribution
-  outside the blueprint subset
+  outside the blueprint subset: deferred.
 
 All three were scoped as P2 in the deadline plan; the headline result
 (Hit@k + MRR table + agreement + correlation) is complete without them.

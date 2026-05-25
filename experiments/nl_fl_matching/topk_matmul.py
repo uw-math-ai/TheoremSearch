@@ -190,3 +190,65 @@ def embedding_topk_matmul(
             if np.isfinite(sims[i])
         ]
     cur.close()
+
+
+def embedding_topk_self_matmul(
+    pool: CandidatePool,
+    *,
+    k: int = 10,
+    exclusion: str = "statement",
+    chunk: int = 1024,
+    show_progress: bool = True,
+) -> Iterator[List[TopKResult]]:
+    """All-pairs top-K within a pool (queries == candidates).
+
+    Avoids per-query RDS round-trips by treating pool.matrix as both sides
+    of the dot product. Computes similarity in chunks of `chunk` rows to
+    keep peak memory at chunk × N × 4 bytes (≈150 MB for chunk=1024, N=36k).
+
+    exclusion='statement': mask only the query's own row.
+    exclusion='paper':     mask every candidate from the same paper_id as
+                           the query (cross-paper / cross-project NN).
+    """
+    if exclusion not in {"statement", "paper"}:
+        raise ValueError(f"exclusion must be 'statement' or 'paper', got {exclusion!r}")
+
+    n = pool.matrix.shape[0]
+    pool_paper_arr = np.array(pool.paper_ids)
+    sids = pool.statement_ids
+    pids = pool.paper_ids
+
+    it = tqdm(range(0, n, chunk), unit="chunk", disable=not show_progress)
+    for start in it:
+        end = min(start + chunk, n)
+        sims = pool.matrix[start:end] @ pool.matrix.T  # (chunk, N)
+
+        # Mask self-row (always).
+        for local, i in enumerate(range(start, end)):
+            sims[local, i] = -np.inf
+
+        if exclusion == "paper":
+            # For each query in this chunk, mask all rows with matching paper_id.
+            chunk_pids = pool_paper_arr[start:end]
+            for local, qpid in enumerate(chunk_pids):
+                mask = pool_paper_arr == qpid
+                sims[local, mask] = -np.inf
+
+        for local, i in enumerate(range(start, end)):
+            row = sims[local]
+            if k >= n:
+                order = np.argsort(-row)
+            else:
+                cand = np.argpartition(-row, k)[:k]
+                order = cand[np.argsort(-row[cand])]
+            yield [
+                TopKResult(
+                    query_statement_id=sids[i],
+                    rank=rank,
+                    candidate_statement_id=sids[j],
+                    candidate_paper_id=pids[j],
+                    similarity=float(row[j]),
+                )
+                for rank, j in enumerate(order, 1)
+                if np.isfinite(row[j])
+            ]
