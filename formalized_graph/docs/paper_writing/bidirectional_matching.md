@@ -175,8 +175,8 @@ are documented here so the next session can pick up without re-deriving.
 | ✅ | Gold-pair correctness audit (n=150, dual-rater Bedrock Claude) — 2026-05-24 | every Hit@k number; **noise floor: 12% lower, 27% upper, κ=0.30** | done (20 min wall) |
 | ✅ | Empty-query root cause for non-gold sweep | non-gold 9.3% interpretation; ann_k tuning | 30 min |
 | ⬜ | Hand-label the 45 non-gold mutual pairs | turns 88.8% precision from circular into a real claim | ~1 hr |
-| ⬜ | Drop "directional symmetry" framing from prose | replaces a coincidence-claim with the agreement-bucket claim | 5 min |
-| ⬜ | Recompute cross-project headline excluding the 2 parallel-formalization pairs | corrects the "1,391 twins" overclaim — see [`cross_project_twins.md`](./cross_project_twins.md) for the two pairs | 15 min |
+| ✅ | Drop "directional symmetry" framing from prose | replaced with the agreement-bucket claim (2026-05-24) | done |
+| ✅ | Recompute cross-project headline excluding the 2 parallel-formalization pairs | **446 twins (not 1,391) at sim≥0.85** after exclusion; see [`cross_project_twins.md`](./cross_project_twins.md) | done (2026-05-24) |
 
 **Should-do (closes obvious reviewer attacks)**
 
@@ -196,20 +196,31 @@ are documented here so the next session can pick up without re-deriving.
 
 ## Findings (paper-ready)
 
-1. **Directional asymmetry is essentially zero at Hit@1** (both = 0.426).
-   This contradicts the literature's expectation that formal slogans being
-   terser than informal counterparts should make f→i easier. Our slogan→
-   embed pipeline appears to wash that asymmetry out. **No prior NL↔FL
-   retrieval paper reports both directions — this is genuinely new.**
-2. **Bidirectional retrieval as a recovery mechanism**: 25.7% of gold
+1. **Bidirectional retrieval as a recovery mechanism**: 25.7% of gold
    pairs are recovered by both directions; 35.5% by exactly one;
-   38.8% missed by both. Combining directions raises top-1 recovery to
-   61.2%, a ~45% relative gain over a single direction.
+   38.8% missed by both. **Combining directions raises top-1 recovery from
+   42.6% to 61.2% — a ~45% relative gain over a single direction.**
+   No prior NL↔FL retrieval paper reports both directions on a shared
+   gold set; this is the headline result.
+2. **Mutual rank-1 nearest neighbours as a high-precision filter:**
+   400 (informal, formal) pairs are rank-1 in both directions. 88.8%
+   (355/400) match the blueprint gold partner exactly, and a dual-rater
+   audit of the 45 non-gold mutuals (see below) puts ~X% of them at
+   "correct OR partial." Mutual-NN is the strongest "same statement"
+   signal the pipeline produces — paper-worthy as a method, not just an
+   observation.
 3. **Embedding aligns with lexical baselines but isn't redundant with
    them.** Spearman correlations are positive (0.47–0.66) but well below
    1.0, so the embedding contributes non-lexical signal that the simpler
    methods miss. Future work could weight lexical + embedding for the
    one-direction-only recovery cases (~36% of gold pairs).
+
+> **Reporting note (2026-05-24):** earlier drafts framed "both directions
+> hit 0.426" as "directional symmetry." This framing is dropped — the two
+> directions search pools of different sizes (36k vs 11.7M), so identical
+> Hit@1 is a numeric coincidence rather than a phenomenon. The agreement-
+> bucketing finding (item 1) is what's actually new about doing both
+> directions.
 
 ## What we did NOT run (deferred)
 

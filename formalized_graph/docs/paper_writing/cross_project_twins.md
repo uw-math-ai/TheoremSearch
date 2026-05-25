@@ -18,17 +18,36 @@ Data: `experiments/nl_fl_matching/data/ff_cross_project_*`.
 
 ## Headline numbers
 
-| threshold | rank-1 twins | share of project formals |
+**All cross-project rank-1 matches (raw):**
+
+| threshold | twins | share |
 |---|---:|---:|
 | sim ≥ 0.95 | 131 | 0.4% |
-| sim ≥ 0.90 | 572 | 1.6% |
 | sim ≥ 0.85 | 1,391 | 3.8% |
 | sim ≥ 0.80 | 3,042 | 8.3% |
-| sim ≥ 0.70 | 12,710 | 34.6% |
+
+**Corrected — excluding the two parallel-formalization repo-pairs**
+(Sphere-Packing-Lean ↔ sphere-packing-math-inc; add-combi ↔ apap; the
+latter is independent additive-combinatorics work, not a fork):
+
+| threshold | twins | share |
+|---|---:|---:|
+| sim ≥ 0.95 | **14** | **0.04%** |
+| sim ≥ 0.85 | **446** | **1.3%** |
+| sim ≥ 0.80 | 1,502 | 4.5% |
+
+The two parallel-formalization repo-pairs contribute **945/1,391 (68%)** of
+high-sim twins, including **117/131 (89%) of the sim ≥ 0.95 matches**.
+Within those pair-pools, 28.3% of rank-1 candidates are at sim ≥ 0.85 —
+versus 1.3% for the rest of the corpus. **Headline cross-project
+"discovery" finding is 446 twins at sim ≥ 0.85, not 1,391.**
 
 **Interpretation:** at ≥0.95 a twin is essentially the same theorem written
 in two repos; at ≥0.85 it's the same statement with minor variation
-(`f`/`f'` decls, generalization of typeclass, naming variant).
+(`f`/`f'` decls, generalization of typeclass, naming variant). The raw
+1,391 count is inflated by the two known parallel-formalization corpora;
+the corrected 446 represents independent re-formalizations across
+genuinely distinct projects.
 
 ## Top cross-project pairs (twins at sim ≥ 0.85)
 
