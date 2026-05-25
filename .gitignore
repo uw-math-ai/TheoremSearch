@@ -80,3 +80,8 @@ formalized_graph/docs/paper_writing/leansearch_v2_external/
 
 # Allow curated NL↔FL matching CSVs (small) but exclude the giant raw JSONL.
 !experiments/nl_fl_matching/data/*.csv
+
+# Aristotle harness — keep code + per-candidate .lean targets, but JSONL
+# trajectories and digest files stay local (they can contain raw
+# Aristotle output and Claude prompts).
+experiments/nl_fl_matching/harness/runs/

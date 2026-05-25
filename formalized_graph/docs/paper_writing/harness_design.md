@@ -161,7 +161,55 @@ end PFR
 Trivial. Both arms should succeed instantly. If either fails, the
 harness has a bug.
 
-## Aristotle wiring
+## Agent-driven harness (revised 2026-05-24)
+
+The original design (one-shot `aristotle submit` per arm, recorded as
+pass/fail) has been superseded by a **subagent-driven** harness. For each
+(candidate, arm), a Claude subagent (`claude-sonnet-4-6`) drives the
+proof via a tool-use loop:
+
+```
+   read_target_file → [optional] lean_typecheck → aristotle_submit
+       ↓ (if PARTIAL/FAILED)
+   write_target_file (adjust hint) OR aristotle_ask → aristotle_submit
+       ↓
+   report_final (status + summary)
+```
+
+The full conversation — every tool call, every tool result, every
+Aristotle stdout line — is appended to a JSONL trajectory file. **The
+trajectory is the experimental data**, not just the binary pass/fail.
+
+**Code lives at `experiments/nl_fl_matching/harness/`:**
+- `subagent.py` — the per-arm agent loop (Anthropic SDK)
+- `orchestrator.py` — sweeps the agent across (candidate, arm) pairs
+- `tools.py` — Python wrappers around the aristotle CLI + local file IO
+- `promote.py` — post-run: filter "good" trajectories and write digests to RDS `prover_run`
+- `prover_run_schema.sql` — RDS DDL for the results table
+
+**Per-(candidate, arm) budget enforced in `subagent.py`:**
+- `MAX_ARISTOTLE_SUBMITS = 2`
+- `MAX_ARISTOTLE_ASKS = 1`
+- `MAX_TURNS = 25` (Claude turns; safety cap against loops)
+
+The Aristotle CLI itself exposes no client-side cost / time / iteration
+caps — we'll measure empirically and tighten if needed.
+
+**Why subagent-driven, not one-shot:**
+- Captures *trajectory* as data — premise picks, hint adjustments,
+  retry counts — not just terminal status.
+- Validates the actual "Claude prompts Aristotle" production pattern
+  recommended by Harmonic.
+- Lets the same harness scale from 3 smoke-test candidates to all 326
+  in `candidate_attributes` without human intervention.
+
+The "no_graph vs with_graph" comparison stays clean because the only
+input that differs between arms is the staged `.lean` file. The agent
+loop, system prompt, budget, and tool set are identical. Don't try to
+make the agent "help" the with-graph arm by injecting extra premises
+mid-loop — the premise pack is fixed at staging time.
+
+## Aristotle wiring (CLI surface — for reference)
 
 Hosted prover at `aristotle.harmonic.fun`. Public docs sit behind Auth0;
 the design below is grounded in `aristotlelib` 2.0.0 (PyPI 2026-05-14),
