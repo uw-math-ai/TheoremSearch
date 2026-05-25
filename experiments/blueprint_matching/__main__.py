@@ -12,6 +12,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import datetime
 import time
 from pathlib import Path
 
@@ -22,7 +23,11 @@ from ._shared import MatchedPools, compute_similarities
 from .data import build_ground_truth, fetch_formal, fetch_informal
 
 
-OUT_DIR = Path(__file__).parent
+# Write each run into a date-stamped subdir under ``results/`` so re-runs
+# don't clobber prior outputs. The ``results/**/*.txt`` allowlist in the
+# repo .gitignore preserves these snapshots in git.
+OUT_DIR = (Path(__file__).parent / "results"
+           / datetime.date.today().isoformat())
 
 
 def _load_pools(conn, embedding_model: str) -> MatchedPools:
@@ -87,6 +92,7 @@ def main() -> None:
         (q3, lambda: q3.run(pools)),
         (q4, lambda: q4.run(pools, conn, args.embedding_model, rng_seed=args.q4_seed)),
     ]
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
     for mod, runner in runners:
         print(f"  ▶ {mod.NAME} starting", flush=True)
         t0 = time.perf_counter()

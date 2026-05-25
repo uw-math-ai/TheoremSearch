@@ -1,0 +1,51 @@
+========================================================================
+Q3 — Bidirectional agreement and method consensus
+========================================================================
+
+For each ground-truth (informal I, formal F) pair, take each method's
+top-1 in both directions:
+
+    pred_F_for_I = argmax over formals       of sim[I, :]
+    pred_I_for_F = argmax over informals     of sim[:, F]
+
+…and classify the pair into one of four buckets:
+
+    both_correct   pred_F_for_I = F  and  pred_I_for_F = I
+    if_only        only I → F gets the right partner
+    fi_only        only F → I gets the right partner
+    neither        both directions miss
+
+The first table shows the partition counts per method. High both_correct
+share means the method is confident and bidirectionally consistent.
+
+The second table digs into the embedding's one-way cases: for the
+embedding's `if_only` pairs (I → F got it right, F → I didn't), do the
+text/IR methods recover the correct informal in the F → I direction?
+And conversely for `fi_only`. This tests whether simpler methods can
+serve as a tie-breaker / confidence signal where the embedding is
+asymmetric.
+
+
+Direction-agreement partition per method
+----------------------------------------
+method            both_correct  if_only  fi_only  neither  total  both_pct
+----------------  ------------  -------  -------  -------  -----  --------
+db_embedding_cos  900           276      142      277      1595   0.564   
+char_4gram        536           269      168      622      1595   0.336   
+tfidf_cosine      503           248      201      643      1595   0.315   
+char_3gram        496           269      167      663      1595   0.311   
+jaccard_tokens    478           279      181      657      1595   0.300   
+bm25              371           521      115      588      1595   0.233   
+edit_norm         274           144      102      1075     1595   0.172   
+
+
+Can text methods rescue the embedding's failing direction?
+----------------------------------------------------------
+method          if_only_pool  rescued_fi  fi_only_pool  rescued_if
+--------------  ------------  ----------  ------------  ----------
+tfidf_cosine    276           52          142           48        
+bm25            276           41          142           55        
+char_4gram      276           45          142           43        
+jaccard_tokens  276           44          142           39        
+char_3gram      276           44          142           38        
+edit_norm       276           36          142           18

@@ -1,0 +1,24 @@
+========================================================================
+Q1 — Directional recovery (embedding only)
+========================================================================
+
+For each ground-truth (informal, formal) pair derived from
+`informal_metadata.lean`, we rank the candidate pool by slogan-embedding
+cosine similarity and ask where the correct partner lands.
+
+  informal → formal : for each informal, rank every formal in the matched
+                      pool. Best-rank metrics over the gold formals.
+  formal → informal : the mirror direction. Same ground-truth pairs, but
+                      now we rank informals from each formal's perspective.
+
+This isolates the asymmetry between sides: formal slogans tend to be
+terser than their informal counterparts, so we'd expect formal → informal
+to be the harder direction.
+
+
+Embedding (db_embedding_cos)
+----------------------------
+direction          evaluated  top1   top5   top10  mrr    mean_true  mean_false  gap  
+-----------------  ---------  -----  -----  -----  -----  ---------  ----------  -----
+informal → formal  1308       0.716  0.933  0.968  0.811  0.787      0.143       0.644
+formal → informal  1577       0.652  0.881  0.938  0.754  0.787      0.143       0.644

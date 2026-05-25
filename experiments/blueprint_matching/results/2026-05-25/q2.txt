@@ -1,0 +1,43 @@
+========================================================================
+Q2 — Method comparison across baselines and embeddings
+========================================================================
+
+Same evaluation as Q1, but expanded across the full method suite:
+
+  - String/token:  edit_norm, jaccard_tokens, char_3gram, char_4gram,
+                   difflib_ratio
+  - IR:            tfidf_cosine, bm25
+  - Embedding:     db_embedding_cos (qwen3-8b slogan embeddings)
+
+For each method and direction, we report top-1 / top-5 / top-10 / MRR
+plus the **gap** — the mean similarity on true pairs minus the mean on
+false pairs. The gap matters because it tells you whether a method's
+scores actually separate matches from non-matches in absolute terms —
+the prerequisite for threshold-based use downstream (e.g. the
+`/graph/statement?return=representations` cutoff).
+
+
+informal → formal
+-----------------
+method            evaluated  top1   top5   top10  mrr    mean_true  mean_false  gap  
+----------------  ---------  -----  -----  -----  -----  ---------  ----------  -----
+db_embedding_cos  1308       0.716  0.933  0.968  0.811  0.787      0.143       0.644
+bm25              1308       0.541  0.822  0.890  0.669  0.202      0.031       0.171
+char_4gram        1308       0.490  0.779  0.853  0.619  0.236      0.066       0.170
+char_3gram        1308       0.465  0.756  0.833  0.595  0.317      0.137       0.180
+tfidf_cosine      1308       0.456  0.759  0.856  0.592  0.418      0.080       0.338
+jaccard_tokens    1308       0.455  0.736  0.812  0.582  0.307      0.110       0.197
+edit_norm         1308       0.250  0.424  0.470  0.331  0.332      0.253       0.078
+
+
+formal → informal
+-----------------
+method            evaluated  top1   top5   top10  mrr    mean_true  mean_false  gap  
+----------------  ---------  -----  -----  -----  -----  ---------  ----------  -----
+db_embedding_cos  1577       0.652  0.881  0.938  0.754  0.787      0.143       0.644
+tfidf_cosine      1577       0.441  0.736  0.822  0.571  0.418      0.080       0.338
+char_4gram        1577       0.440  0.705  0.778  0.561  0.236      0.066       0.170
+char_3gram        1577       0.413  0.650  0.727  0.524  0.317      0.137       0.180
+jaccard_tokens    1577       0.410  0.687  0.776  0.537  0.307      0.110       0.197
+bm25              1577       0.304  0.620  0.745  0.447  0.202      0.031       0.171
+edit_norm         1577       0.232  0.389  0.449  0.308  0.332      0.253       0.078
