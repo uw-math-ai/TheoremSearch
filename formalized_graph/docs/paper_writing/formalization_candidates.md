@@ -128,6 +128,89 @@ Concrete smoke-test slate distilled from this pool:
 candidates (A, B, F) selected after grepping the target repos to filter
 out false negatives.
 
+### Candidate attributes table
+
+Per-candidate attributes live in RDS table `candidate_attributes` (one
+row per of the 326 distinct unformalized candidates). Source:
+`experiments/nl_fl_matching/analysis/candidate_attributes.py`. Schema:
+
+| column | meaning |
+|---|---|
+| `math_category` | `text[]`: arXiv categories from `paper.categories`, with a hand-curated fallback for Lean Community blueprint repos (e.g. brownian-motion → `math.PR`). |
+| `distance_undirected` | Shortest UNDIRECTED hop count on the informal-dependency graph to any interface node. |
+| `distance_prereq_to_cons` | The colleague's ν_A: shortest DIRECTED hops starting at interface, traversing prerequisite → consequence (in our DB: edge `dep_id → src_id`). Tells you how many consequence-levels above the formalized foundation a candidate sits. |
+| `distance_cite_to_dep` | Shortest DIRECTED hops the other way: interface → prerequisite chain (in our DB: edge `src_id → dep_id`). Tells you whether following the candidate's citation chain down reaches a formalized base. |
+| `nearest_interface_id` | The interface node that achieved `distance_undirected`. |
+| `nearest_interface_kind` | `'resolved_annotation'` \| `'gold_unresolved'` \| `'embedding_match'`. |
+| `true_inference` | `True` if `nearest_interface_kind` is one of the gold variants (annotation-based); `False` if it's an embedding match. |
+| `pass_rate`, `attempts_to_pass`, `sorry_trajectory` | NULL placeholders; populated when Aristotle runs land. See [`harness_design.md`](./harness_design.md). |
+| `max_hops` | BFS cap (default 5). |
+
+**Interface set** (union of 3 sources, priority resolved > gold_unresolved > embedding_match):
+
+| source | count | what it is |
+|---|---:|---|
+| `resolved_annotation` | 1,308 | informals whose `\lean{...}` resolves to an existing `formal_metadata.decl_name` |
+| `gold_unresolved` | 347 | informals with `\lean{...}` populated but not resolving (upstream/rename/aspirational) |
+| `embedding_match` | 0 | informals appearing as rank-1 pilot queries at sim ≥ 0.85, excluding the above. **Empty under current pool** because the pilot was restricted to gold-pool queries. Will populate when the sweep is extended past gold. |
+
+**Headline distributions (2026-05-24, n=326):**
+
+| | dist=0 | dist=1 | dist=2 | dist=3+ | unreachable |
+|---|---:|---:|---:|---:|---:|
+| `distance_undirected` | 34 (10.4%) | 231 (70.9%) | 61 (18.7%) | 0 | 0 |
+| `distance_prereq_to_cons` (ν_A) | 34 (10.4%) | 210 (64.4%) | 54 (16.6%) | 4 (1.2%) | **24 (7.4%)** |
+| `distance_cite_to_dep` | 34 (10.4%) | 78 (23.9%) | 24 (7.4%) | 30 (9.2%) | **160 (49.1%)** |
+
+**Reading the directed distances:**
+- ν_A unreachable (24 candidates) = no formalized prerequisite within 5 hops up the consequence chain. These are "isolated upstream" candidates — the prover has nothing to bootstrap from on the prereq side.
+- `cite_to_dep` unreachable (160) = the candidate's citation chain doesn't lead down to a formalized base. Many candidates ARE the foundational definitions, so this is expected.
+
+**Nearest interface kind:**
+- `resolved_annotation`: 274 (84.0%) — ground-truth interface link
+- `gold_unresolved`: 52 (16.0%) — interface is a blueprint annotation that doesn't resolve (so we're banking on the author's intent, not a verified Lean decl)
+
+**Math category (top, candidate-deduped):**
+| category | n |
+|---|---:|
+| `math.PR` (probability) | 155 |
+| `math.NT` (number theory) | 70 |
+| `math.MG` (metric geometry) | 46 |
+| `math.AG` (algebraic geometry) | 36 |
+| `math.CO` (combinatorics) | 22 |
+| `cs.CC` | 5 |
+| `math.CA` | 2 |
+| `math.GT` | 1 |
+
+**Per-anchor-repo breakdown of unformalized neighbors (top 5; candidate-instances not deduped — most candidates appear in multiple anchor neighborhoods):**
+
+| repo | dist=1 (undirected) | dist=2 |
+|---|---:|---:|
+| `RemyDegenne/brownian-motion` | 1,198 | 48 |
+| `thefundamentaltheor3m/Sphere-Packing-Lean` | 183 | 4 |
+| `YaelDillies/toric` | 157 | 22 |
+| `kbuzzard/ClassFieldTheory` | 147 | 15 |
+| `teorth/pfr` | 63 | 0 |
+
+Reproduce / extend:
+```bash
+RDS_HOST=theorem-search.cluster-cx0ei6kq0qcn.us-west-2.rds.amazonaws.com \
+    python3 -m experiments.nl_fl_matching.analysis.candidate_attributes
+```
+Bump `MAX_HOPS` for longer paths (caps the RDS column; default 5).
+Bump `EMBEDDING_MATCH_SIM_THRESHOLD` to broaden/tighten the
+embedding-derived interface contribution.
+
+**Formal definition** (from a teammate's note, 2026-05-24): given
+informal DAG $G_A$ and formal DAG $G_B$ with bidirectional connections
+between some nodes, the *interface set* $I_A \subseteq V_A$ is the
+set of $A$-nodes connected to any $B$-node, and
+$\nu_A(v) = \min_{i \in I_A} d_A(i, v)$
+where $d_A$ is shortest directed-path length in $A$. Our
+`distance_prereq_to_cons` realizes this with $d_A$ = path length
+following prereq→consequence edges (orienting $A$ so that a node's
+predecessors are its prerequisites).
+
 ## Caveats for the next agent
 
 1. **Slogans, not raw text.** Embeddings were computed on LLM-generated

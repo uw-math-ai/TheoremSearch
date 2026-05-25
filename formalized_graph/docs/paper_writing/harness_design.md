@@ -163,19 +163,61 @@ harness has a bug.
 
 ## Aristotle wiring
 
-We don't run Aristotle locally — it's a hosted prover at
-`aristotle.harmonic.fun`. Two access patterns:
+Hosted prover at `aristotle.harmonic.fun`. Public docs sit behind Auth0;
+the design below is grounded in `aristotlelib` 2.0.0 (PyPI 2026-05-14),
+the [`septract/lean-aristotle-mcp`](https://github.com/septract/lean-aristotle-mcp)
+community server, the [Aristotle paper](https://arxiv.org/html/2510.01346v1),
+and the [harmonic-ai/IMO2025](https://github.com/harmonic-ai/IMO2025) repo.
 
-1. **MCP server** ([`septract/lean-aristotle-mcp`](https://github.com/septract/lean-aristotle-mcp)).
-   Submit a `.lean` file with `sorry`s; Aristotle returns the same file
-   with `sorry`s replaced (or failure). Lets us inject arbitrary
-   imports/lemmas — fits our harness directly.
-2. **Direct API.** Same payload shape, just no MCP wrapper.
+**Two surfaces, both used:**
 
-Either way, each candidate gets:
-- 1 attempt per arm at a fixed compute budget (start with the API's
-  default; record wall-time + token usage).
+1. **MCP server** for Claude-orchestrated runs. `claude mcp add aristotle …`
+   exposes 6 tools (`prove`, `prove_file`, `formalize`, `check_*`). Good
+   for the per-candidate orchestration loop.
+2. **`aristotlelib` CLI** (`aristotle submit "Fill the sorry" --project-dir <path> --wait`)
+   for **non-Mathlib Lake projects** — our target imports `BrownianMotion.*`,
+   and MCP `prove_file` doesn't accept an external `--project-dir`. The CLI
+   does. Claude can shell out to it.
+
+**Submission model — important constraints:**
+
+- Aristotle attacks **every `sorry`** in the submitted file. So the target
+  must live in a minimal file with exactly one `sorry`. Our `no_graph.lean`
+  / `with_graph.lean` already meet this.
+- The status enum is `queued | in_progress | proved | partial | failed | error`.
+  `partial` means some sorries closed — relevant if we ever submit a
+  sketch with intermediate `have … := by sorry` lemmas.
+- **No premise-list API exists.** `context_files` (extra Lean files made
+  available as imports) and a free-text `hint` string are the only structured
+  channels. The `example := @decl` lines in `with_graph.lean` are the
+  right pattern — confirmed by §2.2.1 of the paper, which notes the
+  proof-search model benefits from background results placed in the
+  initial code block.
+- **Auth:** `ARISTOTLE_API_KEY` env var, generated in Dashboard → API Keys.
+- **Latency:** "few minutes to several hours" per job. MCP server warns
+  against tight polling — use `wait=False` + `check_prove_file` on a
+  slow cadence.
+
+**Per-candidate plan:**
+- 1 attempt per arm at the API's default budget (record wall-time, status,
+  returned source).
 - 3 repetitions per (candidate, arm) to estimate run-to-run variance.
+
+## Toolchain risk
+
+Our targets pin `leanprover/lean4:v4.29.0`. Harmonic's most recent public
+artifact (IMO2025) is on `v4.20.0-rc5` — ~9 minor releases behind. The
+proof-search models are trained on tactic surface as of mid-2025;
+expect possible tactic-drift on `v4.29.0`.
+
+**Mitigations, in order:**
+1. Just try v4.29.0 first. May work fine; tactic surface hasn't churned
+   that hard.
+2. If results look noisy, stand up a parallel v4.20.x sandbox (downgrade
+   the brownian-motion checkout — `git checkout` an earlier tag) and run
+   candidate A there to A/B the toolchain effect.
+3. The MCP server instructions explicitly require `import Mathlib.Tactic`
+   at the top of the file — added to both arms in our `.lean` files.
 
 ## Success metrics
 
@@ -221,8 +263,34 @@ Cheap. Run it.
 
 ## Files to create when running
 
-- `experiments/nl_fl_matching/harness/A_martingale_iff_classDL/{no_graph,with_graph}.lean`
+- `experiments/nl_fl_matching/harness/A_martingale_iff_classDL/{no_graph,with_graph}.lean` ✅ landed.
 - `experiments/nl_fl_matching/harness/B_submartingale_iff_classDL/{no_graph,with_graph}.lean`
 - `experiments/nl_fl_matching/harness/F_eta_def/{no_graph,with_graph}.lean`
 - `experiments/nl_fl_matching/harness/run_aristotle.py` — orchestrator that submits each file, records results to RDS table `prover_run` (DDL TBD).
 - `experiments/nl_fl_matching/harness/results.md` — human-readable summary after the run.
+
+## Operator setup (one-time)
+
+```bash
+# 1. API key
+export ARISTOTLE_API_KEY=…   # from Dashboard → API Keys
+
+# 2. CLI sanity check
+uvx --from aristotlelib@latest aristotle --version
+
+# 3. MCP wiring for Claude
+claude mcp add aristotle \
+    -e ARISTOTLE_API_KEY=$ARISTOTLE_API_KEY \
+    -- uvx --from git+https://github.com/septract/lean-aristotle-mcp aristotle-mcp
+claude mcp list   # confirm aristotle is registered
+
+# 4. Warm the brownian-motion build cache (once)
+cd /tmp/simku22/repos/brownian-motion
+lake build
+```
+
+For the v4.20 compatibility sandbox (if needed):
+```bash
+git -C /tmp/simku22/repos/brownian-motion checkout <earlier-v4.20-tag>
+lake build
+```

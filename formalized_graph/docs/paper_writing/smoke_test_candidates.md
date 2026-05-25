@@ -43,6 +43,33 @@ per-anchor neighborhood walk documented there.
 | **B** | `RemyDegenne/brownian-motion` | `lem:IsLocalSubmartingale.submartingale_iff_classDL_of_nonnegative` (`5cfea075`) | `lemma` | 16 resolved | ✅ same as A; companion statement |
 | **F** | `teorth/pfr` | `eta-def` (`3be0d32c`) | `definition` | 8 resolved | ✅ never bound to a `def` in `PFR/**/*.lean` — pfr hardcodes `p.η = 1/9` as a hypothesis instead. Useful as a trivial control. |
 
+**Candidate attributes** (from RDS table `candidate_attributes`):
+
+| | math_category | dist_undirected | dist_prereq→cons (ν_A) | dist_cite→dep | nearest_kind | true_inference |
+|---|---|---:|---:|---:|---|---|
+| A | `math.PR` | 1 | **1** | NULL | `resolved_annotation` | ✅ |
+| B | `math.PR` | 1 | **1** | NULL | `resolved_annotation` | ✅ |
+| F | `math.CO, math.PR` | 1 | NULL | **1** | `resolved_annotation` | ✅ |
+
+All three are at undirected distance 1 (as designed). But notice the
+directed-distance asymmetry:
+- **A and B** are "consequence candidates": formalized prerequisites
+  exist one hop UP (ν_A = 1), but no formalized consequence cites them.
+  The prover's job is to compose formalized building blocks.
+- **F (`eta := 1/9`)** is a "prerequisite candidate": no formalized
+  prerequisite exists (F is a leaf definition with no `\uses`), but
+  formalized consequences DO cite it (the pfr proofs assume `p.η = 1/9`).
+  The prover's job is to introduce the definition that downstream Lean
+  code already expects.
+
+This is a useful distinction for the harness: A and B benefit most from
+a premise pack of upstream-formalized lemmas; F benefits from showing
+the prover what downstream consumers expect of the symbol.
+
+See [`formalization_candidates.md` §Candidate attributes table](./formalization_candidates.md#candidate-attributes-table)
+for the full schema, BFS source-set composition, and distribution
+across the 326-candidate pool.
+
 ### A — `IsLocalMartingale.martingale_iff_classDL`
 
 > A local martingale is a cadlag martingale if and only if it is of class DL.
