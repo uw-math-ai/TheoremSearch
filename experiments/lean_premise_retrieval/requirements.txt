@@ -1,0 +1,12 @@
+# Local pipeline (retrieval, supervised head, scoring, typecheck driver)
+numpy
+torch            # CPU build is sufficient locally: --index-url https://download.pytorch.org/whl/cpu
+python-dotenv
+boto3
+psycopg2-binary
+anthropic        # formalizer + judge drivers (run_formalize_experiment.py, judge_correctness.py)
+
+# Used on the GPU host (klone/L40S) inside the vLLM apptainer image, which already
+# ships these — listed here for completeness:
+# transformers>=4.57
+# huggingface_hub

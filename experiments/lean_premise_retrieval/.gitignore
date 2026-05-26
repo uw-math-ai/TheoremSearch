@@ -1,0 +1,12 @@
+# Large regenerable artifacts — see scripts/build_formal_index.py + train_supervised_full.py
+# to rebuild from RDS v2 + a GPU run. Tracked in this .gitignore so the repo
+# stays small while the local cache stays present for reproduction.
+cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Local env (the README ships only .env.example)
+.env
