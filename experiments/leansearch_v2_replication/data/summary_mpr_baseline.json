@@ -1,0 +1,35 @@
+{
+  "tag": "mpr_baseline",
+  "n_entries": 69,
+  "top_k": 10,
+  "group_recall@10": 0.19038992408557626,
+  "covered@10": 0.08695652173913043,
+  "group_level": {
+    "total": 204,
+    "hit": 30,
+    "rate": 0.14705882352941177,
+    "original": {
+      "n": 171,
+      "hit": 28,
+      "rate": 0.16374269005847952
+    },
+    "alternative": {
+      "n": 33,
+      "hit": 2,
+      "rate": 0.06060606060606061
+    }
+  },
+  "lsv2_baselines": {
+    "lsv2_reasoning": 0.461,
+    "diver": 0.38,
+    "leanstatesearch": 0.093,
+    "lsv2_covered@10": 0.304
+  },
+  "config": {
+    "dedupe": false,
+    "ann_k": 200,
+    "hybrid_trigram": false,
+    "hyde": "off",
+    "graph_expand": false
+  }
+}

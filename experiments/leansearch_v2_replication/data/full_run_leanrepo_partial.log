@@ -1,0 +1,32 @@
+[init] provider_model=Qwen/Qwen3-Embedding-8B ann_k=200 top_k=10 ef_search=500
+[init] lean_slogan_ids: 388105 rows in 100.7s
+[init] mathlib paper_ids: ['37853e96-153b-48d8-a3a4-43e65abe6af4', 'c82bacc0-c373-420c-a8b9-930a2ac2adaa']
+[init] populated query cells: 946
+[init] corpus coverage: 192/200 (8 missing)
+[  10/946] 11.29s  hits=5  elapsed=168s  eta=15713s
+[  20/946] 6.52s  hits=6  elapsed=270s  eta=12521s
+[  30/946] 11.66s  hits=11  elapsed=325s  eta=9921s
+[  40/946] 3.12s  hits=18  elapsed=374s  eta=8467s
+[  50/946] 2.40s  hits=22  elapsed=409s  eta=7336s
+[  60/946] 4.64s  hits=31  elapsed=468s  eta=6905s
+[  70/946] 2.00s  hits=41  elapsed=509s  eta=6364s
+[  80/946] 11.21s  hits=48  elapsed=1189s  eta=12871s
+[  90/946] 4.90s  hits=53  elapsed=1258s  eta=11965s
+[ 100/946] 3.58s  hits=55  elapsed=1295s  eta=10956s
+[ 110/946] 1.31s  hits=58  elapsed=1335s  eta=10144s
+[ 120/946] 8.83s  hits=65  elapsed=1370s  eta=9431s
+[ 130/946] 2.75s  hits=72  elapsed=1406s  eta=8824s
+[ 140/946] 2.32s  hits=78  elapsed=1428s  eta=8223s
+[ 150/946] 1.32s  hits=88  elapsed=1449s  eta=7688s
+[ 160/946] 1.82s  hits=92  elapsed=1503s  eta=7383s
+[ 170/946] 2.13s  hits=97  elapsed=1542s  eta=7040s
+[ 180/946] 13.97s  hits=100  elapsed=1613s  eta=6866s
+[ 190/946] 5.71s  hits=109  elapsed=1647s  eta=6552s
+[ 200/946] 12.02s  hits=113  elapsed=1762s  eta=6572s
+[ 210/946] 8.51s  hits=118  elapsed=1817s  eta=6368s
+[ 220/946] 5.65s  hits=128  elapsed=1859s  eta=6135s
+[ 230/946] 7.64s  hits=135  elapsed=1962s  eta=6108s
+[ 240/946] 1.36s  hits=135  elapsed=2038s  eta=5994s
+[ 250/946] 6.06s  hits=136  elapsed=2074s  eta=5774s
+[ 260/946] 4.45s  hits=140  elapsed=2109s  eta=5566s
+[ 270/946] 10.21s  hits=143  elapsed=2145s  eta=5370s

@@ -1,0 +1,184 @@
+{
+  "overall": {
+    "full_946": {
+      "n": 30,
+      "recall@10": 0.36666666666666664,
+      "ndcg@10": 0.17244130222586923
+    },
+    "fair_810": {
+      "n": 25,
+      "recall@10": 0.44,
+      "ndcg@10": 0.20692956267104307
+    }
+  },
+  "by_style": {
+    "full_946": {
+      "q1a_lean": {
+        "n": 7,
+        "recall@10": 0.5714285714285714,
+        "ndcg@10": 0.23954542756178784
+      },
+      "q1b_latex": {
+        "n": 6,
+        "recall@10": 0.3333333333333333,
+        "ndcg@10": 0.11194534398229183
+      },
+      "q1c_natural": {
+        "n": 6,
+        "recall@10": 0.16666666666666666,
+        "ndcg@10": 0.050171665943996864
+      },
+      "q2_slogan": {
+        "n": 5,
+        "recall@10": 0.2,
+        "ndcg@10": 0.1261859507142915
+      },
+      "q3_nickname": {
+        "n": 5,
+        "recall@10": 0.6,
+        "ndcg@10": 0.3785578521428745
+      },
+      "q4_special_case": {
+        "n": 1,
+        "recall@10": 0.0,
+        "ndcg@10": 0.0
+      }
+    },
+    "fair_810": {
+      "q1a_lean": {
+        "n": 6,
+        "recall@10": 0.6666666666666666,
+        "ndcg@10": 0.27946966548875246
+      },
+      "q1b_latex": {
+        "n": 5,
+        "recall@10": 0.4,
+        "ndcg@10": 0.1343344127787502
+      },
+      "q1c_natural": {
+        "n": 5,
+        "recall@10": 0.2,
+        "ndcg@10": 0.06020599913279624
+      },
+      "q2_slogan": {
+        "n": 4,
+        "recall@10": 0.25,
+        "ndcg@10": 0.15773243839286438
+      },
+      "q3_nickname": {
+        "n": 4,
+        "recall@10": 0.75,
+        "ndcg@10": 0.47319731517859315
+      },
+      "q4_special_case": {
+        "n": 1,
+        "recall@10": 0.0,
+        "ndcg@10": 0.0
+      }
+    }
+  },
+  "by_difficulty": {
+    "full_946": {
+      "Easy": {
+        "n": 20,
+        "recall@10": 0.45,
+        "ndcg@10": 0.202115465660231
+      },
+      "Hard": {
+        "n": 10,
+        "recall@10": 0.2,
+        "ndcg@10": 0.11309297535714576
+      }
+    },
+    "fair_810": {
+      "Easy": {
+        "n": 20,
+        "recall@10": 0.45,
+        "ndcg@10": 0.202115465660231
+      },
+      "Hard": {
+        "n": 5,
+        "recall@10": 0.4,
+        "ndcg@10": 0.2261859507142915
+      }
+    }
+  },
+  "by_kind": {
+    "full_946": {
+      "class": {
+        "n": 5,
+        "recall@10": 0.6,
+        "ndcg@10": 0.27541423768611584
+      },
+      "def": {
+        "n": 5,
+        "recall@10": 0.4,
+        "ndcg@10": 0.18927892607143726
+      },
+      "structure": {
+        "n": 9,
+        "recall@10": 0.1111111111111111,
+        "ndcg@10": 0.07010330595238418
+      },
+      "theorem": {
+        "n": 11,
+        "recall@10": 0.45454545454545453,
+        "ndcg@10": 0.20171304494698672
+      }
+    },
+    "fair_810": {
+      "class": {
+        "n": 5,
+        "recall@10": 0.6,
+        "ndcg@10": 0.27541423768611584
+      },
+      "def": {
+        "n": 5,
+        "recall@10": 0.4,
+        "ndcg@10": 0.18927892607143726
+      },
+      "structure": {
+        "n": 4,
+        "recall@10": 0.25,
+        "ndcg@10": 0.15773243839286438
+      },
+      "theorem": {
+        "n": 11,
+        "recall@10": 0.45454545454545453,
+        "ndcg@10": 0.20171304494698672
+      }
+    }
+  },
+  "corpus_coverage": {
+    "n_decls_total": 200,
+    "n_decls_present": 192,
+    "n_decls_missing": 8,
+    "missing_full_names": [
+      "CategoryTheory.FundamentalGroupoid",
+      "GCDMonoid.gcd_mul_lcm",
+      "InformationTheory.UniquelyDecodable",
+      "InformationTheory.kraft_mcmillan_inequality",
+      "Nat.RecursiveIn",
+      "ProbabilityTheory.PMF.instFunLike",
+      "Representation.IntertwiningMap.instLinearMapClass",
+      "SimplicialObject.Augmented.ExtraDegeneracy"
+    ]
+  },
+  "config": {
+    "embed_model": "qwen3-8b",
+    "slogan_models": [
+      "qwen3-235b"
+    ],
+    "sources": [
+      "Lean Repo"
+    ],
+    "top_k": 10,
+    "ann_k": 200,
+    "ef_search": 500,
+    "query_instruction": "Given a math search query, retrieve theorems mathematically equivalent to the query.\n",
+    "mathlib_paper_external_ids": [
+      "Mathlib_v427",
+      "Mathlib_v428"
+    ]
+  }
+}

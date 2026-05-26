@@ -1,0 +1,214 @@
+{
+  "overall": {
+    "full_946": {
+      "n": 946,
+      "recall@10": 0.5528541226215645,
+      "ndcg@10": 0.36475785593797116
+    },
+    "fair_810": {
+      "n": 810,
+      "recall@10": 0.5679012345679012,
+      "ndcg@10": 0.36954706599360193
+    }
+  },
+  "by_style": {
+    "full_946": {
+      "q1a_lean": {
+        "n": 199,
+        "recall@10": 0.4824120603015075,
+        "ndcg@10": 0.3307055670428591
+      },
+      "q1b_latex": {
+        "n": 200,
+        "recall@10": 0.55,
+        "ndcg@10": 0.36781251611115445
+      },
+      "q1c_natural": {
+        "n": 199,
+        "recall@10": 0.6130653266331658,
+        "ndcg@10": 0.413862270845281
+      },
+      "q2_slogan": {
+        "n": 197,
+        "recall@10": 0.5482233502538071,
+        "ndcg@10": 0.34278157470935355
+      },
+      "q3_nickname": {
+        "n": 128,
+        "recall@10": 0.5859375,
+        "ndcg@10": 0.3770577911208362
+      },
+      "q4_special_case": {
+        "n": 23,
+        "recall@10": 0.5217391304347826,
+        "ndcg@10": 0.32774179452783836
+      }
+    },
+    "fair_810": {
+      "q1a_lean": {
+        "n": 170,
+        "recall@10": 0.49411764705882355,
+        "ndcg@10": 0.3371760189480307
+      },
+      "q1b_latex": {
+        "n": 171,
+        "recall@10": 0.5672514619883041,
+        "ndcg@10": 0.37247982177463246
+      },
+      "q1c_natural": {
+        "n": 170,
+        "recall@10": 0.6235294117647059,
+        "ndcg@10": 0.4147911088567875
+      },
+      "q2_slogan": {
+        "n": 168,
+        "recall@10": 0.5714285714285714,
+        "ndcg@10": 0.3509963146315009
+      },
+      "q3_nickname": {
+        "n": 108,
+        "recall@10": 0.6018518518518519,
+        "ndcg@10": 0.38240018585466523
+      },
+      "q4_special_case": {
+        "n": 23,
+        "recall@10": 0.5217391304347826,
+        "ndcg@10": 0.32774179452783836
+      }
+    }
+  },
+  "by_difficulty": {
+    "full_946": {
+      "Easy": {
+        "n": 472,
+        "recall@10": 0.5911016949152542,
+        "ndcg@10": 0.3987422222664447
+      },
+      "Hard": {
+        "n": 474,
+        "recall@10": 0.5147679324894515,
+        "ndcg@10": 0.33091688356025073
+      }
+    },
+    "fair_810": {
+      "Easy": {
+        "n": 439,
+        "recall@10": 0.6013667425968109,
+        "ndcg@10": 0.4047756034323256
+      },
+      "Hard": {
+        "n": 371,
+        "recall@10": 0.5283018867924528,
+        "ndcg@10": 0.3278615459515542
+      }
+    }
+  },
+  "by_kind": {
+    "full_946": {
+      "class": {
+        "n": 144,
+        "recall@10": 0.3958333333333333,
+        "ndcg@10": 0.2366061969396077
+      },
+      "def": {
+        "n": 130,
+        "recall@10": 0.5076923076923077,
+        "ndcg@10": 0.28826431437333966
+      },
+      "inductive": {
+        "n": 30,
+        "recall@10": 0.43333333333333335,
+        "ndcg@10": 0.29449088793752204
+      },
+      "instance": {
+        "n": 113,
+        "recall@10": 0.672566371681416,
+        "ndcg@10": 0.5096970709368114
+      },
+      "lemma": {
+        "n": 5,
+        "recall@10": 0.8,
+        "ndcg@10": 0.6123212623289701
+      },
+      "structure": {
+        "n": 193,
+        "recall@10": 0.36787564766839376,
+        "ndcg@10": 0.21514555739074556
+      },
+      "theorem": {
+        "n": 331,
+        "recall@10": 0.7129909365558912,
+        "ndcg@10": 0.4909368095088791
+      }
+    },
+    "fair_810": {
+      "class": {
+        "n": 134,
+        "recall@10": 0.41044776119402987,
+        "ndcg@10": 0.23933800268136945
+      },
+      "def": {
+        "n": 105,
+        "recall@10": 0.49523809523809526,
+        "ndcg@10": 0.2880604981235537
+      },
+      "inductive": {
+        "n": 25,
+        "recall@10": 0.52,
+        "ndcg@10": 0.3533890655250264
+      },
+      "instance": {
+        "n": 97,
+        "recall@10": 0.7319587628865979,
+        "ndcg@10": 0.5492814859698346
+      },
+      "lemma": {
+        "n": 5,
+        "recall@10": 0.8,
+        "ndcg@10": 0.6123212623289701
+      },
+      "structure": {
+        "n": 153,
+        "recall@10": 0.3790849673202614,
+        "ndcg@10": 0.21314023703510665
+      },
+      "theorem": {
+        "n": 291,
+        "recall@10": 0.711340206185567,
+        "ndcg@10": 0.4784480599220794
+      }
+    }
+  },
+  "corpus_coverage": {
+    "n_decls_total": 200,
+    "n_decls_present": 192,
+    "n_decls_missing": 8,
+    "missing_full_names": [
+      "CategoryTheory.FundamentalGroupoid",
+      "GCDMonoid.gcd_mul_lcm",
+      "InformationTheory.UniquelyDecodable",
+      "InformationTheory.kraft_mcmillan_inequality",
+      "Nat.RecursiveIn",
+      "ProbabilityTheory.PMF.instFunLike",
+      "Representation.IntertwiningMap.instLinearMapClass",
+      "SimplicialObject.Augmented.ExtraDegeneracy"
+    ]
+  },
+  "config": {
+    "embed_model": "qwen3-8b",
+    "slogan_models": [
+      "qwen3-235b"
+    ],
+    "sources": [
+      "Lean Repo"
+    ],
+    "mathlib_external_ids": [
+      "Mathlib_v427",
+      "Mathlib_v428"
+    ],
+    "top_k": 10,
+    "ann_k": 200,
+    "ef_search": 500,
+    "query_instruction": "Given a math search query, retrieve theorems mathematically equivalent to the query.\n"
+  }
+}

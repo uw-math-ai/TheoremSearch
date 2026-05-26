@@ -1,0 +1,35 @@
+{
+  "tag": "mpr_kitchensink",
+  "n_entries": 69,
+  "top_k": 10,
+  "group_recall@10": 0.14242581090407178,
+  "covered@10": 0.07246376811594203,
+  "group_level": {
+    "total": 204,
+    "hit": 21,
+    "rate": 0.10294117647058823,
+    "original": {
+      "n": 171,
+      "hit": 19,
+      "rate": 0.1111111111111111
+    },
+    "alternative": {
+      "n": 33,
+      "hit": 2,
+      "rate": 0.06060606060606061
+    }
+  },
+  "lsv2_baselines": {
+    "lsv2_reasoning": 0.461,
+    "diver": 0.38,
+    "leanstatesearch": 0.093,
+    "lsv2_covered@10": 0.304
+  },
+  "config": {
+    "dedupe": true,
+    "ann_k": 1000,
+    "hybrid_trigram": true,
+    "hyde": "ensemble",
+    "graph_expand": true
+  }
+}

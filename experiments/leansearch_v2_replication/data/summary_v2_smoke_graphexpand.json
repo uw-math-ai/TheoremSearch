@@ -1,0 +1,99 @@
+{
+  "tag": "smoke_graphexpand",
+  "overall": {
+    "full_946": {
+      "n": 5,
+      "recall@10": 1.0,
+      "ndcg@10": 0.9261859507142916
+    },
+    "fair_810": {
+      "n": 5,
+      "recall@10": 1.0,
+      "ndcg@10": 0.9261859507142916
+    }
+  },
+  "by_style": {
+    "full_946": {
+      "q1a_lean": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q1b_latex": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q1c_natural": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 0.6309297535714575
+      },
+      "q2_slogan": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q3_nickname": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q4_special_case": {
+        "n": 0,
+        "recall@10": null,
+        "ndcg@10": null
+      }
+    },
+    "fair_810": {
+      "q1a_lean": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q1b_latex": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q1c_natural": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 0.6309297535714575
+      },
+      "q2_slogan": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q3_nickname": {
+        "n": 1,
+        "recall@10": 1.0,
+        "ndcg@10": 1.0
+      },
+      "q4_special_case": {
+        "n": 0,
+        "recall@10": null,
+        "ndcg@10": null
+      }
+    }
+  },
+  "by_kind": {
+    "fair_810": {
+      "class": {
+        "n": 5,
+        "recall@10": 1.0,
+        "ndcg@10": 0.9261859507142916
+      }
+    }
+  },
+  "config": {
+    "dedupe": true,
+    "ann_k": 1000,
+    "hybrid_trigram": true,
+    "ef_search": 500,
+    "top_k": 10,
+    "out_k": 50,
+    "rrf_k": 60
+  }
+}

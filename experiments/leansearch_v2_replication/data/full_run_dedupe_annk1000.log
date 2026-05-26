@@ -1,0 +1,25 @@
+[init] tag=dedupe_annk1000 ann_k=1000 dedupe=True hybrid=False
+[init] lean_slogan_ids=337356 mathlib_decl_names=0 init=1.9s
+[init] populated query cells: 946
+[  25/946] 26.73s hits=7 elapsed=535s eta=19726s
+[  50/946] 32.80s hits=22 elapsed=1092s eta=19574s
+[  75/946] 25.01s hits=45 elapsed=1520s eta=17656s
+[ 100/946] 15.82s hits=55 elapsed=2096s eta=17734s
+[ 125/946] 16.76s hits=68 elapsed=2664s eta=17499s
+[ 150/946] 7.98s hits=88 elapsed=3028s eta=16067s
+[ 175/946] 4.61s hits=97 elapsed=3519s eta=15505s
+[ 200/946] 21.31s hits=113 elapsed=4061s eta=15149s
+[ 225/946] 11.60s hits=131 elapsed=4580s eta=14676s
+[ 250/946] 32.06s hits=136 elapsed=5111s eta=14228s
+[ 275/946] 3.61s hits=144 elapsed=5559s eta=13564s
+[ 300/946] 36.25s hits=159 elapsed=6055s eta=13038s
+[ 325/946] 33.66s hits=170 elapsed=6613s eta=12635s
+[ 350/946] 0.90s hits=190 elapsed=7242s eta=12331s
+[ 375/946] 26.98s hits=209 elapsed=7760s eta=11815s
+[ 400/946] 13.39s hits=221 elapsed=8204s eta=11198s
+[ 425/946] 23.37s hits=239 elapsed=8611s eta=10557s
+[ 450/946] 2.47s hits=254 elapsed=8996s eta=9916s
+[ 475/946] 30.10s hits=263 elapsed=9578s eta=9497s
+[ 500/946] 3.09s hits=276 elapsed=10000s eta=8920s
+[ 525/946] 32.99s hits=293 elapsed=10419s eta=8355s
+[ 550/946] 37.06s hits=306 elapsed=11053s eta=7958s

@@ -81,6 +81,11 @@ formalized_graph/docs/paper_writing/leansearch_v2_external/
 # Allow curated NL↔FL matching CSVs (small) but exclude the giant raw JSONL.
 !experiments/nl_fl_matching/data/*.csv
 
+# Preserve LSv2 replication eval results (per-query JSONLs + summary JSONs).
+# These back the leansearch_v2_comparison.md headline numbers.
+!experiments/leansearch_v2_replication/data/*.json
+!experiments/leansearch_v2_replication/data/*.jsonl
+
 # Preserve dated snapshots of Eric's blueprint_matching q1-q4 runs.
 !experiments/blueprint_matching/results/**/*.txt
 

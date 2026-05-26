@@ -1,0 +1,69 @@
+[probe] 43 q3_nickname misses sampled
+  [hyde 10/43]
+  [hyde 20/43]
+  [hyde 30/43]
+  [hyde 40/43]
+
+Full → /mmfs1/gscratch/amath/simku22/TheoremSearch/experiments/leansearch_v2_replication/data/probe_hyde_n43.json
+[probe] hyde took 715.2s
+  [regen 10/43]
+  [regen 20/43]
+  [regen 30/43]
+  [regen 40/43]
+
+Full → /mmfs1/gscratch/amath/simku22/TheoremSearch/experiments/leansearch_v2_replication/data/probe_regen_n43.json
+[probe] regen took 1131.2s
+
+# HyDE probe — n=43 q3_nickname fair-810 misses
+
+- HyDE pseudo-doc embed beats CURRENT rank-1 distractor (apples-to-apples gold cosine vs distractor cosine, both against pseudo-doc-embed):
+  **12/43 (27.9%)**
+- HyDE pseudo-doc-to-gold cosine > original-query top1 distractor cosine:
+  **30/43 (69.8%)**
+
+Mean cosines: pseudo→gold=0.7284  pseudo→distractor=0.7748
+
+## Sample (5 best flips)
+
+- **T4Space.of_paracompactSpace_t2Space** | q="Dieudonné's theorem"
+  pseudo→gold=0.655  pseudo→dist(FractionalIdeal.count_well_defined)=0.466
+  pseudo_doc: Dieudonné's theorem states that a locally compact Hausdorff topological space is paracompact. This version applies to topological spaces and establishes a relationship between local compactness, the H
+- **Coalgebra** | q='coalgebra'
+  pseudo→gold=0.858  pseudo→dist(CoalgEquiv.coe_toLinearEquiv)=0.695
+  pseudo_doc: A coalgebra over a commutative ring is a module equipped with a comultiplication and a counit that satisfy coassociativity and counit axioms. It is the dual notion of an algebra, where structure maps 
+- **FirstOrder.Language.Structure** | q='L-structure'
+  pseudo→gold=0.758  pseudo→dist(FirstOrder.Language.equivSetoid)=0.654
+  pseudo_doc: An L-structure consists of a carrier type equipped with interpretations of function symbols, relation symbols, and constants from a given language L. It provides the semantic meaning for the symbols o
+- **image_norm_le_of_norm_deriv_right_le_deriv_boundary** | q='mean-value inequality (Banach-space form)'
+  pseudo→gold=0.744  pseudo→dist(ae_eq_const_or_norm_average_lt_of_norm_le_const)=0.664
+  pseudo_doc: If f is a function between two Banach spaces that is differentiable on a convex set, then the norm of the difference in function values is bounded by the supremum of the norm of the derivative times t
+- **CategoryTheory.GrothendieckTopology** | q='Grothendieck topology'
+  pseudo→gold=0.833  pseudo→dist(CategoryTheory.GrothendieckTopology.ext)=0.757
+  pseudo_doc: A Grothendieck topology on a category consists of a collection of families of morphisms with a common codomain, called coverings, satisfying certain axioms analogous to open covers in topology. It gen
+
+# Slogan-regen probe — n=43 q3_nickname fair-810 misses
+
+- New-slogan cosine > original distractor cosine: **5/43 (11.6%)**
+- New-slogan cosine > old-slogan cosine (controlled A/B): **30/43 (69.8%)**
+- Mean Δcosine (new - old) for the same gold decl: **+0.0420**
+  (positive = LSv2-style regen produces a slogan whose embedding is closer to the query)
+
+Mean: new→query=0.6344  old→query=0.5924  dist→query=0.6970
+
+## Sample (5 best deltas — slogan changes that move the needle most)
+
+- **CategoryTheory.Functor** | q='functor'  Δ=+0.386
+  OLD: F is a real number, and D is an operator that takes a function from the upper half plane to the complex numbers and returns its derivative, which is also a function from the upper half plane to the co
+  NEW: A functor between two categories consists of a map on objects and a map on morphisms that preserves identities and composition. It is defined by specifying how it acts on objects and morphisms of the source category to produce corresponding objects and morphisms in the target category, maintaining t
+- **Relation.CutExpand** | q='Hydra game move (Kirby–Paris)'  Δ=+0.374
+  OLD: CutExpand r s' s means that the multiset s' is formed by removing one element a from s and adding a multiset t of new elements, where every new element a' in t is related to a by r; this is expressed 
+  NEW: A relation describing valid moves in a hydra game: a multiset s' is obtained from s by removing a head a and adding new heads t such that every new head a' is related to a by r; expressed as s' + {a} = s + t to avoid requiring decidable equality.
+- **CategoryTheory.SimplicialObject.δ_comp_δ** | q='simplicial identity'  Δ=+0.287
+  OLD: When two delta maps that each skip an index in a sequence are composed, the result is equivalent to skipping two indices in order, with the first skip happening before the second if their positions ar
+  NEW: In a simplicial object in a category, the composition of two face maps δ (delta) satisfies a coherence condition: when the indices are sufficiently separated, the composition of two δ morphisms is equal to the composition with the indices swapped. This identity reflects the simplicial identity δ_j ∘
+- **IsSolvable** | q='solvable group'  Δ=+0.153
+  OLD: IsSolvable is a property that describes whether a group has a series of subgroups, each normal in the next, such that the quotient groups are all abelian. It applies to groups built from a multiplicat
+  NEW: A class stating that a group G is solvable, meaning there exists a chain of subgroups starting from the trivial subgroup and ending at the whole group G, such that each subgroup is normal in the next and each quotient is abelian.
+- **CategoryTheory.NatTrans** | q='natural transformation'  Δ=+0.136
+  OLD: A natural transformation is a structure in category theory that provides a way to transform one functor into another while respecting the internal structure of the categories involved. It consists of 
+  NEW: A natural transformation between two functors F and G from a category C to a category D, assigning to each object X in C a morphism from F(X) to G(X) in D such that for every morphism f : X ⟶ Y in C, the corresponding diagram in D commutes.
