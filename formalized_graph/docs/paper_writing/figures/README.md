@@ -49,6 +49,7 @@ data without rerunning everything.
 | `emb_vs_lexical_i2f_only` | matplotlib | `fig:emb-vs-lexical` (panel c) | **emb vs lexical, i$\to$f-only bucket** — panel of a 2$\times$2 LaTeX subfigure (`fig:emb-vs-lexical`); i$\to$f correct but f$\to$i wrong (n=90, $\rho{=}0.67$). Bare panel, purple color-stripe. Shared 0–1 axes. [`out/emb_vs_lexical_i2f_only.pdf`](./out/emb_vs_lexical_i2f_only.pdf) | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
 | `emb_vs_lexical_neither` | matplotlib | `fig:emb-vs-lexical` (panel d) | **emb vs lexical, neither bucket** — panel of a 2$\times$2 LaTeX subfigure (`fig:emb-vs-lexical`); neither direction rank-1 correct (n=191, $\rho{=}0.60$). Bare panel, red color-stripe. Shared 0–1 axes. [`out/emb_vs_lexical_neither.pdf`](./out/emb_vs_lexical_neither.pdf) | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
 | `ecosystem_overview` | matplotlib | `fig:ecosystem-overview` | **§1 / teaser** — horizontal bar chart of the 24 non-Mathlib Lean Repo projects, sorted descending by count of mutual rank-1 NL$\leftrightarrow$FL pairs against the informal corpus. Bar length = statement count on a log x-axis (range 24–8,205); bar opacity is linear in NL-link count (floor 0.30). All bars use `ACCENT_PURPLE` with a thin 0.3pt outline (no special top-5 treatment). A `BLUE_PRIMARY` Mathlib scale-anchor bar (alpha 0.20, 351,397 statements) sits above a thin horizontal rule, showing the scale gap between Mathlib and the rest of the ecosystem on the same axis. Per-bar `NL <count>` labels in gray to the right. | [`src/ecosystem_overview.py`](./src/ecosystem_overview.py) |
+| `matching_pipeline` | TikZ | `fig:matching-pipeline` | **§4.1 matching pipeline** — two-arm symmetric NL$\leftrightarrow$FL pipeline on one real corpus pair (PFR Lemma 2.17 / `ProbabilityTheory.measureMutualInfo_nonneg`). Each arm is a four-stage *vertical* pipeline: `source artifact → extracted statement → slogan (qwen3-235b) → embedding (qwen3-8b, dim 4096)`. The informal arm (pastel red) starts from an arXiv paper / blueprint; the formal arm (pastel blue) starts from a Lean project (Mathlib community). The two embeddings render as tall 4096-dim column vectors with `\vdots` in the middle and converge into a purple cosine-similarity operator on the figure's vertical center line, which emits the score $0.974$ and a green "strong match" verdict ($\geq 0.95$). Logos above each pipeline stage identify the source / model: arXiv above the paper box, Mathlib above the Lean-project box, Qwen above each model-driven arrow. The two arms are arranged in a V / wineglass — boxes shift monotonically inward as the pipeline descends — so the convergence point at the green cosine disk is visually telegraphed. Items marked `*` on operator labels are configurable models (qwen3-235b for slogan generation, qwen3-8b for embedding). | [`src/matching_pipeline.tex`](./src/matching_pipeline.tex) |
 
 Pattern these. The shared palette, plane semantics, status encoding,
 and labeling conventions are in [`../figure_style.md`](../figure_style.md)
@@ -89,7 +90,12 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
      data → **matplotlib** (`src/<name>.py`).
    - Dense graphs (>20 nodes) or anything that genuinely needs 3D →
      **mplot3d** (`src/<name>.py`).
-4. **Name the file by what it shows, not where it goes in the paper.**
+4.5. **If your figure is a pipeline/process diagram, also read §8.5 in
+   `figure_style.md`.** The six patterns there (operator-label placement,
+   `*` annotation, semantic notation, convergence semantics, symmetric
+   arms, dashed-pastel box recipe) are easy to get wrong and hard to fix
+   after the figure is built.
+5. **Name the file by what it shows, not where it goes in the paper.**
    `cycle_consistency_lift.py`, not `figure_3.py`. Figure numbers
    change; meanings don't.
 5. **Copy a sibling figure** and modify, rather than starting blank.
@@ -148,6 +154,12 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
   iteratively across the scatter and ecosystem figures; the policy
   is now in `figure_style.md` §2 "LaTeX-first authoring." Captions
   own the prose; images carry data and encoding.
+- **Operator labels floating in white space.** A common trap: the model
+  or operator name ends up centered between the two arms of a pipeline
+  (or off to the side), disconnected from any arrow. The reader can't
+  tell which transformation it belongs to. Fix: move the label onto the
+  arrow — above it for the top arm, below it for the bottom arm. See
+  §8.5.1 in `figure_style.md` and the full §8.5 pattern set.
 - **Committing `*.aux` / `*.log`.** The `.gitignore` in this dir
   handles it — but check `git status` before staging.
 
@@ -167,6 +179,13 @@ Copy-paste into a new Claude conversation:
 > `figures/src/`. Walk the §9.5 pre-ship rubric (7 yes/no questions)
 > before saving. End with the file path the PDF should write to and a
 > one-line build command.
+
+### Iteration discipline
+
+- **Read the rendered PNG with the `Read` tool after every build.** Tool success ≠ visually correct. Labels collide, boxes truncate, convergence happens at the wrong stage — none of these are caught by a clean `pdflatex` exit code.
+- **One specific nit per round, not "make it better."** Vague feedback produces vague changes. Name the exact node, label, or coordinate that needs moving.
+- **2 iterations max per dispatch.** Beyond that, re-scope the task: the design needs rethinking, not more tweaking.
+- **Model selection:** Sonnet 4.6 for mechanical layout iteration (read PNG → tweak coordinates → rebuild). Opus 4.7 for design exploration (generate 3 candidate variants, compare, choose).
 
 ---
 
@@ -244,6 +263,37 @@ green / blue / purple / red.
            Per-project numbers in Table~\ref{tab:ecosystem-overview}.}
   \label{fig:ecosystem-overview}
 \end{figure}
+```
+
+### fig:matching-pipeline (`matching_pipeline.pdf` / `matching_pipeline_horizontal.pdf`)
+
+**Suggested label:** `fig:matching-pipeline`
+**Suggested placement:** §4.1 (matching pipeline) — first figure of the
+methods section, or §3 (corpus) if used as a teaser. Likely wants
+`figure*` (two-column wide) given the horizontal layout.
+**Caption draft:**
+
+```latex
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/out/matching_pipeline_horizontal.pdf}
+  \caption{Bidirectional NL$\leftrightarrow$formal-Lean matching on one
+           real corpus pair (PFR blueprint Lemma 2.17 paired with
+           \texttt{ProbabilityTheory.measureMutualInfo\_nonneg}). Each
+           arm is a four-stage pipeline: source artifact (an arXiv
+           paper / blueprint on the informal row, a Lean project on the
+           formal row) $\to$ extracted theorem statement (LaTeX / Lean
+           source) $\to$ one-sentence slogan $\to$ 4096-dim embedding.
+           The two embeddings meet at a cosine-similarity operator on
+           the right; here the score is $0.974$, well above the $0.95$
+           strong-match threshold. The slogan is the shared interlingua;
+           embeddings live in a common space, so the same pipeline runs
+           informal$\to$formal and formal$\to$informal without
+           retraining. Items marked \texttt{*} are configurable models
+           (\texttt{qwen3-235b} for slogan generation,
+           \texttt{qwen3-8b} for embedding; defaults shown).}
+  \label{fig:matching-pipeline}
+\end{figure*}
 ```
 
 ### fig:candidate-in-context (`candidate_in_context.pdf`)

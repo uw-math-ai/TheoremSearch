@@ -1,0 +1,232 @@
+% Matching pipeline: bidirectional NL <-> formal-Lean retrieval on one example
+% pair (PFR blueprint Lemma 2.17 / ProbabilityTheory.measureMutualInfo_nonneg).
+%
+% Layout (Version A: top-down, two parallel vertical arms):
+%
+%   Two strict vertical columns, fixed x-positions — NO inward stepping.
+%   All left-arm boxes share x = -ArmX; all right-arm boxes share x = +ArmX.
+%   Arrows within each arm are pure vertical down (no bends, no horizontal kink).
+%   At the bottom, both embeddings send a diagonal arrow into the central cosine
+%   node — this is the ONLY non-straight arrow in the figure.
+%
+%   stage               informal x    formal x
+%   ---------------     ----------    --------
+%   arm label / logo       -ArmX        +ArmX
+%   paper / Lean proj      -ArmX        +ArmX
+%   source statement       -ArmX        +ArmX
+%   slogan                 -ArmX        +ArmX
+%   embedding vector       -ArmX        +ArmX
+%   cosine disk              0
+%
+% Build:  pdflatex -interaction=nonstopmode -output-directory=../out matching_pipeline_topdown.tex
+% Output: ../out/matching_pipeline_topdown.pdf
+
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{tikz}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usetikzlibrary{positioning,arrows.meta,calc,shapes.geometric,fit,backgrounds}
+
+% --- Palette (figure_style.md section 3) ---------------------------------
+\definecolor{BluePrimary}{HTML}{2E5C8A}
+\definecolor{BlueSoft}{HTML}{A8C5E0}
+\definecolor{GrayText}{HTML}{2A2A2A}
+\definecolor{GrayRule}{HTML}{999999}
+\definecolor{AccentRed}{HTML}{C8553D}
+\definecolor{AccentGreen}{HTML}{5B8C5A}
+\definecolor{DarkGreen}{HTML}{2F5A2E}
+
+% --- Styles --------------------------------------------------------------
+\tikzset{
+  every node/.style       = {font=\sffamily\small, text=GrayText},
+  % informal arm: dashed red outline, near-white pastel fill
+  procbox_informal/.style = {rectangle, rounded corners=3pt,
+                             draw=AccentRed!70, dashed, line width=0.6pt,
+                             fill=AccentRed!5,
+                             minimum height=11mm,
+                             inner sep=4pt, align=left},
+  % formal arm: dashed blue outline, near-white pastel fill
+  procbox_formal/.style   = {rectangle, rounded corners=3pt,
+                             draw=BluePrimary!70, dashed, line width=0.6pt,
+                             fill=BlueSoft!18,
+                             minimum height=11mm,
+                             inner sep=4pt, align=left},
+  % cosine-similarity terminal node: SOLID green circle
+  cosnode/.style          = {circle,
+                             draw=AccentGreen, line width=1pt,
+                             fill=AccentGreen!25,
+                             minimum size=28mm,
+                             font=\sffamily\small,
+                             align=center, inner sep=1pt},
+  % embedding column-vector node
+  embvec/.style           = {inner sep=2pt, align=center,
+                             font=\ttfamily\footnotesize,
+                             text=GrayText},
+  arr/.style              = {-{Latex[length=2mm]}, line width=0.8pt,
+                             draw=GrayText},
+  arrconv/.style          = {-{Latex[length=2mm]}, line width=0.8pt,
+                             draw=GrayText},
+  modeltag/.style         = {font=\sffamily\footnotesize,
+                             text=GrayText, inner sep=1pt,
+                             align=center},
+  armlabel/.style         = {font=\sffamily\bfseries\small\itshape,
+                             inner sep=1pt},
+  logo/.style             = {inner sep=0pt, outer sep=0pt},
+}
+
+% Helper: tall column-vector display
+\newcommand{\embcol}[6]{%
+  $\begin{bmatrix} #1 \\ #2 \\ #3 \\ \vdots \\ #4 \\ #5 \\ #6 \end{bmatrix}$%
+}
+
+\begin{document}
+\begin{tikzpicture}[x=1cm, y=1cm]
+
+% =========================================================================
+% Geometry: two fixed vertical columns at -ArmX and +ArmX.
+% All boxes within an arm sit at the SAME x-coordinate.
+% Vertical strides are uniform.
+% =========================================================================
+\def\ArmX{5.4}   % half-gap between the two arms
+
+% Uniform vertical strides (top to bottom)
+\def\YPaper{0}
+\def\YStmt{-2.6}
+\def\YSlogan{-5.2}
+\def\YEmb{-8.2}
+\def\YCos{-11.6}
+
+% Shared box widths — both arms use the same width for visual symmetry
+\def\BoxWide{58mm}   % slogan boxes
+\def\BoxMed{52mm}    % statement boxes
+\def\BoxNarrow{42mm} % paper / lean project boxes
+
+% =========================================================================
+% INFORMAL ARM (left, red)   x = -ArmX
+% =========================================================================
+
+% Stage 1: paper
+\node[procbox_informal, minimum width=\BoxNarrow]
+  (I_paper) at ({-\ArmX}, \YPaper)
+  {\textbf{\footnotesize paper}\\[1pt]
+   {\scriptsize PFR blueprint}\\
+   {\scriptsize\itshape Lemma 2.17}};
+
+% Arm label above
+\node[armlabel, text=AccentRed, above=5mm of I_paper] (I_armlabel) {informal};
+\node[logo, left=1.5mm of I_armlabel]
+  {\includegraphics[height=4mm]{logos/arxiv.png}};
+
+% Stage 2: LaTeX statement
+\node[procbox_informal, minimum width=\BoxMed]
+  (I_stmt) at ({-\ArmX}, \YStmt)
+  {\textbf{\footnotesize LaTeX statement}\\[2pt]
+   $I[X;Y] \geq 0$};
+
+% Stage 3: slogan
+\node[procbox_informal, minimum height=13mm, minimum width=\BoxWide]
+  (I_slogan) at ({-\ArmX}, \YSlogan)
+  {\textbf{\footnotesize slogan}\\[1pt]
+   \parbox{50mm}{\raggedright\scriptsize Mutual information
+   $I[X;Y]$ is non-negative for any random variables $X$ and~$Y$.}};
+
+% Stage 4: embedding (column vector)
+\node[embvec] (I_emb) at ({-\ArmX}, \YEmb)
+  {\embcol{-0.008}{\phantom{-}0.022}{\phantom{-}0.004}%
+          {\phantom{-}0.011}{\phantom{-}0.019}{\phantom{-}0.022}};
+\node[font=\sffamily\scriptsize, text=GrayText,
+      below=1mm of I_emb, align=center]
+  (I_emblabel) {\textbf{embedding}\\[-1pt]\scriptsize 4096-dim};
+
+% =========================================================================
+% PURE-VERTICAL arrows for informal arm
+% =========================================================================
+\draw[arr] (I_paper.south)  -- (I_stmt.north);
+\draw[arr] (I_stmt.south)   -- (I_slogan.north);
+\draw[arr] (I_slogan.south) -- (I_emb.north);
+
+% Model tags: centered on each arrow segment, offset to the left
+\node[modeltag, left=5mm of {$(I_stmt.south)!0.5!(I_slogan.north)$}]
+  {\raisebox{-0.6mm}{\includegraphics[height=3.4mm]{logos/qwen.png}}\,%
+   qwen3-235b\textsuperscript{*}};
+
+\node[modeltag, left=5mm of {$(I_slogan.south)!0.5!(I_emb.north)$}]
+  {\raisebox{-0.6mm}{\includegraphics[height=3.4mm]{logos/qwen.png}}\,%
+   qwen3-8b\textsuperscript{*}};
+
+% =========================================================================
+% FORMAL ARM (right, blue)   x = +ArmX
+% =========================================================================
+
+% Stage 1: Lean project
+\node[procbox_formal, minimum width=\BoxNarrow]
+  (F_proj) at ({\ArmX}, \YPaper)
+  {\textbf{\footnotesize Lean project}\\[1pt]
+   {\scriptsize\ttfamily teorth/pfr}\\
+   {\scriptsize\itshape ProbabilityTheory}};
+
+% Arm label above
+\node[armlabel, text=BluePrimary, above=5mm of F_proj] (F_armlabel) {formal};
+\node[logo, left=1.5mm of F_armlabel]
+  {\includegraphics[height=4mm]{logos/mathlib.png}};
+
+% Stage 2: Lean source
+\node[procbox_formal, minimum width=\BoxMed]
+  (F_stmt) at ({\ArmX}, \YStmt)
+  {\textbf{\footnotesize Lean source}\\[2pt]
+   {\ttfamily\scriptsize theorem measureMutualInfo\_nonneg :}\\
+   {\ttfamily\scriptsize \ \ 0 $\leq$ measureMutualInfo $\mu$}};
+
+% Stage 3: slogan
+\node[procbox_formal, minimum height=13mm, minimum width=\BoxWide]
+  (F_slogan) at ({\ArmX}, \YSlogan)
+  {\textbf{\footnotesize slogan}\\[1pt]
+   \parbox{50mm}{\raggedright\scriptsize For a probability measure~$\mu$,
+   \texttt{measureMutualInfo}~$\mu$ is non-negative.}};
+
+% Stage 4: embedding (column vector)
+\node[embvec] (F_emb) at ({\ArmX}, \YEmb)
+  {\embcol{-0.014}{\phantom{-}0.019}{\phantom{-}0.007}%
+          {\phantom{-}0.013}{\phantom{-}0.025}{\phantom{-}0.022}};
+\node[font=\sffamily\scriptsize, text=GrayText,
+      below=1mm of F_emb, align=center]
+  (F_emblabel) {\textbf{embedding}\\[-1pt]\scriptsize 4096-dim};
+
+% =========================================================================
+% PURE-VERTICAL arrows for formal arm
+% =========================================================================
+\draw[arr] (F_proj.south)  -- (F_stmt.north);
+\draw[arr] (F_stmt.south)  -- (F_slogan.north);
+\draw[arr] (F_slogan.south) -- (F_emb.north);
+
+% Model tags: centered on each arrow segment, offset to the right
+\node[modeltag, right=5mm of {$(F_stmt.south)!0.5!(F_slogan.north)$}]
+  {\raisebox{-0.6mm}{\includegraphics[height=3.4mm]{logos/qwen.png}}\,%
+   qwen3-235b\textsuperscript{*}};
+
+\node[modeltag, right=5mm of {$(F_slogan.south)!0.5!(F_emb.north)$}]
+  {\raisebox{-0.6mm}{\includegraphics[height=3.4mm]{logos/qwen.png}}\,%
+   qwen3-8b\textsuperscript{*}};
+
+% =========================================================================
+% CENTER: circular green cosine-sim disk.
+% Diagonal convergence arrows from each embedding label into the disk.
+% These are the ONLY non-straight arrows in the figure.
+% =========================================================================
+\node[cosnode] (COS) at (0, \YCos)
+  {{\scriptsize cosine sim}\\[1pt]
+   {\bfseries\fontsize{14}{16}\selectfont\color{DarkGreen} 0.974}\\[1pt]
+   {\scriptsize\bfseries\color{DarkGreen} strong match}\\[-1pt]
+   {\scriptsize\itshape (sim $\geq 0.95$)}};
+
+% Diagonal arrows: embedding label bottom-center → cosine disk left/right edge
+\draw[arrconv] (I_emblabel.south) -- (COS.west);
+\draw[arrconv] (F_emblabel.south) -- (COS.east);
+
+% Footnote
+\node[font=\sffamily\scriptsize, text=GrayRule, align=left,
+      below=6mm of COS]
+  {\textsuperscript{*}configurable model (defaults shown)};
+
+\end{tikzpicture}
+\end{document}

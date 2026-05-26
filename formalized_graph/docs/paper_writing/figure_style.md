@@ -481,6 +481,64 @@ forced to read the wrong artifact.
 
 ---
 
+## 8.5 Pipeline-diagram patterns
+
+These patterns are for TikZ process/pipeline schematics that show data flowing through stages with operators. They are not general — do not apply to charts, plots, or network graphs.
+
+Worked example for all six patterns: [`figures/src/matching_pipeline_horizontal.tex`](./figures/src/matching_pipeline_horizontal.tex) / [`figures/out/matching_pipeline_horizontal.png`](./figures/out/matching_pipeline_horizontal.png).
+
+### 8.5.1 Operator labels live on the arrow they describe
+
+**Rule:** Any label naming an operator, model, or transformation belongs adjacent to the arrow representing its action — not in a center gap or floating off to the side.
+
+**Why:** Detached labels leave the reader guessing which transformation a label belongs to. The arrow is the operator; the label is its name.
+
+### 8.5.2 `*` for configurable/variable annotations
+
+**Rule:** Mark configurable items with a `*` superscript in the figure (e.g. `qwen3-235b*`); expand the gloss in the caption ("Items marked `*` are configurable models (defaults shown).").
+
+**Why:** Keeps the image compact while preserving reader-facing precision. Inherits the brand pattern (`deepseek*`, `Qwen*`) from the prior in-house paper.
+
+### 8.5.3 Semantic notation = visual notation
+
+**Rule:** Render objects in the math notation that matches their type. Column vectors → tall `bmatrix`. Matrices → 2D `bmatrix`. Sets → curly braces. Never use transposed row notation for a column vector.
+
+**Why:** Visual weight (a tall vertical block) reinforces "this is a high-dim structured object." The notation tells the reader *what kind of thing* is flowing through the pipeline.
+
+### 8.5.4 Spatial convergence encodes semantic merge, not decoration
+
+**Rule:** Bend space only when data actually merges at that point. Do not converge arms for visual flourish.
+
+**Why:** The matching_pipeline went through a V-shape iteration where boxes stepped inward stage-by-stage as visual flourish, before settling on parallel arms that converge only at the embedding→cosine step — where the actual merge happens. Premature convergence implies a merge that isn't there.
+
+### 8.5.5 Mirror-symmetric arms enable cross-comparison
+
+**Rule:** When showing two parallel pipelines (e.g. informal vs formal), keep matching stages at identical x-positions (horizontal layout) or y-positions (vertical layout).
+
+**Why:** The reader's eye can directly compare stage N of arm A vs stage N of arm B without scanning. Parallelism is data — encode it geometrically.
+
+### 8.5.6 Dashed-pastel-box stage style — concrete TikZ recipe
+
+**Rule:** Use this style for intermediate-stage boxes:
+
+```latex
+procbox/.style={
+  draw=<arm accent color>!70,
+  dashed, line width=0.6pt,
+  rounded corners=3pt,
+  fill=<arm accent color>!8,   % near-white interior
+  inner sep=2mm,
+  align=center,
+  text=GrayText,
+}
+```
+
+Terminal-output nodes (e.g. the cosine circle) switch to **solid** outline + same-hue fill at ~25% to signal "this is the final output, not an intermediate stage."
+
+**Why:** Dashed outlines read as "work in progress / stage." Solid outlines read as "result." The distinction is immediately legible without a legend.
+
+---
+
 ## 9. Anti-patterns (do not ship a figure with any of these)
 
 | ✗ | why |
