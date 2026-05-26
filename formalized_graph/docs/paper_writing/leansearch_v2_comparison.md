@@ -29,7 +29,7 @@ analogue of theirs and the arXiv subset is unique to us.
 | Static extraction | `jixia` (Lean static analyzer, submoduled at v4.28.0-rc1) → raw per-file JSON | Lean elaborator extract for Lean repos; regex parser for arXiv (`arxiv_parse_status.parsing_method='regex'`) |
 | Merge | `merge_to_jsonl.py` — flatten + resolve refs | Loaded into Postgres `statement` + `formal_metadata` / `informal_metadata` |
 | Dependency graph | Built internally during informalization: `typeReferences` (+ `valueReferences` for non-Prop), topo-sort via Kahn's algorithm, bottom-up | Persisted as first-class tables: `informal_dependency` (18.3M rows) and `formal_dependency` (11.3M rows) with edge-type annotations |
-| Informalization | Kind-specific Jinja templates (`theorem.md.j2`, `definition.md.j2`, `instance.md.j2`, `technical_entry.md.j2`); Qwen3-32B (Gemini 2.5 Pro fallback); each prompt receives dep summaries | Per-statement *slogans* via `slogan_prompt` × `slogan_model` registry (8 prompts × 2 models = 16 supported configs; current: `minimal`, `formal` prompts on `qwen3-235b` and `pilot-claude-sonnet-4-6`); `comprehensive` prompt uses `informal_dependency.methods` as trust score |
+| Informalization | Kind-specific Jinja templates (`theorem.md.j2`, `definition.md.j2`, `instance.md.j2`, `technical_entry.md.j2`); Qwen3-32B (Gemini 2.5 Pro fallback); each prompt receives dep summaries | Per-statement *slogans* via `slogan_prompt` × `slogan_model` registry (9 prompts × 2 models = 18 supported configs; current: `minimal`, `formal` prompts on `qwen3-235b` and `pilot-claude-sonnet-4-6`); `comprehensive` prompt uses `informal_dependency.methods` as trust score |
 | Embedding | Qwen3-Embedding-8B (dim 4096, normalized); single embedding per declaration | Same model. Multiple embeddings per statement (one per slogan), excluding `insufficient_context=true` |
 | Index | cuVS CAGRA, built with `intermediate_graph_degree=128`, `graph_degree=64`, `build_algo=ivf_pq`, metric=cosine; search `itopk_size=1024`, `search_width=4` | pgvector: binary-quantized HNSW on `bit(4096)` for shortlist; full-precision `vector(4096)` cosine for rerank |
 | Reranker | Qwen3-Reranker-8B (paper) / 4B (public deployment) cross-encoder; binary `yes`/`no` token logit softmax | None LM-based. Score = cosine + `citation_weight × ln(citations)` for `/graph/embedding` |
@@ -127,10 +127,195 @@ but no benchmark file under version control with the same first-class status.
 
 | Metric | LSv2 | Ours equivalent |
 |---|---|---|
-| nDCG@10 (Table 1) | LSv2 rerank **0.623**; LeanFinder 0.533 | Not reported in same form. Blueprint q1–q4 in `experiments/blueprint_matching` use recall@k against `informal_metadata.lean` ground truth — not directly comparable. |
+| nDCG@10 (Table 1) | LSv2 rerank **0.623**; LSv2 retriever-only **0.494**; LeanFinder 0.533; LeanExplore 0.393 | **Ours (Mathlib-only retriever): 0.370** on fair-810. See §6a below. |
 | Recall@10(group) (Table 2) | LSv2 reasoning **46.1%**; DIVER 38.0%; LeanStateSearch 9.3% | No premise-group concept persisted; would need to derive groups from `formal_dependency` first. |
 | Covered@k (Table 2) | LSv2 reasoning 30.4% | None. |
 | Proof success (Table 3, FATE-H × fixed prover loop) | LSv2 reasoning **20%**; INF-X-Retriever 16%; no-retrieval 4%. MathlibMPR-Prop: LSv2 reasoning 14% | None — we have no prover pipeline. |
+
+---
+
+## 6a. Ours on MathlibQR (full run, 2026-05-24)
+
+`experiments/leansearch_v2_replication/` — 946 populated query cells × top-10
+retrieval against Mathlib v427 ∪ v428 corpus (337,356 slogans). Wall: ~2.3 h.
+Source filter pushed into inner CTE via session-temp table; pgvector HNSW
+binary shortlist + full-precision cosine rerank. No LM reranker, no
+citation weight, slogan_model=`qwen3-235b` only. Per-cell config and code
+in `experiments/leansearch_v2_replication/run_eval_rds.py`. Headline:
+
+| system | corpus | nDCG@10 | Recall@10 | top-1 rate |
+|---|---|---:|---:|---:|
+| LSv2 rerank (Qwen3-Reranker-8B) | Mathlib v4.28.0-rc1 | **0.623** | **0.780** | — |
+| LSv2 retriever-only | Mathlib v4.28.0-rc1 | 0.494 | 0.657 | — |
+| LeanFinder (reported) | n/a | 0.533 | 0.698 | — |
+| LeanExplore (reported) | n/a | 0.393 | 0.569 | — |
+| **Ours (Mathlib v427+v428, no rerank)** | Mathlib v427+v428 | **0.370** | **0.568** | **0.194** |
+
+Numbers on fair-810 subset (LSv2's reporting unit). Gap vs LSv2
+retriever-only: ΔnDCG@10 = -0.124, ΔRecall@10 = -0.089.
+
+Also evaluated unrestricted: same retriever with sources=['Lean Repo']
+(community projects + v429 in candidate pool) gives nDCG@10 = 0.365 /
+Recall@10 = 0.558 on the same 278-cell subset we measured before
+restricting — confirms non-Mathlib distractors don't crowd the top-10
+meaningfully (only 13/278 cells changed rank, all by exactly 1).
+
+### Breakdown by decl kind (fair-810)
+
+| kind | n | recall@10 | nDCG@10 | top-1 |
+|---|---:|---:|---:|---:|
+| theorem | 291 | 0.711 | 0.478 | 0.261 |
+| instance | 97 | 0.732 | 0.549 | 0.371 |
+| inductive | 25 | 0.520 | 0.353 | 0.240 |
+| def | 105 | 0.495 | 0.288 | 0.124 |
+| class | 134 | 0.410 | 0.239 | 0.075 |
+| structure | 153 | 0.379 | 0.213 | 0.092 |
+| lemma | 5 | 0.800 | 0.612 | 0.400 |
+
+The kind split is the strongest single signal in the data: **we
+match LSv2-retriever-class numbers on theorems and instances and trail
+badly on structures/classes** — the kinds whose `decl_name` is itself
+the conceptual handle ("Lattice", "Group", "Functor", "CommRing"). LSv2
+embeds `decl_name + Lean signature` alongside the informal text
+(`construct_lean_representation` in `corpus/build_cuvs.py`), so the
+embedder sees that lexical anchor; ours embeds the slogan only.
+
+### Breakdown by query style (fair-810)
+
+| style | n | recall@10 | nDCG@10 | top-1 |
+|---|---:|---:|---:|---:|
+| q1c_natural | 170 | 0.624 | 0.415 | 0.229 |
+| q3_nickname | 108 | 0.602 | 0.382 | 0.167 |
+| q2_slogan   | 168 | 0.571 | 0.351 | 0.161 |
+| q1b_latex   | 171 | 0.567 | 0.372 | 0.216 |
+| q4_special_case | 23 | 0.522 | 0.328 | 0.130 |
+| q1a_lean    | 170 | 0.494 | 0.337 | 0.194 |
+
+Plain English (q1c_natural) wins; Lean-flavored queries (q1a_lean) trail
+by ~13 pp recall — same hypothesis: our slogans are natural prose, so
+queries with Lean syntax mismatch the embedding space at the surface.
+
+### Hit-rank distribution (fair-810)
+
+| rank | count | cum. recall |
+|---|---:|---:|
+| 1 | 157 | 0.194 |
+| 2 |  95 | 0.311 |
+| 3 |  49 | 0.372 |
+| 4 |  42 | 0.423 |
+| 5 |  33 | 0.464 |
+| 6 |  24 | 0.494 |
+| 7 |  14 | 0.511 |
+| 8 |  15 | 0.530 |
+| 9 |  11 | 0.543 |
+| 10 |  20 | 0.568 |
+| miss | 350 | — |
+
+28% of hits land at rank 1; 60% at ranks 1–3. Ranking is healthy when
+retrieval succeeds.
+
+### Coverage
+
+192/200 MathlibQR `full_name`s are present in our v427+v428
+`formal_metadata`. The 8 missing decls (3 are v429-only:
+`InformationTheory.kraft_mcmillan_inequality`,
+`InformationTheory.UniquelyDecodable`,
+`Representation.IntertwiningMap.instLinearMapClass`; 5 are absent
+from our corpus entirely) score hard zero across all populated query
+styles. Upper bound on Recall@10 is therefore 96%, not 100%.
+
+Per-cell JSONL: `experiments/leansearch_v2_replication/data/per_query.jsonl`.
+Diagnostic markdown: `data/diagnostic_no_rds.md`.
+
+---
+
+## 6b. Improvement push (overnight 2026-05-24/25, in flight)
+
+After landing the baseline at 0.370 nDCG, we ran four probes to identify
+which interventions could plausibly close the 0.124 gap. Each probe is
+**read-only** (no corpus changes) — measures cosines that *would* result
+from a hypothetical change, without committing GPU/Nebius time. Results:
+
+| probe (n=43 q3_nickname misses) | beats current rank-1 distractor | mean Δ vs baseline |
+|---|---:|---:|
+| Augmented-text (verbose LSv2 template) | 2/43 (4.7%) | **-0.082 cos** (dilutes!) |
+| Augmented-text (minimal `decl_name+slogan`) | 10/43 (23.3%) | -0.07 cos |
+| HyDE pseudo-doc expansion | 12/43 (27.9%) | -0.05 cos vs distractor |
+| LSv2-style slogan regen (qwen3-235b) | 5/43 (11.6%) | **+0.042 cos** vs old slogan |
+
+Three key findings from probing:
+
+1. **Dense embedders dilute.** Verbose augmentation (adding kind/module/
+   header boilerplate to slogan text) makes cosine WORSE, not better.
+   Confirmed in full eval: row 4 (aug-embed alone) measured 0.328 nDCG
+   at 100/946 cells — below baseline. **Cancelled to save compute**;
+   partial data archived as the "aug-embed doesn't help" finding.
+
+2. **Slogan-regen helps modestly per gold but distractors also get the
+   richer slogan, capping flip rate.** Worth running as one row in the
+   ablation, not as the deciding intervention.
+
+3. **The graph signal we have but LSv2 throws away is the most novel
+   lever.** Smoke test on 5 Lattice cells: all retrieval levers + graph
+   expansion ⇒ 5/5 hits, **nDCG 0.926**. Without graph: 0.804. Graph
+   surfaces formal_dependency parents of top-K cosine candidates, which
+   catches the "namesake child outranks gold" failure mode (e.g.
+   `Functor.IsEquivalence` retrieved for query "functor" → surface its
+   parent `Functor`).
+
+### Overnight ablation roster (10 rows)
+
+Each row submitted as an independent SLURM job under
+`experiments/leansearch_v2_replication/run_row_template.slurm`,
+parameterized via `EVAL_FLAGS`:
+
+| # | tag | EVAL_FLAGS | status |
+|---|---|---|---|
+| 1 | baseline | (none) | done — 0.370 / 0.568 |
+| 2 | dedupe_annk1000 | `--dedupe --ann-k 1000` | running, partial 0.374 / 0.575 |
+| 3 | + trigram + hyde | + `--hybrid-trigram --hyde ensemble` | queued |
+| 4 | augembed only | `--embed-model qwen3-8b-augminimal --dedupe --ann-k 1000` | **cancelled** (0.328 nDCG at 100 cells, confirmed dud) |
+| 5 | augembed + all | row4 + trigram + hyde | **cancelled** (dependency on row 4) |
+| 6 | lsv2-only + all | `--embed-model qwen3-8b-lsv2slogan --dedupe --ann-k 1000 --hybrid-trigram --hyde ensemble` | chained, ~7 h |
+| 7 | formal + lsv2 ensemble + all | `--embed-model qwen3-8b ...` (after stage-2b embed lsv2 → qwen3-8b model_name) | chained, ~7 h |
+| 8 | all + graph | `... --graph-expand` | queued |
+| 9 | graph-only | `--dedupe --ann-k 1000 --graph-expand` | queued |
+| 10 | ensemble + all + graph (kitchen sink) | row 7 + `--graph-expand` | chained, ~7 h |
+
+### Pipeline backup (so this is reproducible)
+
+All overnight infrastructure is in `experiments/leansearch_v2_replication/`:
+
+- `run_eval_v2.py` — eval harness; toggles `--dedupe`, `--ann-k`,
+  `--hybrid-trigram`, `--hyde {off,replace,ensemble}`, `--graph-expand`,
+  `--embed-model`.
+- `regen_lsv2_slogans.py` + `.slurm` — generates lsv2-style slogans for
+  Mathlib v427+v428 via Nebius qwen3-235b. Writes to slogan table under
+  `(prompt_name='lsv2-style', model_name='qwen3-235b')`. Resume-safe.
+- `pipeline/generate_slogans/prompts/lsv2-style.j2` — the prompt template.
+- `embed_slogans.py` + two `.slurm` wrappers
+  (`embed_lsv2_slogans.slurm` writes to `qwen3-8b-lsv2slogan`,
+  `embed_lsv2_to_qwen8b.slurm` writes to `qwen3-8b` for ensemble).
+- `reembed_augminimal.py` + `.slurm` — the augembed re-embed (now confirmed
+  dud but the script remains so others can reproduce the negative result).
+- `probe_augtext.py`, `probe_query_and_slogan.py`, `diagnose.py` — the
+  read-only probes documented in §6b above.
+
+Persistent RDS state (after overnight pipeline completes):
+- New row in `slogan_prompt`: `name='lsv2-style'`
+- New rows in `slogan` table: ~337K under `(lsv2-style, qwen3-235b)`
+- New row in `embedding_model`: `name='qwen3-8b-augminimal'`
+- New row in `embedding_model`: `name='qwen3-8b-lsv2slogan'`
+- New ~337K rows in `embedding` for the augminimal model
+- New ~337K rows in `embedding` for the lsv2slogan model
+- New ~337K rows in `embedding` for the existing qwen3-8b model (ensemble)
+
+Cost (estimated): ~$40 Nebius for slogan regen + ~30 GPU-min for two embed
+passes on 8× RTX 6000.
+
+Per-cell results from each row: `data/per_query_v2_<tag>.jsonl` +
+`data/summary_v2_<tag>.json`. Final 9-row ablation table will be written
+back into this §6a/§6b on completion.
 
 ---
 
@@ -163,7 +348,8 @@ but no benchmark file under version control with the same first-class status.
   we don't.
 
 **Specifically do NOT claim:**
-- That we exceed their nDCG@10 — we have not measured against MathlibQR.
+- That we exceed their nDCG@10 — measured 2026-05-24, we trail LSv2
+  retriever-only by 0.124 nDCG / 0.089 Recall on fair-810. See §6a.
 - That `/graph/embedding` is "the same" pipeline. Differences: pgvector
   binary-HNSW vs. cuVS CAGRA; no LM reranker; multiple slogans per
   statement; cross-source filters.
@@ -172,7 +358,8 @@ but no benchmark file under version control with the same first-class status.
   multi-field template (`informal_name`, `informal_description`) bundled
   with the Lean signature at embedding time — `construct_lean_representation`
   in `corpus/build_cuvs.py` emits a header-prefixed template, *not* a bare
-  natural-language summary.
+  natural-language summary. §6a's by-kind breakdown is consistent with this
+  being the main driver of the retriever-side gap.
 
 ---
 
@@ -181,9 +368,10 @@ but no benchmark file under version control with the same first-class status.
 - [ ] Pull `experiments/blueprint_matching/q*.txt` and translate to the same
       metric language (nDCG@10, Recall@10) for an apples-to-apples row in a
       results table.
-- [ ] Run MathlibQR (810 fair queries) against `/graph/embedding` with
-      `types=` restricted to Lean kinds — gives us the one number we are
-      currently missing to make a fair head-to-head row.
+- [x] Run MathlibQR (810 fair queries) against `/graph/embedding` —
+      done 2026-05-24, see §6a. Used a Mathlib-only session-temp-table
+      variant of the deployed SQL (deployed `/graph/embedding` times out
+      with its post-filter on the 4% Lean-Repo selectivity).
 - [ ] Decide whether to build a premise-group benchmark from `formal_dependency`,
       or to evaluate against MathlibMPR directly (their ground truth is
       Mathlib `decl_name`s, which our `formal_metadata.decl_name` matches by
