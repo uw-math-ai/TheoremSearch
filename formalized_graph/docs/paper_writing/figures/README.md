@@ -48,7 +48,7 @@ data without rerunning everything.
 | `emb_vs_lexical_f2i_only` | matplotlib | `fig:emb-vs-lexical` (panel b) | **emb vs lexical, f$\to$i-only bucket** — panel of a 2$\times$2 LaTeX subfigure (`fig:emb-vs-lexical`); f$\to$i correct but i$\to$f wrong (n=98, $\rho{=}0.62$). Bare panel, blue color-stripe. Shared 0–1 axes. [`out/emb_vs_lexical_f2i_only.pdf`](./out/emb_vs_lexical_f2i_only.pdf) | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
 | `emb_vs_lexical_i2f_only` | matplotlib | `fig:emb-vs-lexical` (panel c) | **emb vs lexical, i$\to$f-only bucket** — panel of a 2$\times$2 LaTeX subfigure (`fig:emb-vs-lexical`); i$\to$f correct but f$\to$i wrong (n=90, $\rho{=}0.67$). Bare panel, purple color-stripe. Shared 0–1 axes. [`out/emb_vs_lexical_i2f_only.pdf`](./out/emb_vs_lexical_i2f_only.pdf) | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
 | `emb_vs_lexical_neither` | matplotlib | `fig:emb-vs-lexical` (panel d) | **emb vs lexical, neither bucket** — panel of a 2$\times$2 LaTeX subfigure (`fig:emb-vs-lexical`); neither direction rank-1 correct (n=191, $\rho{=}0.60$). Bare panel, red color-stripe. Shared 0–1 axes. [`out/emb_vs_lexical_neither.pdf`](./out/emb_vs_lexical_neither.pdf) | [`src/emb_vs_lexical_scatter.py`](./src/emb_vs_lexical_scatter.py) |
-| `ecosystem_overview` | matplotlib | `fig:ecosystem-overview` | **§1 / teaser** — Mathlib at center, 24 Lean project repos as a ring of *separate* circles linked back to Mathlib by per-project radial connectors; area = stmt count (exp=0.42), connector width = fraction of project's outgoing `formal_dependency` edges that target Mathlib (range [0.68, 0.96] mapped linearly to [0.4pt, 3.0pt]), opacity = NL-graph mutual-rank-1 link strength, gold ring = top-5 most NL-linked projects (brownian-motion, pfr, carleson, FLT, toric). Replaces the prior overlap encoding (read as "subset of Mathlib"); see `figure_style.md` §8.2. | [`src/ecosystem_overview.py`](./src/ecosystem_overview.py) |
+| `ecosystem_overview` | matplotlib | `fig:ecosystem-overview` | **§1 / teaser** — horizontal bar chart of the 24 non-Mathlib Lean Repo projects, sorted descending by count of mutual rank-1 NL$\leftrightarrow$FL pairs against the informal corpus. Bar length = statement count on a log x-axis (range 24–8,205); bar opacity is linear in NL-link count (floor 0.30). All bars use `ACCENT_PURPLE` with a thin 0.3pt outline (no special top-5 treatment). A `BLUE_PRIMARY` Mathlib scale-anchor bar (alpha 0.20, 351,397 statements) sits above a thin horizontal rule, showing the scale gap between Mathlib and the rest of the ecosystem on the same axis. Per-bar `NL <count>` labels in gray to the right. | [`src/ecosystem_overview.py`](./src/ecosystem_overview.py) |
 
 Pattern these. The shared palette, plane semantics, status encoding,
 and labeling conventions are in [`../figure_style.md`](../figure_style.md)
@@ -228,18 +228,23 @@ green / blue / purple / red.
 **Suggested placement:** §1 (teaser) or §3 (corpus).
 **Caption draft:**
 
-> Mathlib (centre) and the 24 non-Mathlib Lean Repo projects (ring).
-> Circle area is proportional to statement count (exponent 0.42);
-> connector width is proportional to the fraction of each project's
-> outgoing `formal_dependency` edges that target Mathlib (range
-> [0.68, 0.96], mapped linearly to [0.4 pt, 3.0 pt]); opacity is
-> proportional to the project's count of mutual rank-1 pairs against
-> the informal NL corpus (max 112 for brownian-motion). Gold rings
-> mark the top-5 most NL-linked projects (brownian-motion, pfr,
-> carleson, FLT, toric), indicating where the
-> NL$\leftrightarrow$FL correspondence is richest beyond pure
-> dependency overlap. Per-project numbers in
-> Table~\ref{tab:ecosystem-overview}.
+```latex
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/out/ecosystem_overview.pdf}
+  \caption{The 24 non-Mathlib Lean Repo projects, ranked by their count
+           of mutual rank-1 NL$\leftrightarrow$FL pairs against the
+           informal corpus (right of each bar). Bar length is statement
+           count (log scale, range 24--8{,}205); bar opacity is linear in
+           NL-link count. The Mathlib anchor at the top (351{,}397
+           statements) sits on the same axis, showing the scale gap
+           between Mathlib and the rest of the ecosystem. Eleven of the
+           24 projects have zero mutual rank-1 NL pairs --- variation in
+           informal-graph linkage, not raw size, is the salient axis.
+           Per-project numbers in Table~\ref{tab:ecosystem-overview}.}
+  \label{fig:ecosystem-overview}
+\end{figure}
+```
 
 ### fig:candidate-in-context (`candidate_in_context.pdf`)
 
