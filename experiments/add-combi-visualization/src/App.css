@@ -1,0 +1,219 @@
+* { box-sizing: border-box; }
+
+html, body, #root, .app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+/* ---------------- Header ---------------- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 22px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  position: relative;
+  z-index: 5;
+}
+
+.brand {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b1f5c;
+  white-space: nowrap;
+}
+
+/* ---------------- Search ---------------- */
+
+.search { position: relative; flex: 1; max-width: 720px; }
+
+.search-input {
+  width: 100%;
+  padding: 9px 13px;
+  font-size: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  transition: border-color 120ms;
+}
+
+.search-input:focus { border-color: #5b8def; box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.15); }
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  max-height: 320px;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  z-index: 10;
+}
+
+.search-status { padding: 8px 12px; color: #64748b; font-size: 13px; }
+
+.search-hit {
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.search-hit:hover { background: #f1f5f9; }
+
+.search-hit-title { font-weight: 500; color: #0f172a; }
+
+.search-hit-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.ext-id { font-family: ui-monospace, "SF Mono", monospace; }
+
+/* ---------------- Main / graph ---------------- */
+
+.app-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.graph-area {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  background: #ffffff;
+}
+
+.graph-area svg { display: block; }
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+  padding: 0 24px;
+}
+
+/* ---------------- Floating legend ---------------- */
+
+.legend {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  min-width: 280px;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  padding: 20px 22px;
+  font-size: 17px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.legend-section + .legend-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(15, 23, 42, 0.10);
+}
+
+.legend-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 0;
+  line-height: 1.3;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.20);
+  flex-shrink: 0;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1.8px solid;
+  flex-shrink: 0;
+}
+
+.legend-line {
+  display: inline-block;
+  width: 30px;
+  height: 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-note {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 10px;
+}
+
+/* ---------------- Footer ---------------- */
+
+.app-footer {
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 6px 22px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.status { font-family: ui-monospace, "SF Mono", monospace; }
