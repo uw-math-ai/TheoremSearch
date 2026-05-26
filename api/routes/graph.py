@@ -855,7 +855,7 @@ def graph_paper(
 # ------------------------------------------------------------------ #
 
 _EMBED_MODEL = "qwen3-8b"
-_QUERY_INSTRUCTION = "Given a math search query, retrieve theorems mathematically equivalent to the query.\n"
+_QUERY_INSTRUCTION = r"Instruct: Given a math search query, retrieve theorems mathematically equivalent to the query.\nQuery:"
 _SLOGAN_MODELS = ["qwen3-235b"]
 
 _openai_client: Optional[OpenAI] = None
@@ -1055,7 +1055,15 @@ def graph_embedding(
 
         sql = _EMBEDDING_SQL_MINIMAL if mode == "minimal" else _EMBEDDING_SQL
         with rds_conn("v2") as conn, conn.cursor() as cur:
-            cur.execute("SET LOCAL hnsw.ef_search = %s;", (max(ann_k, 200),))
+            # At large n_results (ann_k can reach a few thousand), the HNSW
+            # iterative_scan over the binary-quantized index can run longer
+            # than the default 10s statement_timeout. Lift it to 60s for
+            # this transaction only; the request itself is still subject
+            # to FastAPI's normal request timeouts.
+            cur.execute("SET LOCAL statement_timeout = '60000';")
+            # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
+            # at large n_results, ann_k can exceed that and the SET fails.
+            cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(ann_k, 200), 1000),))
             cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
             cur.execute(sql, params)
             cols = [d[0] for d in cur.description]
