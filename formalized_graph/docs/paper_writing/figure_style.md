@@ -74,6 +74,22 @@ marker or color *means*, not what the figure is *saying*. Keep them
 inside the plot box and out of the `bbox_inches='tight'` margin so they
 survive scaling.
 
+### Reader-facing naming (use the same word every time)
+
+Pick the term once and reuse it across every figure, table, and
+caption. Don't paraphrase between figures — readers cross-reference
+labels.
+
+| concept | use exactly | not |
+|---|---|---|
+| green dashed vertical link between an informal node and its formal partner | **Blueprint match** | `NL↔FL match`, `\lean{} link`, `cross-formality edge` |
+| the spotlit unformalized target in a dual-plane figure | **candidate** | `target`, `unformalized node`, `query` |
+| informal blueprint statement with a resolved `\lean{...}` | **formalized informal** | `paired blueprint`, `linked NL` |
+| informal blueprint statement with no formal partner | **unformalized** | `orphan`, `unlinked`, `pending` |
+
+Add a row to this table any time you introduce a new reader-facing
+term. The figure caption and the body prose must match this column.
+
 ### Composition is LaTeX's job
 
 - Prefer **single-panel figures** + LaTeX `subfigure` / `subfloat` for
@@ -407,7 +423,7 @@ forced to read the wrong artifact.
 | In-figure title via `ax.set_title(...)` or `fig.suptitle(...)` with paper-facing prose | the **caption** is the title (see §2); image titles are duplicated text that goes stale |
 | Annotating `n = N`, `$\rho = X$`, or any headline number as a corner inset inside the image | belongs in `\caption{...}`. The image carries data, not interpretation |
 | Building a `2×2` grid in Python when LaTeX `subfigure` would do the same job | let the venue's templating own the layout — easier to relabel, easier to resize |
-| "Encoding box" with a visible frame around the legend | use floating text + inline glyphs; the figure boundary is the frame |
+| "Encoding box" with a visible frame around the legend | use floating text + inline glyphs; the figure boundary is the frame. **Exception:** 3D scenes (mplot3d) where a 2D inset `Axes` with a thin gray frame is the documented workaround for depth-shading + projected-plane overlap — see §13 macro view. |
 | More than one accent color per figure | dilutes the semantic signal |
 | > 8 categories without grouping | collapse the long tail into "other" (`#888888`) |
 | Unlabeled axes ("just look at the legend") | every axis labeled with units |
@@ -532,31 +548,49 @@ not auto-select the candidate from clustered data — Euclidean-nearest
 k=1 neighbors always bunch up; you need fixed angles + radius to read
 as a clear fan-out.
 
-### Plane and node labels
+### Plane and node labels (LaTeX-first — see §2)
 
-- **Plane labels: title-cased, italic bold sans, in the plane's color**
-  (`Informal Dependency Graph`, `Formal Dependency Graph (Lean)`).
-  Placed **outside** the parallelograms (above the top plane, below
-  the bottom plane). Never put the label inside — it always collides
-  with a node sooner or later.
-- **All node labels carry a white `bbox`** with a thin gray rule
-  (`facecolor="white", edgecolor=GRAY_RULE, linewidth=0.4,
-  boxstyle="round,pad=0.24", alpha=0.95`). Without the bbox, faded
-  background nodes and edges show through and shred readability.
-- **Candidate label** (macro view): bold `GOLD_DARK`, two lines —
-  `candidate / (unformalized)` — placed upper-left of the candidate
-  with an `Arrow3D` leader line.
-- **Unformalized neighbors** (micro view): short bold red label
-  (`unformalized`) to one side of the node.
-- **Formalized k=1, k=2**: short gray label (`formalized k=1`,
-  `formalized k=2 (further)`) — distance is the information the label
-  is paying for.
-- **Anchor pair** (micro view): italic green label
-  `anchor: blueprint pair (\lean{})` placed left of the vertical anchor
-  link, between the planes.
-- **Legend always says "Blueprint match"** for the green dashed
-  vertical link — not `NL↔FL match`, not `\lean{} link`. Reader-facing
-  copy stays in the user's mental model.
+The image carries plane identifiers + per-marker annotations only. All
+prose (role descriptions, distance interpretations, headline numbers)
+goes in `\caption{...}`.
+
+**Plane labels.** One word per plane (`informal`, `formal`), bold sans,
+centered at the top/bottom edge of each panel, colored to the plane
+(`AccentRed` / `BluePrimary`). Multi-word title-case labels like
+"Informal Dependency Graph" are headline-like prose — move that to the
+caption.
+
+**Per-marker annotations** (allowed inside the image; see §2 inventory):
+- **Candidate label:** bold `GOLD_DARK`, two lines — `candidate /
+  (unformalized)` — placed off the candidate with an `Arrow3D` leader
+  line and a white `bbox`. `(unformalized)` is a role identifier for
+  this specific marker, not a headline, so it stays in the image.
+- **FL premise labels:** monospace decl name (`IsCadlag`,
+  `Martingale.classDL`) anchored to the marker, with white `bbox`.
+  Pick 2–3 representative names — never label every node.
+- **Unformalized neighbors** (micro view, ≤ 10 nodes): short bold red
+  label `unformalized` adjacent to each — same justification as the
+  candidate's `(unformalized)`.
+- **Distance is encoding info, not prose:** if you must label a k=2
+  node, write `k=2` — *never* `formalized k=2 (further)` or `closest
+  formalized neighbor`. The "further" / "closest" framing is
+  interpretation; put it in the caption.
+
+**Panel tags.** `(a)`, `(b)` only — top-left corner of each panel via
+`ax.text2D(0.03, 0.965, "(a)", transform=ax.transAxes, ...)`. Sub-
+caption prose (e.g. "candidate with an immediate k=1 formalized
+neighbor") goes in the LaTeX `\subfigure[…]{...}` slot, *not* in the
+image.
+
+**Bboxes on labels.** All overlaying labels carry a white `bbox` with
+a thin gray rule (`facecolor="white", edgecolor=GRAY_RULE,
+linewidth=0.4, boxstyle="round,pad=0.24", alpha=0.95`). Faded
+background otherwise bleeds through.
+
+**Naming convention for the green vertical link.** Reader-facing copy
+calls it a **Blueprint match** — not `NL↔FL match`, not `\lean{} link`,
+not `cross-formality edge`. (Documented as a general naming rule in
+§2; repeated here because every dual-plane figure has one.)
 
 ### Reusable TikZ preamble (subset of §7)
 
@@ -615,14 +649,18 @@ For the macro view specifically:
   (`s≈95` vs `s≈28`). Candidate is the largest (`s≈300`) with
   `GOLD_DARK` edge.
 - **Two-panel layout for contrast figures.** `fig.add_subplot(1, 2, N,
-  projection="3d")` with one shared framed legend pinned at
-  `(0.875, 0.755, 0.115, 0.225)` in figure coords. Sub-captions go via
-  `fig.text(x, 0.04, "(a) ...")` below each panel. Each panel keeps
-  its own plane labels via `ax.text2D`.
+  projection="3d")` with one shared inset legend pinned at
+  `(0.875, 0.755, 0.115, 0.225)` in figure coords. **Panel tags are
+  bare `(a)` / `(b)` via `ax.text2D` (no sub-caption prose in the
+  image — the prose goes in the LaTeX `\subfigure[…]` slot per §2).**
+  Each panel keeps its own one-word plane labels via `ax.text2D`.
 - **Use a 2D inset `Axes` for the legend.** Drawing legend markers in
   3D space gives them depth-shading and unpredictable positions; an
-  inset stays put. Set its spines explicitly to `GRAY_RULE` /
-  `linewidth=0.5` so the frame reads as intentional.
+  inset stays put. **This is the documented exception to the §9
+  "frameless legend" rule** — the inset frame (`spines:GRAY_RULE,
+  linewidth=0.5`) reads as a deliberate boundary in a 3D scene where
+  floating glyphs would visually collide with the projected planes.
+  Outside 3D scenes, follow §9 — frameless legend, no encoding box.
 - **Use `Arrow3D` (subclassed `FancyArrowPatch`) for leader lines.**
   Plain text labels in mplot3d sit at the projected `(x,y,z)` of the
   marker — they cannot be offset cleanly in screen coords. A short

@@ -61,10 +61,21 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
 1. **Decide what the figure is selling in one sentence.** Write the
    caption first. If the caption is mushy, the figure will be too.
 1.5. **Draft the caption + suggested `\label{}` BEFORE building the
-   figure.** If you can't write the caption, you don't know what the
-   figure is selling yet. The caption is the figure's contract with
-   the paper body; every design choice in the image should serve it.
-   (See `figure_style.md` §2 "LaTeX-first authoring.")
+   figure, in two places.** If you can't write the caption, you don't
+   know what the figure is selling yet. The caption is the figure's
+   contract with the paper body; every design choice in the image
+   should serve it. (See `figure_style.md` §2 "LaTeX-first
+   authoring.")
+   - **Place 1 — script docstring.** Put the draft caption inside the
+     script's module docstring under a `Paper integration:` block,
+     with the full `\begin{figure}…\end{figure}` LaTeX so an agent
+     reading the script alone knows the figure's contract.
+     `candidate_in_context.py` is the reference shape.
+   - **Place 2 — this README's "Paper LaTeX integration" section
+     below.** Add a section per `\label`. When you ship the figure
+     in the same commit, the docstring and README stay in sync.
+   - If they ever drift, the README wins (it's what the paper actually
+     pulls from).
 2. **Read [`../figure_style.md`](../figure_style.md) end-to-end.** Not
    skim. Especially §2 (LaTeX-first authoring), §3 (palette), §6 or
    §7 (tool preamble), §8 (encoding patterns), §9 (anti-patterns), and
