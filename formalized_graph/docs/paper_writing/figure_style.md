@@ -102,6 +102,77 @@ term. The figure caption and the body prose must match this column.
 
 ---
 
+## 2.5 Encoding principles
+
+Every visual channel — position, length, angle, area, color, opacity,
+shape, line weight — must carry **exactly one variable**, and that
+variable's importance must match the channel's perceptual rank. These
+principles are the foundation under §9's anti-patterns; the §9.5
+pre-ship rubric is the operational check.
+
+### Channel effectiveness ranking
+
+Spend channels in this order. Put the most important variable on the
+highest channel you can afford.
+
+| rank | channel | best for | caveats |
+|---|---|---|---|
+| 1 | Position on a common scale | the headline quantitative comparison | needs shared axis |
+| 2 | Position on unaligned scales | quantitative across panels | harder cross-panel comparison |
+| 3 | Length on a common baseline | quantitative magnitudes (bars) | baseline alignment matters |
+| 4 | Tilt / angle | slopes, trends | imprecise for exact values (pies) |
+| 5 | Area | rough magnitudes, bubble overlays | readers under-estimate ~0.7× |
+| 6 | Depth / 3D position | almost never use | occlusion + perspective distort |
+| 7 | Luminance / saturation | ordered (sequential) data | ~4 discriminable steps max |
+| 8 | Color hue | categorical (≤ 8 categories) | not ordered; colorblind risk |
+| 9 | Shape / texture | categorical (≤ 5 categories) | cluttered at scale |
+| 10 | Volume / curvature | avoid for quantitative | worst accuracy (Cleveland & McGill) |
+
+### The 10 principles
+
+1. **Maximize data-ink.** Erase every stroke that doesn't carry
+   information — borders, redundant tick labels, gradients, drop
+   shadows, gridlines no one reads against.
+2. **Position on a common scale carries the headline.** Prefer dot
+   plots over pies; align bars on a shared baseline; never encode the
+   headline number in area or hue.
+3. **One channel encodes one variable.** Don't color bars by their own
+   height (double-encoding); the reader can't tell which channel
+   they're meant to decode.
+4. **Match channel rank to attribute importance.** Primary contrast
+   (ours vs baseline, NL vs FL) → position or length. Tertiary metadata
+   → muted hue or shape.
+5. **Use preattentive attributes to direct the eye to ONE thing.** Color,
+   size, and position are processed in <500 ms — spend them sparingly so
+   they pop. Gray out everything except the line that carries the claim.
+6. **Color is categorical and must be colorblind-safe.** ~8% of men are
+   red-green colorblind; never use red/green to mean good/bad. Viridis
+   for ordered, qualitative palette for categorical.
+7. **Use small multiples instead of overloaded single panels.** If a
+   single plot has > 3 colored series, split into a 2×N grid with shared
+   axes — comparison gets easier, not harder.
+8. **Eliminate chartjunk.** No 3D, no textures, no logos, no decorative
+   icons in the plot area.
+9. **Use Gestalt grouping (proximity, similarity, enclosure) instead of
+   explicit labels.** Shared color and alignment already tell readers
+   what belongs together — don't restate with boxes and arrows.
+10. **The figure must be readable in under 5 seconds.** Caption states
+    the takeaway in one sentence; axis labels include units; legend is
+    inside the plot, not 5 cm away. Figures are part of the *user
+    interface* of research.
+
+### Sources
+
+- Tufte, *The Visual Display of Quantitative Information* (1983) — data-ink ratio, chartjunk, small multiples.
+- Cleveland & McGill, "Graphical Perception: Theory, Experimentation, and Application to the Development of Graphical Methods," *JASA* (1984) — channel effectiveness ranking.
+- Munzner, *Visualization Analysis and Design* (2014), Ch. 5 — expressiveness / effectiveness principles.
+- Knaflic, *Storytelling with Data* (2015) — preattentive attributes, clutter is your enemy.
+- Wong, "Points of View" essays, *Nature Methods* (2010–2013) — Gestalt grouping, salience, redundancy.
+- Wong, "Color blindness," *Nature Methods* 8:441 (2011) — accessible palettes.
+- Olah & Carter, "Research Debt," *Distill* (2017) — figures as the user interface of research.
+
+---
+
 ## 3. Palette (hex codes — use these literally)
 
 ### Primary palette (process / structure)
@@ -429,6 +500,28 @@ forced to read the wrong artifact.
 | Unlabeled axes ("just look at the legend") | every axis labeled with units |
 | No CI / error bars on multi-sample results | required after the multi-seed work — use ±σ band or 95% CI ticks |
 | Overlap-as-association encoding | overlap reads as *"subset of,"* not *"linked to"* — use §8.2 connectors instead |
+| **Double-encoding** (e.g. bars colored by their own height) | the second channel carries no information; reader can't tell which channel encodes the variable (Munzner). One channel per variable. |
+| **Legend-as-decoder-ring** (> 6 series mapped to distinct hues) | exceeds preattentive capacity; reader can't hold the legend in working memory while scanning (Knaflic; Wong). Direct-label the 2–3 lines that matter, gray the rest. |
+| **Dual-y-axis plots** (e.g. loss + accuracy on one panel) | two variables collapse onto one position channel; baseline becomes ambiguous (Tufte). Use small multiples with shared x. |
+| **Bold callouts on point estimates with no error bars** | visual weight implies precision the data doesn't support; add ±σ or 95% CI before highlighting. |
+| **Rainbow / `jet` heatmap** (confusion matrices especially) | not perceptually uniform; fails colorblind tests (Wong, 2011). Use `viridis` for ordered data, single-hue sequential for emphasis. |
+
+---
+
+## 9.5 Pre-ship rubric (30 seconds)
+
+Before committing a figure, walk these 7 questions. Target: 7 / 7 yes.
+
+1. Can I state the single takeaway in one sentence in the caption?
+2. Does the most important comparison live on a position-along-common-scale channel? (See §2.5 channel rank.)
+3. Does every visual channel (color, size, shape, weight, opacity) encode exactly one variable — or none?
+4. Would the figure survive being printed in grayscale by a colorblind reviewer?
+5. Is there any ink I could erase without losing information? (If yes → erase it.)
+6. Are axes labeled with units, and is the legend inside the plot frame? (Inset-frame legends only for 3D scenes per §13.)
+7. If I squint for 2 seconds, does the headline jump out (preattentive), or do I have to hunt?
+
+If any answer is *no*, fix it before saving the PDF. This rubric is
+the procedural complement to §2.5's principles.
 
 ---
 

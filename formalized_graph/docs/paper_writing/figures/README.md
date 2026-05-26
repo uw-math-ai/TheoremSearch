@@ -77,9 +77,11 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
    - If they ever drift, the README wins (it's what the paper actually
      pulls from).
 2. **Read [`../figure_style.md`](../figure_style.md) end-to-end.** Not
-   skim. Especially §2 (LaTeX-first authoring), §3 (palette), §6 or
-   §7 (tool preamble), §8 (encoding patterns), §9 (anti-patterns), and
-   §13 if the figure touches the informal ↔ formal correspondence.
+   skim. Especially §2 (LaTeX-first authoring), §2.5 (encoding
+   principles + channel ranking — one variable per channel),
+   §3 (palette), §6 or §7 (tool preamble), §8 (encoding patterns),
+   §9 (anti-patterns), and §13 if the figure touches the informal ↔
+   formal correspondence.
 3. **Pick the tool by figure type:**
    - Graphs / pipelines / schema diagrams / Lean code listings →
      **TikZ** (`src/<name>.tex`).
@@ -102,8 +104,9 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
 7. **Open the PDF and look at it.** Tool output succeeding ≠ figure
    correct. Check: are the labels colliding? Is the legend in the
    corner? Does the headline number pop? Is anything truncated?
-8. **Compare against the style guide.** Walk down §9 (anti-patterns)
-   line by line. Walk down §13 status table if dual-plane.
+8. **Walk the §9.5 pre-ship rubric** (7 yes/no questions, ~30 seconds).
+   Also walk §9 (anti-patterns) line by line and §13 status table if
+   dual-plane. If any §9.5 question is *no*, fix before saving.
 9. **Commit `src/` and `out/`.** Update the table above if the figure
    is paper-bound. If you added a new convention, update
    `../figure_style.md` in the same commit.
@@ -154,13 +157,16 @@ and labeling conventions are in [`../figure_style.md`](../figure_style.md)
 
 Copy-paste into a new Claude conversation:
 
-> You are about to add a figure for the EMNLP paper. Before writing
-> any code, read
-> `formalized_graph/docs/paper_writing/figures/README.md` and then
-> `formalized_graph/docs/paper_writing/figure_style.md`. Pattern an
-> existing figure under `figures/src/`. Tool: {matplotlib | TikZ}.
-> Content: <one-paragraph description>. End with the file path the
-> PDF should write to and a one-line build command.
+> You are about to add a figure for the EMNLP paper. Read
+> `formalized_graph/docs/paper_writing/figures/README.md` then
+> `formalized_graph/docs/paper_writing/figure_style.md`. Draft the
+> LaTeX caption + `\label{}` BEFORE writing code (§2 LaTeX-first);
+> ground every design choice in §2.5 (encoding principles + channel
+> ranking — one variable per channel). Tool: {matplotlib | TikZ}.
+> Content: <one-sentence description>. Pattern a sibling in
+> `figures/src/`. Walk the §9.5 pre-ship rubric (7 yes/no questions)
+> before saving. End with the file path the PDF should write to and a
+> one-line build command.
 
 ---
 
@@ -176,29 +182,38 @@ The four `emb_vs_lexical_*` panels are composed into a single 2×2
 **Suggested label:** `fig:emb-vs-lexical`
 **Suggested placement:** §4.2 (Bidirectional retrieval results), as a 2×2 `\subfigure` block next to the agreement-bucket table.
 
-**Recommended LaTeX placement:**
+**Recommended LaTeX placement:** `\input` the production snippet at
+[`out/emb_vs_lexical_grid.tex`](./out/emb_vs_lexical_grid.tex):
 
 ```latex
-\begin{figure}[t]
-  \centering
-  \subfigure[Both directions rank-1 correct (n=121, $\rho=0.65$)]
-    {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_both_correct.pdf}}
-  \subfigure[Only formal$\to$informal correct (n=98, $\rho=0.62$)]
-    {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_f2i_only.pdf}}\\
-  \subfigure[Only informal$\to$formal correct (n=90, $\rho=0.67$)]
-    {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_i2f_only.pdf}}
-  \subfigure[Neither direction rank-1 correct (n=191, $\rho=0.60$)]
-    {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_neither.pdf}}
-  \caption{Embedding cosine vs. char-4gram Jaccard similarity for the
-           500-pair f$\to$i rank-1 sample, split by which directions
-           returned the gold partner at rank 1. Spearman $\rho$ within
-           each bucket sits tightly around the overall 0.66 --- the
-           embedding$\leftrightarrow$lexical relationship has the same
-           slope across buckets; what shifts is the \emph{location} of
-           the cloud.}
-  \label{fig:emb-vs-lexical}
-\end{figure}
+\input{figures/out/emb_vs_lexical_grid.tex}
 ```
+
+The snippet is self-contained: it defines the four bucket colors
+(`groupGreen` / `groupBlue` / `groupPurple` / `groupRed`), defines a
+robust `\dotmark{<color>}` command that renders a small filled TikZ
+disc inline, and emits the `\begin{figure}...\end{figure}` block with a
+2$\times$2 `\subcaptionbox` layout and hairline (0.4pt, 28%-gray)
+row/column separator rules. The unified caption uses inline
+`\dotmark{...}` circles in the four bucket colors to key the panels to
+direction-correctness buckets, and reports per-bucket $n$ and Spearman
+$\rho$. Final `\label` is `fig:emb-vs-lexical`; sub-labels are
+`fig:emb-vs-lexical-{both,f2i,i2f,neither}`.
+
+Required preamble in the main paper:
+
+```latex
+\usepackage{tikz}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{colortbl}   % needed for \arrayrulecolor on the separator rules
+\usepackage{graphicx}
+```
+
+A rendered preview of the snippet (compiled standalone against the
+panel PDFs already in `out/`) lives at
+[`out/emb_vs_lexical_grid_preview.pdf`](./out/emb_vs_lexical_grid_preview.pdf)
+for eyeballing the layout without rebuilding.
 
 Each panel PDF is a bare scatter with no in-figure title; a thin
 bucket-colored stripe along the top edge (~3.2pt tall, full panel width)
