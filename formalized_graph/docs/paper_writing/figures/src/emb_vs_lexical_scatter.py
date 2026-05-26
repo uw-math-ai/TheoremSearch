@@ -1,10 +1,16 @@
-"""Scatter: embedding cosine vs char-4gram Jaccard for f->i rank-1 gold pairs,
-emitted as FOUR independent single-column figures (one per bidirectional
-agreement bucket) so each can be inserted standalone in the paper.
+r"""Scatter: embedding cosine vs char-4gram Jaccard for f->i rank-1 gold pairs,
+emitted as FOUR independent panels (one per bidirectional agreement bucket).
 
-Shared 0-1 axes across all four PDFs make them mentally overlay-able. Each
-panel carries its own headline (bucket + n) in the bucket color, its own
-Spearman rho, and full axis labels because each PDF stands alone in print.
+Per the LaTeX-first policy in `figure_style.md`, each PDF is a bare panel
+with NO in-figure title text. A thin colored stripe sits along the top of
+each panel in the bucket color so a reader scanning a 2x2 subfigure grid
+can still tell the buckets apart at a glance. Bucket identity, n, and
+Spearman rho live in the LaTeX `\subfigure` captions (see "Paper
+integration" below), not in the image.
+
+Shared 0-1 axes across all four PDFs make them mentally overlay-able.
+Axis labels are kept on every panel; the LaTeX template author decides
+whether to hide inner labels via the subfigure layout.
 
 Data prep: /tmp/build_emb_vs_lexical.py (reproduces nl_corr's f2i seed=0
 sample, attaches IDs and agreement bucket per pair). Cached snapshot at
@@ -16,6 +22,31 @@ Outputs:
   ../out/emb_vs_lexical_f2i_only.pdf      (+ .png)
   ../out/emb_vs_lexical_i2f_only.pdf      (+ .png)
   ../out/emb_vs_lexical_neither.pdf       (+ .png)
+
+Paper integration
+-----------------
+Recommended LaTeX placement is a single 2x2 `\subfigure` block with one
+unified caption that subsumes the four panels:
+
+    \begin{figure}[t]
+      \centering
+      \subfigure[Both directions rank-1 correct (n=121, $\rho=0.65$)]
+        {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_both_correct.pdf}}
+      \subfigure[Only formal$\to$informal correct (n=98, $\rho=0.62$)]
+        {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_f2i_only.pdf}}\\
+      \subfigure[Only informal$\to$formal correct (n=90, $\rho=0.67$)]
+        {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_i2f_only.pdf}}
+      \subfigure[Neither direction rank-1 correct (n=191, $\rho=0.60$)]
+        {\includegraphics[width=.46\linewidth]{figures/out/emb_vs_lexical_neither.pdf}}
+      \caption{Embedding cosine vs. char-4gram Jaccard similarity for the
+               500-pair f$\to$i rank-1 sample, split by which directions
+               returned the gold partner at rank 1. Spearman $\rho$ within
+               each bucket sits tightly around the overall 0.66 --- the
+               embedding$\leftrightarrow$lexical relationship has the same
+               slope across buckets; what shifts is the \emph{location} of
+               the cloud.}
+      \label{fig:emb-vs-lexical}
+    \end{figure}
 """
 from __future__ import annotations
 import csv
@@ -23,6 +54,7 @@ from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 # ---- Palette (figure_style.md §2) ---------------------------------------
 PAL = {
@@ -39,12 +71,6 @@ BUCKET_COLOR = {
     "f2i_only":     PAL["blue_primary"],    # #2E5C8A
     "i2f_only":     PAL["accent_purple"],   # #7E5B9E
     "neither":      PAL["accent_red"],      # #C8553D
-}
-BUCKET_LABEL = {
-    "both_correct": "Both directions rank-1 correct",
-    "f2i_only":     "Only formal$\\to$informal correct",
-    "i2f_only":     "Only informal$\\to$formal correct",
-    "neither":      "Neither direction rank-1 correct",
 }
 BUCKET_ORDER = ["both_correct", "f2i_only", "i2f_only", "neither"]
 
@@ -75,11 +101,18 @@ mpl.rcParams.update({
     "ps.fonttype":        42,
 })
 
-# Single-column width 3.3in. Height bumped by 0.3in over the 4:3 base
-# (2.475 -> 2.775) to make room for a left-aligned title above the panel.
-FIGSIZE_1COL = (3.3, 2.775)
+# Single-column 4:3 base. No in-figure title -> no extra header height.
+FIGSIZE_1COL = (3.3, 2.475)
 SHARED_XLIM = (0.0, 1.0)
 SHARED_YLIM = (0.0, 1.0)
+
+# Color-band stripe along the top of the figure. Height is in figure
+# fraction; at 2.475in tall, 0.018 ~= 3.2pt. Stripe spans the full figure
+# width and sits flush against the top edge so it reads as a tab on the
+# panel rather than as an axis decoration.
+STRIPE_HEIGHT_FIG_FRAC = 0.018  # ~3.2pt at 2.475in figure height
+STRIPE_LEFT_FIG_FRAC   = 0.0
+STRIPE_WIDTH_FIG_FRAC  = 1.0
 
 
 def _spearman(xs, ys):
@@ -110,7 +143,6 @@ def plot_bucket(name: str, color: str, pts: list[tuple[float, float]],
     """Render one single-column scatter figure for `name`. Returns Spearman rho."""
     xs, ys = zip(*pts)
     rho = _spearman(list(xs), list(ys))
-    n = len(pts)
 
     fig, ax = plt.subplots(figsize=FIGSIZE_1COL)
 
@@ -126,16 +158,22 @@ def plot_bucket(name: str, color: str, pts: list[tuple[float, float]],
     ax.set_xlabel("Char-4gram Jaccard similarity")
     ax.set_ylabel("Embedding cosine similarity")
 
-    # Title: left-aligned ABOVE the panel (not inside it). 10pt, bucket
-    # color, includes n and Spearman rho so the panel interior stays clean.
-    # Use fig.text in figure coords so it sits in the header region we
-    # carved out by adding 0.3in to the figure height. The axes are
-    # positioned to leave room above.
-    fig.subplots_adjust(top=0.86)
-    fig.text(0.005, 0.955,
-             f"{BUCKET_LABEL[name]} (n={n}, $\\rho={rho:.2f}$)",
-             ha="left", va="top",
-             fontsize=10, color=color, fontweight="bold")
+    # Thin bucket-color stripe along the top of the figure. Drawn in figure
+    # coordinates as a Rectangle patch added to the figure (not the axes),
+    # so it sits above the axes spine flush with the top edge. No text.
+    stripe = Rectangle(
+        (STRIPE_LEFT_FIG_FRAC, 1.0 - STRIPE_HEIGHT_FIG_FRAC),
+        STRIPE_WIDTH_FIG_FRAC, STRIPE_HEIGHT_FIG_FRAC,
+        transform=fig.transFigure,
+        facecolor=color,
+        edgecolor="none",
+        zorder=10,
+        clip_on=False,
+    )
+    fig.add_artist(stripe)
+
+    # Leave a hair of room between the stripe and the axes top.
+    fig.subplots_adjust(top=0.94)
 
     fig.savefig(out_pdf, format="pdf")
     fig.savefig(out_png, format="png", dpi=300)

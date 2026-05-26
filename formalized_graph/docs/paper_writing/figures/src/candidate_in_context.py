@@ -1,30 +1,45 @@
 """Candidate-in-context: 3D macro view of the NL <-> FL corpus, two panels.
 
-Two side-by-side 3D scenes share palette, geometry, and legend:
-
-  (a) k=1 reach — candidate has at least one IMMEDIATE formalized neighbor.
-      The 'graph pack' (formal partners of formalized k=1 neighbors) sits
-      directly below the candidate column.
-
-  (b) k=2 reach — every k=1 neighbor of the candidate is unformalized;
-      the closest formalized NL node is k=2 away. The vertical match
-      line lives off-axis from the candidate column.
+Two side-by-side 3D scenes share palette, geometry, and legend. Per the
+LaTeX-first text policy in figure_style.md, all prose lives in the
+caption — the figure itself carries only data-identifying plane labels,
+the encoding legend, and direct labels on the spotlit gold candidate and
+its named premises. The k=1 / k=2 distinction is panel-encoded via tiny
+"(a)" / "(b)" corner labels for cross-reference from the caption.
 
 Each panel:
-  * top plane (red)  = informal dependency graph
+  * top plane (red)     = informal dependency graph
   * bottom plane (blue) = formal dependency graph
-  * gold node = the candidate (an UNFORMALIZED target)
-  * filled red nodes = formalized informal neighbors
-  * outlined red nodes = unformalized informal neighbors
-  * blue nodes on the bottom = formal Lean decls
-  * green dashed verticals = blueprint \\lean{...} matches
+  * gold node           = the candidate (an UNFORMALIZED target)
+  * filled red nodes    = formalized informal neighbors
+  * outlined red nodes  = unformalized informal neighbors
+  * blue nodes (bottom) = formal Lean decls
+  * green dashed vert.  = blueprint \\lean{...} matches
 
-Highlighted region is hand-pinned at the center of each plane; background
-graphs are synthetic clustered Gaussians (replace with real PCA before
-paper submission).
+The spotlit cluster (gold + k=1 neighbors) is hand-pinned at the centre
+of each plane and pushed radially outward from the gold node by ~35%
+relative to the previous layout, with an enlarged background-free buffer
+ring so the locality of the embedding-based retrieval reads visually.
+Background graphs are synthetic clustered Gaussians (replace with real
+PCA before paper submission). Seed is fixed (seed=7) for reproducibility.
 
 Build:  python candidate_in_context.py
-Output: ../out/candidate_in_context.pdf
+Output: ../out/candidate_in_context.{pdf,png}
+
+Paper integration:
+  \\begin{figure}[t]
+    \\centering
+    \\includegraphics[width=\\linewidth]{figures/out/candidate_in_context.pdf}
+    \\caption{Macro view of a candidate formalization target (gold) and
+             its k=1 reach (saturated) vs. k=2 reach (faded) across the
+             dual-plane informal/formal dependency graphs. Background
+             nodes are the surrounding corpus scaled to ~60+55 nodes per
+             plane; node area is constant within plane. Panel (a): k=1
+             reach. Panel (b): k=2 reach. The empty buffer between the
+             spotlit cluster and the corpus illustrates the locality of
+             the embedding-based retrieval.}
+    \\label{fig:candidate-in-context}
+  \\end{figure}
 """
 
 from __future__ import annotations
@@ -66,13 +81,16 @@ PLANE_W           = 10.0
 N_CLUSTERS        = 3
 N_NL              = 16
 N_FL              = 13
-HIGHLIGHT_RADIUS  = 2.8   # keep background out of this radius around CENTER
+# Buffer ring: HIGHLIGHT_RADIUS is enlarged so that background nodes stay a
+# visible empty annulus away from the k=1 ring (which itself was pushed
+# outward by ~35%). The spotlit cluster's locality is what sells the figure.
+HIGHLIGHT_RADIUS  = 3.7   # was 2.8; +32% → empty buffer beyond k=1 ring
 Z_TOP, Z_BOT      = 4.0, 0.0
 
 CENTER    = np.array([PLANE_W / 2, PLANE_W / 2])
 K1_ANGLES = [40, 130, 215, 305]   # degrees — 4 k=1 neighbors around candidate
-K1_RADIUS = 1.5
-FL_RADIUS = 1.6
+K1_RADIUS = 2.05   # was 1.5; k=1 neighbors pushed +37% outward from gold
+FL_RADIUS = 2.15   # was 1.6; matched outward shove on the formal plane
 
 LABEL_BBOX = dict(facecolor="white", edgecolor=PAL["gray_rule"],
                   linewidth=0.4, boxstyle="round,pad=0.24", alpha=0.95)
@@ -260,11 +278,11 @@ def draw_panel_k1(ax, bg) -> None:
                    linewidth=0.6, zorder=10, depthshade=False)
 
     # Candidate label (leader line to upper-left)
-    ax.add_artist(Arrow3D([cand[0], cand[0] - 1.9], [cand[1], cand[1] + 2.4],
-                          [Z_TOP, Z_TOP + 1.0],
+    ax.add_artist(Arrow3D([cand[0], cand[0] - 2.7], [cand[1], cand[1] + 3.1],
+                          [Z_TOP, Z_TOP + 1.1],
                           arrowstyle="-", color=PAL["gold_dark"],
                           lw=0.6, alpha=0.7, zorder=14))
-    ax.text(cand[0] - 2.0, cand[1] + 2.4, Z_TOP + 1.0,
+    ax.text(cand[0] - 2.8, cand[1] + 3.1, Z_TOP + 1.1,
             "candidate\n(unformalized)",
             fontsize=7.6, color=PAL["gold_dark"], weight="bold",
             ha="right", va="bottom", zorder=15, bbox=LABEL_BBOX)
@@ -296,7 +314,9 @@ def draw_panel_k2(ax, bg) -> None:
     # One k=1 neighbor (idx=1, top-left) has a k=2 child that IS formalized.
     K2_PARENT  = 1
     parent_ang = K1_ANGLES[K2_PARENT]
-    k2_pos = CENTER + (K1_RADIUS + 1.4) * np.array(
+    # k=2 sits one hop beyond k=1; keep it inside HIGHLIGHT_RADIUS so the
+    # buffer ring still reads as empty background-free space.
+    k2_pos = CENTER + (K1_RADIUS + 1.3) * np.array(
         [np.cos(np.radians(parent_ang + 8)),
          np.sin(np.radians(parent_ang + 8))]
     )
@@ -334,25 +354,14 @@ def draw_panel_k2(ax, bg) -> None:
                linewidth=0.6, zorder=10, depthshade=False)
 
     # Candidate label
-    ax.add_artist(Arrow3D([cand[0], cand[0] - 1.9], [cand[1], cand[1] + 2.4],
-                          [Z_TOP, Z_TOP + 1.0],
+    ax.add_artist(Arrow3D([cand[0], cand[0] - 2.7], [cand[1], cand[1] + 3.1],
+                          [Z_TOP, Z_TOP + 1.1],
                           arrowstyle="-", color=PAL["gold_dark"],
                           lw=0.6, alpha=0.7, zorder=14))
-    ax.text(cand[0] - 2.0, cand[1] + 2.4, Z_TOP + 1.0,
+    ax.text(cand[0] - 2.8, cand[1] + 3.1, Z_TOP + 1.1,
             "candidate\n(unformalized)",
             fontsize=7.6, color=PAL["gold_dark"], weight="bold",
             ha="right", va="bottom", zorder=15, bbox=LABEL_BBOX)
-
-    # k=2 distance annotation
-    ax.add_artist(Arrow3D([k2_pos[0], k2_pos[0] + 1.8],
-                          [k2_pos[1], k2_pos[1] + 2.0],
-                          [Z_TOP, Z_TOP + 1.0],
-                          arrowstyle="-", color=PAL["accent_red"],
-                          lw=0.6, alpha=0.7, zorder=14))
-    ax.text(k2_pos[0] + 1.9, k2_pos[1] + 2.0, Z_TOP + 1.0,
-            "closest formalized\nNL node (k=2)",
-            fontsize=7.4, color=PAL["accent_red"], weight="bold",
-            ha="left", va="bottom", zorder=15, bbox=LABEL_BBOX)
 
     # FL premise label
     ax.text(fl_k2[0] + 0.5, fl_k2[1] - 0.7, Z_BOT - 0.05,
@@ -375,22 +384,25 @@ for ax in (ax_a, ax_b):
 draw_panel_k1(ax_a, bg)
 draw_panel_k2(ax_b, bg)
 
-# ---- Plane labels per panel --------------------------------------------
+# ---- Plane labels (data-identifying only — one word per plane,         --
+#       horizontally centred over each panel; informal=red, formal=blue --
+#       per figure_style.md §11 dual-plane convention). -----------------
 for ax in (ax_a, ax_b):
-    ax.text2D(0.02, 0.94, "Informal Dependency Graph",
+    ax.text2D(0.5, 0.965, "informal",
               transform=ax.transAxes,
-              color=PAL["accent_red"], fontsize=10,
-              weight="bold", style="italic", ha="left", va="bottom")
-    ax.text2D(0.02, 0.02, "Formal Dependency Graph (Lean)",
+              color=PAL["accent_red"], fontsize=10.5,
+              weight="bold", ha="center", va="top")
+    ax.text2D(0.5, 0.035, "formal",
               transform=ax.transAxes,
-              color=PAL["blue_primary"], fontsize=10,
-              weight="bold", style="italic", ha="left", va="bottom")
+              color=PAL["blue_primary"], fontsize=10.5,
+              weight="bold", ha="center", va="bottom")
 
-# ---- Panel sub-captions ------------------------------------------------
-fig.text(0.255, 0.04, "(a) candidate with an immediate ($k{=}1$) formalized neighbor",
-         fontsize=9.5, color=PAL["gray_text"], ha="center", style="italic")
-fig.text(0.745, 0.04, "(b) closest formalized neighbor is $k{=}2$ away",
-         fontsize=9.5, color=PAL["gray_text"], ha="center", style="italic")
+# ---- Panel id labels (cross-ref from caption only — no prose) ----------
+for ax, tag in ((ax_a, "(a)"), (ax_b, "(b)")):
+    ax.text2D(0.03, 0.965, tag,
+              transform=ax.transAxes,
+              color=PAL["gray_text"], fontsize=10.5,
+              weight="bold", ha="left", va="top")
 
 # ---- Shared legend (top-right, framed) ---------------------------------
 lax = fig.add_axes((0.875, 0.755, 0.115, 0.225))
@@ -426,7 +438,11 @@ lax.text(0.28, ys[4], "Blueprint match", fontsize=7.5, color=PAL["gray_text"], v
 # =========================================================================
 # Save
 # =========================================================================
-out = Path(__file__).resolve().parents[1] / "out" / "candidate_in_context.pdf"
-out.parent.mkdir(parents=True, exist_ok=True)
-fig.savefig(out, format="pdf")
-print(f"wrote {out}")
+out_dir = Path(__file__).resolve().parents[1] / "out"
+out_dir.mkdir(parents=True, exist_ok=True)
+out_pdf = out_dir / "candidate_in_context.pdf"
+out_png = out_dir / "candidate_in_context.png"
+fig.savefig(out_pdf, format="pdf")
+fig.savefig(out_png, format="png", dpi=300)
+print(f"wrote {out_pdf}")
+print(f"wrote {out_png}")

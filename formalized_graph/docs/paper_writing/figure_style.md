@@ -39,7 +39,54 @@ it's the established brand.
 
 ---
 
-## 2. Palette (hex codes — use these literally)
+## 2. LaTeX-first authoring
+
+**Figures live inside a LaTeX paper. The caption owns the prose. The image
+carries only axis labels, data, and encoding annotations.** Headlines,
+n-counts, $\rho$ values, "this figure shows…" interpretations belong in
+`\caption{...}`, not in the image. This is the single most-important rule
+in this guide; every other section assumes it.
+
+### Workflow
+
+- Every paper-bound figure has a **draft caption + suggested `\label{}`
+  planned alongside the script** — written *before* the figure is built,
+  not after. If you can't write the caption, you don't yet know what the
+  figure is selling.
+- The caption + label are how the figure is referenced from the paper
+  body. **Single source of truth = caption.** Duplicating prose inside
+  the image makes the figure brittle (caption changes don't propagate,
+  image text gets stale, reviewers ask for caption rewrites mid-edit).
+
+### Image text inventory
+
+| inside the image (ALLOWED) | inside the caption (DISALLOWED in image) |
+|---|---|
+| axis labels (`x`, `y`, units) | figure title / headline |
+| tick labels | "this figure shows…" prose |
+| direct point / node annotations (e.g. labeling a marker) | n-counts (`n = 191`) |
+| panel-internal encoding legends (color → meaning, marker → meaning) | correlation values (`$\rho = 0.65$`) |
+| in-axis sub-axis / inset labels | interpretation of clusters / trends |
+| panel sub-letters (`(a)`, `(b)`) when needed for cross-reference | takeaways, claims, "we find that…" |
+
+Encoding legends inside the image are fine — they describe what a
+marker or color *means*, not what the figure is *saying*. Keep them
+inside the plot box and out of the `bbox_inches='tight'` margin so they
+survive scaling.
+
+### Composition is LaTeX's job
+
+- Prefer **single-panel figures** + LaTeX `subfigure` / `subfloat` for
+  2×2 or 1×N layouts over Python-built grids. Easier to relabel, easier
+  to resize per venue, easier to swap one panel.
+- The four `emb_vs_lexical_*` panels are emitted as four separate PDFs
+  for exactly this reason — LaTeX composes them.
+- Use a Python-built grid only when the panels must share axes, color
+  scales, or animation frames in ways `subfigure` can't express.
+
+---
+
+## 3. Palette (hex codes — use these literally)
 
 ### Primary palette (process / structure)
 
@@ -96,14 +143,14 @@ use this **fixed mapping**:
 | `matched_only` (embedding match only, no annotation) | `ACCENT_PURPLE` | `#7E5B9E` |
 | `none` (unformalized, the target population) | `ACCENT_RED` | `#C8553D` |
 | anchor / center node | `BLUE_PRIMARY` (filled) | `#2E5C8A` |
-| **candidate** (the spotlit unformalized target in dual-plane figures — see §11) | `ACCENT_GOLD` (filled, `GOLD_DARK` edge) | `#C9A227` |
+| **candidate** (the spotlit unformalized target in dual-plane figures — see §13) | `ACCENT_GOLD` (filled, `GOLD_DARK` edge) | `#C9A227` |
 
 Use across all figures touching the formalization graph so a reader
 who's seen one figure can read the next without re-checking the legend.
 
 ---
 
-## 3. Typography
+## 4. Typography
 
 - **In-figure text: Helvetica or Arial, never Computer Modern.**
   Reason: CM inside a plot reads as a 1995 thesis. Sans-serif inside
@@ -125,7 +172,7 @@ who's seen one figure can read the next without re-checking the legend.
 
 ---
 
-## 4. Layout & sizing
+## 5. Layout & sizing
 
 - **Single-column figure width:** 3.3 in (≈ 240 pt, EMNLP/ACL one-column).
 - **Two-column figure width:** 7.0 in (≈ 505 pt). Use only when content
@@ -141,7 +188,7 @@ who's seen one figure can read the next without re-checking the legend.
 
 ---
 
-## 5. matplotlib recipe (drop-in preamble)
+## 6. matplotlib recipe (drop-in preamble)
 
 Put this at the top of every plotting script. Anything that emits a
 figure for the paper must run this first.
@@ -150,7 +197,7 @@ figure for the paper must run this first.
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-# ---- Palette (must match figure_style.md §2) -----------------------------
+# ---- Palette (must match figure_style.md §3) -----------------------------
 PALETTE = {
     "blue_primary":  "#2E5C8A",
     "blue_soft":     "#A8C5E0",
@@ -164,7 +211,7 @@ PALETTE = {
 }
 CATEGORICAL = ["#2E5C8A", "#C8553D", "#5B8C5A", "#E89F50",
                "#7E5B9E", "#4A6FA5", "#B8743D", "#888888"]
-STATUS_COLOR = {  # formalization-status convention (§2)
+STATUS_COLOR = {  # formalization-status convention (§3)
     "resolved":        PALETTE["accent_green"],
     "annotated_only":  PALETTE["accent_orange"],
     "matched_only":    PALETTE["accent_purple"],
@@ -226,7 +273,7 @@ FIGSIZE_2COL = (7.0, 3.5)   # EMNLP double-column
 
 ---
 
-## 6. TikZ recipe (drop-in preamble)
+## 7. TikZ recipe (drop-in preamble)
 
 Add to the paper's preamble; reuse styles across every TikZ figure.
 
@@ -257,7 +304,7 @@ Add to the paper's preamble; reuse styles across every TikZ figure.
   arr/.style              = {-{Latex[length=2mm]}, line width=0.8pt, draw=GrayText},
   arrdashed/.style        = {arr, dashed, draw=AccentRed},
   arrfeedback/.style      = {arrdashed, bend left=20},
-  % graph-node styles for formalization status (§2 convention)
+  % graph-node styles for formalization status (§3 convention)
   node_resolved/.style    = {circle, draw=AccentGreen,  fill=AccentGreen!20,
                              line width=0.8pt, minimum size=6mm, inner sep=1pt,
                              font=\sffamily\scriptsize},
@@ -287,7 +334,67 @@ Add to the paper's preamble; reuse styles across every TikZ figure.
 
 ---
 
-## 7. Anti-patterns (do not ship a figure with any of these)
+## 8. Encoding patterns we've used
+
+A catalog of geometric / visual tricks worth reusing. Each entry: what
+the pattern is, where we used it, when to reach for it.
+
+### 8.1 Size-independent geometric overlap
+
+For a central disk of radius `R_central` surrounded by satellite circles
+with own radius `r_i` and a normalized metric `m_i ∈ [0, 1]`, place each
+satellite at distance
+
+```
+d_i = R_central + r_i * (1 - 2 * m_i)
+```
+
+from the center. Then `m_i = 0` is externally tangent (just touching),
+`m_i = 0.5` is half-immersed, `m_i = 1` is fully nested — and the
+**visible fraction of the satellite is independent of `r_i`**. This
+decouples size encoding from overlap encoding, so the two can carry
+different scalars without confounding.
+
+Origin: `ecosystem_overview` first draft.
+
+**Caveat — use overlap encodings sparingly.** Overlap reads as
+*"subset of"* (containment), not *"linked to"* (association).
+`ecosystem_overview` has since moved away from overlap because readers
+inferred a nesting relationship that isn't really what the metric
+means. The geometric trick is still useful when the relationship
+genuinely is containment / share / fraction-of; reach for §8.2 when
+it's association.
+
+### 8.2 Connector encoding for "links to"
+
+When the relationship is *"X is linked to Y"* without nesting, draw a
+**connector line between separate circles**. Encode link strength via
+line width, dash pattern, or opacity. Less ambiguous than overlap,
+and the reader doesn't have to disentangle two visual axes (size vs
+overlap).
+
+### 8.3 Opacity carries one scalar
+
+Opacity is a clean third channel when size, color, and position are
+already spent. Normalize to a **visible floor** (e.g.
+`alpha ∈ [0.25, 1.0]`) so zero-valued items stay legible — pure
+`alpha = 0` makes the marker disappear and the reader can't tell
+"absent" from "weak."
+
+### 8.4 Companion LaTeX table for per-row precision
+
+The figure carries the **gestalt**; the table carries the **precision**.
+For any figure that ranks or compares N items by a scalar, generate a
+**companion `\begin{table}` with per-row numbers** from the same script
+(or a sibling script) so the two never drift. Reference both from the
+caption (`Per-project numbers in Table~\ref{tab:...}`). The reader who
+wants the headline gets it from the figure; the reader who wants the
+exact ρ / count / fraction gets it from the table — neither audience is
+forced to read the wrong artifact.
+
+---
+
+## 9. Anti-patterns (do not ship a figure with any of these)
 
 | ✗ | why |
 |---|---|
@@ -297,15 +404,19 @@ Add to the paper's preamble; reuse styles across every TikZ figure.
 | Mixed serif/sans inside one figure | pick one (sans inside, serif outside) |
 | Raster (PNG/JPG) for line art | vector PDF, always — PNG only for UI screenshots |
 | Legend inside the plot area with a frame box | `frameon=False`, place above or right |
-| Default matplotlib title (`ax.set_title`) | caption is the title; titles waste vertical space |
+| In-figure title via `ax.set_title(...)` or `fig.suptitle(...)` with paper-facing prose | the **caption** is the title (see §2); image titles are duplicated text that goes stale |
+| Annotating `n = N`, `$\rho = X$`, or any headline number as a corner inset inside the image | belongs in `\caption{...}`. The image carries data, not interpretation |
+| Building a `2×2` grid in Python when LaTeX `subfigure` would do the same job | let the venue's templating own the layout — easier to relabel, easier to resize |
+| "Encoding box" with a visible frame around the legend | use floating text + inline glyphs; the figure boundary is the frame |
 | More than one accent color per figure | dilutes the semantic signal |
 | > 8 categories without grouping | collapse the long tail into "other" (`#888888`) |
 | Unlabeled axes ("just look at the legend") | every axis labeled with units |
 | No CI / error bars on multi-sample results | required after the multi-seed work — use ±σ band or 95% CI ticks |
+| Overlap-as-association encoding | overlap reads as *"subset of,"* not *"linked to"* — use §8.2 connectors instead |
 
 ---
 
-## 8. How to invoke this guide when prompting Claude
+## 10. How to invoke this guide when prompting Claude
 
 When asking Claude to emit a figure, paste this short brief:
 
@@ -315,7 +426,7 @@ When asking Claude to emit a figure, paste this short brief:
 > Width: **{1col=3.3in | 2col=7.0in}**.
 > Content: <one-paragraph description of what to show>.
 > Use the palette tokens (`BLUE_PRIMARY`, `ACCENT_GREEN`, etc.) as named
-> constants in the code. For status colors, follow the §2 formalization
+> constants in the code. For status colors, follow the §3 formalization
 > mapping. End with the file path the PDF should write to.
 
 Claude must respond with the full code + a one-line `make` / `pdflatex`
@@ -324,7 +435,7 @@ response — code-only.
 
 ---
 
-## 9. File-system conventions for figures
+## 11. File-system conventions for figures
 
 ```
 formalized_graph/docs/paper_writing/
@@ -347,17 +458,17 @@ formalized_graph/docs/paper_writing/
 
 ---
 
-## 10. Worked example
+## 12. Worked example
 
 See [`figures/src/anchor_neighborhood.tex`](./figures/src/anchor_neighborhood.tex)
 + [`figures/src/anchor_neighborhood.py`](./figures/src/anchor_neighborhood.py)
-for the canonical implementation of the §11 dual-plane theme — anchor
+for the canonical implementation of the §13 dual-plane theme — anchor
 blueprint pair + neighborhood from `formalization_candidate_neighborhood`.
 This is the test case that validates the guide.
 
 ---
 
-## 11. Dual-plane theme (informal × formal)
+## 13. Dual-plane theme (informal × formal)
 
 **This is the recurring visual motif for any figure that needs to show
 the informal and formal dependency graphs in relation to each other.**
@@ -447,7 +558,7 @@ as a clear fan-out.
   vertical link — not `NL↔FL match`, not `\lean{} link`. Reader-facing
   copy stays in the user's mental model.
 
-### Reusable TikZ preamble (subset of §6)
+### Reusable TikZ preamble (subset of §7)
 
 The styles `inode`, `inode_unform`, `fnode`, `ianchor`, `fanchor`,
 `iedge`, `fedge`, `blueprint`, `blueprint_anchor`, `plane_top`,
@@ -465,7 +576,7 @@ a shared `.tikzstyles` file; today, copy-paste is the cheaper path.
   blueprint statement** or vice versa.
 - **Not** for: pure-formal figures (e.g. f→f cross-project twins —
   one plane suffices), pure-informal figures (arXiv corpus stats),
-  retrieval pipeline diagrams (use boxes + arrows per §6).
+  retrieval pipeline diagrams (use boxes + arrows per §7).
 
 ### Micro vs macro variant
 
