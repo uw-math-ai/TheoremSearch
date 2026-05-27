@@ -22,6 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/ping")
+def ping():
+    return {"status": "ok"}
+
 app.include_router(search_router)
 app.include_router(mcp_router)
 app.include_router(graph_router)

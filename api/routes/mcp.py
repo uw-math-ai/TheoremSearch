@@ -62,12 +62,17 @@ async def mcp(request: Request):
             },
         )
 
+    if method == "ping":
+        return _mcp_success(request_id, {})
+
     if method == "tools/list":
         return _mcp_success(request_id, {"tools": [MCP_SEARCH_TOOL]})
 
     if method == "tools/call":
         params = body.get("params") or {}
-        if params.get("name") != MCP_SEARCH_TOOL["name"]:
+        tool_name = params.get("name")
+
+        if tool_name != MCP_SEARCH_TOOL["name"]:
             return _mcp_error(request_id, -32601, "Unknown tool")
 
         try:
