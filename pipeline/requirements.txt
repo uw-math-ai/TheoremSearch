@@ -1,0 +1,9 @@
+arXiTeX @ git+https://github.com/uw-math-ai/arXiTeX.git
+boto3
+jinja2
+numpy
+openai
+pgvector
+psycopg2-binary
+requests
+tqdm

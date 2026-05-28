@@ -22,6 +22,10 @@ parsed_papers/
 *.csv
 *.jsonl
 
+# Allow small slogans and validation set CSVs
+!data/stacks_slogans.csv
+!data/stacks_validation_set.csv
+
 # Allow MATLAS comparison experiment artifacts
 !experiments/matlas-comparison/data/*.json
 !experiments/matlas-comparison/results/*.csv
