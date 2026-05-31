@@ -9,11 +9,12 @@ Three subroutes:
 import logging
 import math
 import os
+import time
 from typing import Dict, List, Literal, Optional, Tuple
 
 import psycopg2
 from fastapi import APIRouter, HTTPException, Query
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 
 from db import rds_conn
 
@@ -855,7 +856,7 @@ def graph_paper(
 # ------------------------------------------------------------------ #
 
 _EMBED_MODEL = "qwen3-8b"
-_QUERY_INSTRUCTION = r"Instruct: Given a math search query, retrieve theorems mathematically equivalent to the query.\nQuery:"
+_QUERY_INSTRUCTION = "Instruct: Given a math search query, retrieve theorems mathematically equivalent to the query.\nQuery: "
 _SLOGAN_MODELS = ["qwen3-235b"]
 
 _openai_client: Optional[OpenAI] = None
@@ -894,14 +895,30 @@ def _embed_query(query: str) -> List[float]:
     internally, but we don't want to depend on every code path going through
     it."""
     provider_model, _ = _embed_model_info(_EMBED_MODEL)
-    resp = _embed_client().embeddings.create(
-        model=provider_model,
-        input=_QUERY_INSTRUCTION + query,
-        encoding_format="float",
-    )
-    vec = resp.data[0].embedding
-    norm = math.sqrt(sum(x * x for x in vec))
-    return [x / norm for x in vec] if norm > 0 else vec
+    input_text = _QUERY_INSTRUCTION + query
+    last_exc: Exception = RuntimeError("no attempts made")
+    for attempt in range(3):
+        try:
+            resp = _embed_client().embeddings.create(
+                model=provider_model,
+                input=input_text,
+                encoding_format="float",
+            )
+            vec = resp.data[0].embedding
+            norm = math.sqrt(sum(x * x for x in vec))
+            return [x / norm for x in vec] if norm > 0 else vec
+        except RateLimitError:
+            raise  # propagate immediately so the route can return 429
+        except Exception as e:
+            last_exc = e
+            if attempt < 2:
+                delay = 0.5 * (attempt + 1)
+                logger.warning(
+                    "Nebius embed attempt %d failed, retrying in %.1fs: %s: %s",
+                    attempt + 1, delay, type(e).__name__, e,
+                )
+                time.sleep(delay)
+    raise last_exc
 
 
 # Two-stage: binary-quantized HNSW narrows candidates by Hamming distance,
@@ -1100,7 +1117,11 @@ def graph_embedding(
         ])
     except HTTPException:
         raise
+    except RateLimitError as e:
+        logger.warning("/graph/embedding rate-limited by Nebius: %s", e)
+        raise HTTPException(status_code=429, detail="Embedding API rate limit reached; back off and retry.")
     except Exception as e:
+        logger.exception("/graph/embedding failed for query %r", query)
         raise HTTPException(status_code=500, detail=f"/graph/embedding failed: {str(e)}")
 
 
