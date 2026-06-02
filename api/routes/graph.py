@@ -264,21 +264,31 @@ def _build_subgraph(
     return SubgraphResponse(nodes=nodes, edges=edges)
 
 
-# ANN search for representations. Mirrors _EMBEDDING_SQL exactly:
+# ANN search for representations. Mirrors _EMBEDDING_SQL:
 #   * query vector is a bound parameter (planner can match the HNSW index)
 #   * slogan.model_name filter restricts to one canonical slogan per
 #     statement, so the top-ann_k candidates cover ~ann_k *distinct*
 #     statements instead of being inflated by per-statement slogan duplicates
-#   * paper_id exclusion happens AFTER the ANN stage (no statement column
-#     pgvector can push into the index scan), so ann_k must be large enough
-#     to leave room after the target paper's statements are filtered out
+#   * all filters (insufficient_context, paper_id exclusion, rep_sources)
+#     live INSIDE the ann CTE alongside the ORDER BY/LIMIT, so iterative_scan
+#     keeps fetching until ann_k rows that pass every filter are collected
+#     rather than stopping at ann_k-by-distance and discarding the rest
 _REPRESENTATIONS_SQL = """
 WITH ann AS (
-    SELECT e.slogan_id, e.embedding
+    SELECT
+        st.statement_id,
+        st.paper_id,
+        p.source,
+        e.embedding
     FROM embedding e
-    JOIN slogan s ON s.slogan_id = e.slogan_id
+    JOIN slogan s     ON s.slogan_id    = e.slogan_id
+    JOIN statement st ON st.statement_id = s.statement_id
+    JOIN paper p      ON p.paper_id     = st.paper_id
     WHERE e.model_name = %(model)s
       AND s.model_name = ANY(%(slogan_models)s)
+      AND NOT s.insufficient_context
+      AND st.paper_id != %(exclude_paper)s
+      AND (%(rep_sources)s::text[] IS NULL OR p.source = ANY(%(rep_sources)s))
     ORDER BY
         binary_quantize(e.embedding)::bit(4096)
         <~>
@@ -287,17 +297,11 @@ WITH ann AS (
 ),
 ranked AS (
     SELECT
-        st.statement_id,
-        st.paper_id,
-        p.source,
-        1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
+        statement_id,
+        paper_id,
+        source,
+        1.0 - (embedding <=> %(q)s::vector(4096)) AS similarity
     FROM ann
-    JOIN slogan s     ON s.slogan_id    = ann.slogan_id
-    JOIN statement st ON st.statement_id = s.statement_id
-    JOIN paper p      ON p.paper_id     = st.paper_id
-    WHERE NOT s.insufficient_context
-      AND st.paper_id != %(exclude_paper)s
-      AND (%(rep_sources)s::text[] IS NULL OR p.source = ANY(%(rep_sources)s))
 ),
 deduped AS (
     SELECT DISTINCT ON (statement_id)
@@ -923,20 +927,19 @@ def _embed_query(query: str) -> List[float]:
 
 # Two-stage: binary-quantized HNSW narrows candidates by Hamming distance,
 # then full-precision cosine reranks.
+#
+# All row-eliminating filters (source, kind, author, citations, in_journal,
+# insufficient_context) live INSIDE the `ann` CTE, alongside the
+# `ORDER BY <binary hamming> LIMIT ann_k`. This is load-bearing for recall:
+# pgvector's iterative_scan only honors predicates in the same query as the
+# index ORDER BY, so it keeps pulling candidates until ann_k rows that pass
+# every filter are collected. Filtering in a downstream CTE (the old shape)
+# let the index scan stop after ann_k rows by Hamming distance and then
+# discarded the non-matching ones, collapsing the candidate pool whenever a
+# filter was restrictive. This mirrors search.py, which pushes its source
+# filter into the per-source ANN.
 _EMBEDDING_SQL = """
 WITH ann AS (
-    SELECT e.slogan_id, e.embedding
-    FROM embedding e
-    JOIN slogan s ON s.slogan_id = e.slogan_id
-    WHERE e.model_name = %(model)s
-      AND s.model_name = ANY(%(slogan_models)s)
-    ORDER BY
-        binary_quantize(e.embedding)::bit(4096)
-        <~>
-        binary_quantize(%(q)s::vector(4096))::bit(4096)
-    LIMIT %(ann_k)s
-),
-ranked AS (
     SELECT
         st.statement_id,
         p.paper_id,
@@ -949,14 +952,16 @@ ranked AS (
         p.url,
         p.external_id,
         apm.citation_count,
-        1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
-    FROM ann
-    JOIN slogan s     ON s.slogan_id = ann.slogan_id
+        e.embedding
+    FROM embedding e
+    JOIN slogan s     ON s.slogan_id = e.slogan_id
     JOIN statement st ON st.statement_id = s.statement_id
     JOIN paper p      ON p.paper_id = st.paper_id
     LEFT JOIN informal_metadata im     ON im.statement_id = st.statement_id
     LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
-    WHERE NOT s.insufficient_context
+    WHERE e.model_name = %(model)s
+      AND s.model_name = ANY(%(slogan_models)s)
+      AND NOT s.insufficient_context
       AND (%(sources)s::text[] IS NULL OR p.source = ANY(%(sources)s))
       AND (%(types)s::text[]   IS NULL OR LOWER(st.kind) = ANY(%(types)s))
       AND (%(author_patterns)s::text[] IS NULL OR EXISTS (
@@ -966,7 +971,28 @@ ranked AS (
       AND COALESCE(apm.citation_count, 0) >= %(min_citations)s
       AND (%(in_journal)s::boolean IS NULL
            OR (apm.journal_ref IS NOT NULL) = %(in_journal)s)
-    ORDER BY ann.embedding <=> %(q)s::vector(4096)
+    ORDER BY
+        binary_quantize(e.embedding)::bit(4096)
+        <~>
+        binary_quantize(%(q)s::vector(4096))::bit(4096)
+    LIMIT %(ann_k)s
+),
+ranked AS (
+    SELECT
+        statement_id,
+        paper_id,
+        name,
+        body,
+        slogan,
+        source,
+        title,
+        authors,
+        url,
+        external_id,
+        citation_count,
+        1.0 - (embedding <=> %(q)s::vector(4096)) AS similarity
+    FROM ann
+    ORDER BY embedding <=> %(q)s::vector(4096)
     LIMIT %(top_k)s
 )
 SELECT *,
@@ -980,34 +1006,25 @@ LIMIT %(n)s;
 """
 
 # Minimal mode: drop the SELECTed columns we don't need (name, body, slogan,
-# source, title, authors, url, external_id, citation_count) — joins to
-# informal_metadata and paper-text columns are skipped entirely. paper and
-# arxiv_paper_metadata are still joined to support the filter set.
+# source, title, authors, url, external_id, citation_count) — the join to
+# informal_metadata and the paper-text columns are skipped entirely. paper and
+# arxiv_paper_metadata are still joined to support the filter set. Filters live
+# inside the `ann` CTE for the same recall reason as _EMBEDDING_SQL above.
 _EMBEDDING_SQL_MINIMAL = """
 WITH ann AS (
-    SELECT e.slogan_id, e.embedding
-    FROM embedding e
-    JOIN slogan s ON s.slogan_id = e.slogan_id
-    WHERE e.model_name = %(model)s
-      AND s.model_name = ANY(%(slogan_models)s)
-    ORDER BY
-        binary_quantize(e.embedding)::bit(4096)
-        <~>
-        binary_quantize(%(q)s::vector(4096))::bit(4096)
-    LIMIT %(ann_k)s
-),
-ranked AS (
     SELECT
         st.statement_id,
         st.paper_id,
         apm.citation_count,
-        1.0 - (ann.embedding <=> %(q)s::vector(4096)) AS similarity
-    FROM ann
-    JOIN slogan s     ON s.slogan_id = ann.slogan_id
+        e.embedding
+    FROM embedding e
+    JOIN slogan s     ON s.slogan_id = e.slogan_id
     JOIN statement st ON st.statement_id = s.statement_id
     JOIN paper p      ON p.paper_id = st.paper_id
     LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
-    WHERE NOT s.insufficient_context
+    WHERE e.model_name = %(model)s
+      AND s.model_name = ANY(%(slogan_models)s)
+      AND NOT s.insufficient_context
       AND (%(sources)s::text[] IS NULL OR p.source = ANY(%(sources)s))
       AND (%(types)s::text[]   IS NULL OR LOWER(st.kind) = ANY(%(types)s))
       AND (%(author_patterns)s::text[] IS NULL OR EXISTS (
@@ -1017,7 +1034,20 @@ ranked AS (
       AND COALESCE(apm.citation_count, 0) >= %(min_citations)s
       AND (%(in_journal)s::boolean IS NULL
            OR (apm.journal_ref IS NOT NULL) = %(in_journal)s)
-    ORDER BY ann.embedding <=> %(q)s::vector(4096)
+    ORDER BY
+        binary_quantize(e.embedding)::bit(4096)
+        <~>
+        binary_quantize(%(q)s::vector(4096))::bit(4096)
+    LIMIT %(ann_k)s
+),
+ranked AS (
+    SELECT
+        statement_id,
+        paper_id,
+        citation_count,
+        1.0 - (embedding <=> %(q)s::vector(4096)) AS similarity
+    FROM ann
+    ORDER BY embedding <=> %(q)s::vector(4096)
     LIMIT %(top_k)s
 )
 SELECT statement_id, paper_id, similarity,
