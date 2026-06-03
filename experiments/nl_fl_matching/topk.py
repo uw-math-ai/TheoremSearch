@@ -152,6 +152,16 @@ def embedding_topk(
             cur.execute("SET LOCAL statement_timeout = %s", (statement_timeout_ms,))
             cur.execute("SET LOCAL hnsw.ef_search = %s", (max(ann_k, 200),))
             cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order'")
+            # Bumped 2026-05-26: the default `hnsw.max_scan_tuples = 20000` caps
+            # how far `iterative_scan` will traverse the HNSW graph when the
+            # post-filter (e.g. st.formality='informal') starves the shortlist.
+            # Without this, formal-anchored f→i queries that hit dense
+            # same-formality clusters in the index returned 0–10 informal
+            # survivors instead of ~k*5. At 500k tuples the iterative_scan can
+            # cover ~4% of the 12M-row index per query — enough to compensate
+            # for the worst-case starvation while keeping per-query wall under
+            # ~2 s (vs ~17 s at ann_k=500).
+            cur.execute("SET LOCAL hnsw.max_scan_tuples = 500000")
 
             it = tqdm(queries, unit="q", leave=False) if show_progress else queries
             for q in it:
