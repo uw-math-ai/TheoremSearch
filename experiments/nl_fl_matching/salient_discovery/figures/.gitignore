@@ -1,0 +1,2 @@
+# figures are deliverables — re-include despite root *.png ignore
+!*.png
