@@ -15,7 +15,7 @@ STAGES = [
     ("ANN sweep", 385_657, "one nearest-neighbor query per formal node"),
     ("Candidate found", 206_326, "rank-1 informal neighbor exists (53.5%)"),
     ("Strong candidates", 8_022, "cosine ≥ 0.90"),
-    ("Confirmed matches", 5_860, "Opus-judged genuine restatements (87%)"),
+    ("Confirmed matches", 6_790, "Opus-judged genuine restatements (85%)"),
 ]
 COLORS = ["#9aa0a6", "#7aa6c2", "#5b8fb0", "#3a6ea5", "#2a8f5a"]
 
@@ -45,7 +45,7 @@ for yi, (label, count, note), lg, col in zip(y, STAGES, logs, COLORS):
 
 ax.set_xlim(0, 1); ax.set_ylim(-0.6, len(STAGES) - 0.4)
 ax.axis("off")
-ax.set_title("From 4.56 trillion possible pairs to 5,860 confirmed edges",
+ax.set_title("From 4.56 trillion possible pairs to 6,790 confirmed edges",
              fontsize=13, fontweight="bold", pad=10)
 fig.text(0.98, 0.02, "bar length ∝ log₁₀(count)", ha="right", fontsize=8, color="gray")
 fig.tight_layout(rect=[0, 0.03, 1, 1])

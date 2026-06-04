@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = __file__.rsplit("/", 1)[0]
-CUTOFF = 0.9046  # the lowest sim reached in the corrected run; clip both to this
+CUTOFF = 0.90  # the lowest sim reached in the corrected run; clip both to this
 BW = 0.01
 
 RUNS = [

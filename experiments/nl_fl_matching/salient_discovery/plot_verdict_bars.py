@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 HERE = __file__.rsplit("/", 1)[0]
-CUTOFF = 0.9046
+CUTOFF = 0.90
 BW = 0.01
 RUNS = [
     ("consensus_ge90_v2_all.jsonl", "OG run (slogan-only pilot)", "verdict_bars_og.png"),
