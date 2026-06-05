@@ -1,5 +1,6 @@
 import math
 import os
+import threading
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from openai import OpenAI
@@ -10,14 +11,21 @@ from models import SearchRequest, SearchResponse, PaperResult, TheoremResult, DE
 router = APIRouter()
 
 _openai_client: OpenAI = None
+# `search` is a sync def running in FastAPI's threadpool, so get_openai_client
+# can be called from several worker threads at once on a cold instance. Guard
+# the lazy init so concurrent first-callers create exactly one client instead
+# of racing to build (and discard) several.
+_openai_client_lock = threading.Lock()
 
 def get_openai_client() -> OpenAI:
     global _openai_client
     if _openai_client is None:
-        _openai_client = OpenAI(
-            base_url="https://api.tokenfactory.nebius.com/v1/",
-            api_key=os.environ["NEBIUS_API_KEY"],
-        )
+        with _openai_client_lock:
+            if _openai_client is None:
+                _openai_client = OpenAI(
+                    base_url="https://api.tokenfactory.nebius.com/v1/",
+                    api_key=os.environ["NEBIUS_API_KEY"],
+                )
     return _openai_client
 
 
@@ -215,7 +223,14 @@ async def root():
 
 
 @router.post("/search", response_model=SearchResponse)
-async def search(payload: SearchRequest, mcp: bool = False):
+def search(payload: SearchRequest, mcp: bool = False):
+    # Deliberately a sync `def`, NOT `async def`. The body does blocking I/O
+    # (psycopg2 queries + a ~1s OpenAI embedding call). FastAPI runs sync
+    # handlers in its worker threadpool, so concurrent requests run in
+    # parallel. If this were `async def`, every blocking call would run on
+    # the event loop and serialize all requests on the instance — which,
+    # under App Runner's per-instance concurrency, produces 502/503/504/429.
+    # Any in-process caller (e.g. routes.mcp) must offload via run_in_threadpool.
     try:
         with rds_conn() as conn, conn.cursor() as cur:
             cur.execute(
