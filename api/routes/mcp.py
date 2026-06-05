@@ -1,5 +1,6 @@
 import json
 from fastapi import APIRouter, Request
+from fastapi.concurrency import run_in_threadpool
 from models import SearchRequest
 from routes.search import search
 
@@ -77,7 +78,9 @@ async def mcp(request: Request):
 
         try:
             payload = SearchRequest(**(params.get("arguments") or {}))
-            search_response = await search(payload, mcp=True)
+            # `search` is a sync function doing blocking I/O; run it in the
+            # threadpool so this async MCP handler doesn't block the event loop.
+            search_response = await run_in_threadpool(search, payload, mcp=True)
         except Exception as e:
             return _mcp_error(request_id, -32603, str(e))
 
