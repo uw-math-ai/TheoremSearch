@@ -16,7 +16,9 @@ graph fetch (cached) + ~50 ANN candidates + ~30 sparse matvecs ≈ a few
 seconds in steady state.
 """
 import logging
+import os
 import threading
+import time
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -74,7 +76,27 @@ class _Graph:
 
 
 _graph_cache: Optional[_Graph] = None
+# True while a background thread is building the graph, so concurrent requests
+# don't each spawn a builder. Guarded by _graph_lock.
+_graph_building = False
+# monotonic() time of the last failed build (0.0 = none). Used to back off so a
+# persistently broken dependency (e.g. DB down) doesn't trigger an expensive
+# ~12M-row rebuild on every single request.
+_graph_last_fail_at = 0.0
+_GRAPH_RETRY_COOLDOWN_S = 30.0
 _graph_lock = threading.Lock()
+
+
+def _pagerank_enabled() -> bool:
+    """Endpoint kill-switch, read per request. PageRank holds the whole
+    ~12M-node graph in process memory; set PAGERANK_ENABLED=false to turn the
+    route off (returns 404) if it threatens an instance's memory. Read on each
+    request rather than frozen at import, so the value isn't stale on a running
+    process; defaults on. (On App Runner, changing a service env var also
+    triggers a redeploy.)"""
+    return os.getenv("PAGERANK_ENABLED", "true").strip().lower() not in (
+        "0", "false", "no", "off",
+    )
 
 
 def _load_graph() -> _Graph:
@@ -155,13 +177,67 @@ def _load_graph() -> _Graph:
     return _Graph(M=M, id_to_idx=id_to_idx, idx_to_id=idx_to_id, dangling=dangling)
 
 
-def _get_graph() -> _Graph:
-    global _graph_cache
-    if _graph_cache is None:
-        with _graph_lock:
-            if _graph_cache is None:
-                _graph_cache = _load_graph()
-    return _graph_cache
+def _build_graph_in_background() -> None:
+    """Build the graph off the request path and publish it to the cache.
+
+    Runs on a dedicated daemon thread (started by `_graph_or_none`). On
+    failure the building flag is cleared and the failure time recorded so a
+    later request retries after a cooldown.
+    """
+    global _graph_cache, _graph_building, _graph_last_fail_at
+    try:
+        g = _load_graph()
+    except Exception:
+        logger.exception("PageRank graph build failed; will retry after cooldown")
+        g = None
+    with _graph_lock:
+        if g is not None:
+            _graph_cache = g
+        else:
+            _graph_last_fail_at = time.monotonic()
+        _graph_building = False
+
+
+def _graph_or_none() -> Optional[_Graph]:
+    """Return the cached graph if ready, else None — kicking off a one-time
+    background build on first call.
+
+    The build pulls ~12M ids + ~8M edges and takes ~30-60s. Building it inline
+    would pin a request thread (one of FastAPI's limited threadpool workers)
+    for that whole time and risk tripping App Runner's request timeout /
+    health check. So the request thread never waits on it: callers get None
+    while the graph warms and should surface a 503.
+    """
+    global _graph_building
+    if _graph_cache is not None:
+        return _graph_cache
+    with _graph_lock:
+        # Re-check under the lock: another thread may have just published it.
+        if _graph_cache is not None:
+            return _graph_cache
+        if not _graph_building:
+            # Back off after a failed build so a broken dependency doesn't
+            # trigger an expensive rebuild on every request.
+            if _graph_last_fail_at and (
+                time.monotonic() - _graph_last_fail_at < _GRAPH_RETRY_COOLDOWN_S
+            ):
+                return None
+            t = threading.Thread(
+                target=_build_graph_in_background,
+                name="pagerank-graph-build",
+                daemon=True,
+            )
+            try:
+                t.start()
+            except Exception:
+                # Never leave the flag stuck True if the thread won't start —
+                # that would wedge the endpoint into a permanent 503.
+                logger.exception("Failed to start PageRank graph build thread")
+                return None
+            # Set only after a successful start, so a start() failure above
+            # leaves the flag False and the next request can retry.
+            _graph_building = True
+        return None
 
 
 # ------------------------------------------------------------------ #
@@ -279,8 +355,18 @@ def graph_pagerank(
         ),
     ),
 ):
+    if not _pagerank_enabled():
+        raise HTTPException(status_code=404, detail="The PageRank endpoint is disabled.")
+
     try:
-        g = _get_graph()
+        g = _graph_or_none()
+        if g is None:
+            # Graph is building on a background thread; don't block this
+            # request thread for the ~30-60s build — tell the caller to retry.
+            raise HTTPException(
+                status_code=503,
+                detail="PageRank graph is warming up; retry in ~1 minute.",
+            )
 
         query_vec = _embed_query(query)
         seeds = _fetch_seeds(query_vec, n_seeds)
