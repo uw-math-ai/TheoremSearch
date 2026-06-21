@@ -19,12 +19,14 @@ directed dependency graphs:
       Sample two distinct dependents of a seed, then independently continue
       each branch toward dependents. Compare the two branch endpoints.
 
-Every (formality, scheme, depth) bucket independently draws random embedded
-seeds and attempts one fresh walk per seed. Successful walks are retained and
-failed walks are replaced with newly drawn seeds until the requested sample
-size is reached. Walks are constructed cheaply, then their final endpoint is
-accepted only if its directed shortest-path distance from the seed is exactly
-d. That final condition also certifies every prefix of the sampled path.
+Seed selection is controlled by ``--seed-mode``. In ``fixed`` mode, one seed
+set is drawn per formality and reused across every scheme and depth; failed
+walks remain missing. In ``unfixed`` mode, every bucket independently draws a
+random seed for each attempted trajectory and replaces failed walks until the
+requested number of successful observations is reached. Walks are constructed
+cheaply, then their final endpoint is accepted only if its directed shortest-
+path distance from the seed is exactly d. That final condition also certifies
+every prefix of the sampled path.
 
 Dual walks have one additional exact condition. The seed supplies a shared
 origin at radius d for the two endpoints. We reject the pair if some other
@@ -577,35 +579,50 @@ def collect_scheme_samples(
     depths: List[int],
     n_observations: int,
     seed_batch: int,
+    seed_mode: str,
+    fixed_seeds: Optional[List[str]] = None,
 ) -> Tuple[List[GraphSample], Dict[int, int]]:
-    """Independently rejection-sample each depth to ``n_observations``."""
+    """Collect samples using either a reused seed pool or fresh seed draws."""
     samples: List[GraphSample] = []
     attempted_by_depth: Dict[int, int] = {}
 
     for depth in depths:
         successful = 0
-        attempted_seeds: Set[str] = set()
+        attempted = 0
         rejected_shorter = 0
         rejected_convergence = 0
         empty_seed_batches = 0
 
-        while successful < n_observations:
-            seeds = sample_seed_batch(
-                formality, seed_batch, attempted_seeds)
-            if not seeds:
-                empty_seed_batches += 1
-                if empty_seed_batches >= 5:
-                    print(
-                        f"  {formality}/{scheme} depth {depth}: unable to "
-                        "draw additional unique embedded seeds; stopping",
-                        file=sys.stderr,
-                    )
-                    break
-                continue
-            empty_seed_batches = 0
+        if seed_mode == "fixed":
+            seed_batches = [fixed_seeds or []]
+        else:
+            seed_batches = None
+
+        while (
+            (seed_mode == "fixed" and bool(seed_batches))
+            or (seed_mode == "unfixed" and successful < n_observations)
+        ):
+            if seed_mode == "fixed":
+                seeds = seed_batches.pop()
+            else:
+                # Passing an empty exclusion set makes each new batch an
+                # independent draw. Seeds remain unique within a batch but
+                # may be selected again by a later trajectory batch.
+                seeds = sample_seed_batch(formality, seed_batch, set())
+                if not seeds:
+                    empty_seed_batches += 1
+                    if empty_seed_batches >= 5:
+                        print(
+                            f"  {formality}/{scheme} depth {depth}: unable "
+                            "to draw additional embedded seeds; stopping",
+                            file=sys.stderr,
+                        )
+                        break
+                    continue
+                empty_seed_batches = 0
 
             for seed in seeds:
-                attempted_seeds.add(seed)
+                attempted += 1
                 attempt = _sample_walk_resilient(
                     formality, scheme, seed, depth)
                 rejected_shorter += attempt.rejected_shorter
@@ -625,10 +642,9 @@ def collect_scheme_samples(
                     )
                 )
                 successful += 1
-                if successful >= n_observations:
+                if seed_mode == "unfixed" and successful >= n_observations:
                     break
 
-        attempted = len(attempted_seeds)
         attempted_by_depth[depth] = attempted
         failures = attempted - successful
 
@@ -981,7 +997,20 @@ def main() -> None:
         dest="n_observations",
         type=int,
         default=1_000,
-        help="Successful unique-seed observations per bucket (default: 1000).",
+        help=(
+            "Fixed seeds per formality, or successful observations per "
+            "bucket in unfixed mode (default: 1000)."
+        ),
+    )
+    parser.add_argument(
+        "--seed-mode",
+        choices=["fixed", "unfixed"],
+        default="unfixed",
+        help=(
+            "Seed-selection strategy: reuse one seed set per formality "
+            "('fixed'), or independently draw seeds and replace failed "
+            "walks in every bucket ('unfixed', default)."
+        ),
     )
     parser.add_argument(
         "--seed-batch",
@@ -1041,10 +1070,31 @@ def main() -> None:
 
     samples: List[GraphSample] = []
     attempt_stats: Dict[Tuple[str, str, int], Tuple[int, int]] = {}
+    fixed_seed_pools: Dict[str, List[str]] = {}
+    if args.seed_mode == "fixed":
+        for formality in formalities:
+            print(
+                f"Drawing {args.n_observations} fixed {formality} seeds...",
+                file=sys.stderr,
+            )
+            fixed_seed_pools[formality] = sample_seed_batch(
+                formality,
+                args.n_observations,
+                set(),
+            )
+            if len(fixed_seed_pools[formality]) < args.n_observations:
+                print(
+                    f"  Warning: drew only "
+                    f"{len(fixed_seed_pools[formality])}/"
+                    f"{args.n_observations} fixed {formality} seeds.",
+                    file=sys.stderr,
+                )
+
     for formality in formalities:
         for scheme in schemes:
             print(
-                f"Sampling {formality}/{scheme} at depths {depths}...",
+                f"Sampling {formality}/{scheme} at depths {depths} "
+                f"with {args.seed_mode} seeds...",
                 file=sys.stderr,
             )
             scheme_samples, attempted_by_depth = collect_scheme_samples(
@@ -1053,6 +1103,8 @@ def main() -> None:
                 depths,
                 args.n_observations,
                 args.seed_batch,
+                args.seed_mode,
+                fixed_seed_pools.get(formality),
             )
             samples.extend(scheme_samples)
             for depth, n_attempted in attempted_by_depth.items():
