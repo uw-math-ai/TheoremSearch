@@ -1,0 +1,472 @@
+[
+ {
+  "category": "math.AG",
+  "arxiv_id": "2607.14055",
+  "title": "Open surfaces with a triangle at infinity",
+  "theorems": [
+   {
+    "env": "proposition",
+    "statement": "Let $(X_1,D_1)$ be a $(0,0)$-completion of a surface $Y$ and let $\\phi\\colon (X_1,D_1)\\dashrightarrow (X_2,D_2)$ be a birational map of NC-pairs such that $(X_2,D_2)$ is minimal. Then the following hold. \\begin{enumerate}[(i)] \\item The NC-pair $(X_2,D_2)$ is a $(0,0)$-completion of $Y$. \\item There exists a decomposition $\\phi=\\psi_2\\circ\\psi_1^{-1}$, where each morphism $\\psi_i\\colon (\\hat{X},\\hat D)\\to (X_i,D_i)$, $i=1,2$, is a composition of inner blowups. \\item For any such decomposition the dual graph $\\Gamma(\\hat D)$ is circular. \\item If $\\phi$ is not an isomorphism, then $\\Gamma(\\hat D)$ is triangulable. Moreover, if $(\\hat{X},\\hat D)$ is relatively minimal, then $\\Gamma(\\hat D)$ admits a triangulation which is a chain of triangles. \\end{enumerate}"
+   },
+   {
+    "env": "lemma",
+    "statement": "A $(0,0)$- or triangle completion of a surface $Y$ is uniquely determined, up to a unique isomorphism over $Y$, by the set of inner components of $Y$ contained in the boundary divisor."
+   },
+   {
+    "env": "lemma",
+    "statement": "The following assertions hold. \\begin{enumerate}[(i)] \\item $T(Y)$ is a well-defined simplicial complex, i.e., every pair of vertices of a triangle of $T(Y)$ is an edge of $T(Y)$. \\item Every edge of $T(Y)$ is contained in exactly two triangles of $T(Y)$. \\end{enumerate}"
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $(X,D)$ be a $(0,0)$-completion of $Y$. \\begin{enumerate}[(i)] \\item For every inner birational morphism $\\psi\\colon(\\hat X,\\hat D)\\to(X,D)$, the triangulation $T(\\hat D)$ is a finite subcomplex of $T(Y)$ under the identification of the components of $\\hat D$ with inner components of $Y$. \\item Let $\\phi\\colon(X_1,D_1)\\dashrightarrow(X_2,D_2)$ be a birational map of $(0,0)$-completions of $Y$ that is not an isomorphism and $\\psi_i\\colon(\\hat X,\\hat D)\\to(X_i,D_i)$, $i=1,2$ be a relatively minimal decomposition $\\phi=\\psi_2\\circ\\psi_1^{-1}$. Then $T(\\hat D)$ is a chain of triangles connecting the edges $e_1$ and $e_2$ of $T(Y)$ corresponding to $(X_1,D_1)$ and $(X_2,D_2)$ respectively, i.e., these edges belong to the end triangles of the chain. \\end{enumerate}"
+   },
+   {
+    "env": "lemma",
+    "statement": "The adjacency graph of triangles of $T(Y)$, in which two triangles are adjacent if they share an edge, is an infinite $3$-regular tree."
+   },
+   {
+    "env": "lemma",
+    "statement": "The marking of Notation~\\ref{nt:markings}\\ref{nt:markings:00} is a bijection between the inner components of $D$ and $\\PP(\\ZZ^2)$."
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $T(Y)$ be marked. Then the following assertions hold. \\begin{enumerate}[(i)] \\item Given an edge $(u,v)$ in $T(Y)$, the opposite vertices of adjacent triangles are $u+v,u-v$. \\item The markings of $T(Y)$ are uniquely determined by markings of any triangle. \\item Let us take an edge $(u,v)$ in $T(Y)$ and construct a new marking of $T(Y)$ by starting with $(1,0)$ and $(0,1)$ for $u$ and $v$ respectively. Then there exists a unique $g\\in\\PGL(2,\\ZZ)$ such that for any vertex with the new marking $m$ the original marking equals $gm$. In particular, $g$ is the class of a matrix whose columns represent $u$ and $v$. \\end{enumerate}"
+   },
+   {
+    "env": "lemma",
+    "statement": "If $u,v$ is a basis of $\\ZZ^2$, then either $\\{u,v\\}$ or $\\{u,-v\\}$ belong to the same closed quadrant of $\\ZZ^2$."
+   },
+   {
+    "env": "corollary",
+    "statement": "A pair of primitive vectors in $\\ZZ^2$ is a basis if and only if the corresponding vertices of $T(Y)$ are adjacent."
+   },
+   {
+    "env": "corollary",
+    "statement": "The identification of vertices of $T(Y)$ with $\\PP(\\ZZ^2)$ induces the isomorphism of the natural action of $\\Aut(T(Y))$ on $T(Y)$ with the natural action of $\\PGL(2,\\ZZ)$ on $\\PP(\\ZZ^2)$."
+   }
+  ]
+ },
+ {
+  "category": "math.AT",
+  "arxiv_id": "2607.14016",
+  "title": "The internal Yoneda Lemma for locally Cartesian closed $\\infty$-categories",
+  "theorems": [
+   {
+    "env": "theorem",
+    "statement": "Let $\\C$ be a finitely complete locally Cartesian closed $\\infty$-category, $X$ an object of $\\C$, and $\\U$ a universe classifying the diagonal $\\Delta_X\\colon X\\to X\\times X$. The Yoneda map \\[\\yo_X\\colon X\\to\\U^X\\] is a monomorphism."
+   },
+   {
+    "env": "corollary",
+    "statement": "Let $\\X$ be a small $\\infty$-groupoid. Then the Yoneda map $\\yo_\\X\\colon\\X\\to \\Psh(\\X)$ is fully faithful."
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $\\C$ be an $\\infty$-category and $i\\colon A\\to S$ a morphism admitting a retraction $r\\colon S\\to A$ (so $r\\circ i\\simeq 1_A$). Let $B\\in\\slice{\\C}{S}$ and suppose there exists an equivalence $\\varphi\\colon A\\xrightarrow{\\sim}B$ in $\\slice{\\C}{S}$. Then every morphism $A\\to B$ in $\\slice{\\C}{S}$ is an equivalence."
+   },
+   {
+    "env": "prop",
+    "statement": "{LurieHTT}}] A right fibration $p\\colon \\mathscr{R}\\to\\C$ is equivalent to $\\slice{\\C}{X}$ if and only if $\\mathscr{R}$ has a terminal object. In that case $X$ is the image $p(\\ast_{\\mathscr{R}})$ of the terminal object."
+   },
+   {
+    "env": "prop",
+    "statement": "Let $\\C$ be an $\\infty$-category. \\begin{enumerate}[label=\\arabic*., ref=\\thetheorem.\\arabic*] \\item A morphism $f\\colon X\\to Y$ is an equivalence if and only if $\\Sigma_f\\colon \\slice{\\C}{X}\\to\\slice{\\C}{Y}$ is an equivalence. Equivalently, if and only if $\\C(T,f)\\colon\\C(T,X)\\to\\C(T,Y)$ is an equivalence for every $T\\in\\C$. \\item Two objects $X,Y$ are equivalent if and only if the right fibrations $\\slice{\\C}{X}$ and $\\slice{\\C}{Y}$ are equivalent over $\\C$, equivalently if and only if $\\C(-,X)\\simeq\\C(-,Y)$ as functors $\\C^\\op\\to\\Sp$. \\end{enumerate}"
+   },
+   {
+    "env": "prop",
+    "statement": "Let $f\\colon X\\to Y$ be a map of an $\\infty$-category $\\C$. The following are equivalent: \\begin{enumerate}[label=\\arabic*., ref=\\thetheorem.\\arabic*] \\item $f$ is a monomorphism; \\item the functor $\\Sigma_f\\colon \\slice{\\C}{X}\\to\\slice{\\C}{Y}$ is fully faithful; \\item The functor $\\slice{\\C}{X}\\to\\slice{\\C}{X}\\times_{\\slice{\\C}{Y}}\\slice{\\C}{X}$ is an equivalence. \\end{enumerate} If the pullback $X\\times _YX$ exists, then those are equivalent to: \\begin{enumerate}[resume, label=\\arabic*., ref=\\thetheorem.\\arabic*] \\item the diagonal $X\\to X\\times_YX$ is an equivalence; \\item the following commutative square is Cartesian: \\[\\begin{tikzcd} X & Y \\\\ {X\\times X} & {Y\\times Y} \\arrow[\"f\", from=1-1, to=1-2] \\arrow[\"{\\Delta_X}\"', from=1-1, to=2-1] \\arrow[\"{\\Delta_Y}\", from=1-2, to=2-2] \\arrow[\"{f\\times f}\", from=2-1, to=2-2] \\end{tikzcd}.\\] \\end{enumerate}"
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $\\C$ be an $\\infty$-category. A monomorphism $f\\colon A\\to X$ in $\\C$ admitting a section is an equivalence."
+   },
+   {
+    "env": "prop",
+    "statement": "Let $\\C$ be an $\\infty$-category, and $X\\xrightarrow{f}Y\\xrightarrow{g}Z$ be maps in $\\C$ such that $g$ is a monomorphism and $g\\circ f$ is an equivalence. Then $f$ and $g$ are equivalences."
+   },
+   {
+    "env": "lemma",
+    "statement": "{Frey&Rasekh_ConstructingCoproductsInLCCC}}] Let $\\C$ be a locally Cartesian closed $\\infty$-category with pullbacks, and let \\[\\begin{tikzcd} P \\arrow[r, \"h\"]\\arrow[dr, phantom, \"\\lrcorner\"{anchor=center, pos=0.125}] \\arrow[d, \"k\"'] & A \\arrow[d, \"f\"] \\\\ B \\arrow[r, \"g\"'] & C \\end{tikzcd}\\] be a Cartesian square. The canonical natural transformation \\[f^\\ast\\circ \\prod_g\\xrightarrow[]{\\simeq}\\prod_h\\circ k^\\ast\\] is an equivalence."
+   },
+   {
+    "env": "prop",
+    "statement": "Let $p\\colon \\U_\\ast\\to \\U$ be a map in $\\C$. Then the following are equivalent: \\begin{enumerate} \\item $p$ is univalent; \\item The projection $\\Sigma_p\\colon \\slice{\\Orb_\\C^{(\\mathrm{all})}}{p}\\to \\Orb_\\C^{(\\mathrm{all})}$ is fully faithful. \\end{enumerate} In that case, there exists a fully faithful functor $\\slice{\\C}{\\U}\\to\\Orb_\\C^{(\\mathrm{all})}$."
+   }
+  ]
+ },
+ {
+  "category": "math.NT",
+  "arxiv_id": "2607.14071",
+  "title": "Strongly complete sets and a conjecture of Erdős",
+  "theorems": [
+   {
+    "env": "thm",
+    "statement": "Let $\\rho>1$ and define \\begin{equation} u_\\rho=\\left\\lceil\\rho(\\rho-1)\\right\\rceil, \\qquad v_\\rho=\\max\\{u_\\rho,2\\}, \\qquad M_\\rho=2u_\\rho+v_\\rho. \\end{equation} A set $A\\subseteq\\N$ is strongly complete if it satisfies \\eqref{eq:L1-divergence} and the inequality \\begin{equation} \\big|A\\cap(\\rho^k,\\rho^{k+1}]\\big|\\ge M_\\rho \\end{equation} for every sufficiently large integer $k$."
+   },
+   {
+    "env": "cor",
+    "statement": "Every set $A\\subseteq\\N$ satisfying \\eqref{eq:L1-divergence} and the inequality \\[\\big|A\\cap(2^k,2^{k+1}]\\big|\\ge6\\] for every sufficiently large integer $k$ is strongly complete, and hence complete."
+   },
+   {
+    "env": "cor",
+    "statement": "Fix $\\rho>1$ and $k_0\\in\\N$. Let $S\\subseteq\\Z$ be finite and satisfy $|S|\\ge M_{\\rho}$ and $\\gcd(S-S)=1$. For every $k\\ge k_0$, let $b_k$ be an integer such that $b_k+S\\subseteq(\\rho^k,\\rho^{k+1}]$. Then \\[ A=\\bigcup_{k\\ge k_0}(b_k+S) \\] is strongly complete."
+   },
+   {
+    "env": "lem",
+    "statement": "Let $S\\subseteq\\N$ be infinite. If $\\Delta(S)<\\infty$, then $\\FS(S)$ is syndetic."
+   },
+   {
+    "env": "lem",
+    "statement": "Let $B_1,B_2,C\\subseteq\\N$ be pairwise disjoint. Suppose that $\\FS(B_1)$ and $\\FS(B_2)$ are syndetic and that both \\eqref{eq:C-irrational-L1divergence} and \\eqref{eq:C-modular} hold for $C$. Then there exists a finite set $E\\subseteq C$ such that \\[ \\FS(B_1\\cup B_2\\cup E) \\] is thick."
+   },
+   {
+    "env": "cor",
+    "statement": "Let $B_1,B_2,C\\subseteq\\N$ be pairwise disjoint infinite sets. Suppose that \\[\\Delta(B_1),\\ \\Delta(B_2),\\ \\Delta(C)<\\infty,\\] and that both \\eqref{eq:C-irrational-L1divergence} and \\eqref{eq:C-modular} hold. Then $A=B_1\\cup B_2\\cup C$ is complete."
+   },
+   {
+    "env": "prop",
+    "statement": "If $C\\subseteq\\N$ satisfies \\eqref{eq:rational-theta}, or equivalently, \\eqref{eq:gcd-tail}, then \\[ \\FS(C)+q\\Z=\\Z \\] for every $q\\in\\N$. The same conclusion holds after deleting a finite number of elements from $C$."
+   },
+   {
+    "env": "cor",
+    "statement": "Let $B_1,B_2,C\\subseteq\\N$ be pairwise disjoint infinite sets. Suppose that \\[ \\Delta(B_1),\\ \\Delta(B_2),\\ \\Delta(C)<\\infty \\] and that \\begin{equation} \\sum_{c\\in C}\\|c\\theta\\|=\\infty,\\quad\\forall\\theta\\in\\T\\setminus\\{0\\}. \\end{equation} Then $A=B_1\\cup B_2\\cup C$ is strongly complete."
+   },
+   {
+    "env": "lem",
+    "statement": "Fix $\\lambda>1$, and let $\\{a_n\\}_{n\\ge1}$ be an unbounded sequence of positive integers such that \\begin{equation} a_{n+1}\\le\\lambda a_n, \\quad\\forall n\\ge1. \\end{equation} Then \\[ E(a):=\\{\\theta\\in\\T:\\|a_n\\theta\\|\\to0\\text{ as }n\\to\\infty\\} \\] is countable. Consequently, \\[ H(a):= \\left\\{ \\theta\\in\\T: \\sum_{n=1}^{\\infty}\\|a_n\\theta\\|<\\infty \\right\\} \\] is also countable."
+   },
+   {
+    "env": "lem",
+    "statement": "Let $\\{X_k\\}_{k\\ge1}$ be a sequence of pairwise disjoint sets such that $r_k<|X_k|<\\infty$ for all $k\\ge1$, where $r_k\\in\\Z_{\\ge0}$, and set $X=\\bigcup_{k\\ge1}X_k$. Let $J\\subseteq\\N$ be at most countable. For every $j\\in J$, let $f_j:X\\to[0,\\infty)$ be a function satisfying \\begin{equation} \\sum_{k=1}^{\\infty}\\frac{|X_k|-r_k}{|X_k|}\\sum_{x\\in X_k}f_j(x)=\\infty. \\end{equation} Then there exist sets $D_k\\subseteq X_k$, with $|D_k|=r_k$, such that \\begin{equation} \\sum_{k=1}^{\\infty}\\sum_{x\\in X_k\\setminus D_k}f_j(x)=\\infty, \\quad\\forall j\\in J. \\end{equation}"
+   }
+  ]
+ },
+ {
+  "category": "math.CO",
+  "arxiv_id": "2607.14028",
+  "title": "Cyclic Sieving for Staircase Plane Partitions via Crystals and Electrical Networks",
+  "theorems": [
+   {
+    "env": "thm",
+    "statement": "\\Cref{conj:main} is true when $P = \\delta_n$ is a staircase and $m=2$."
+   },
+   {
+    "env": "thm",
+    "statement": "$\\mathrm{Row}\\colon \\mathcal{PP}^m(\\delta_n)\\to\\mathcal{PP}^m(\\delta_n)$ and $\\mathrm{Pr}\\colon \\mathcal{PP}^m(\\delta_n)\\to\\mathcal{PP}^m(\\delta_n)$ are conjugate to one another in the group generated by the toggles."
+   },
+   {
+    "env": "lemma",
+    "statement": "For $\\pi\\in \\mathcal{PP}^m(\\delta_{n-1})$ we have \\begin{equation} \\Phi(F_{i-n}(\\pi)) = \\mathrm{BK}_{i}(\\Phi(\\pi)) \\end{equation} for all $2\\le i\\le 2n-2$, and hence \\[ \\Phi(\\mathrm{Pr}(\\pi)) = \\mathrm{Pr}(\\Phi(\\pi)).\\]"
+   },
+   {
+    "env": "lemma",
+    "statement": "Highest weight elements of weight zero in the crystal $(B_r^{\\mathrm{spin}})^{\\otimes 2n}$ can be naturally identified with $r$-fans of Dyck paths of semilength $n$. Under this identification, promotion in terms of the crystal commutor in \\eqref{eq:crystal commutor} corresponds to promotion on $r$-fans of Dyck paths."
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $C^{\\mathrm{vec}}_r$ be the crystal for the standard representation in type~$C_r$. The map in \\cref{def:sundaram-map} is a bijection from highest weight elements of weight zero in $(C^{\\mathrm{vec}}_r)^{\\otimes 2n}$ to $(r+1)$-noncrossing perfect matchings on $[2n]$ that intertwines promotion and rotation."
+   },
+   {
+    "env": "thm",
+    "statement": "There exists an explicit bijection between $2$-fans of Dyck paths of semilength $n$ and $3$-noncrossing perfect matchings on $[2n]$ that intertwines promotion and rotation."
+   },
+   {
+    "env": "thm",
+    "statement": "Let $e$ be an electrical network. Then $\\iota(e) \\subseteq V$ and is isotropic with respect to the symplectic form \\[ \\Lambda_{2n-2} = \\begin{bmatrix} 0 & 1& 0& 0& 0&\\cdots& 0\\\\ -1 &0& -1 &0 &0&\\cdots& 0\\\\ 0 &1& 0 &1 &0&\\cdots &0\\\\ 0&0&-1&0&-1&\\cdots &0\\\\ \\vdots &\\vdots &\\vdots&\\vdots&\\vdots&\\ddots &\\vdots \\end{bmatrix} \\] where $\\Lambda_{2n-2}$ is expressed in the $\\beta$ basis. Furthermore, $\\mathcal{X}_n$ is isomorphic to the Lagrangian Grassmannian $\\mathrm{LG}(n-1, V)$ for this symplectic form."
+   },
+   {
+    "env": "thm",
+    "statement": "{lam2018electroid}}] For any electrical network $e$ and $I \\in \\binom{[2n]}{n-1}$, we have \\[ \\Delta_I(N(e)) = \\sum_{\\substack{\\sigma \\in \\mathcal{NP}(n)\\\\\\sigma \\textrm{ concordant with } I}} L_{\\sigma}(e). \\]"
+   },
+   {
+    "env": "lemma",
+    "statement": "If \\cref{conj:gao} is true for some $n, m \\geq 1$, then \\cref{conj:main} is true for that same $m$ and for $P=\\delta_{n-1}$ a staircase of size $n-1$."
+   },
+   {
+    "env": "thm",
+    "statement": "{gao2025electrical}}] For $\\sigma,\\sigma' \\in \\mathcal{NP}(n)$, and any electrical network $e$, \\[ L_\\sigma(e)L_{\\sigma'}(e) = \\sum_{\\xi \\in \\mathcal{TC}(2n)} a_{\\sigma,\\sigma',\\xi }B_\\xi(e) \\] where $a_{\\sigma,\\sigma',\\xi}$ counts valid opposite loopless resolutions of $\\xi$ resulting in $\\sigma,\\sigma'$."
+   }
+  ]
+ },
+ {
+  "category": "math.PR",
+  "arxiv_id": "2607.14087",
+  "title": "Stochastic Domination of Gaussian Maxima: A Resolution to the Weak Simplex Conjecture",
+  "theorems": [
+   {
+    "env": "proposition",
+    "statement": "\\label[proposition]{prop:awgn-reduction} Among all $M$-message codes in the preceding model, the optimal average probability of correct decoding is attained by a centered regular $(M-1)$-simplex whose vertices have squared norm $E$."
+   },
+   {
+    "env": "lemma",
+    "statement": "\\label[lemma]{lem:rectangles} Let $V=(V_1,\\ldots,V_m)$ be a centered Gaussian vector with $\\operatorname{Var}(V_i)=1$ for every $i$. For $r_1,\\ldots,r_m\\in[0,\\infty]$, \\begin{equation} \\Pp\\{|V_i|\\leq r_i\\text{ for all }i\\} \\geq\\prod_{i=1}^m\\Pp\\{|Z|\\leq r_i\\}, \\qquad Z\\sim\\cN(0,1). \\end{equation}"
+   },
+   {
+    "env": "lemma",
+    "statement": "\\label[lemma]{lem:even-factors} Under the hypotheses of \\Cref{lem:rectangles}, let $g_1,\\ldots,g_m:\\R\\to[0,\\infty)$ be bounded, even, and log-concave. Then \\begin{equation} \\E\\prod_{i=1}^m g_i(V_i) \\geq\\prod_{i=1}^m\\int g_i\\,d\\gamma_1. \\end{equation}"
+   },
+   {
+    "env": "lemma",
+    "statement": "\\label[lemma]{lem:sum-difference} For bounded log-concave $h_1,\\ldots,h_m$ and every correlation matrix $R$, \\begin{equation} \\mathcal Z_R(h_1,\\ldots,h_m)^2 \\geq\\mathcal Z_R(\\mathcal Dh_1,\\ldots,\\mathcal Dh_m). \\end{equation}"
+   },
+   {
+    "env": "theorem",
+    "statement": "Let $R$ be an $m\\times m$ correlation matrix satisfying \\[ R-\\frac1mJ\\succeq0, \\] and let $X\\sim\\cN(0,R)$. Then \\begin{equation} \\M_X\\leq_{\\mathrm{st}}\\M_Z. \\end{equation} Equivalently, \\begin{equation} \\Pp\\{X\\leq c\\one\\}\\geq\\Phi(c)^m \\qquad\\text{for every }c\\in\\R. \\end{equation}"
+   },
+   {
+    "env": "corollary",
+    "statement": "\\label[corollary]{cor:monotone} Under the hypotheses of \\Cref{thm:orthant}, for every nonnegative nondecreasing Borel function $\\psi$, \\[ \\E\\psi(\\M_X)\\leq\\E\\psi(\\M_Z), \\] and this remains valid when one or both expectations are infinite. In particular, for every $\\lambda>0$ and $t\\in\\R$, \\[ \\E e^{\\lambda\\M_X}\\leq\\E e^{\\lambda\\M_Z}, \\qquad \\E(\\M_X-t)_+\\leq\\E(\\M_Z-t)_+. \\]"
+   },
+   {
+    "env": "corollary",
+    "statement": "\\label[corollary]{cor:mgf} Let $G$ be any $m\\times m$ correlation matrix, let $\\xi\\sim\\cN(0,G)$, and let $\\xi^\\triangle\\sim\\cN(0,G_\\triangle)$. Then \\begin{equation} \\E\\exp\\!\\left\\{\\lambda\\max_i\\xi_i\\right\\} \\leq \\E\\exp\\!\\left\\{\\lambda\\max_i\\xi_i^\\triangle\\right\\} \\qquad(\\lambda>0). \\end{equation} No rank assumption is imposed on $G$."
+   },
+   {
+    "env": "corollary",
+    "statement": "\\label[corollary]{cor:wsc} Let $m=d+1$, let $x_1,\\ldots,x_m$ be unit vectors in $\\R^d$, and let the message $I$ be uniform on $\\{1,\\ldots,m\\}$. Under the channel \\[ Y=\\lambda x_I+Z, \\qquad Z\\sim\\cN(0,I_d),\\quad \\lambda>0, \\] the average probability of correct maximum-likelihood decoding is no larger than for a regular simplex. Thus a regular simplex is a maximizer for every $\\lambda>0$."
+   },
+   {
+    "env": "corollary",
+    "statement": "\\label[corollary]{cor:mean-width} For every $m\\times m$ correlation matrix $G$, \\begin{equation} \\E\\max_i\\xi_i \\leq \\E\\max_i\\xi_i^\\triangle =\\sqrt{\\frac{m}{m-1}}\\,\\E\\max_i Z_i. \\end{equation} Consequently, among all simplices with $m$ vertices contained in the Euclidean unit ball of $\\R^{m-1}$, a regular $(m-1)$-simplex has maximal mean width. More generally, the same conclusion holds in any fixed ambient dimension $d\\geq m-1$ after embedding the regular simplex in $\\R^d$. No uniqueness statement is asserted."
+   },
+   {
+    "env": "corollary",
+    "statement": "\\label[corollary]{cor:finite-energy} In the preceding unrestricted-channel-use model, the optimal correct-decoding probability is \\begin{equation} P_{\\mathrm c}^*(E,M) =p_M\\!\\left(\\sqrt{\\frac{2EM}{(M-1)N_0}}\\right), \\qquad M\\geq2. \\end{equation} Hence, for $0\\leq\\epsilon<1$, \\begin{equation} M^*(E,\\epsilon) =\\max\\!\\left( \\{1\\}\\cup \\left\\{M\\geq2: p_M\\!\\left(\\sqrt{\\frac{2EM}{(M-1)N_0}}\\right) \\geq1-\\epsilon \\right\\} \\right). \\end{equation} If $0<\\epsilon<1-1/M$, there is a unique $a_{M,\\epsilon}>0$ satisfying $p_M(a_{M,\\epsilon})=1-\\epsilon$, and the minimum energy for $M$ messages is \\begin{equation} E_{\\min}(M,\\epsilon) =\\frac{N_0}{2}\\frac{M-1}{M}a_{M,\\epsilon}^2. \\end{equation} For $\\epsilon\\geq1-1/M$ this minimum is zero, whereas for $\\epsilon=0$ it is infinite."
+   }
+  ]
+ },
+ {
+  "category": "math.DG",
+  "arxiv_id": "2607.13917",
+  "title": "$L^{1}$-Integrability of $L^{2}$-Harmonic Forms and the Hopf Conjecture",
+  "theorems": [
+   {
+    "env": "conjecture",
+    "statement": "Let $(X,g)$ be a closed $2n$-dimensional Riemannian manifold with sectional curvature \\(\\mathrm{sec}_{g}\\). Then \\begin{equation*} \\left\\{ \\begin{aligned} (-1)^{n}\\chi(X)>0, &\\quad if\\ \\mathrm{sec}_{g}<0,\\\\ (-1)^{n}\\chi(X)\\geq0,&\\quad if\\ \\mathrm{sec}_{g}\\leq0,\\\\ \\end{aligned} \\right. \\end{equation*} where $\\chi(X)$ denotes the Euler number of $X$."
+   },
+   {
+    "env": "conjecture",
+    "statement": "Let $(X,g)$ be a closed, $2n$-dimensional Riemannian manifold with negative sectional curvature $\\mathrm{sec}_{g}$. Then \\begin{equation*} \\left\\{ \\begin{aligned} h^{k}_{(2)}(X)=0, &\\quad k\\neq n,\\\\ h^{n}_{(2)}(X)>0.& \\\\ \\end{aligned} \\right. \\end{equation*}"
+   },
+   {
+    "env": "theorem",
+    "statement": "Let $(X,g)$ be an $n$-dimensional Cartan--Hadamard manifold with $n\\geq 3$, and let $\\a$ be an $L^{2}$-harmonic $k$-form on $X$ with $k\\geq 1$. Suppose that the sectional curvature satisfies $$-K\\leq\\mathrm{sec}_{g}\\leq 0,$$ where $K$ is a positive constant. If $\\a$ is also in $L^{1}$, then $\\a$ vanishes."
+   },
+   {
+    "env": "theorem",
+    "statement": "Let $(X,g)$ be an $n$-dimensional Cartan--Hadamard manifold with $n\\ge3$. Suppose that the sectional curvature satisfies $$-K\\leq\\mathrm{sec}_{g}\\leq 0,$$ where $K$ is a positive constant. Then for any $\\a\\in\\mathcal{H}^{p}_{(2)}(X)$, $\\b\\in\\mathcal{H}^{q}_{(2)}(X)$ and $\\gamma\\in\\mathcal{H}^{p+q}_{(2)}(X)$ with $p,q\\geq1$, we have $$\\int_{X}\\langle\\a\\wedge\\b,\\gamma\\rangle=0,$$ In particular, the reduced $L^{2}$-cohomology class $[\\a\\wedge\\b]=0\\in \\bar{H}^{p+q}_{(2)}(X)$. Here $\\mathcal{H}^{k}_{(2)}(X)$ denotes the space of $L^{2}$-harmonic $k$-form on $X$, and the reduced $L^{2}$-cohomology group $ \\bar{H}^{k}_{(2)}(X)$ is defined in Section 2."
+   },
+   {
+    "env": "proposition",
+    "statement": "Let $(X,g)$ be a closed Riemannian manifold with non-positive sectional curvature, and let $(\\tilde{X},\\tilde{g})$ be its universal covering. Then, for any $k\\geq1$, \\[h_{(2)}^{k}(X)=0\\quad (k\\neq n)\\] if and only if every $L^{2}$-harmonic $k$-form on $\\tilde{X}$ belongs to $L^{1}(\\tilde{X})$."
+   },
+   {
+    "env": "theorem",
+    "statement": "Let $(X, g)$ be an $n$-dimensional complete simply-connected Riemannian manifold with non-positive sectional curvature, $n\\geq 3$, and let $\\a$ be an $L^{2}$-harmonic $k$-form on $X$ with $k\\geq 1$. If there exists a nonzero parallel $l$-form $\\omega$ on $(X, g)$ such that the operator \\begin{align} L_\\omega=\\omega\\wedge \\cdot: \\mathcal{H}^{k}_{(2)}(X)\\rightarrow \\mathcal{H}^{k+l}_{(2)}(X) \\end{align} is injective, then $\\a$ vanishes."
+   },
+   {
+    "env": "corollary",
+    "statement": "(cf. \\cite[Main Theorem]{CX}) Let $(X, g)$ be a $2n$-dimensional complete simply-connected K\\\"ahler manifold with non-positive sectional curvature, $n\\geq 2$. Then for any $k\\neq n$, \\[\\mathcal{H}^{k}_{(2)}(X)=\\{0\\}.\\]"
+   },
+   {
+    "env": "theorem",
+    "statement": "(cf. \\cite[Lemma 3.2]{CY}) Let $(X,g)$ be a complete simply-connected manifold with negative sectional curvature, and let $\\a$ be a bounded closed $k$-form on $X$. Then $\\a$ is $d$(bounded) for $k\\geq2$. Moreover, if \\[\\mathrm{sec}_{g}\\leq -K_{0}<0,\\] where $K_{0}$ is a positive constant, then $$\\|\\b\\|^{2}_{L^{\\infty}(X)}\\leq K_{0}^{-1}\\|\\a\\|^{2}_{L^{\\infty}(X)}.$$"
+   },
+   {
+    "env": "theorem",
+    "statement": "(cf. \\cite[Theorem 1]{CX} or \\cite[Proposition 8.4]{Ball}) Let $(X,g)$ be a complete simply-connected manifold with non-positive sectional curvature, and let $\\a$ be a bounded closed $k$-form on $X$. Then $\\a$ is $d$(sublinear) for every $k\\geq1$, that is, there exists a $(k-1)$-form $\\b$ such that $\\a=d\\b$ and \\begin{align} |\\b(x)|\\leq \\|\\a\\|_{L^\\infty}(1+\\rho(x,x_0)), \\quad \\forall\\ x\\in X. \\end{align}"
+   },
+   {
+    "env": "theorem",
+    "statement": "(\\cite[Theorem 8.7]{Heb}) Let $(X,g)$ be an $n$-dimensional Cartan--Hadamard manifold, $n\\geq 3$. For any $v\\in C_{0}^{\\infty}(X)$, the following Sobolev inequality holds: \\begin{equation} \\left(\\int_{X}|v|^{\\frac{n}{n-1}}\\right)^{\\frac{n-1}{n}}\\leq C^{\\frac{1}{n}}_{n}\\int_{X}|\\na v|. \\end{equation}"
+   }
+  ]
+ },
+ {
+  "category": "math.FA",
+  "arxiv_id": "2607.14019",
+  "title": "Semialgebraic Dimension and Truncated Toeplitz Models for Complex Symmetric Matrices",
+  "theorems": [
+   {
+    "env": "lem",
+    "statement": "Let \\(X,Y\\) be semialgebraic sets. \\begin{enumerate} \\item If \\(X\\subseteq Y\\), then \\(\\dim_{\\mathbb R}X\\leq \\dim_{\\mathbb R}Y\\). \\item If \\(X=X_1\\cup\\cdots\\cup X_k\\), then \\(\\dim_{\\mathbb R}X=\\max_j\\dim_{\\mathbb R}X_j\\). \\item If \\(f:X\\to Y\\) is semialgebraic, then \\(\\dim_{\\mathbb R}f(X)\\leq \\dim_{\\mathbb R}X\\). In particular, if two semialgebraic sets are related by a real linear isomorphism, then they have the same real semialgebraic dimension. \\item If \\(X\\subseteq\\mathbb R^a\\times\\mathbb R^b\\) is semialgebraic, then its projection onto either coordinate factor is semialgebraic and has dimension at most \\(\\dim_{\\mathbb R}X\\). \\item If \\(X\\subseteq Y\\times\\mathbb R^m\\) is semialgebraic and every fibre \\(X_y=\\{z:(y,z)\\in X\\}\\) has dimension at most \\(d\\), then \\(\\dim_{\\mathbb R}X\\leq \\dim_{\\mathbb R}Y+d\\). \\item If \\(X\\) and \\(Y\\) are semialgebraic sets, then $X\\times Y$ is semialgebraic and \\[ \\dim_{\\mathbb R}(X\\times Y) = \\dim_{\\mathbb R}X+\\dim_{\\mathbb R}Y. \\] \\end{enumerate}"
+   },
+   {
+    "env": "lem",
+    "statement": "Let \\(V\\) be a finite-dimensional real vector space and let \\(U\\subseteq V\\) be a non-empty open semialgebraic subset. Then \\(\\dim_{\\mathbb R}U=\\dim_{\\mathbb R}V\\)."
+   },
+   {
+    "env": "thm",
+    "statement": "Let \\(\\mathcal X\\subseteq\\mathcal{CS}_n\\) be semialgebraic. Then \\(\\mathcal U(\\mathcal X)\\) is semialgebraic and \\[ \\dim_{\\mathbb R}\\mathcal U(\\mathcal X) \\leq \\dim_{\\mathbb R}\\mathcal X+\\frac{n(n-1)}2. \\]"
+   },
+   {
+    "env": "lem",
+    "statement": "Let \\(M\\in\\mathcal{CS}_n\\). Then \\[ \\{S\\in\\mathcal{CS}_n:S\\text{ is unitarily equivalent to }M\\} = \\{R^TMR:R\\in O(n,\\mathbb R)\\}. \\]"
+   },
+   {
+    "env": "thm",
+    "statement": "Let \\(B\\) be a finite Blaschke product of degree \\(n\\), let \\(\\alpha\\in\\mathbb T\\), and write \\[ B^{-1}(\\alpha)=\\{\\zeta_1,\\ldots,\\zeta_n\\}. \\] Let \\(A\\) be a TTO on \\(K_B\\). Then \\(A\\) is unitarily equivalent to a matrix \\(M_A=(m_{i,j})\\in\\mathcal{CS}_n\\) for which there exist vectors \\(x,y\\in\\mathbb C^n\\) such that \\begin{equation} (\\zeta_i-\\zeta_j)m_{i,j}=x_i y_j-y_i x_j \\end{equation} for all \\(1\\leq i,j\\leq n\\)."
+   },
+   {
+    "env": "lem",
+    "statement": "For $M_A$ as given by \\eqref{1.16} and $D(B, \\alpha) = \\operatorname{diag}( \\zeta_1, \\zeta_2, \\ldots , \\zeta_n)$, where $\\zeta_i \\in B^{-1}(\\alpha)$ we have $$ \\operatorname{rank} ([ D(B, \\alpha), M_A ]) \\leq 2. $$"
+   },
+   {
+    "env": "thm",
+    "statement": "Let $n \\geq 10$. Then $\\mathcal{U} ( \\mathcal{C})$ and $(\\mathcal{I} \\bigcap \\mathcal{CS}_n)$ are semialgebraic and $$ \\dim_{\\mathbb{R}} \\mathcal{U} ( \\mathcal{C}) < \\dim_{\\mathbb{R}} (\\mathcal{I} \\bigcap \\mathcal{CS}_n). $$"
+   },
+   {
+    "env": "lem",
+    "statement": "Let \\(D \\in \\mathcal{D} \\). Then \\[ \\dim_{\\mathbb R}\\{M\\in \\mathcal{CS}_n:\\operatorname{rank}[D,M]\\leq 2\\}\\leq 6n-6. \\]"
+   },
+   {
+    "env": "prop",
+    "statement": "The set $\\mathcal{C}$ is semi algebraic and $ \\dim_{\\mathbb{R}} ( \\mathcal{C}) \\leq 7n - 6 $."
+   },
+   {
+    "env": "thm",
+    "statement": "The set $\\mathcal{I} \\bigcap \\mathcal{CS}_n$ is semialgebraic and $\\dim_{\\mathbb{R}} (\\mathcal{I} \\bigcap \\mathcal{CS}_n) = n(n+1)$"
+   }
+  ]
+ },
+ {
+  "category": "math.LO",
+  "arxiv_id": "2607.13969",
+  "title": "Further quantitative moduli around uniform convexity",
+  "theorems": [
+   {
+    "env": "proposition",
+    "statement": "Let $X$ be a uniformly convex Banach space with modulus $\\eta : (0,\\infty) \\to (0,1]$. Then, for all $\\eps$, $r>0$ and all $x,y \\in X$ with $\\|x\\|\\leq r$, $\\|y\\| \\leq r$ and $\\|x-y\\| \\geq \\eps r$ one has that $$\\left\\|\\frac{x+y}2\\right\\| \\leq (1-\\eta(\\eps))r.$$"
+   },
+   {
+    "env": "proposition",
+    "statement": "Let $(X,d,W)$ be a $W$-hyperbolic space, $\\lambda \\in [0,1]$ and $x$, $y$, $a \\in X$. Then $$d^2\\left((1-\\lambda)x+\\lambda y,a\\right) \\leq (1-\\lambda)d^2(x,a)+\\lambda d^2(y,a).$$"
+   },
+   {
+    "env": "theorem",
+    "statement": "{Pru81}}] Let $X$ be a Banach space. We have that $X$ is uniformly convex iff for any $R >0$ there is a function $\\omega_R : [0, \\infty) \\to [0,\\infty)$, which is non-decreasing and $0$ is its only zero, such that, for any $x$, $y \\in X$ with $\\|x\\|$, $\\|y\\| \\leq R$ and for any $x^* \\in Jx$ and $y^* \\in Jy$, we have that $$\\langle x-y, x^*-y^* \\rangle \\geq \\omega_R(\\|x-y\\|) \\cdot \\|x-y\\|.$$"
+   },
+   {
+    "env": "proposition",
+    "statement": "Let $X$ be a Banach space. The condition in Theorem~\\ref{pru} is equivalent to the following: there is an $\\omega : (0,\\infty) \\times (0, \\infty) \\to (0, \\infty)$ such that, for any $R$, $\\rho >0$, for any $x$, $y \\in X$ with $\\|x-y\\| \\geq \\rho$ and $\\|x\\|$, $\\|y\\| \\leq R$ and for any $x^* \\in Jx$ and $y^* \\in Jy$, we have that $$\\langle x-y, x^*-y^* \\rangle \\geq \\omega(R,\\rho) \\cdot \\|x-y\\|.$$"
+   },
+   {
+    "env": "proposition",
+    "statement": "Let $X$ be a Banach space. The condition in Theorem~\\ref{pru} is further equivalent to the following: there is an $\\alpha : (0,\\infty) \\times (0, \\infty) \\to (0, \\infty)$ such that, for any $R$, $\\rho >0$, for any $x$, $y \\in X$ with $\\|x-y\\| \\geq \\rho$ and $\\|x\\|$, $\\|y\\| \\leq R$ and for any $x^* \\in Jx$ and $y^* \\in Jy$, we have that $$\\langle x-y, x^*-y^* \\rangle \\geq \\alpha(R,\\rho).$$"
+   },
+   {
+    "env": "theorem",
+    "statement": "Define, for any $\\eta : (0,\\infty) \\to (0,1]$ and any $R$, $\\rho > 0$, $$\\alpha_\\eta(R, \\rho) := \\min\\left( \\frac{\\rho^2}{64}\\eta^2\\left(\\frac\\rho R\\right),\\ \\frac{\\rho^2}8\\eta\\left(\\frac\\rho R\\right) \\right).$$ Let $X$ be a uniformly convex Banach space with modulus $\\eta : (0,\\infty) \\to (0,1]$. Let $R$, $\\rho >0$, let $x$, $y \\in X$ be with $\\|x-y\\| \\geq \\rho$ and $\\|x\\|$, $\\|y\\| \\leq R$ and let $x^* \\in Jx$ and $y^* \\in Jy$. Then we have that $$\\langle x-y, x^*-y^* \\rangle \\geq \\alpha_\\eta(R,\\rho).$$"
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $B$, $r >0$. Let $(X,d,W)$ be a complete $UCW$-hyperbolic space and $C \\se X$ be closed, convex, nonempty. Let $x$, $y \\in X$ be such that $d(x,P_Cx) \\leq B$ and $d(x,y) \\leq r$. Then $d(y,P_Cy) \\leq r+B$."
+   },
+   {
+    "env": "lemma",
+    "statement": "{BacKoh18}}] Let $(X,\\|\\cdot\\|)$ be a uniformly convex Banach space and $f$ be a proper, convex, lsc function on $X$. Let $x \\in X$. Then there is a $z^* \\in J(x-\\Prox_f x)$ such that, for all $y \\in X$, $$f(\\Prox_fx) - f(y) \\leq \\langle z^*, \\Prox_fx -y\\rangle.$$"
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $(X,d,W)$ be a complete $UCW$-hyperbolic space and $f$ be a proper, convex, lsc function on $X$. Let $x$, $y \\in X$. Then $f(\\Prox_fx) - f(y) \\leq d(x,\\Prox_fx) \\cdot d(y,\\Prox_fx)$."
+   },
+   {
+    "env": "lemma",
+    "statement": "Let $B$, $r >0$. Let $(X,d,W)$ be a complete $UCW$-hyperbolic space and $f$ be a proper, convex, lsc function on $X$. Let $x$, $y \\in X$ be such that $d(x,\\Prox_fx) \\leq B$ and $d(x,y) \\leq r$. Then $d(y,\\Prox_fy) \\leq B + \\sqrt{B^2 + 2B(B+r) + (r+B)^2}$."
+   }
+  ]
+ },
+ {
+  "category": "math.RT",
+  "arxiv_id": "2607.13252",
+  "title": "Type $B$ Webs",
+  "theorems": [
+   {
+    "env": "thm",
+    "statement": "There is an equivalence of $\\C(q)$-linear pivotal categories \\[ \\varphi \\colon \\Web(\\son) \\to \\FRep(U_q(\\son)) \\] sending $k \\mapsto V_{\\varpi_k}$ (for $1 \\le k \\le n-1$) and $\\gS \\mapsto S$."
+   },
+   {
+    "env": "thm",
+    "statement": "Wenzl's map $\\iqUsom^{\\le n} \\longrightarrow \\End_{U_q(\\son)}(S^{\\otimes m})$ from \\eqref{Wenzlmap} is an isomorphism of unital associative algebras. \\qed"
+   },
+   {
+    "env": "thm",
+    "statement": "Let $M$ be a finite-dimensional (type I) nonclassical representation of $\\iqUsom$. For $m \\in M$, the formulae $\\beta_i(m):=\\sum_{k \\ge 0} q^{-k}\\xxb^{(k)}_i\\cdot m$ determine an action of $\\Br_m$ on $M$."
+   },
+   {
+    "env": "prop",
+    "statement": "Let $V$ be a finite-dimensional (type I) $U_{-q^2}$-module. The $U_{-q^2}^{\\iota}$-module $V\\otimes \\nctriv$ is (type I) nonclassical. As operators on $V\\otimes \\nctriv$, the nonclassical $\\iota$quantum Weyl group generators $\\Delta(\\iQW_i)$ are invertible and satisfy the braid relations of $\\Br_{\\mathfrak{g}}$."
+   },
+   {
+    "env": "lem",
+    "statement": "Assume the existence of the functor $\\Web_{\\mathcal{A}}(\\son)\\rightarrow \\FRep_{\\mathcal{A}}(\\son)$. After specialization to a field, via $\\mathcal{A}\\rightarrow \\mathbb{F}$, the Karoubi envelope of $\\FRep_{\\mathbb{F}}(\\son)$ is equivalent to the category of tilting modules."
+   },
+   {
+    "env": "prop",
+    "statement": "The following decompositions hold in $\\Rep(U_q(\\son))$: \\begin{equation} V_1 \\otimes V_k \\cong \\begin{cases} V_{\\varpi_1+\\varpi_k} \\oplus V_{k+1} \\oplus V_{k-1} & 1 \\leq k \\leq n-2 \\\\ V_{\\varpi_1+\\varpi_{n-1}} \\oplus V_{2\\varpi_n} \\oplus V_{n-2} & k = n-1 \\, , \\end{cases} \\end{equation} \\begin{equation} V_1 \\otimes V_{2\\varpi_n} \\cong V_{\\varpi_1+2\\varpi_n} \\oplus V_{2\\varpi_n} \\oplus V_{n-1} \\, , \\end{equation} \\begin{equation} S \\otimes S \\cong V_{2\\varpi_n} \\oplus \\bigoplus_{i=0}^{n-1} V_i \\, , \\end{equation} and \\begin{equation} V_1 \\otimes S \\cong V_{\\varpi_1 + \\varpi_n} \\oplus S \\, . \\end{equation}"
+   },
+   {
+    "env": "lem",
+    "statement": "For $1 \\leq k \\leq n-1$, \\begin{equation} \\begin{tikzpicture}[scale=.25,tinynodes,anchorbase] \\draw[very thick] (-1,0) to node[below=-2pt]{$k{-}1$} (1,0); \\draw[very thick] (-1,0) to node[above=-2pt, left=-1pt]{$k$} (0,1.732); \\draw[very thick] (1,0) to node[above=-2pt, right=-1pt]{$1$} (0,1.732); \\draw[very thick] (0,1.732) to (0,3.232) node[above=-3pt]{$k{-}1$}; \\draw[very thick] (-2.3,-.75) node[below=-2pt,xshift=-2pt]{$1$} to (-1,0); \\draw[very thick] (2.3,-.75) node[below=-2pt,xshift=2pt]{$k$} to (1,0); \\end{tikzpicture} = (-1)^{k-1}\\frac{[2]_{2n+1}}{[2]_{2n-2k+3}} \\begin{tikzpicture}[scale =.5, smallnodes,anchorbase] \\draw[very thick] (0,0) node[below=-1pt]{$1$} to [out=90,in=210] (.5,.75); \\draw[very thick] (1,0) node[below=-1pt]{$k$} to [out=90,in=330] (.5,.75); \\draw[very thick] (.5,.75) to (.5,1.5) node[above=-2pt]{$k{-}1$}; \\end{tikzpicture} \\, . \\end{equation}"
+   },
+   {
+    "env": "thm",
+    "statement": "There is a pivotal, essentially surjective functor $\\varphi \\colon \\Web(\\son) \\to \\FRep(U_q(\\son))$."
+   },
+   {
+    "env": "lem",
+    "statement": "For either $\\ell = 1$ or $m = 1$, we have \\begin{equation} \\hat{\\varphi} \\Bigg( \\begin{tikzpicture}[scale =.375, tinynodes,anchorbase] \\draw[very thick] (0,0) node[below=-2pt]{$m$} to [out=90,in=210] (.5,.75); \\draw[very thick] (1,0) node[below=-2pt]{$\\ell$} to [out=90,in=330] (.5,.75); \\draw[very thick] (.5,.75) to (.5,1.5) node[above=-2pt]{$m{+}\\ell$}; \\end{tikzpicture} \\Bigg) \\circ R_{\\ell,m} = (-q^{-2})^{m\\ell} \\hat{\\varphi} \\Bigg( \\begin{tikzpicture}[scale =.375, tinynodes,anchorbase] \\draw[very thick] (0,0) node[below=-2pt]{$\\ell$} to [out=90,in=210] (.5,.75); \\draw[very thick] (1,0) node[below=-2pt]{$m$} to [out=90,in=330] (.5,.75); \\draw[very thick] (.5,.75) to (.5,1.5) node[above=-2pt]{$m{+}\\ell$}; \\end{tikzpicture} \\Bigg) \\, . \\end{equation}"
+   },
+   {
+    "env": "lem",
+    "statement": "Equation \\eqref{generalblackuntwist} holds for all $m, \\ell \\ge 0$, when interpreted using the flow vertices of \\eqref{eq:flowvertex}."
+   }
+  ]
+ },
+ {
+  "category": "math.AP",
+  "arxiv_id": "2607.14080",
+  "title": "Recovery of Schrödinger nonlinearity from the large-data scattering behavior",
+  "theorems": [
+   {
+    "env": "prop",
+    "statement": "Call a pair $(p,q)$ of Schr\\\"odinger admissible for $d=3$ if $2\\leq p,q\\leq \\infty$ and $\\frac{2}{p}+\\frac{3}{q} = \\frac{3}{2}$. Then for any admissible pair $(p,q)$ and $(\\tilde{p},\\tilde{q})$, we have homogeneous Strichartz estimate \\begin{equation} \\|\\e^{\\i t\\Delta}u_0\\|_{\\L^p_t\\L^q_x(\\mathbb{R}\\times \\mathbb{R}^3)}\\lesssim_{p,q}\\|u_0\\|_{\\L^2_x(\\mathbb{R}^3)}, \\end{equation} the dual homogeneous Strichartz estimate \\begin{equation} \\left\\|\\int_{\\mathbb{R}}\\e^{-\\i s\\Delta}F(s)\\ \\mathrm{d}s\\right\\|_{\\L^2_x(\\mathbb{R}^3)}\\lesssim_{\\tilde{p},\\tilde{q}}\\|F\\|_{\\L^{\\tilde{p}'}_t\\L^{\\tilde{q}'}_x(\\mathbb{R}\\times\\mathbb{R}^3)}, \\end{equation} and the inhomogeneous Strichartz estimate \\begin{equation} \\left\\|\\int_{s<t}\\e^{\\i(t-s)\\Delta}F(s)\\ \\mathrm{d}s\\right\\|_{\\L^p_t\\L^q_x(\\mathbb{R}\\times \\mathbb{R}^3)}\\lesssim_{p,q,\\tilde{p},\\tilde{q}}\\|F\\|_{\\L^{\\tilde{p}'}_t\\L^{\\tilde{q}'}_x(\\mathbb{R}\\times\\mathbb{R}^3)}. \\end{equation}"
+   },
+   {
+    "env": "lem",
+    "statement": "For $u\\in \\H^1_x(\\mathbb{R}^3)$, \\begin{equation} \\|u\\|_{\\L^4_x(\\mathbb{R}^3)}\\lesssim \\|u\\|^{1/4}_{\\L^2_x(\\mathbb{R}^3)}\\|u\\|^{3/4}_{\\dot{\\H}^1_x(\\mathbb{R}^3)}. \\end{equation}"
+   },
+   {
+    "env": "thm",
+    "statement": "The Cauchy problem \\eqref{cubic-nls-1} is globally well-posed."
+   },
+   {
+    "env": "lem",
+    "statement": "Let $u(t)$ be a global solution to \\eqref{cubic-nls-1}. Assume \\begin{equation} \\int_{\\mathbb{R}}\\int_{\\mathbb{R}^3} |u(t,x)|^5\\ \\mathrm{d}x\\mathrm{d}t<\\infty. \\end{equation} Then $u(t)$ scatters, which means there exist $u_{-},u_{+}\\in \\H^1$ such that $$\\lim_{t\\to \\pm\\infty}\\|u(t) - \\e^{\\i t\\Delta}u_{\\pm}\\|_{\\H^1} = 0.$$"
+   },
+   {
+    "env": "thm",
+    "statement": "For any $u_0 \\in \\H^1_x(\\mathbb{R}^3)$, the corresponding global solution $u(t)$ to \\eqref{cubic-nls-1} scatters and $$\\int_{\\mathbb{R}}\\int_{\\mathbb{R}^3} |u(t,x)|^5\\ \\mathrm{d}x\\mathrm{d}t < C\\left(\\|a\\|_{\\W^{1,\\infty}_x},\\|u_0\\|_{\\H^1_x}\\right).$$"
+   },
+   {
+    "env": "thm",
+    "statement": "Let $u_0\\in \\H^1_x(\\mathbb{R}^3)$ and $u(t)$ be the corresponding global solution to \\eqref{cubic-nls-1}. Then \\begin{equation} \\|u\\|_{\\L^4_{t,x}(\\mathbb{R}\\times \\mathbb{R}^3)}\\lesssim \\|u\\|_{\\L^{\\infty}_t\\H^1_x(\\mathbb{R}\\times \\mathbb{R}^3)}\\lesssim 1. \\end{equation}"
+   },
+   {
+    "env": "thm",
+    "statement": "For any $u_0\\in \\H^1(\\mathbb{R}^3)$, let $u(t)$ be the corresponding global scattering solution to \\eqref{cubic-nls-1}. If $v_0\\in B_{\\varepsilon}(u_0)$ and set $w^{\\varepsilon}(t) = v^{\\varepsilon}(t) - u(t)$, where $v^{\\varepsilon}(t)$ is the global scattering solution to \\eqref{cubic-nls-1} corresponding to $v_0$, then \\begin{equation} \\|w^{\\varepsilon}\\|_{\\L^5_{t,x}(\\mathbb{R}\\times \\mathbb{R}^3)}\\leq C\\left(\\|a\\|_{\\W^{1,\\infty}_x},\\|u_0\\|_{\\H^1_x}\\right)\\varepsilon \\end{equation} and \\begin{equation} \\|\\langle \\nabla \\rangle w^{\\varepsilon}\\|_{\\L^p_t\\L^q_x(\\mathbb{R}\\times \\mathbb{R}^3)}\\leq C\\left(\\|a\\|_{\\W^{1,\\infty}_x},\\|u_0\\|_{\\H^1_x}\\right)\\varepsilon \\end{equation} for all Schr\\\"odinger admissible pairs $(p,q)$."
+   },
+   {
+    "env": "prop",
+    "statement": "\\begin{equation} w_1(t,x) := \\lim_{\\varepsilon\\to 0}\\frac{w^{\\varepsilon}(t,x)}{\\varepsilon} \\end{equation} is a well-defined $\\S^1$ function solving \\begin{equation} (\\i \\partial_t + \\Delta)w_{1} = 2a|u|^2w_{1} + au^2\\overline{w_1} \\end{equation} and \\begin{equation} \\|w_1\\|_{\\S^1}\\leq C\\left(\\|a\\|_{\\W^{1,\\infty}_x},\\|u_0\\|_{\\H^1_x}\\right). \\end{equation}"
+   },
+   {
+    "env": "prop",
+    "statement": "We have \\begin{equation} \\lim_{t\\to -\\infty}\\|w_1(t) - \\e^{\\i t\\Delta}\\varphi\\|_{\\H^1_x} = 0. \\end{equation}"
+   },
+   {
+    "env": "prop",
+    "statement": "\\begin{equation} w_2(t,x) := \\lim_{\\varepsilon\\to 0}\\frac{w^{\\varepsilon} - \\varepsilon w_1}{\\varepsilon^2} \\end{equation} is a well-defined $\\S^1$ function solving \\begin{equation} (\\i \\partial_t + \\Delta)w_{2} = 2a|u|^2w_{2} + au^2\\overline{w_2} + 2au|w_{1}|^2 + a\\bar{u}(w_1)^2 \\end{equation} with \\begin{equation} \\|w_2\\|_{\\S^1}\\leq C\\left(\\|a\\|_{\\W^{1,\\infty}_x},\\|u_0\\|_{\\H^1_x}\\right). \\end{equation} and \\begin{equation} \\lim_{t\\to -\\infty}\\|w_2\\|_{\\S^1((-\\infty,t))} = 0 \\end{equation}"
+   }
+  ]
+ }
+]
