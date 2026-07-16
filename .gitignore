@@ -104,3 +104,7 @@ experiments/nl_fl_matching/harness/runs/*
 !experiments/nl_fl_matching/harness/runs/*.digest.json
 !experiments/nl_fl_matching/harness/runs/returned_proofs/
 experiments/nl_fl_matching/harness/runs/returned_proofs/_raw/
+
+# Allow latex-vs-slogan experiment artifacts (frozen corpus, results, figure)
+!experiments/latex_vs_slogan/data/*.json
+!experiments/latex_vs_slogan/latex_vs_slogan.png
