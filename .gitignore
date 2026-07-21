@@ -1,6 +1,11 @@
 .env
 .env.local
 .env.*.local
+
+# Root-level Python virtualenv / caches
+.venv/
+venv/
+__pycache__/
 *.json
 *.tex
 *.bib

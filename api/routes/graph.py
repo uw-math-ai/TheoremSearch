@@ -962,6 +962,7 @@ WITH ann AS (
     WHERE e.model_name = %(model)s
       AND s.model_name = ANY(%(slogan_models)s)
       AND NOT s.insufficient_context
+      AND (%(formality)s::text IS NULL OR st.formality = %(formality)s)
       AND (%(sources)s::text[] IS NULL OR p.source = ANY(%(sources)s))
       AND (%(types)s::text[]   IS NULL OR LOWER(st.kind) = ANY(%(types)s))
       AND (%(author_patterns)s::text[] IS NULL OR EXISTS (
@@ -1025,6 +1026,7 @@ WITH ann AS (
     WHERE e.model_name = %(model)s
       AND s.model_name = ANY(%(slogan_models)s)
       AND NOT s.insufficient_context
+      AND (%(formality)s::text IS NULL OR st.formality = %(formality)s)
       AND (%(sources)s::text[] IS NULL OR p.source = ANY(%(sources)s))
       AND (%(types)s::text[]   IS NULL OR LOWER(st.kind) = ANY(%(types)s))
       AND (%(author_patterns)s::text[] IS NULL OR EXISTS (
@@ -1066,6 +1068,13 @@ LIMIT %(n)s;
 def graph_embedding(
     query: str = Query(..., min_length=1, description="Natural-language search query."),
     n_results: int = Query(10, ge=1, le=100),
+    formality: Literal["informal", "formal", "both"] = Query(
+        "both",
+        description=(
+            "Filter results by statement formality: 'informal', 'formal', or "
+            "'both' (default, no filter)."
+        ),
+    ),
     sources: List[str] = Query(default=[], description="Paper sources, e.g. 'arXiv'."),
     types: List[str] = Query(default=[], description="Statement kinds, e.g. theorem, lemma."),
     authors: List[str] = Query(default=[], description="Author substring filter."),
@@ -1089,6 +1098,7 @@ def graph_embedding(
             "q":               query_vec,
             "model":           _EMBED_MODEL,
             "slogan_models":   _SLOGAN_MODELS,
+            "formality":       None if formality == "both" else formality,
             "sources":         sources or None,
             "types":           [t.lower() for t in types] or None,
             "author_patterns": [f"%{a.lower()}%" for a in authors] or None,
