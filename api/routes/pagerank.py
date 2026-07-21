@@ -419,4 +419,4 @@ def graph_pagerank(
         raise
     except Exception as e:
         logger.exception("/graph/pagerank failed")
-        raise HTTPException(status_code=500, detail=f"/graph/pagerank failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal error running PageRank search.")

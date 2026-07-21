@@ -1152,7 +1152,7 @@ def graph_embedding(
         raise HTTPException(status_code=429, detail="Embedding API rate limit reached; back off and retry.")
     except Exception as e:
         logger.exception("/graph/embedding failed for query %r", query)
-        raise HTTPException(status_code=500, detail=f"/graph/embedding failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal error running embedding search.")
 
 
 # ------------------------------------------------------------------ #

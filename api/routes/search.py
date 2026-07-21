@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import threading
@@ -8,6 +9,7 @@ from openai import OpenAI
 from db import rds_conn
 from models import SearchRequest, SearchResponse, PaperResult, TheoremResult, DEFAULT_QUERY_PROMPT
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _openai_client: OpenAI = None
@@ -320,5 +322,6 @@ def search(payload: SearchRequest, mcp: bool = False):
 
         return SearchResponse(theorems=theorems)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+    except Exception:
+        logger.exception("/search failed for query %r", payload.query)
+        raise HTTPException(status_code=500, detail="Internal error running search.")
