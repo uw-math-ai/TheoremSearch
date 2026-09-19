@@ -109,3 +109,9 @@ experiments/nl_fl_matching/harness/runs/*
 !experiments/nl_fl_matching/harness/runs/*.digest.json
 !experiments/nl_fl_matching/harness/runs/returned_proofs/
 experiments/nl_fl_matching/harness/runs/returned_proofs/_raw/
+# Local tooling / OS clutter
+.idea/
+node_modules/
+desktop.ini
+# pip install --target output (App Runner builds from requirements.txt)
+api/dependencies/

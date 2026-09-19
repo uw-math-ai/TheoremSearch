@@ -182,14 +182,22 @@ Semantic search. Embeds the query and matches against the slogan-embedding index
 | Param | Type | Default | Notes |
 |---|---|---|---|
 | `query` | str | required | Natural-language query. |
-| `n_results` | int, 1–100 | 10 | Final result count. |
+| `n_results` | int, 1–100 | 10 | Final result count. One result per statement. |
+| `formality` | `informal` / `formal` / `both` | `both` | Restrict to informal (LaTeX) or formal (Lean) statements. |
 | `sources` | list of str | — | Filter by `paper.source` (repeat for multiple). |
-| `types` | list of str | — | Filter by statement kind (`theorem`, `lemma`, …). |
-| `authors` | list of str | — | Substring filter on `paper.authors`. |
+| `types` | list of str | — | Filter by statement kind (`theorem`, `lemma`, …). Formal kinds are spelled as ingested (`theorem`/`thm`, `definition`/`def`, …). |
+| `authors` | list of str | — | Substring filter on `paper.authors` (repeat for multiple; any match). |
+| `categories` | list of str | — | Primary arXiv category, e.g. `math.NT` (repeat for multiple). |
+| `year_min` / `year_max` | int | — | Year of the paper's latest version. Papers without a date always pass. |
+| `paper_filter` | str | — | Comma-separated arXiv IDs (prefix match, e.g. `2301.12345`) and/or title substrings. |
 | `min_citations` | int, ≥0 | 0 | Lower bound on arXiv citation count. |
+| `citation_max` | int, ≥0 | — | Upper bound on arXiv citation count. |
+| `include_unknown_citations` | bool | — | Papers with no known citation count (all non-arXiv sources): `true` always include, `false` always exclude, unset counts them as 0. |
 | `citation_weight` | float, ≥0 | 0.0 | Boost score by `citation_weight × ln(citations)`. |
-| `in_journal` | bool | — | Restrict to journal-published / non-journal papers. |
+| `in_journal` | bool | — | `true`: journal-published only; `false`: preprints only. Sources without publication metadata pass either way. |
 | `mode` | `full` / `minimal` | `full` | Minimal returns only `{statement_id, paper_id, similarity, score}` per result. Skips paper metadata and statement text — use this for paginated hitlists, hydrate full records via `/graph/paper/{id}` or `/statement/{id}`. |
+
+Author and paper filters rank the matching papers' statements exactly; other filters are applied to the nearest candidates of the approximate (HNSW) search, so very narrow filters can return fewer than `n_results`.
 
 ### Response
 
@@ -200,6 +208,8 @@ Semantic search. Embeds the query and matches against the slogan-embedding index
       "statement_id": "…",
       "paper_id":     "…",
       "name":         "Theorem 3.2",
+      "kind":         "theorem",
+      "formality":    "informal",
       "body":         "…",
       "slogan":       "…",
       "source":       "arXiv",
@@ -207,6 +217,9 @@ Semantic search. Embeds the query and matches against the slogan-embedding index
       "authors":      ["…"],
       "url":          "…",
       "external_id":  "…",
+      "categories":   ["math.NT", "math.AG"],  // arXiv, primary first
+      "year":         2024,                    // year of the latest version
+      "journal_ref":  "…",                     // arXiv, when journal-published
       "citation_count": 42,
       "similarity":   0.81,    // cosine similarity to the query embedding
       "score":        0.81     // similarity + citation_weight × ln(citations)
