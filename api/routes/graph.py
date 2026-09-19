@@ -1044,7 +1044,7 @@ _FULL_COLUMNS = """
         p.source,
         p.title,
         p.authors,
-        p.url,
+        COALESCE(im.url, p.url) AS url,  -- statement page when the source has one
         p.external_id,
         p.categories,
         EXTRACT(YEAR FROM p.updated_at)::int AS year,

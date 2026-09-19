@@ -36,6 +36,7 @@ CREATE TABLE informal_metadata (
     label TEXT, -- LaTeX \label value
     lean TEXT,
     note TEXT, -- env optional [] argument
+    url TEXT, -- the statement's own page, when its source has one (Stacks tag, ProofWiki page)
     pre_context TEXT,
     post_context TEXT
 );
