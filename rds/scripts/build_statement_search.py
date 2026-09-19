@@ -14,6 +14,12 @@ Usage
     # Create the table (if needed) and load every paper, 2000 papers per batch.
     python rds/scripts/build_statement_search.py --load
 
+    # Loading is I/O-bound (each row reads a 16KB vector); run disjoint
+    # paper_id shards in parallel to use more of the storage bandwidth:
+    python rds/scripts/build_statement_search.py --load --after 00000000-0000-0000-0000-000000000000 --before 40000000-0000-0000-0000-000000000000
+    python rds/scripts/build_statement_search.py --load --after 40000000-0000-0000-0000-000000000000 --before 80000000-0000-0000-0000-000000000000
+    ...
+
     # Refresh only some sources (e.g. after ingesting them).
     python rds/scripts/build_statement_search.py --load --source "Stacks Project" --source ProofWiki
 
@@ -45,6 +51,7 @@ _DDL_PATH = os.path.join(os.path.dirname(__file__), "..", "core", "statement_sea
 _PAPER_BATCH_SQL = """
 SELECT paper_id FROM paper
 WHERE paper_id > %(after)s
+  AND (%(before)s::uuid IS NULL OR paper_id < %(before)s::uuid)
   AND (%(sources)s::text[] IS NULL OR source = ANY(%(sources)s))
   AND source IS NOT NULL
 ORDER BY paper_id
@@ -71,12 +78,12 @@ SELECT
     apm.citation_count,
     lower(p.external_id),
     binary_quantize(e.embedding)::bit(4096)
-FROM paper p
-JOIN statement st ON st.paper_id = p.paper_id
+FROM statement st
+JOIN paper p      ON p.paper_id = st.paper_id
 JOIN slogan s     ON s.statement_id = st.statement_id
 JOIN embedding e  ON e.slogan_id = s.slogan_id
 LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
-WHERE p.paper_id = ANY(%(papers)s::uuid[])
+WHERE st.paper_id = ANY(%(papers)s::uuid[])
   AND s.model_name = ANY(%(slogan_models)s)
   AND NOT s.insufficient_context
   AND e.model_name = %(model)s
@@ -115,14 +122,16 @@ def _ensure_table(conn) -> None:
         cur.execute(f.read())
 
 
-def load(db: str, sources: list[str] | None, batch: int) -> None:
+def load(db: str, sources: list[str] | None, batch: int,
+         after: str | None = None, before: str | None = None) -> None:
     conn = get_rds_connection(db)
     conn.autocommit = False
     _ensure_table(conn)
     conn.commit()
 
-    params = {"sources": sources, "batch": batch, "model": EMBED_MODEL, "slogan_models": SLOGAN_MODELS}
-    after = "00000000-0000-0000-0000-000000000000"
+    params = {"sources": sources, "batch": batch, "before": before,
+              "model": EMBED_MODEL, "slogan_models": SLOGAN_MODELS}
+    after = after or "00000000-0000-0000-0000-000000000000"
     n_papers = n_rows = 0
     t0 = time.perf_counter()
     while True:
@@ -131,6 +140,11 @@ def load(db: str, sources: list[str] | None, batch: int) -> None:
             papers = [r[0] for r in cur.fetchall()]
             if not papers:
                 break
+            # The planner overestimates a batch by ~10x and switches to hash
+            # joins over full scans of embedding/slogan/paper; a batch is
+            # small, so pin it to index-driven nested loops.
+            cur.execute("SET LOCAL enable_hashjoin = off")
+            cur.execute("SET LOCAL enable_mergejoin = off")
             cur.execute(_DELETE_SQL, {"papers": papers})
             cur.execute(_INSERT_SQL, {**params, "papers": papers})
             n_rows += cur.rowcount
@@ -182,6 +196,8 @@ def main() -> None:
     parser.add_argument("--source", action="append", dest="sources",
                         help="Only load papers from this source. Repeatable. Default: all.")
     parser.add_argument("--batch", type=int, default=2000, help="Papers per transaction. Default: 2000.")
+    parser.add_argument("--after", help="Only papers with paper_id > this UUID (resume, or shard the load).")
+    parser.add_argument("--before", help="Only papers with paper_id < this UUID (shard the load).")
     parser.add_argument("--maintenance-work-mem", default="8GB")
     parser.add_argument("--max-parallel-maintenance-workers", type=int, default=6)
     args = parser.parse_args()
@@ -190,7 +206,7 @@ def main() -> None:
         dry_run(args.db, args.sources)
         return
     if args.load:
-        load(args.db, args.sources, args.batch)
+        load(args.db, args.sources, args.batch, args.after, args.before)
     if args.indexes:
         build_indexes(args.db, args.maintenance_work_mem, args.max_parallel_maintenance_workers)
 
