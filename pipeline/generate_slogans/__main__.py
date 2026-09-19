@@ -7,6 +7,7 @@ from typing import List, Optional
 from tqdm import tqdm
 
 from rds.utils.connect import get_rds_connection
+from rds.utils.paginate import paginate_query
 from rds.utils.query import build_query
 from rds.utils.upsert import upsert_rows
 from ..printing import print_script_header
