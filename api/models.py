@@ -63,6 +63,8 @@ class EmbeddingSearchResult(BaseModel):
     # All metadata is optional so minimal mode can omit it via
     # response_model_exclude_none=True without changing the schema.
     name: Optional[str] = None
+    kind: Optional[str] = None         # 'theorem', 'lemma', … (formal: Lean declaration kind)
+    formality: Optional[str] = None    # 'informal' | 'formal'
     body: Optional[str] = None
     slogan: Optional[str] = None
     source: Optional[str] = None
@@ -70,6 +72,9 @@ class EmbeddingSearchResult(BaseModel):
     authors: Optional[List[str]] = None
     url: Optional[str] = None
     external_id: Optional[str] = None
+    categories: Optional[List[str]] = None   # arXiv categories, primary first
+    year: Optional[int] = None               # year of the paper's latest version
+    journal_ref: Optional[str] = None        # set iff the paper is journal-published (arXiv only)
     citation_count: Optional[int] = None
     similarity: float
     score: float
