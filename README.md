@@ -1,6 +1,6 @@
 # Semantic Search over 9 Million Mathematical Theorems
 
-**Luke Alexander, Eric Leonen, Sophie Szeto, Artemii Remizov, Ignacio Tejeda, Giovanni Inchiostro, Vasily Ilin**
+**Luke Alexander, Eric Leonen, Sophie Szeto, Artemii Remizov, Ignacio Tejeda, Jarod Alper, Giovanni Inchiostro, Vasily Ilin**
 
 [![arXiv](https://img.shields.io/badge/arXiv-2602.05216-b31b1b.svg)](https://arxiv.org/abs/2602.05216)
 [![HF Paper](https://img.shields.io/badge/HF-Paper-yellow.svg)](https://huggingface.co/papers/2602.05216)
@@ -77,11 +77,25 @@ TheoremSearch is also available as an MCP tool for AI agents with a single tool 
 ## Citation
 
 ```bibtex
-@article{alexander2026semantic,
-  title  = {Semantic Search over 9 Million Mathematical Theorems},
-  author = {Alexander, Luke and Leonen, Eric and Szeto, Sophie and Remizov, Artemii and Tejeda, Ignacio and Inchiostro, Giovanni and Ilin, Vasily},
-  journal= {arXiv preprint arXiv:2602.05216},
-  year   = {2026},
-  doi    = {10.48550/arXiv.2602.05216},
-  url    = {https://arxiv.org/abs/2602.05216}
+@inproceedings{alexander2026semantic,
+  title         = {Semantic Search over 9 Million Mathematical Theorems},
+  author        = {Alexander, Luke and Leonen, Eric and Szeto, Sophie and Remizov, Artemii and Tejeda, Ignacio and Alper, Jarod and Inchiostro, Giovanni and Ilin, Vasily},
+  booktitle     = {ICLR 2026 Workshop on Logical Reasoning of Large Language Models},
+  year          = {2026},
+  eprint        = {2602.05216},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.IR},
+  url           = {https://arxiv.org/abs/2602.05216}
 }
+
+@article{kurgan2026theoremgraph,
+  title         = {TheoremGraph: Bridging Formal and Informal Mathematics},
+  author        = {Kurgan, Simon and Wang, Evan and Leonen, Eric and Szeto, Sophie and Alexander, Luke and Remizov, Artemii and Alper, Jarod and Inchiostro, Giovanni and Ilin, Vasily},
+  journal       = {arXiv preprint arXiv:2606.25363},
+  year          = {2026},
+  eprint        = {2606.25363},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.IR},
+  url           = {https://arxiv.org/abs/2606.25363}
+}
+```
