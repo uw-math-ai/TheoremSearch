@@ -5,7 +5,6 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2602.05216-b31b1b.svg)](https://arxiv.org/abs/2602.05216)
 [![HF Paper](https://img.shields.io/badge/HF-Paper-yellow.svg)](https://huggingface.co/papers/2602.05216)
 [![Dataset](https://img.shields.io/badge/Dataset-Theorem_Search-blue.svg)](https://huggingface.co/datasets/uw-math-ai/theorem-search-dataset)
-[![Demo](https://img.shields.io/badge/Demo-Live-green.svg)](https://huggingface.co/spaces/uw-math-ai/theorem-search)
 [![MathGPT](https://img.shields.io/badge/MathGPT-Custom_GPT-74aa9c.svg)](https://chatgpt.com/g/g-6994f4d1eb7c8191a1a8b6aad90e1449-mathgpt)
 [![Website](https://img.shields.io/badge/Website-theoremsearch.com-teal.svg)](https://theoremsearch.com)
 
@@ -18,7 +17,7 @@
 ## Overview
 
 Mathematicians and math prover agents need fast and efficient theorem search.  
-We release **[Theorem Search](https://huggingface.co/spaces/uw-math-ai/theorem-search)** over all of arXiv, the Stacks Project, and six other sources.
+We release **[Theorem Search](https://www.theoremsearch.com/)** over all of arXiv, the Stacks Project, and six other sources.
 
 Our search is **2× more accurate than frontier LLMs**, with only **4 second latency**.
 
