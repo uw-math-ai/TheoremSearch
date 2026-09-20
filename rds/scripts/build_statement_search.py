@@ -102,11 +102,9 @@ WHERE s.model_name = ANY(%(slogan_models)s)
 GROUP BY 1 ORDER BY 2 DESC
 """
 
+# Cheapest first: a long HNSW build that dies (e.g. a dropped client) rolls
+# back only itself, leaving the rest committed. The big arXiv graph is last.
 _INDEXES = [
-    ("statement_search_bq_arxiv_hnsw",
-     "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source = 'arXiv'"),
-    ("statement_search_bq_other_hnsw",
-     "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source <> 'arXiv'"),
     ("statement_search_statement", "(statement_id)"),
     ("statement_search_paper",     "(paper_id)"),
     ("statement_search_category",  "(primary_category)"),
@@ -114,6 +112,10 @@ _INDEXES = [
     ("statement_search_citations", "(citation_count)"),
     ("statement_search_formal",    "(source) WHERE formality = 'formal'"),
     ("statement_search_kind",      "(kind)"),
+    ("statement_search_bq_other_hnsw",
+     "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source <> 'arXiv'"),
+    ("statement_search_bq_arxiv_hnsw",
+     "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source = 'arXiv'"),
 ]
 
 
@@ -160,13 +162,20 @@ def load(db: str, sources: list[str] | None, batch: int,
 def build_indexes(db: str, mem: str, workers: int) -> None:
     conn = get_rds_connection(db)
     conn.autocommit = True
+    conn.notices[:] = []
     with conn.cursor() as cur:
         cur.execute(f"SET maintenance_work_mem = '{mem}'")
         cur.execute(f"SET max_parallel_maintenance_workers = {int(workers)}")
+        # pgvector NOTICEs when the HNSW graph outgrows maintenance_work_mem
+        # and falls back to the (much slower) on-disk build; surface it.
+        cur.execute("SET client_min_messages = notice")
         for name, spec in _INDEXES:
             t0 = time.perf_counter()
             print(f"Building {name} ...", flush=True)
             cur.execute(f"CREATE INDEX IF NOT EXISTS {name} ON statement_search {spec}")
+            for notice in conn.notices:
+                print(f"    {notice.strip()}", flush=True)
+            conn.notices[:] = []
             print(f"  done in {(time.perf_counter() - t0) / 60:.1f} min", flush=True)
         cur.execute("""CREATE STATISTICS IF NOT EXISTS statement_search_source_formality
                        (dependencies, mcv) ON source, formality, kind FROM statement_search""")

@@ -993,18 +993,35 @@ def _paper_clauses(p: dict) -> List[str]:
     return clauses
 
 
-def _statement_clauses(p: dict) -> List[str]:
-    clauses = [
-        "e.model_name = %(model)s",
-        "s.model_name = ANY(%(slogan_models)s)",
-        "NOT s.insufficient_context",
-    ]
+def _search_clauses(p: dict) -> List[str]:
+    """The /graph/embedding filters over statement_search (alias `ss`), which
+    carries the paper-level filter columns next to each embedding. Same
+    semantics as _paper_clauses."""
+    clauses = []
     if p["formality"]:
-        clauses.append("st.formality = %(formality)s::formality_kind")
+        clauses.append("ss.formality = %(formality)s::formality_kind")
     if p["types"]:
-        clauses.append("LOWER(st.kind) = ANY(%(types)s)")
+        clauses.append("ss.kind = ANY(ARRAY(SELECT search_kind(t) FROM unnest(%(types)s::text[]) t))")
+    if p["sources"]:
+        clauses.append("ss.source = ANY(%(sources)s)")
+    if p["categories"]:
+        clauses.append("ss.primary_category = ANY(%(categories)s)")
+    if p["year_min"] is not None:
+        clauses.append("(ss.year IS NULL OR ss.year >= %(year_min)s)")
+    if p["year_max"] is not None:
+        clauses.append("(ss.year IS NULL OR ss.year <= %(year_max)s)")
+    if p["in_journal"] is not None:
+        clauses.append("(ss.in_journal IS NULL OR ss.in_journal = %(in_journal)s)")
+    if p["min_citations"] > 0 or p["citation_max"] is not None or p["unknown_citations"] is False:
+        known = "ss.citation_count BETWEEN %(min_citations)s AND %(citation_max_or_inf)s"
+        if p["unknown_citations"] is None:
+            clauses.append("COALESCE(ss.citation_count, 0) BETWEEN %(min_citations)s AND %(citation_max_or_inf)s")
+        elif p["unknown_citations"]:
+            clauses.append(f"(ss.citation_count IS NULL OR {known})")
+        else:
+            clauses.append(known)
     if p["paper_uuids"]:
-        clauses.append("st.paper_id = ANY(%(paper_uuids)s::uuid[])")
+        clauses.append("ss.paper_id = ANY(%(paper_uuids)s::uuid[])")
     return clauses
 
 
@@ -1024,12 +1041,10 @@ WHERE {" AND ".join(_paper_clauses(p))}
 LIMIT %(prefilter_limit)s
 """
 
-# How many nearest embeddings (by Hamming distance) a filtered query examines.
-# Every candidate costs a join to slogan/statement/paper to evaluate the
-# filters, so this trades latency for recall on restrictive filters. The HNSW
-# iterative scan must be allowed to visit at least this many tuples.
-_FILTERED_SCAN_K = 10000
-_HNSW_MAX_SCAN_TUPLES = 20000
+# How many index candidates a filtered HNSW iterative scan may visit before
+# giving up (pgvector default: 20000). The filters are columns of the indexed
+# table, so each candidate costs one heap-tuple check.
+_HNSW_MAX_SCAN_TUPLES = 50000
 
 # Beyond this many matching papers, fall back to the HNSW path (the exact
 # rerank would have to read too many 16KB vectors).
@@ -1055,84 +1070,64 @@ _MINIMAL_COLUMNS = """
         apm.citation_count,"""
 
 
-def _embedding_sql(p: dict, mode: str, exact: bool) -> str:
-    """Build the /graph/embedding query.
+def _embedding_sql(p: dict, mode: str) -> str:
+    """Build the /graph/embedding query over statement_search.
 
-    ANN path (exact=False): binary-quantized HNSW narrows candidates by
-    Hamming distance, then full-precision cosine reranks. The index walk is
-    fenced into its own subquery that takes the scan_k nearest embeddings,
-    and the filters are applied to those candidates. The fence is
-    load-bearing: the filters live on joined tables whose selectivity the
-    planner can't estimate (e.g. categories[1]), and without it the planner
-    often picks "scan every matching paper's statements and sort all their
-    vectors", which reads GBs and times out. The cost of the fence is recall
-    under very restrictive filters: only matches among the scan_k nearest
-    candidates are found. Paper-level filters that restrictive (authors,
-    paper_filter) take the exact path instead.
-
-    Exact path (exact=True): the candidate set is already restricted to a
-    small list of papers, so order by full-precision cosine directly; with
-    no index on that expression the planner walks statement(paper_id) instead
-    of the HNSW index.
-
-    Formal statements can carry embeddings for several slogan prompts, so
-    `ranked` keeps only each statement's closest one.
+    Candidates come from one ORDER BY <Hamming distance> LIMIT ann_k per
+    partial HNSW index (arXiv / everything else), each with every filter in
+    its WHERE clause. Filters and vector live in the same row, so pgvector's
+    iterative scan keeps walking the graph until ann_k rows pass them (up to
+    hnsw.max_scan_tuples), and for restrictive filters the planner can
+    instead collect the matching rows by btree and sort them by exact Hamming
+    distance. The partial-index predicate must appear verbatim for the planner
+    to use that index. Candidates are then reranked by full-precision cosine
+    (embedding.embedding), keeping each statement's closest embedding (formal
+    statements can have one per slogan prompt).
     """
-    cols = _FULL_COLUMNS if mode == "full" else _MINIMAL_COLUMNS
-    where = "\n      AND ".join(_statement_clauses(p) + _paper_clauses(p))
-    im_join = (
-        "LEFT JOIN informal_metadata im ON im.statement_id = st.statement_id"
-        if mode == "full" else ""
+    where = _search_clauses(p)
+    branches = []
+    if not p["sources"] or "arXiv" in p["sources"]:
+        branches.append("ss.source = 'arXiv'")
+    if not p["sources"] or any(src != "arXiv" for src in p["sources"]):
+        branches.append("ss.source <> 'arXiv'")
+    candidates = "\n    UNION ALL\n".join(
+        f"""    (SELECT ss.embedding_id, ss.statement_id
+     FROM statement_search ss
+     WHERE {" AND ".join([branch] + where)}
+     ORDER BY ss.bq <~> binary_quantize(%(q)s::vector(4096))::bit(4096)
+     LIMIT %(ann_k)s)"""
+        for branch in branches
     )
-    if exact:
-        emb_from = "embedding e"
-        order = "ORDER BY e.embedding <=> %(q)s::vector(4096)"
-    else:
-        emb_from = """(
-        SELECT slogan_id, model_name, embedding
-        FROM embedding
-        WHERE model_name = %(model)s
-        ORDER BY binary_quantize(embedding)::bit(4096)
-                 <~> binary_quantize(%(q)s::vector(4096))::bit(4096)
-        LIMIT %(scan_k)s
-    ) e"""
-        order = ""
-    out_cols = (
-        "statement_id, paper_id, name, kind, formality, body, slogan, source, title, "
-        "authors, url, external_id, categories, year, journal_ref, citation_count"
-        if mode == "full" else "statement_id, paper_id"
-    )
+    full = mode == "full"
     return f"""
-WITH ann AS (
-    SELECT
-        st.statement_id,
-        p.paper_id,{cols}
-        e.embedding
-    FROM {emb_from}
-    JOIN slogan s     ON s.slogan_id = e.slogan_id
-    JOIN statement st ON st.statement_id = s.statement_id
-    JOIN paper p      ON p.paper_id = st.paper_id
-    {im_join}
-    LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
-    WHERE {where}
-    {order}
-    LIMIT %(ann_k)s
+WITH candidates AS (
+{candidates}
 ),
-ranked AS (
-    SELECT DISTINCT ON (statement_id)
-        *, 1.0 - (embedding <=> %(q)s::vector(4096)) AS similarity
-    FROM ann
-    ORDER BY statement_id, embedding <=> %(q)s::vector(4096)
+reranked AS (
+    SELECT DISTINCT ON (c.statement_id)
+        c.statement_id, e.slogan_id,
+        1.0 - (e.embedding <=> %(q)s::vector(4096)) AS similarity
+    FROM candidates c
+    JOIN embedding e ON e.embedding_id = c.embedding_id
+    ORDER BY c.statement_id, e.embedding <=> %(q)s::vector(4096)
 ),
 top AS (
-    SELECT * FROM ranked ORDER BY similarity DESC LIMIT %(top_k)s
+    SELECT * FROM reranked ORDER BY similarity DESC LIMIT %(top_k)s
 )
-SELECT {out_cols}, similarity,
-    similarity + %(cw)s * CASE
-        WHEN COALESCE(citation_count, 0) > 0 THEN ln(COALESCE(citation_count, 0)::float)
+SELECT
+    st.statement_id,
+    p.paper_id,{_FULL_COLUMNS if full else _MINIMAL_COLUMNS}
+    top.similarity,
+    top.similarity + %(cw)s * CASE
+        WHEN COALESCE(apm.citation_count, 0) > 0 THEN ln(apm.citation_count::float)
         ELSE 0
     END AS score
 FROM top
+JOIN statement st ON st.statement_id = top.statement_id
+JOIN paper p      ON p.paper_id = st.paper_id
+{"JOIN slogan s ON s.slogan_id = top.slogan_id" if full else ""}
+{"LEFT JOIN informal_metadata im ON im.statement_id = st.statement_id" if full else ""}
+LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
 ORDER BY score DESC
 LIMIT %(n)s;
 """
@@ -1216,6 +1211,8 @@ def graph_embedding(
             "categories":        categories or None,
             "updated_from":      datetime(year_min, 1, 1, tzinfo=timezone.utc) if year_min else None,
             "updated_before":    datetime(year_max + 1, 1, 1, tzinfo=timezone.utc) if year_max else None,
+            "year_min":          year_min,
+            "year_max":          year_max,
             "in_journal":        in_journal,
             "min_citations":     min_citations,
             "citation_max":      citation_max,
@@ -1239,7 +1236,6 @@ def graph_embedding(
             # to FastAPI's normal request timeouts.
             cur.execute("SET LOCAL statement_timeout = '60000';")
 
-            exact = False
             if params["author_patterns"] or params["paper_ids"] or params["paper_titles"]:
                 cur.execute(_paper_prefilter_sql(params), params)
                 matched = [r[0] for r in cur.fetchall()]
@@ -1247,19 +1243,13 @@ def graph_embedding(
                     return EmbeddingSearchResponse(results=[])
                 if len(matched) <= _PREFILTER_MAX_PAPERS:
                     params["paper_uuids"] = matched
-                    exact = True
 
-            if not exact:
-                unfiltered = _statement_clauses({**params, "formality": None, "types": None}) \
-                    == _statement_clauses(params) and not _paper_clauses(params)
-                params["scan_k"] = ann_k if unfiltered else _FILTERED_SCAN_K
-                # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
-                # at large n_results, ann_k can exceed that and the SET fails.
-                cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(ann_k, 200), 1000),))
-                cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
-                cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
-
-            cur.execute(_embedding_sql(params, mode, exact), params)
+            # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
+            # at large n_results, ann_k can exceed that and the SET fails.
+            cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(ann_k, 200), 1000),))
+            cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
+            cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
+            cur.execute(_embedding_sql(params, mode), params)
             cols = [d[0] for d in cur.description]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
 
