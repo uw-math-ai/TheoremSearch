@@ -964,9 +964,10 @@ def _paper_clauses(p: dict) -> List[str]:
     if p["sources"]:
         clauses.append("p.source = ANY(%(sources)s)")
     if p["author_patterns"]:
-        clauses.append("""EXISTS (
-          SELECT 1 FROM unnest(p.authors) a
-          WHERE LOWER(a) LIKE ANY(%(author_patterns)s))""")
+        # Matched against the joined author list so the trigram index
+        # idx_paper_authors_trgm can serve the LIKE (see rds/helpers/indexes.sql);
+        # EXISTS over unnest(authors) cannot be indexed and scanned all of paper.
+        clauses.append("authors_text(p.authors) LIKE ANY(%(author_patterns)s)")
     if p["categories"]:
         clauses.append("p.categories[1] = ANY(%(categories)s)")
     if p["updated_from"]:
@@ -1046,6 +1047,11 @@ LIMIT %(prefilter_limit)s
 # table, so each candidate costs one heap-tuple check.
 _HNSW_MAX_SCAN_TUPLES = 50000
 
+# Rank the filtered rows exactly (no graph walk) while the planner expects at
+# most this many to match a branch. Costs roughly 3us/row, so ~1s at the
+# threshold; above it the HNSW walk is both faster and finds enough matches.
+_EXACT_MAX_ROWS = 300_000
+
 # Beyond this many matching papers, fall back to the HNSW path (the exact
 # rerank would have to read too many 16KB vectors).
 _PREFILTER_MAX_PAPERS = 2000
@@ -1070,33 +1076,66 @@ _MINIMAL_COLUMNS = """
         apm.citation_count,"""
 
 
-def _embedding_sql(p: dict, mode: str) -> str:
-    """Build the /graph/embedding query over statement_search.
-
-    Candidates come from one ORDER BY <Hamming distance> LIMIT ann_k per
-    partial HNSW index (arXiv / everything else), each with every filter in
-    its WHERE clause. Filters and vector live in the same row, so pgvector's
-    iterative scan keeps walking the graph until ann_k rows pass them (up to
-    hnsw.max_scan_tuples), and for restrictive filters the planner can
-    instead collect the matching rows by btree and sort them by exact Hamming
-    distance. The partial-index predicate must appear verbatim for the planner
-    to use that index. Candidates are then reranked by full-precision cosine
-    (embedding.embedding), keeping each statement's closest embedding (formal
-    statements can have one per slogan prompt).
-    """
-    where = _search_clauses(p)
+def _source_branches(p: dict) -> List[str]:
+    """Partial-index predicates to search. Each must appear verbatim for the
+    planner to pick the matching partial HNSW index."""
     branches = []
     if not p["sources"] or "arXiv" in p["sources"]:
         branches.append("ss.source = 'arXiv'")
     if not p["sources"] or any(src != "arXiv" for src in p["sources"]):
         branches.append("ss.source <> 'arXiv'")
-    candidates = "\n    UNION ALL\n".join(
-        f"""    (SELECT ss.embedding_id, ss.statement_id
+    return branches
+
+
+def _estimate_rows(cur, branch: str, p: dict, params: dict) -> float:
+    """Planner's row estimate for one branch's filters. Plan-only; the query
+    is never executed."""
+    where = " AND ".join([branch] + _search_clauses(p))
+    cur.execute(f"EXPLAIN (FORMAT JSON) SELECT 1 FROM statement_search ss WHERE {where}", params)
+    return cur.fetchone()[0][0]["Plan"]["Plan Rows"]
+
+
+def _candidate_sql(branch: str, where: List[str], exact: bool) -> str:
+    """Candidates for one branch, ordered by Hamming distance to the query.
+
+    exact=False walks the partial HNSW index. pgvector's iterative scan
+    re-walks until ann_k rows pass the filters, but gives up after
+    hnsw.max_scan_tuples, so a filter matching a small share of the branch
+    returns far fewer than ann_k rows (math.CT: 14 of 400, and raising the
+    scan limits cost 15-60s for a handful more).
+
+    exact=True instead collects every matching row (btree) and ranks it by
+    exact Hamming distance. The quantized vectors are 512 bytes and stored
+    inline, so that is cheap while the filtered set is small — 90k rows in
+    0.3s, versus 15.5s and 1/28th the candidates via the graph. The
+    MATERIALIZED fence stops the planner folding this back into an index
+    scan on the ORDER BY.
+    """
+    filters = " AND ".join([branch] + where)
+    order = "bq <~> binary_quantize(%(q)s::vector(4096))::bit(4096)"
+    if exact:
+        return f"""    (WITH filtered AS MATERIALIZED (
+         SELECT embedding_id, statement_id, bq FROM statement_search ss WHERE {filters}
+     )
+     SELECT embedding_id, statement_id FROM filtered ORDER BY {order} LIMIT %(ann_k)s)"""
+    return f"""    (SELECT ss.embedding_id, ss.statement_id
      FROM statement_search ss
-     WHERE {" AND ".join([branch] + where)}
-     ORDER BY ss.bq <~> binary_quantize(%(q)s::vector(4096))::bit(4096)
+     WHERE {filters}
+     ORDER BY ss.{order}
      LIMIT %(ann_k)s)"""
-        for branch in branches
+
+
+def _embedding_sql(p: dict, mode: str, shapes: List[Tuple[str, bool]]) -> str:
+    """Build the /graph/embedding query over statement_search.
+
+    `shapes` pairs each source branch with how to get its candidates (see
+    _candidate_sql). Candidates are then reranked by full-precision cosine
+    (embedding.embedding), keeping each statement's closest embedding (formal
+    statements can have one per slogan prompt).
+    """
+    where = _search_clauses(p)
+    candidates = "\n    UNION ALL\n".join(
+        _candidate_sql(branch, where, exact) for branch, exact in shapes
     )
     full = mode == "full"
     return f"""
@@ -1249,7 +1288,11 @@ def graph_embedding(
             cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(ann_k, 200), 1000),))
             cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
             cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
-            cur.execute(_embedding_sql(params, mode), params)
+            shapes = [
+                (branch, _estimate_rows(cur, branch, params, params) <= _EXACT_MAX_ROWS)
+                for branch in _source_branches(params)
+            ]
+            cur.execute(_embedding_sql(params, mode, shapes), params)
             cols = [d[0] for d in cur.description]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
 

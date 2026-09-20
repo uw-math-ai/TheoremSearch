@@ -126,3 +126,14 @@ CREATE INDEX IF NOT EXISTS idx_statement_link_b
     ON statement_link(b_id, relation);
 CREATE INDEX IF NOT EXISTS idx_statement_link_relation
     ON statement_link(relation);
+
+-- 20. Trigram index on the joined author list
+--     /graph/embedding resolves an author filter to a paper list first; the
+--     old `EXISTS (SELECT 1 FROM unnest(authors) ... LIKE)` shape could not be
+--     indexed and scanned all of paper (~4.5s). authors_text() is an immutable
+--     wrapper so the expression can be indexed; the API matches on it.
+CREATE OR REPLACE FUNCTION authors_text(text[]) RETURNS text
+LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$ SELECT lower(array_to_string($1, ' | ')) $$;
+
+CREATE INDEX IF NOT EXISTS idx_paper_authors_trgm
+    ON paper USING gin (authors_text(authors) gin_trgm_ops);
