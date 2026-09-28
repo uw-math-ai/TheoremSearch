@@ -1067,6 +1067,23 @@ _HNSW_MAX_SCAN_TUPLES = 50000
 # threshold; above it the HNSW walk is both faster and finds enough matches.
 _EXACT_MAX_ROWS = 300_000
 
+# Candidates (closest by Hamming distance) that get the full-precision cosine
+# rerank, as a multiple of n_results, with a floor. Each one is a ~16KB random
+# read of embedding.embedding, so this is the query's dominant cost whenever
+# those vectors aren't cached.
+#
+# Measured over 10 queries x 5 filter sets against reranking every candidate
+# (top-20 overlap; the top hit was identical at every setting):
+#
+#   multiple of n_results    2x     3x     4x     5x    7.5x
+#   overlap, worst filter  0.940  0.965  0.965  0.965  0.990
+#   overlap, typical       0.980  1.000  1.000  0.995  0.995
+#
+# 8x keeps overlap at ~0.99 while reading ~60% fewer vectors than the
+# untrimmed shape (which reranked up to ann_k per source branch).
+_RERANK_PER_RESULT = 8
+_RERANK_MIN = 120
+
 # Beyond this many matching papers, fall back to the HNSW path (the exact
 # rerank would have to read too many 16KB vectors).
 _PREFILTER_MAX_PAPERS = 2000
@@ -1136,8 +1153,8 @@ def _candidate_sql(branch: str, where: List[str], exact: bool) -> str:
         return f"""    (WITH filtered AS MATERIALIZED (
          SELECT embedding_id, statement_id, bq FROM statement_search ss WHERE {filters}
      )
-     SELECT embedding_id, statement_id FROM filtered ORDER BY {order} LIMIT %(ann_k)s)"""
-    return f"""    (SELECT ss.embedding_id, ss.statement_id
+     SELECT embedding_id, statement_id, {order} AS hamming FROM filtered ORDER BY {order} LIMIT %(ann_k)s)"""
+    return f"""    (SELECT ss.embedding_id, ss.statement_id, ss.{order} AS hamming
      FROM statement_search ss
      WHERE {filters}
      ORDER BY ss.{order}
@@ -1148,9 +1165,14 @@ def _embedding_sql(p: dict, mode: str, shapes: List[Tuple[str, bool]]) -> str:
     """Build the /graph/embedding query over statement_search.
 
     `shapes` pairs each source branch with how to get its candidates (see
-    _candidate_sql). Candidates are then reranked by full-precision cosine
-    (embedding.embedding), keeping each statement's closest embedding (formal
-    statements can have one per slogan prompt).
+    _candidate_sql). The candidates closest by Hamming distance are then
+    reranked by full-precision cosine (embedding.embedding), keeping each
+    statement's closest embedding (formal statements can have one per slogan
+    prompt).
+
+    Only `rerank_k` candidates are reranked: each one costs a random read of
+    a 4096-dim vector (~16KB, TOASTed), so reranking everything the branches
+    return was the most expensive part of the query.
     """
     where = _search_clauses(p)
     candidates = "\n    UNION ALL\n".join(
@@ -1161,13 +1183,17 @@ def _embedding_sql(p: dict, mode: str, shapes: List[Tuple[str, bool]]) -> str:
 WITH candidates AS (
 {candidates}
 ),
+trimmed AS (
+    SELECT DISTINCT ON (statement_id) embedding_id, statement_id
+    FROM (SELECT * FROM candidates ORDER BY hamming LIMIT %(rerank_k)s) c
+    ORDER BY statement_id, hamming
+),
 reranked AS (
-    SELECT DISTINCT ON (c.statement_id)
+    SELECT
         c.statement_id, e.slogan_id,
         1.0 - (e.embedding <=> %(q)s::vector(4096)) AS similarity
-    FROM candidates c
+    FROM trimmed c
     JOIN embedding e ON e.embedding_id = c.embedding_id
-    ORDER BY c.statement_id, e.embedding <=> %(q)s::vector(4096)
 ),
 top AS (
     SELECT * FROM reranked ORDER BY similarity DESC LIMIT %(top_k)s
@@ -1283,6 +1309,7 @@ def graph_embedding(
             "prefilter_limit":   _PREFILTER_MAX_PAPERS + 1,
             "cw":                citation_weight,
             "ann_k":             ann_k,
+            "rerank_k":          max(n_results * _RERANK_PER_RESULT, _RERANK_MIN),
             "top_k":             top_k,
             "n":                 n_results,
         }
