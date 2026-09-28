@@ -1096,7 +1096,12 @@ _FULL_COLUMNS = """
         -- types=theorem doesn't get kind='thm' back
         search_kind(st.kind) AS kind,
         st.formality::text AS formality,
-        st.body,
+        -- About half the formal statements were ingested with an empty
+        -- signature (every 'thm'/'def'/'inst' kind); return NULL rather than
+        -- '' so clients can tell "no text" from "empty text", and surface the
+        -- Lean docstring as the fallback they can show instead.
+        NULLIF(st.body, '') AS body,
+        NULLIF(fm.docstring, '') AS docstring,
         s.slogan,
         p.source,
         p.title,
@@ -1362,6 +1367,7 @@ def graph_embedding(
                 kind=r["kind"],
                 formality=r["formality"],
                 body=r["body"],
+                docstring=r["docstring"],
                 slogan=r["slogan"],
                 source=r["source"],
                 title=r["title"],

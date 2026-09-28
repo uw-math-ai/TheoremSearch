@@ -239,7 +239,9 @@ Author and paper filters rank the matching papers' statements exactly; other fil
       "name":         "Theorem 3.2",
       "kind":         "theorem",
       "formality":    "informal",
-      "body":         "…",
+      "body":         "…",      // formal: the Lean signature; absent for the
+                                //   182,651 declarations ingested without one
+      "docstring":    "…",      // formal only, when the declaration has one
       "slogan":       "…",
       "source":       "arXiv",
       "title":        "…",

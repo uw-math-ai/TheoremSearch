@@ -66,6 +66,7 @@ class EmbeddingSearchResult(BaseModel):
     kind: Optional[str] = None         # 'theorem', 'lemma', … (formal: Lean declaration kind)
     formality: Optional[str] = None    # 'informal' | 'formal'
     body: Optional[str] = None
+    docstring: Optional[str] = None    # formal only: Lean docstring, when the signature is missing
     slogan: Optional[str] = None
     source: Optional[str] = None
     title: Optional[str] = None
