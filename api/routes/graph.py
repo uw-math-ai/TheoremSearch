@@ -927,6 +927,21 @@ def _embed_query(query: str) -> List[float]:
     raise last_exc
 
 
+# Mirrors the SQL search_kind() used to build statement_search.kind (the formal
+# ingesters disagree: theorem/thm, definition/def, ...). Normalizing here keeps
+# the filter a plain text[] the planner can estimate, instead of hiding it in
+# ARRAY(SELECT search_kind(...)) — which cost 25s cold on the website's
+# default four-type filter.
+_KIND_ALIASES = {
+    "thm": "theorem", "def": "definition", "inst": "instance",
+    "struct": "structure", "ctor": "constructor",
+}
+
+
+def _search_kinds(types: List[str]) -> List[str]:
+    return sorted({_KIND_ALIASES.get(t.lower(), t.lower()) for t in types})
+
+
 _ARXIV_RE = re.compile(
     r'(?:arxiv\.org/(?:abs|pdf)/)?(\d{4}\.\d{4,5}|[a-z\-]+/\d{7})', re.IGNORECASE
 )
@@ -1002,7 +1017,7 @@ def _search_clauses(p: dict) -> List[str]:
     if p["formality"]:
         clauses.append("ss.formality = %(formality)s::formality_kind")
     if p["types"]:
-        clauses.append("ss.kind = ANY(ARRAY(SELECT search_kind(t) FROM unnest(%(types)s::text[]) t))")
+        clauses.append("ss.kind = ANY(%(types)s)")
     if p["sources"]:
         clauses.append("ss.source = ANY(%(sources)s)")
     if p["categories"]:
@@ -1057,8 +1072,12 @@ _EXACT_MAX_ROWS = 300_000
 _PREFILTER_MAX_PAPERS = 2000
 
 _FULL_COLUMNS = """
-        INITCAP(st.kind) || COALESCE(' ' || im.ref, '') AS name,
-        st.kind,
+        -- formal statements are named by their Lean declaration (as in
+        -- /graph/statement); informal ones by kind + ref.
+        COALESCE(fm.decl_name, INITCAP(st.kind) || COALESCE(' ' || im.ref, '')) AS name,
+        -- normalized like statement_search.kind, so a client that filters
+        -- types=theorem doesn't get kind='thm' back
+        search_kind(st.kind) AS kind,
         st.formality::text AS formality,
         st.body,
         s.slogan,
@@ -1166,6 +1185,7 @@ JOIN statement st ON st.statement_id = top.statement_id
 JOIN paper p      ON p.paper_id = st.paper_id
 {"JOIN slogan s ON s.slogan_id = top.slogan_id" if full else ""}
 {"LEFT JOIN informal_metadata im ON im.statement_id = st.statement_id" if full else ""}
+{"LEFT JOIN formal_metadata fm   ON fm.statement_id = st.statement_id" if full else ""}
 LEFT JOIN arxiv_paper_metadata apm ON apm.arxiv_id = p.external_id
 ORDER BY score DESC
 LIMIT %(n)s;
@@ -1245,7 +1265,7 @@ def graph_embedding(
             "slogan_models":     _SLOGAN_MODELS,
             "formality":         None if formality == "both" else formality,
             "sources":           sources or None,
-            "types":             [t.lower() for t in types] or None,
+            "types":             _search_kinds(types) or None,
             "author_patterns":   [f"%{a.lower()}%" for a in authors] or None,
             "categories":        categories or None,
             "updated_from":      datetime(year_min, 1, 1, tzinfo=timezone.utc) if year_min else None,

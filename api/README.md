@@ -8,6 +8,35 @@ The main entry point is `/graph` — a small set of endpoints for navigating the
 | [`GET /graph/statement`](#graph-statement) | Center the dependency graph on a statement and walk outward. |
 | [`GET /graph/embedding`](#graph-embedding) | Semantic search by query string. |
 
+## Running locally
+
+Needs the same env as the deployed service (`AWS_REGION`, `RDS_SECRET_ARN`,
+`RDS_HOST`, `NEBIUS_API_KEY`) — `main.py` loads `.env` from the working
+directory. Queries read the live `v2` database.
+
+```bash
+cd api
+pip install -r requirements.txt          # or use the existing .venv
+python -m uvicorn main:app --reload --port 8123
+curl http://127.0.0.1:8123/ping
+```
+
+Then smoke-test every filter the website sends (read-only; run it twice, the
+first run is cold):
+
+```bash
+python api/tests/smoke_graph_embedding.py                  # local
+python api/tests/smoke_graph_embedding.py --base-url https://api.theoremsearch.com
+```
+
+To drive the website against this API instead of production, start
+theorem-search-app with `THEOREM_SEARCH_API_URL=http://127.0.0.1:8123`.
+
+> `POST /search` and `/mcp` insert a row into `api_search_query`, and the
+> website's feedback/report/log-query routes write to the `postgres` logging
+> tables — local clicking shows up in the query dashboard. `/graph/*` is
+> read-only.
+
 Conventions:
 
 - All IDs are UUIDs.
