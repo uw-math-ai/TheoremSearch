@@ -37,6 +37,18 @@ def get_rds_connection(db_name: str = "v2") -> connection:
         user=secret_dict["username"],
         password=secret_dict["password"],
         sslmode="require",
+        # Keepalives matter more here than in the API: the scripts in this
+        # directory run hours-long statements (HNSW builds, bulk loads) from a
+        # workstation, and the socket carries no data while the server works.
+        # A NAT or router idle timeout then drops it silently, and because
+        # Postgres cancels a query when its client disappears, the whole build
+        # dies. A 73-minute m=16 index build was lost that way on 2026-10-01
+        # to "could not send data to client: Connection timed out".
+        keepalives=1,
+        keepalives_idle=30,
+        keepalives_interval=10,
+        keepalives_count=6,
+        connect_timeout=10,
     )
 
     return conn
