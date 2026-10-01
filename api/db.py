@@ -27,11 +27,12 @@ _secret_cache: dict | None = None
 _secret_lock = threading.Lock()
 
 
-def _env_int(name: str, default: int) -> int:
-    """Positive int from the environment, falling back to `default` when the
-    var is unset, blank, non-numeric, or non-positive. A non-empty but invalid
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    """Int from the environment, falling back to `default` when the var is
+    unset, blank, non-numeric, or below `minimum`. A non-empty but invalid
     value is logged so a misconfigured deploy is diagnosable instead of
-    silently running on the default."""
+    silently running on the default. `minimum=0` lets a var use 0 as a
+    meaningful "disabled" value (see graph.EMBED_CACHE_SIZE)."""
     raw = os.getenv(name)
     if raw is None or not raw.strip():
         return default
@@ -40,10 +41,15 @@ def _env_int(name: str, default: int) -> int:
     except ValueError:
         logger.warning("%s=%r is not an integer; using default %d", name, raw, default)
         return default
-    if val <= 0:
-        logger.warning("%s=%d must be positive; using default %d", name, val, default)
+    if val < minimum:
+        logger.warning("%s=%d must be >= %d; using default %d", name, val, minimum, default)
         return default
     return val
+
+
+# Public alias: other api modules read their own tuning vars through this so
+# validation and the misconfiguration warning stay in one place.
+env_int = _env_int
 
 
 # Caps any single query at 10s — runaway queries would otherwise pin a

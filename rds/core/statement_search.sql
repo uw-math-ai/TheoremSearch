@@ -80,3 +80,21 @@ $$;
 --   CREATE INDEX statement_search_kind      ON statement_search (kind);
 --   CREATE STATISTICS statement_search_source_formality (dependencies, mcv)
 --       ON source, formality, kind FROM statement_search;
+--
+-- ADDED 2026-09-30. The filter-first plan above needs an index that can
+-- *reach* the branch's rows, and `source <> 'arXiv'` is not indexable: only
+-- the partial HNSW index carries that predicate, and it cannot be scanned as
+-- a filter. So any search without a source filter split into an arXiv branch
+-- (8.1M estimated rows -> HNSW walk) and a non-arXiv branch (66-85k rows ->
+-- "exact Hamming"), and the exact branch seq-scanned all 12.5M rows / 8.1 GB
+-- to find the 760k non-arXiv ones. That is the default shape the website
+-- sends, and it measured 13-19s per search, warm or cold, never improving.
+-- This partial index makes the branch an index scan instead: 1,042,441 pages
+-- -> 4,124 (253x less I/O), plan 1.20s -> 0.10s, end-to-end 15.3s -> 0.34s.
+-- Only 5 MB, because non-arXiv is 6% of the table.
+--   CREATE INDEX CONCURRENTLY statement_search_other_filters
+--       ON statement_search (formality, kind) WHERE source <> 'arXiv';
+--
+-- If a future filter on the non-arXiv branch still shows heap-fetch cost,
+-- add INCLUDE (embedding_id, statement_id, bq) to make it index-only — that
+-- grows the index to roughly 440 MB, so it was not worth it here.

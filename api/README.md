@@ -32,6 +32,42 @@ python api/tests/smoke_graph_embedding.py --base-url https://api.theoremsearch.c
 To drive the website against this API instead of production, start
 theorem-search-app with `THEOREM_SEARCH_API_URL=http://127.0.0.1:8123`.
 
+## Latency: what to look at first
+
+Every `/graph/embedding` request logs its two costs, so "search feels slow"
+is answerable from the logs instead of by guessing:
+
+```
+/graph/embedding embed=0.839s db=0.312s rows=20 n=20 mode=full query='...'
+```
+
+- **`embed`** is the Nebius call. ~0.5-0.9s on a miss, `0.000s` on a cache
+  hit. It does not grow when idle: measured 0.84-0.96s even after a 4-minute
+  gap, so a slow search is almost never the provider.
+- **`db`** is the filtered vector search. ~0.2-0.4s warm. Seconds here means
+  the query vector walked an uncached region of the 11 GB arXiv `bq` HNSW
+  index, which does not fit in Aurora's ~8.75 GB of `shared_buffers`; a
+  *repeated* vector costs ~0.3s because its pages are then resident.
+
+`GET /warm` returns the same timings on demand, plus cache occupancy.
+
+### Caches and tuning
+
+| Env var | Default | What it does |
+|---|---|---|
+| `EMBED_CACHE_SIZE` | 256 | Query embeddings kept per process (~130 kB each). `0` disables. Repeated queries are common — agents re-run searches, the site re-issues the query when filters are applied — and a hit removes the whole `embed` cost. |
+| `PLAN_CACHE_TTL_SECONDS` | 300 | How long a branch's planner row estimate is reused. The estimate picks the exact-Hamming vs HNSW-walk shape and depends only on the filters, not the query text, so this drops one `EXPLAIN` round trip per branch per request. `0` disables. |
+| `PLAN_CACHE_MAX` | 512 | Filter shapes held in that cache. |
+| `API_WARM_INTERVAL_SECONDS` | 240 | Background warm-up period. `0` turns the thread off; drive `GET /warm` from a scheduler instead. |
+| `EMBED_TIMEOUT_SECONDS` | 30 | Bound on the Nebius call. The SDK's own default is 600s, which would pin a request (and a threadpool worker) for ten minutes. |
+| `LOG_LEVEL` | `INFO` | Root log level. Below `INFO` the timing line above disappears. |
+
+The warm-up runs once at startup and then on the interval, and it performs a
+real search in the shape the website sends by default, so the first user
+request does not pay for cold pools or cold pages. At startup against a cold
+database that search took 25s; it is ~0.75s once the corpus indexes are in
+place and warm.
+
 > `POST /search` and `/mcp` insert a row into `api_search_query`, and the
 > website's feedback/report/log-query routes write to the `postgres` logging
 > tables — local clicking shows up in the query dashboard. `/graph/*` is

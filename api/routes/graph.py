@@ -10,15 +10,18 @@ import logging
 import math
 import os
 import re
+import threading
 import time
+from collections import OrderedDict
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Dict, List, Literal, Optional, Tuple
 
 import psycopg2
 from fastapi import APIRouter, HTTPException, Query
 from openai import OpenAI, RateLimitError
 
-from db import rds_conn
+from db import env_int, rds_conn
 
 logger = logging.getLogger(__name__)
 from models import (
@@ -868,6 +871,25 @@ _SLOGAN_MODELS = ["qwen3-235b"]
 _openai_client: Optional[OpenAI] = None
 _model_cache: dict[str, Tuple[str, Optional[str]]] = {}
 
+# Query embeddings to keep per process. The Nebius call is ~0.53s warm and
+# ~1.06s on a cold TLS handshake -- roughly 60% of a warm search -- while
+# queries repeat constantly: agents re-run the same search, the website
+# re-issues the same text when filters are applied, and paging through results
+# sends it again. Embeddings are deterministic for a fixed model, so a
+# process-lifetime cache is safe. Each entry is a 4096-float tuple (~130 kB),
+# so the default costs ~35 MB of the instance's memory. EMBED_CACHE_SIZE=0
+# disables caching.
+_EMBED_CACHE_SIZE = env_int("EMBED_CACHE_SIZE", 256, minimum=0)
+
+
+# The openai SDK defaults to a 600s timeout and its own 2 retries, so a hung
+# embedding call would pin a request (and a threadpool worker) for ten minutes.
+# Bound it: 30s is generous next to the ~0.53s warm call while still leaving
+# room for a genuinely cold model on the provider side (18.5s measured after
+# 8 minutes idle). Retries are handled in _embed_vector, so the SDK's are off
+# to keep the worst case predictable.
+_EMBED_TIMEOUT = env_int("EMBED_TIMEOUT_SECONDS", 30)
+
 
 def _embed_client() -> OpenAI:
     global _openai_client
@@ -875,6 +897,8 @@ def _embed_client() -> OpenAI:
         _openai_client = OpenAI(
             base_url="https://api.studio.nebius.ai/v1/",
             api_key=os.environ["NEBIUS_API_KEY"],
+            timeout=float(_EMBED_TIMEOUT),
+            max_retries=0,
         )
     return _openai_client
 
@@ -893,15 +917,10 @@ def _embed_model_info(model_alias: str) -> Tuple[str, Optional[str]]:
     return _model_cache[model_alias]
 
 
-def _embed_query(query: str) -> List[float]:
-    """Embed and L2-normalize the query vector. Corpus embeddings are stored
-    normalized (see embedding_model.normalized = TRUE for qwen3-8b); keeping
-    the query side normalized too guarantees any consumer that takes a raw
-    dot product gets a true cosine. pgvector's <=> already normalizes
-    internally, but we don't want to depend on every code path going through
-    it."""
-    provider_model, _ = _embed_model_info(_EMBED_MODEL)
-    input_text = _QUERY_INSTRUCTION + query
+def _embed_vector(provider_model: str, input_text: str) -> List[float]:
+    """One embedding request, L2-normalized, with retries. Deliberately
+    uncached: the warm probe needs a real request to hold the TLS session to
+    Nebius open."""
     last_exc: Exception = RuntimeError("no attempts made")
     for attempt in range(3):
         try:
@@ -925,6 +944,110 @@ def _embed_query(query: str) -> List[float]:
                 )
                 time.sleep(delay)
     raise last_exc
+
+
+@lru_cache(maxsize=_EMBED_CACHE_SIZE)
+def _embed_vector_cached(provider_model: str, input_text: str) -> Tuple[float, ...]:
+    """Cached by (model, instructed text), so a model change can never serve a
+    stale vector. lru_cache does not cache exceptions, so a failed call is
+    retried on the next request rather than remembered."""
+    return tuple(_embed_vector(provider_model, input_text))
+
+
+def _embed_query(query: str) -> List[float]:
+    """Embed and L2-normalize the query vector. Corpus embeddings are stored
+    normalized (see embedding_model.normalized = TRUE for qwen3-8b); keeping
+    the query side normalized too guarantees any consumer that takes a raw
+    dot product gets a true cosine. pgvector's <=> already normalizes
+    internally, but we don't want to depend on every code path going through
+    it.
+
+    Returns a new list on every call: psycopg2 adapts a list to an ARRAY
+    literal (a tuple would become a ROW and break the ::vector cast), and the
+    cached copy has to stay immutable."""
+    provider_model, _ = _embed_model_info(_EMBED_MODEL)
+    return list(_embed_vector_cached(provider_model, _QUERY_INSTRUCTION + query))
+
+
+# -- warm-up ------------------------------------------------------------------
+# An idle App Runner instance is CPU-throttled and lets its outbound
+# connections lapse, which is why the first search after a quiet stretch takes
+# 5-14s against ~0.9s warm: that request pays a fresh TLS handshake to Nebius
+# (+0.5s measured), a Secrets Manager fetch, and pool construction. Touching
+# those resources on a timer moves the cost off the user's request.
+
+_WARM_QUERY = "warm up probe"
+# The shape app/api/search/route.ts sends for a default search: no source
+# filter (both branches), informal, the site's four default kinds.
+_WARM_TYPES = ("theorem", "lemma", "proposition", "corollary")
+_WARM_N_RESULTS = 20
+# Floor between real warm-ups, so the public GET /warm cannot be used to drive
+# embedding calls; a caller inside the window gets the previous result back.
+_WARM_MIN_INTERVAL = 30.0
+_warm_last: Tuple[float, dict] = (0.0, {})
+_warm_lock = threading.Lock()
+
+
+def warm(min_interval: float = _WARM_MIN_INTERVAL) -> dict:
+    """Exercise the per-process resources a search needs -- the connection
+    pools and the Nebius client -- and report what each took. Called at
+    startup and on a timer by the warmer in main.py, and exposed as GET /warm
+    for an external scheduler. Never writes to api_search_query."""
+    global _warm_last
+    now = time.monotonic()
+    with _warm_lock:
+        last_at, last_out = _warm_last
+        if last_out and now - last_at < min_interval:
+            return {**last_out, "cached": True}
+
+    out: dict = {}
+    t0 = time.perf_counter()
+    try:
+        provider_model, _ = _embed_model_info(_EMBED_MODEL)
+        query_vec = _embed_vector(provider_model, _QUERY_INSTRUCTION + _WARM_QUERY)
+        out["embed_seconds"] = round(time.perf_counter() - t0, 3)
+    except Exception as e:
+        out["embed_error"] = f"{type(e).__name__}: {e}"
+        logger.warning("Warm-up embedding failed: %s: %s", type(e).__name__, e)
+        query_vec = None
+
+    # The expensive thing to keep warm is the search itself, so run a real one
+    # in the shape the website sends by default (informal, the four default
+    # kinds, no source filter, so both partial-index branches are touched).
+    if query_vec is not None:
+        t0 = time.perf_counter()
+        try:
+            rows = _execute_search(
+                _search_params(query_vec, n_results=_WARM_N_RESULTS,
+                               formality="informal", types=list(_WARM_TYPES)),
+                "minimal",
+            )
+            out["search_seconds"] = round(time.perf_counter() - t0, 3)
+            out["search_rows"] = len(rows)
+        except Exception as e:
+            out["search_error"] = f"{type(e).__name__}: {e}"
+            logger.warning("Warm-up search failed: %s: %s", type(e).__name__, e)
+
+    # postgres still serves /search and /mcp; keep that pool alive too.
+    t0 = time.perf_counter()
+    try:
+        with rds_conn("postgres") as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        out["db_postgres_seconds"] = round(time.perf_counter() - t0, 3)
+    except Exception as e:
+        out["db_postgres_error"] = f"{type(e).__name__}: {e}"
+        logger.warning("Warm-up of postgres failed: %s: %s", type(e).__name__, e)
+
+    info = _embed_vector_cached.cache_info()
+    out["embed_cache"] = {
+        "hits": info.hits, "misses": info.misses,
+        "size": info.currsize, "max": info.maxsize,
+    }
+    out["plan_cache_size"] = _plan_cache_size()
+
+    with _warm_lock:
+        _warm_last = (time.monotonic(), out)
+    return out
 
 
 # Mirrors the SQL search_kind() used to build statement_search.kind (the formal
@@ -1128,12 +1251,67 @@ def _source_branches(p: dict) -> List[str]:
     return branches
 
 
+# /graph/embedding runs one EXPLAIN per source branch on every request, purely
+# to choose between the exact-Hamming and HNSW-walk shapes in _candidate_sql.
+# That choice depends on the filters, not on the query text, so repeated
+# searches under the same filters -- paging, a refined query, an agent re-run,
+# the website's Apply button -- can reuse the estimate. TTL'd rather than
+# permanent so the numbers follow ANALYZE after an ingest; the decision is a
+# comparison against _EXACT_MAX_ROWS, which tolerates a slightly stale count.
+_PLAN_CACHE_TTL = env_int("PLAN_CACHE_TTL_SECONDS", 300, minimum=0)   # 0 disables
+_PLAN_CACHE_MAX = env_int("PLAN_CACHE_MAX", 512, minimum=1)
+_plan_cache: "OrderedDict[tuple, Tuple[float, float]]" = OrderedDict()
+_plan_cache_lock = threading.Lock()
+
+
+def _plan_cache_key(branch: str, p: dict) -> tuple:
+    """Everything that moves the planner's estimate for one branch: the branch
+    predicate plus the filter values _search_clauses reads. paper_uuids is
+    reduced to its length -- Postgres estimates `= ANY(array)` from the array
+    length and column stats rather than the individual ids, and the list can
+    hold up to _PREFILTER_MAX_PAPERS entries."""
+    return (
+        branch,
+        p["formality"],
+        tuple(p["types"] or ()),
+        tuple(p["sources"] or ()),
+        tuple(p["categories"] or ()),
+        p["year_min"], p["year_max"], p["in_journal"],
+        p["min_citations"], p["citation_max"], p["unknown_citations"],
+        len(p["paper_uuids"]) if p["paper_uuids"] else 0,
+    )
+
+
+def _plan_cache_size() -> int:
+    with _plan_cache_lock:
+        return len(_plan_cache)
+
+
 def _estimate_rows(cur, branch: str, p: dict, params: dict) -> float:
     """Planner's row estimate for one branch's filters. Plan-only; the query
-    is never executed."""
+    is never executed. Memoized per filter shape for _PLAN_CACHE_TTL seconds."""
+    key = _plan_cache_key(branch, p)
+    now = time.monotonic()
+    if _PLAN_CACHE_TTL:
+        with _plan_cache_lock:
+            hit = _plan_cache.get(key)
+            if hit is not None:
+                if now - hit[0] < _PLAN_CACHE_TTL:
+                    _plan_cache.move_to_end(key)
+                    return hit[1]
+                del _plan_cache[key]
+
     where = " AND ".join([branch] + _search_clauses(p))
     cur.execute(f"EXPLAIN (FORMAT JSON) SELECT 1 FROM statement_search ss WHERE {where}", params)
-    return cur.fetchone()[0][0]["Plan"]["Plan Rows"]
+    rows = cur.fetchone()[0][0]["Plan"]["Plan Rows"]
+
+    if _PLAN_CACHE_TTL:
+        with _plan_cache_lock:
+            _plan_cache[key] = (now, rows)
+            _plan_cache.move_to_end(key)
+            while len(_plan_cache) > _PLAN_CACHE_MAX:
+                _plan_cache.popitem(last=False)
+    return rows
 
 
 def _candidate_sql(branch: str, where: List[str], exact: bool) -> str:
@@ -1223,6 +1401,101 @@ LIMIT %(n)s;
 """
 
 
+def _search_params(
+    query_vec: List[float],
+    *,
+    n_results: int = 20,
+    formality: Optional[str] = None,
+    sources: Optional[List[str]] = None,
+    types: Optional[List[str]] = None,
+    authors: Optional[List[str]] = None,
+    categories: Optional[List[str]] = None,
+    min_citations: int = 0,
+    citation_max: Optional[int] = None,
+    include_unknown_citations: Optional[bool] = None,
+    citation_weight: float = 0.0,
+    in_journal: Optional[bool] = None,
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None,
+    paper_filter: Optional[str] = None,
+) -> dict:
+    """Bind every parameter the search SQL reads. Shared by /graph/embedding
+    and the warm-up probe so the two cannot drift apart."""
+    top_k = n_results * 5
+    paper_ids, paper_titles = _parse_paper_filter(paper_filter or "")
+    return {
+        "q":                 query_vec,
+        "model":             _EMBED_MODEL,
+        "slogan_models":     _SLOGAN_MODELS,
+        "formality":         None if formality in (None, "both") else formality,
+        "sources":           sources or None,
+        "types":             _search_kinds(types or []) or None,
+        "author_patterns":   [f"%{a.lower()}%" for a in (authors or [])] or None,
+        "categories":        categories or None,
+        "updated_from":      datetime(year_min, 1, 1, tzinfo=timezone.utc) if year_min else None,
+        "updated_before":    datetime(year_max + 1, 1, 1, tzinfo=timezone.utc) if year_max else None,
+        "year_min":          year_min,
+        "year_max":          year_max,
+        "in_journal":        in_journal,
+        "min_citations":     min_citations,
+        "citation_max":      citation_max,
+        "citation_max_or_inf": citation_max if citation_max is not None else 2**31 - 1,
+        "unknown_citations": include_unknown_citations,
+        "paper_ids":         [id_ + "%" for id_ in paper_ids] or None,
+        "paper_titles":      [f"%{t}%" for t in paper_titles] or None,
+        "paper_uuids":       None,
+        "prefilter_limit":   _PREFILTER_MAX_PAPERS + 1,
+        "cw":                citation_weight,
+        "ann_k":             max(top_k * 4, 200),
+        "rerank_k":          max(n_results * _RERANK_PER_RESULT, _RERANK_MIN),
+        "top_k":             top_k,
+        "n":                 n_results,
+    }
+
+
+def _execute_search(params: dict, mode: Mode) -> List[dict]:
+    """Run the filtered vector search for an already-bound params dict and
+    return the raw rows. Returns [] when a paper-level prefilter matches
+    nothing. Mutates params["paper_uuids"] when the prefilter narrows it."""
+    with rds_conn("v2") as conn, conn.cursor() as cur:
+        # At large n_results (ann_k can reach a few thousand), the HNSW
+        # iterative_scan over the binary-quantized index can run longer
+        # than the default 10s statement_timeout. Lift it to 60s for
+        # this transaction only; the request itself is still subject
+        # to FastAPI's normal request timeouts.
+        cur.execute("SET LOCAL statement_timeout = '60000';")
+
+        if params["author_patterns"] or params["paper_ids"] or params["paper_titles"]:
+            cur.execute(_paper_prefilter_sql(params), params)
+            matched = [r[0] for r in cur.fetchall()]
+            if not matched:
+                return []
+            if len(matched) <= _PREFILTER_MAX_PAPERS:
+                params["paper_uuids"] = matched
+
+        # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
+        # at large n_results, ann_k can exceed that and the SET fails.
+        #
+        # Sized from top_k rather than ann_k (4x larger). The arXiv bq index is
+        # 11 GB against ~8.75 GB of shared_buffers, so a query vector walking
+        # an uncached region pays ~1ms per page read, and ef_search sets how
+        # many nodes that walk visits: ef=400 measured 8.6s on cold pages
+        # against 5.3s at ef=50, while top-20 recall was identical (100%
+        # overlap) at every value from 50 to 1000. The floor of 100 keeps
+        # enough breadth for selective filters, where the iterative scan has
+        # to re-walk to fill ann_k.
+        cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(params["top_k"], 100), 1000),))
+        cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
+        cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
+        shapes = [
+            (branch, _estimate_rows(cur, branch, params, params) <= _EXACT_MAX_ROWS)
+            for branch in _source_branches(params)
+        ]
+        cur.execute(_embedding_sql(params, mode, shapes), params)
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
 @router.get("/graph/embedding", response_model=EmbeddingSearchResponse,
             response_model_exclude_none=True)
 def graph_embedding(
@@ -1285,68 +1558,30 @@ def graph_embedding(
     ),
 ):
     try:
+        t0 = time.perf_counter()
         query_vec = _embed_query(query)
-        top_k = n_results * 5
-        ann_k = max(top_k * 4, 200)
+        embed_seconds = time.perf_counter() - t0
 
-        paper_ids, paper_titles = _parse_paper_filter(paper_filter or "")
-        params = {
-            "q":                 query_vec,
-            "model":             _EMBED_MODEL,
-            "slogan_models":     _SLOGAN_MODELS,
-            "formality":         None if formality == "both" else formality,
-            "sources":           sources or None,
-            "types":             _search_kinds(types) or None,
-            "author_patterns":   [f"%{a.lower()}%" for a in authors] or None,
-            "categories":        categories or None,
-            "updated_from":      datetime(year_min, 1, 1, tzinfo=timezone.utc) if year_min else None,
-            "updated_before":    datetime(year_max + 1, 1, 1, tzinfo=timezone.utc) if year_max else None,
-            "year_min":          year_min,
-            "year_max":          year_max,
-            "in_journal":        in_journal,
-            "min_citations":     min_citations,
-            "citation_max":      citation_max,
-            "citation_max_or_inf": citation_max if citation_max is not None else 2**31 - 1,
-            "unknown_citations": include_unknown_citations,
-            "paper_ids":         [id_ + "%" for id_ in paper_ids] or None,
-            "paper_titles":      [f"%{t}%" for t in paper_titles] or None,
-            "paper_uuids":       None,
-            "prefilter_limit":   _PREFILTER_MAX_PAPERS + 1,
-            "cw":                citation_weight,
-            "ann_k":             ann_k,
-            "rerank_k":          max(n_results * _RERANK_PER_RESULT, _RERANK_MIN),
-            "top_k":             top_k,
-            "n":                 n_results,
-        }
+        params = _search_params(
+            query_vec,
+            n_results=n_results, formality=formality, sources=sources, types=types,
+            authors=authors, categories=categories, min_citations=min_citations,
+            citation_max=citation_max, include_unknown_citations=include_unknown_citations,
+            citation_weight=citation_weight, in_journal=in_journal,
+            year_min=year_min, year_max=year_max, paper_filter=paper_filter,
+        )
 
-        with rds_conn("v2") as conn, conn.cursor() as cur:
-            # At large n_results (ann_k can reach a few thousand), the HNSW
-            # iterative_scan over the binary-quantized index can run longer
-            # than the default 10s statement_timeout. Lift it to 60s for
-            # this transaction only; the request itself is still subject
-            # to FastAPI's normal request timeouts.
-            cur.execute("SET LOCAL statement_timeout = '60000';")
+        t0 = time.perf_counter()
+        rows = _execute_search(params, mode)
+        db_seconds = time.perf_counter() - t0
 
-            if params["author_patterns"] or params["paper_ids"] or params["paper_titles"]:
-                cur.execute(_paper_prefilter_sql(params), params)
-                matched = [r[0] for r in cur.fetchall()]
-                if not matched:
-                    return EmbeddingSearchResponse(results=[])
-                if len(matched) <= _PREFILTER_MAX_PAPERS:
-                    params["paper_uuids"] = matched
-
-            # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
-            # at large n_results, ann_k can exceed that and the SET fails.
-            cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(ann_k, 200), 1000),))
-            cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
-            cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
-            shapes = [
-                (branch, _estimate_rows(cur, branch, params, params) <= _EXACT_MAX_ROWS)
-                for branch in _source_branches(params)
-            ]
-            cur.execute(_embedding_sql(params, mode, shapes), params)
-            cols = [d[0] for d in cur.description]
-            rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+        # One line per search attributing the two costs that matter. Without
+        # it, "the search feels slow" is unanswerable from the logs: the
+        # embedding provider and a cold database look identical from outside.
+        logger.info(
+            "/graph/embedding embed=%.3fs db=%.3fs rows=%d n=%d mode=%s query=%r",
+            embed_seconds, db_seconds, len(rows), n_results, mode, query[:120],
+        )
 
         if mode == "minimal":
             return EmbeddingSearchResponse(results=[
