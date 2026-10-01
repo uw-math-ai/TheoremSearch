@@ -1476,14 +1476,19 @@ def _execute_search(params: dict, mode: Mode) -> List[dict]:
         # hnsw.ef_search has a hard upper bound of 1000 in pgvector;
         # at large n_results, ann_k can exceed that and the SET fails.
         #
-        # Sized from top_k rather than ann_k (4x larger). The arXiv bq index is
-        # 11 GB against ~8.75 GB of shared_buffers, so a query vector walking
-        # an uncached region pays ~1ms per page read, and ef_search sets how
-        # many nodes that walk visits: ef=400 measured 8.6s on cold pages
-        # against 5.3s at ef=50, while top-20 recall was identical (100%
-        # overlap) at every value from 50 to 1000. The floor of 100 keeps
-        # enough breadth for selective filters, where the iterative scan has
-        # to re-walk to fill ann_k.
+        # Sized from top_k rather than ann_k (4x larger), because the extra
+        # breadth buys nothing: top-20 was identical, in the same order, at
+        # every ef_search from 50 to 1000 across 14 queries including
+        # selective category, journal, formality and non-arXiv-source filters.
+        # The floor of 100 keeps room for those selective filters, where
+        # pgvector's iterative scan has to re-walk to fill ann_k.
+        #
+        # Do not expect a latency win from lowering this. Cold-page cost
+        # dominates and varies 5-12s by query region, which swamps the
+        # difference between settings; matching ann_k to ef_search was
+        # measured and made no difference either. The real lever is making
+        # the 11 GB arXiv bq index fit in Aurora's ~8.75 GB of
+        # shared_buffers — a smaller m on a rebuilt index, or more memory.
         cur.execute("SET LOCAL hnsw.ef_search = %s;", (min(max(params["top_k"], 100), 1000),))
         cur.execute("SET LOCAL hnsw.iterative_scan = 'relaxed_order';")
         cur.execute("SET LOCAL hnsw.max_scan_tuples = %s;", (_HNSW_MAX_SCAN_TUPLES,))
