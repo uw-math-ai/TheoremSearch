@@ -98,3 +98,42 @@ $$;
 -- If a future filter on the non-arXiv branch still shows heap-fetch cost,
 -- add INCLUDE (embedding_id, statement_id, bq) to make it index-only — that
 -- grows the index to roughly 440 MB, so it was not worth it here.
+--
+-- WHY m = 32 IS THE WRONG CHOICE HERE, 2026-09-30. A query vector that walks
+-- an uncached region of the arXiv graph costs 5-10s end to end; the same
+-- vector repeated costs 0.1-0.3s. The walk is bound by page reads, so its
+-- cost scales with index size, and this index does not fit in Aurora's
+-- ~8.75 GB of shared_buffers (which it also shares with the 8.1 GB heap).
+--
+-- v1 is the control. Its arXiv index was created with no reloptions, so it
+-- took pgvector's defaults (m=16, ef_construction=64), and it quantized to
+-- bit(4096) exactly as this one does:
+--
+--     v1  m=16  9,230,149 rows   829 B/row   7.12 GiB
+--     v2  m=32 11,746,989 rows  1027 B/row  11.22 GiB
+--
+-- m=32 doubles the neighbor links (+24% B/row) and v2 carries 27% more rows,
+-- so this index is 1.58x v1's. Walking both on the same cluster with the same
+-- query vectors, ef_search=100, LIMIT 400, fresh vector per measurement:
+-- v1 median 1.92s against v2 median 2.97s -- a 1.5x gap that tracks the 1.58x
+-- size ratio. That is the whole reason v1 felt faster.
+--
+-- Rebuilding at m=16 (keeping ef_construction=256, so the graph is better
+-- than v1's was at the same density) projects to ~9.1 GiB. Measured on a
+-- 1,525,988-row sample against exact top-20 ground truth at ef_search=100:
+--
+--     m = 32:  1027 B/row,  99.3% recall@20
+--     m = 16:   832 B/row,  98.3% recall@20
+--
+-- That 1-point gap is raw ANN output; /graph/embedding reranks the survivors
+-- by full-precision cosine, which absorbs part of it. Budget ~3h for the
+-- rebuild (m=32 took 68.6 min for 1.5M rows, m=16 took 21.9 min).
+--
+-- Bigger lever, same direction: embedding_binary_hnsw_idx on the embedding
+-- table is another 12.73 GiB built with the same m=32, so the two together
+-- ask for 24 GiB of a 8.75 GiB cache and evict each other. Porting
+-- /graph/statement's representations off it and dropping it would help search
+-- residency more than the rebuild does.
+--
+-- Not an option: shrinking the stored vector (1024-bit quantization would
+-- reach ~4-5 GiB) is ruled out — the 4096-bit quantization stays.
