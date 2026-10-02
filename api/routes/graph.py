@@ -954,7 +954,7 @@ def _embed_vector_cached(provider_model: str, input_text: str) -> Tuple[float, .
     return tuple(_embed_vector(provider_model, input_text))
 
 
-def _embed_query(query: str) -> List[float]:
+def _embed_query(query: str, instruction: Optional[str] = None) -> List[float]:
     """Embed and L2-normalize the query vector. Corpus embeddings are stored
     normalized (see embedding_model.normalized = TRUE for qwen3-8b); keeping
     the query side normalized too guarantees any consumer that takes a raw
@@ -962,11 +962,20 @@ def _embed_query(query: str) -> List[float]:
     internally, but we don't want to depend on every code path going through
     it.
 
+    `instruction` overrides the prefix placed in front of the query, which is
+    what carries the MCP tool's `prompt` argument across. It is prepended
+    verbatim, so a caller supplying one owns the entire prefix including any
+    trailing "Query: ". Leave it None to get _QUERY_INSTRUCTION, the prefix
+    the v2 corpus was built against — an override is an experiment, not a
+    tuning knob, and v1's DEFAULT_QUERY_PROMPT is a different string.
+
     Returns a new list on every call: psycopg2 adapts a list to an ARRAY
     literal (a tuple would become a ROW and break the ::vector cast), and the
-    cached copy has to stay immutable."""
+    cached copy has to stay immutable. The cache key is the full instructed
+    text, so an override cannot collide with a default-prefixed vector."""
     provider_model, _ = _embed_model_info(_EMBED_MODEL)
-    return list(_embed_vector_cached(provider_model, _QUERY_INSTRUCTION + query))
+    prefix = _QUERY_INSTRUCTION if instruction is None else instruction
+    return list(_embed_vector_cached(provider_model, prefix + query))
 
 
 # -- warm-up ------------------------------------------------------------------
