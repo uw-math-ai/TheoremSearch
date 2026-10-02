@@ -96,11 +96,29 @@ Writes rows with `model_name = 'qwen3-235b'` and `prompt_name = 'final'`.
 `NOT insufficient_context`, so new rows are picked up and the old refusals are
 ignored without being destroyed.
 
-**Pilot first.** Run with `--sample 50` and read the output before the full
-pass. Stratify across Stacks, ProofWiki and HoTT and across body lengths —
-the refused bodies run 15 to 4,077 characters, median ~109 (ProofWiki) to ~345
-(Stacks). Accept only if refusals are ~0 and the slogans read correctly;
-v1's slogan for the same body is a useful reference.
+**Pilot first, and not with `--sample`.** `--sample` is documented "for
+`--batch` prepare, testing" and is only read on the batch path, so passing it
+to an online run is silently ignored and you get all 2,901. Narrow `-c`
+instead, with a stable pseudo-random 50:
+
+```bash
+python -m pipeline.generate_slogans -p final -m qwen3-235b -w 4 --insufficient -c \
+"paper.source IN ('Stacks Project','ProofWiki','Open Logic Project','CRing Project','HoTT Book','An Infinitely Large Napkin')
+ AND statement.statement_id IN (
+   SELECT s2.statement_id FROM slogan s2
+     JOIN statement st2 ON st2.statement_id = s2.statement_id
+     JOIN paper p2 ON p2.paper_id = st2.paper_id
+    WHERE p2.source IN ('Stacks Project','ProofWiki','Open Logic Project','CRing Project','HoTT Book','An Infinitely Large Napkin')
+    GROUP BY s2.statement_id
+   HAVING bool_and(s2.insufficient_context)
+    ORDER BY md5(s2.statement_id::text) LIMIT 50)"
+```
+
+Read the 50 before the full pass. The refused bodies run 15 to 4,077
+characters, median ~109 (ProofWiki) to ~345 (Stacks), so a random 50 spans the
+range; v1's slogan for the same body is a useful reference for whether the new
+one is actually better. Accept only if refusals are ~0 and the slogans read
+correctly.
 
 ### 2. Embed the new slogans
 

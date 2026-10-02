@@ -254,9 +254,20 @@ def _run_search(args: dict) -> dict:
         categories=(args.get("tags") or args.get("categories")) or None,
         min_citations=cit_min or 0,
         citation_max=cit_max,
-        # v1's schema defaults this True; v2's own default is None ("count
-        # unknown as zero"), so it has to be passed through explicitly.
-        include_unknown_citations=bool(args.get("include_unknown_citations", True)),
+        # Only meaningful alongside a citation range, and only honoured then —
+        # v1 consulted this flag inside its citation_range branch, so on its
+        # own it did nothing. v2's _search_clauses, by contrast, adds the
+        # citation predicate whenever this is False, which would drop every
+        # paper with a NULL citation count: all six non-arXiv sources plus any
+        # arXiv paper lacking one. Clients have sent False without a range 4
+        # times, so this is a real difference, not a hypothetical. Passing True
+        # when there is no range leaves the predicate out altogether, matching
+        # v1. (v2's own default is None, "count unknown as zero", which is a
+        # third behaviour again — hence always passing explicitly.)
+        include_unknown_citations=(
+            bool(args.get("include_unknown_citations", True))
+            if cit_min is not None else True
+        ),
         citation_weight=float(args.get("citation_weight") or 0.0),
         in_journal=args.get("in_journal"),
         year_min=year_min,
@@ -313,6 +324,14 @@ async def mcp(request: Request):
             return _mcp_error(request_id, -32601, "Unknown tool")
 
         args: Dict[str, Any] = params.get("arguments") or {}
+
+        # Logged before the search, and with the caller's arguments untouched,
+        # because that is what v1 did: n_results records what was *asked for*,
+        # and a call that then fails is still counted as an attempt. Logging
+        # afterwards with the result count instead would both renumber
+        # n_results and quietly drop failures from the dashboard.
+        await run_in_threadpool(_log_query, args)
+
         try:
             # _run_search blocks — an embedding HTTP call plus psycopg2
             # queries — so it must stay off the event loop: one blocking call
@@ -323,9 +342,6 @@ async def mcp(request: Request):
         except Exception as e:
             logger.exception("MCP theorem_search failed")
             return _mcp_error(request_id, -32603, f"{type(e).__name__}: {e}")
-
-        # Logged after the search, so a logging failure cannot cost results.
-        await run_in_threadpool(_log_query, {**args, "n_results": len(payload["theorems"])})
 
         return _mcp_success(request_id, {
             "content": [{"type": "text", "text": json.dumps(payload)}],
