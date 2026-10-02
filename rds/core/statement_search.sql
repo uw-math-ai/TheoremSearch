@@ -118,7 +118,20 @@ $$;
 -- v1 median 1.92s against v2 median 2.97s -- a 1.5x gap that tracks the 1.58x
 -- size ratio. That is the whole reason v1 felt faster.
 --
--- REBUILT AT m=16 ON 2026-10-01, and the DDL above now says so. The sample
+-- REBUILT AT m=16 ON 2026-10-01, and the DDL above now says so. The m=32
+-- index was dropped and the new one renamed into its place on 2026-10-02, in
+-- one transaction so the canonical name was never absent:
+--
+--   BEGIN;
+--   DROP INDEX statement_search_bq_arxiv_hnsw;
+--   ALTER INDEX statement_search_bq_arxiv_hnsw_m16
+--       RENAME TO statement_search_bq_arxiv_hnsw;
+--   COMMIT;
+--
+-- That took 0.1s and halved the index footprint on this table from 22 GB to
+-- 11 GB. Afterwards the 21-case /graph/embedding smoke test passed against
+-- production. No code references either index by name — only this file and
+-- build_statement_search.py, and the rename keeps both correct. The sample
 -- projection (832 B/row, ~9.1 GiB) held: the real index is 830 B/row and
 -- 9298 MB, against 1025 B/row and 11.2 GiB for m=32. Build took 101 min with
 -- maintenance_work_mem = 12GB and 4 parallel workers; pgvector spilled out of

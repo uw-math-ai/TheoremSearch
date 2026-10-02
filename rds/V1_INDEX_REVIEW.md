@@ -43,7 +43,13 @@ so none of this data feeds v2.
   Qwen3-Embedding-8B).
 - Size is almost all TOAST: 1060 MB heap + 7.7 GB indexes + ~235 GB of
   TOASTed 4096-d vectors.
-- **Checked for dropping 2026-10-01 — cleared, not yet dropped.**
+- **DROPPED 2026-10-02**, reclaiming 244 GB, after the checks below cleared it
+  and the 522 rows that existed nowhere else were preserved. Post-drop
+  verification: the table is gone, `theorem_embedding_qwen8b_orphans` still
+  holds its 522 rows of 4096-d vectors, `theorem_search_qwen8b` is intact with
+  9,268,550 rows and all seven of its ANN indexes, and every public endpoint
+  still answers — v1 `/search`, v2 `/graph/embedding`, `/paper-search` and the
+  website's own search path were each exercised afterwards.
   - Unread: last access of any kind (seq or index) `2026-09-19 21:19:12 UTC`.
     Its 7.3 GB HNSW logged 0 scans in the 2026-09-24 → 09-30 diff.
   - No live reader: v1 `/search` and `/mcp` use `theorem_search_qwen8b` only

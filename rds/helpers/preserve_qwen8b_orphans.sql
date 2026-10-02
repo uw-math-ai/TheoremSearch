@@ -39,12 +39,28 @@ ALTER TABLE theorem_embedding_qwen8b_orphans ADD PRIMARY KEY (slogan_id);
 -- These embeddings are recomputable if this table is ever lost: the slogan
 -- text is in theorem_slogan and the model (Qwen3-Embedding-8B) is unchanged.
 --
--- NOT YET DONE, and deliberately so — theorem_embedding_qwen8b itself is still
--- in place pending sign-off. Before dropping it, repoint the four non-production
--- referents at theorem_search_qwen8b (same slogan_id, same embedding column,
--- equivalent per-source HNSW): experiments/final_test_revised.py,
--- experiments/evaluation/bm25_slogan_search.py, archive/prod/rds.py,
+-- The source table was then dropped, on 2026-10-02:
+--
+--   DROP TABLE theorem_embedding_qwen8b;   -- 244 GB, took its 7.3 GB HNSW
+--                                          -- and 355 MB pkey with it
+--
+-- A pre-flight re-ran the anti-join immediately before the drop and required
+-- all three of: 522 rows unique to the source, 522 rows preserved here, and 0
+-- preserved rows missing from the source. Afterwards the table was gone, this
+-- table still held its 522 rows of 4096-d vectors, theorem_search_qwen8b was
+-- intact (9,268,550 rows, all seven ANN indexes), and v1 /search, v2
+-- /graph/embedding, /paper-search and the website's search path all still
+-- answered.
+--
+-- Four non-production referents read the dropped table and will fail until
+-- repointed at theorem_search_qwen8b. Each carries an in-file note saying so,
+-- including the part that is easy to get wrong: theorem_search_qwen8b's HNSW
+-- indexes are PARTIAL per source, while the dropped table's was the only
+-- global one in v1, so an ANN query there must add WHERE source = 'arXiv'.
+-- The files are experiments/final_test_revised.py,
+-- experiments/evaluation/bm25_slogan_search.py, archive/prod/rds.py and
 -- archive/prod/pca.ipynb.
 --
---   DROP TABLE theorem_embedding_qwen8b;   -- 244 GB, takes its 7.3 GB HNSW
---                                          -- and 355 MB pkey with it
+-- Keep this table through any future v1 cleanup: the 31 body-and-abstract-v1
+-- embeddings exist nowhere else, since theorem_search_qwen8b only ever
+-- carried body-only-v1 slogans.
