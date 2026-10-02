@@ -104,13 +104,17 @@ TheoremSearch is also available as an MCP tool for AI agents with a single tool 
 ## Citation
 
 ```bibtex
-@article{alexander2026semantic,
-  title  = {Semantic Search over 9 Million Mathematical Theorems},
-  author = {Alexander, Luke and Leonen, Eric and Szeto, Sophie and Remizov, Artemii and Tejeda, Ignacio and Inchiostro, Giovanni and Ilin, Vasily},
-  journal= {arXiv preprint arXiv:2602.05216},
-  year   = {2026},
-  doi    = {10.48550/arXiv.2602.05216},
-  url    = {https://arxiv.org/abs/2602.05216}
+@inproceedings{alexander2026semantic,
+  author        = {Alexander, Luke and Leonen, Eric and Szeto, Sophie and Remizov, Artemii and Tejeda, Ignacio and Alper, Jarod and Inchiostro, Giovanni and Ilin, Vasily},
+  title         = {Semantic Search over 9 Million Mathematical Theorems},
+  booktitle     = {Advances in Neural Information Processing Systems},
+  volume        = {39},
+  year          = {2026},
+  note          = {Evaluations and Datasets Track},
+  archivePrefix = {arXiv},
+  eprint        = {2602.05216},
+  primaryClass  = {cs.IR},
+  url           = {https://arxiv.org/abs/2602.05216}
 }
 ```
 
