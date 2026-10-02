@@ -1,5 +1,26 @@
 from __future__ import annotations
 
+# ---------------------------------------------------------------------------
+# HEADS UP (2026-10-01): theorem_embedding_qwen8b is slated for removal.
+#
+# It is 244 GB, nothing in production reads it (last access 2026-09-19), and
+# theorem_search_qwen8b holds a byte-identical copy of every embedding except
+# 522 rows, which were copied to theorem_embedding_qwen8b_orphans. See
+# rds/helpers/preserve_qwen8b_orphans.sql and rds/V1_INDEX_REVIEW.md.
+#
+# Repointing is NOT a drop-in rename. theorem_search_qwen8b has the same
+# slogan_id and embedding columns, but its HNSW indexes are PARTIAL, one per
+# source, whereas this table's index is the only global one in v1. A stage-1
+# ANN query must therefore pin a source:
+#
+#     ... FROM theorem_search_qwen8b
+#        WHERE source = 'arXiv'            -- 9,230,149 of 9,269,072 rows
+#        ORDER BY binary_quantize(embedding)::bit(4096) <~> ...
+#
+# Without that predicate no index applies and the query sequentially scans a
+# 179 GB table. Also note theorem_search_qwen8b carries only body-only-v1
+# slogans; body-and-abstract-v1 embeddings live solely in the _orphans table.
+# ---------------------------------------------------------------------------
 import argparse
 import json
 import math
@@ -289,7 +310,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--embedding-table",
         default="theorem_embedding_qwen8b",
-        help="Embedding table containing slogan_id values.",
+        help=(
+            "Embedding table containing slogan_id values. NOTE: the default "
+            "table is slated for removal (2026-10-01) — see the HEADS UP note "
+            "at the top of this file; pass --embedding-table "
+            "theorem_search_qwen8b instead."
+        ),
     )
     parser.add_argument(
         "--slogan-table",

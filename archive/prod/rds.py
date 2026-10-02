@@ -142,6 +142,10 @@ def backfill(conn: connection):
                 OR p.categories IS NOT NULL
                 OR p.citations IS NOT NULL
             )
+        -- theorem_embedding_qwen8b is slated for removal (2026-10-01);
+        -- see rds/V1_INDEX_REVIEW.md. theorem_search_qwen8b has the same
+        -- slogan_id/embedding, but its HNSW indexes are partial per
+        -- source, so an ANN query there must add WHERE source = 'arXiv'.
         FROM theorem_embedding_qwen8b e
         JOIN theorem_slogan ts ON ts.slogan_id = e.slogan_id
         JOIN theorem t ON t.theorem_id = ts.theorem_id

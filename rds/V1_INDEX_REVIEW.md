@@ -41,16 +41,39 @@ so none of this data feeds v2.
 ### `theorem_embedding_qwen8b` — 244 GB, ~9.0M rows
 - Columns: `slogan_id bigint` (PK), `embedding vector` (4096-d,
   Qwen3-Embedding-8B).
-- Every `slogan_id` sampled (0.5%) is also in `theorem_search_qwen8b`, which
-  carries its own copy of the embedding: this looks like the table
-  `theorem_search_qwen8b` was built from.
-- Code: `experiments/final_test_revised.py` (default `PG_TABLE`; its stage 1
-  orders by `binary_quantize(...) <~> ...`, i.e. **uses the HNSW index**),
-  `experiments/evaluation/bm25_slogan_search.py` (default table name, joins by
-  `slogan_id`), `archive/prod/rds.py`, `archive/prod/pca.ipynb`.
-- Pointing those experiments at `theorem_search_qwen8b` (same slogan_ids,
-  embedding column, and an equivalent per-source HNSW) would likely free the
-  whole 244 GB table.
+- Size is almost all TOAST: 1060 MB heap + 7.7 GB indexes + ~235 GB of
+  TOASTed 4096-d vectors.
+- **Checked for dropping 2026-10-01 — cleared, not yet dropped.**
+  - Unread: last access of any kind (seq or index) `2026-09-19 21:19:12 UTC`.
+    Its 7.3 GB HNSW logged 0 scans in the 2026-09-24 → 09-30 diff.
+  - No live reader: v1 `/search` and `/mcp` use `theorem_search_qwen8b` only
+    (`api/routes/search.py:79,143`); nothing in `api/`; nothing in the website.
+  - No dependent objects: no views/matviews, no inbound FKs. Its only
+    constraint is its own outbound FK to `theorem_slogan`.
+  - Duplicated by value, not just by id: 9,268,550 of 9,269,072 `slogan_id`
+    are in `theorem_search_qwen8b`, and on a 1-in-4000 sample 2,316 of 2,316
+    embeddings compared **equal** (0 differing, 0 missing).
+  - A full anti-join found **522 `slogan_id` present only here** (491
+    `body-only-v1`, 31 `body-and-abstract-v1`, all with live theorem rows).
+    Those are preserved in `theorem_embedding_qwen8b_orphans` (522 rows,
+    9808 kB, verified identical to source) — see
+    `rds/helpers/preserve_qwen8b_orphans.sql`. With that table in place the
+    drop is lossless.
+  - Recovery if wrong: 7-day automated retention, PITR from 2026-09-24,
+    daily snapshots, cluster deletion protection on.
+- Code: `experiments/final_test_revised.py` (default `PG_TABLE`, in three
+  places; its stage 1 orders by `binary_quantize(...) <~> ...`, i.e. **uses
+  the HNSW index**), `experiments/evaluation/bm25_slogan_search.py`
+  (`--embedding-table` default, joins by `slogan_id`),
+  `archive/prod/rds.py`, `archive/prod/pca.ipynb`. All four now carry an
+  in-file note about the pending removal.
+- **Repointing is not a drop-in rename.** `theorem_search_qwen8b` has the same
+  `slogan_id` and `embedding` columns, but its HNSW indexes are *partial*, one
+  per source, while this table's is the only *global* HNSW in v1. An ANN query
+  against it must pin a source — `WHERE source = 'arXiv'` covers 9,230,149 of
+  9,269,072 rows — or no index applies and it sequentially scans 179 GB.
+  `theorem_search_qwen8b` also carries only `body-only-v1` slogans, so
+  `body-and-abstract-v1` embeddings exist solely in the `_orphans` table.
 
 ### `theorem_search_qwen` — 49 GB, ~7.7M rows
 - Earlier denormalized search table with 1024-d Qwen embeddings (1024 dims
