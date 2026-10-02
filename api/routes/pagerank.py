@@ -343,6 +343,18 @@ def _personalized_pagerank(
     "/graph/pagerank",
     response_model=PageRankResponse,
     response_model_exclude_none=True,
+    # Advertised in /openapi.json and /docs only while the endpoint is on.
+    # Being listed there is how callers find it: every request this route has
+    # ever served came from an MCP-connected client working through the schema,
+    # and every one got a 503 (the graph cannot be built on this instance) or a
+    # 422 (guessed parameters — paper_id/limit, which the route has never
+    # accepted). Hiding it while disabled stops advertising something that can
+    # only answer 404.
+    #
+    # Read once at import, unlike the per-request check in the handler, because
+    # import is when the schema is built. Changing PAGERANK_ENABLED on App
+    # Runner triggers a redeploy, so the two cannot drift apart there.
+    include_in_schema=_pagerank_enabled(),
 )
 def graph_pagerank(
     query: str = Query(..., min_length=1, description="Natural-language search query."),
