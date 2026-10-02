@@ -114,8 +114,16 @@ _INDEXES = [
     ("statement_search_kind",      "(kind)"),
     ("statement_search_bq_other_hnsw",
      "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source <> 'arXiv'"),
+    # m = 16, not 32. The arXiv graph is page-read bound, so its cost tracks
+    # index size: m=32 gave 1025 B/row and 11.2 GiB, which does not fit in
+    # Aurora's buffer cache, while m=16 gives 830 B/row and 9.08 GiB. Measured
+    # on the full corpus at ef_search=100, the m=16 index walks in 1.69s
+    # median against 2.97s for m=32, with recall@20 of 100% over 8 queries
+    # against exact Hamming across all 11.7M arXiv rows. v1 ran m=16 (pgvector's
+    # default) for the same corpus and model. Keep ef_construction at 256 for a
+    # better graph than v1 had at the same density. Budget ~100 min.
     ("statement_search_bq_arxiv_hnsw",
-     "USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256) WHERE source = 'arXiv'"),
+     "USING hnsw (bq bit_hamming_ops) WITH (m = 16, ef_construction = 256) WHERE source = 'arXiv'"),
 ]
 
 

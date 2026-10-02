@@ -62,7 +62,7 @@ $$;
 -- sources never has to wade through arXiv candidates. Queries must repeat
 -- the predicate verbatim for the planner to pick the partial index.
 --   CREATE INDEX statement_search_bq_arxiv_hnsw ON statement_search
---       USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256)
+--       USING hnsw (bq bit_hamming_ops) WITH (m = 16, ef_construction = 256)
 --       WHERE source = 'arXiv';
 --   CREATE INDEX statement_search_bq_other_hnsw ON statement_search
 --       USING hnsw (bq bit_hamming_ops) WITH (m = 32, ef_construction = 256)
@@ -118,16 +118,19 @@ $$;
 -- v1 median 1.92s against v2 median 2.97s -- a 1.5x gap that tracks the 1.58x
 -- size ratio. That is the whole reason v1 felt faster.
 --
--- Rebuilding at m=16 (keeping ef_construction=256, so the graph is better
--- than v1's was at the same density) projects to ~9.1 GiB. Measured on a
--- 1,525,988-row sample against exact top-20 ground truth at ef_search=100:
+-- REBUILT AT m=16 ON 2026-10-01, and the DDL above now says so. The sample
+-- projection (832 B/row, ~9.1 GiB) held: the real index is 830 B/row and
+-- 9298 MB, against 1025 B/row and 11.2 GiB for m=32. Build took 101 min with
+-- maintenance_work_mem = 12GB and 4 parallel workers; pgvector spilled out of
+-- memory at 10.7M of 11.7M tuples, so a larger setting would be faster still.
 --
---     m = 32:  1027 B/row,  99.3% recall@20
---     m = 16:   832 B/row,  98.3% recall@20
---
--- That 1-point gap is raw ANN output; /graph/embedding reranks the survivors
--- by full-precision cosine, which absorbs part of it. Budget ~3h for the
--- rebuild (m=32 took 68.6 min for 1.5M rows, m=16 took 21.9 min).
+-- Verified on the full corpus at ef_search=100, not on a sample: the planner
+-- prefers the m=16 index on cost, it walks in 1.69s median against 2.97s for
+-- m=32, and recall@20 was **100% on all 8 test queries** measured against an
+-- exact Hamming ranking over all 11,746,989 arXiv rows. The 1-point recall
+-- gap seen on the 1.5M sample did not materialise at full scale, and
+-- /graph/embedding reranks the survivors by full-precision cosine on top of
+-- that.
 --
 -- Bigger lever, same direction: embedding_binary_hnsw_idx on the embedding
 -- table is another 12.73 GiB built with the same m=32, so the two together
