@@ -26,15 +26,25 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-# Seconds between background warm-ups. An idle App Runner instance is
-# CPU-throttled and lets its outbound connections lapse, so the first search
-# after a quiet stretch takes 5-14s against ~0.9s warm — it pays a fresh TLS
-# handshake to Nebius, a Secrets Manager fetch, and pool construction. A
-# periodic touch keeps all three established, at the cost of the instance
-# never going fully idle (it bills at the active rate rather than the lower
-# provisioned one). Set API_WARM_INTERVAL_SECONDS=0 to turn the thread off and
-# drive GET /warm from an external scheduler instead.
-_WARM_INTERVAL = env_int("API_WARM_INTERVAL_SECONDS", 240, minimum=0)
+# Seconds between background warm-ups. A quiet instance lets its outbound
+# connection to Nebius lapse, and the next embedding call then pays for that:
+# reusing the connection costs ~0.3-0.5s, opening a fresh one ~1-9s, and
+# reusing one the far end has already closed stalls until the request timeout
+# and only succeeds on retry — 37.8s measured after a 35-second idle gap.
+#
+# The warm-up is what keeps that off users: the long embeds in the logs
+# (15.6s, 18.3s, 38.1s) were all warm-up calls, while user searches sat at
+# 0.5-0.9s. The exception is a visitor arriving inside the cold window, which
+# cost one search 28.3s — so this period is also how wide that window is.
+# 120s rather than 240s halves it, for two cheap probes a minute instead of
+# one. Tuning httpx's keepalive_expiry was tried in both directions and
+# measurably did not help, so the interval is the lever.
+#
+# The tradeoff is that the instance never goes fully idle, billing at the
+# active rate rather than the lower provisioned one. Set
+# API_WARM_INTERVAL_SECONDS=0 to turn the thread off and drive GET /warm from
+# an external scheduler instead.
+_WARM_INTERVAL = env_int("API_WARM_INTERVAL_SECONDS", 120, minimum=0)
 _warm_stop = threading.Event()
 
 
