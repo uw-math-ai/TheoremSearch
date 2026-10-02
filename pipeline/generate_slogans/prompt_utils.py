@@ -70,7 +70,7 @@ def load_prompt(name: str, mode: str = "informal") -> PromptSpec:
     if not template_path.exists():
         raise FileNotFoundError(f"Prompt not found: {template_path}")
 
-    source = template_path.read_text()
+    source = template_path.read_text(encoding="utf-8")
     env = jinja2.Environment(
         undefined=jinja2.Undefined,
         trim_blocks=True,
@@ -90,7 +90,7 @@ def load_model_config(name: str) -> Dict[str, Any]:
     """Load a model config by short name from models.json."""
     if not MODELS_FILE.exists():
         raise FileNotFoundError(f"models.json not found at {MODELS_FILE}")
-    models = json.loads(MODELS_FILE.read_text())
+    models = json.loads(MODELS_FILE.read_text(encoding="utf-8"))
     if name not in models:
         available = ", ".join(f'"{k}"' for k in models)
         raise ValueError(f"Model '{name}' not found in models.json. Available: {available}")

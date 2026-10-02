@@ -16,8 +16,8 @@ from .models import load_model_config, build_openai_client
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
-_SYSTEM_PROMPT        = (Path(__file__).parent / "prompts" / "intrapaper_judge_system.j2").read_text()
-_VERIFY_SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "intrapaper_judge_verify_system.j2").read_text()
+_SYSTEM_PROMPT        = (Path(__file__).parent / "prompts" / "intrapaper_judge_system.j2").read_text(encoding="utf-8")
+_VERIFY_SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / "intrapaper_judge_verify_system.j2").read_text(encoding="utf-8")
 
 _VERIFY_BATCH_SIZE = 10
 

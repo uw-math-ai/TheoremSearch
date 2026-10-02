@@ -155,7 +155,7 @@ def generate_slogans(
             return
         rendered = render_prompt(spec.template, contexts[sid])
         example_path = PROMPTS_DIR / f"{prompt_name}.example.txt"
-        example_path.write_text(rendered + "\n")
+        example_path.write_text(rendered + "\n", encoding="utf-8")
         print(f"Written to {example_path}\n")
         print(rendered)
         return
