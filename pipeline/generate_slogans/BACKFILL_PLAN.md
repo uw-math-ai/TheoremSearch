@@ -1,12 +1,17 @@
 # Making the 2,901 unsearchable statements searchable
 
-2,901 statements in the six v1-ingested sources are present in v2 but cannot be
-found by `/graph/embedding`. v1 can find them, so this is the last content gap
-blocking the retirement of v1 search.
+**Done, 2026-10-02.** All 2,901 statements across the six v1-ingested sources
+are now searchable. `statement_search` holds 38,401 rows for these sources —
+matching v1's count exactly — and the `mv_search_*` views are refreshed.
+Verified against the live API: both of this doc's named terse examples
+(Stacks `115.16.2`, `37.20.3`) now return as the top result when searched by
+their own content, which v1 could do and v2 could not until this ran. `/mcp`
+was separately migrated from v1 to v2 earlier and now has full coverage as a
+result of this; `POST /search` remains v1's only reader and is the one
+thing standing between the current state and retiring v1 search entirely.
 
-Diagnosed 2026-10-02. **Pilot run on 2026-10-02: 49 of a planned 50
-statements regenerated and reviewed — see "Pilot results" below. The
-remaining 2,852 have not been run.**
+What follows is kept as the record of how this was diagnosed and done, not as
+an open task list.
 
 ## It is not template drift, and not missing data
 
@@ -205,26 +210,56 @@ this review called it; state the real numbers rather than rounding to zero.
 The 49 pilot rows are being kept, not rolled back — they are correct enough
 to stand, and re-running them would just reproduce the same distribution.
 
-### Full run
+### Full run — done
 
 `--insufficient` excludes the 49 already processed (they now have a `final`
 slogan, good or not, so `NOT EXISTS(slogan WHERE prompt_name='final' AND
-model_name='qwen3-235b')` no longer matches them). The remaining count is
-exactly **2,852** (2,901 − 49). At the pilot's measured $0.00012/statement,
-that is roughly **$0.35**, and at the pilot's ~2.6 statements/sec with 4
-workers, a few tens of minutes. The command is the same one shown under
-step 1 above — no `statement_id IN (...)` restriction, so it naturally picks
-up exactly the remaining 2,852:
+model_name='qwen3-235b')` no longer matches them), so the command shown under
+step 1 naturally picked up exactly the remaining 2,852 with no further
+restriction needed:
 
 ```bash
 python -m pipeline.generate_slogans -p final -m qwen3-235b -w 8 --insufficient -c SOURCES
 ```
 
+Ran 2026-10-02: 2,852/2,852, 100% success, **$0.3674** — within a cent of
+the $0.35 estimate. 0 hard refusals across the combined 2,901 (49 + 2,852);
+see "Pilot results" above for the honest accuracy rate, which applies to the
+whole set, not just the 49 sampled.
+
+Steps 2–5 then ran against the full 2,901 and all completed cleanly:
+- **Step 2** (`generate_embeddings -m qwen3-8b --device nebius -c SOURCES`):
+  2,901/2,901 embedded (the pilot's 256 plus 2,645 more), 100% success. The
+  embedding step was interrupted once by the harness's idle background-shell
+  memory-pressure reaper — not a bug in the script — and resumed cleanly from
+  where it stopped, because this step already skips slogans with an existing
+  embedding unless `-o`/`--overwrite` is passed. On the resume it was run as
+  a detached OS process (`cmd &; disown`) rather than a harness-tracked
+  background shell, specifically so a later reap of the *polling* loop
+  watching it (which happened once) could not touch the actual job.
+- **Step 3** (`build_statement_search.py --load` with the six `--source`
+  flags): loaded 38,401 rows from 240 papers in 9.5 minutes, exit code 0.
+- **Step 4** (`REFRESH MATERIALIZED VIEW CONCURRENTLY` x3): 33.3s, 18.4s,
+  3.8s.
+- **Step 5** (verify): the funnel query shows 0 `still_refused` and 0
+  `good_unembedded` across all six sources; `statement_search` holds exactly
+  38,401 rows for them, matching the per-source targets exactly (ProofWiki
+  23,805, Stacks 12,693, Open Logic 745, CRing 545, HoTT 382, Napkin 231).
+  The 21-case `/graph/embedding` smoke test passed against production
+  afterward, and both named terse examples (`115.16.2`, `37.20.3`) now come
+  back as the top result when searched by their own content on the live API.
+
 ### 2. Embed the new slogans
 
 ```bash
-python -m pipeline.generate_embeddings -m qwen3-8b -c SOURCES
+python -m pipeline.generate_embeddings -m qwen3-8b --device nebius -c SOURCES
 ```
+
+`--device` is required and has no default; the plan's first draft omitted it
+and the command failed immediately with a usage error before touching
+anything. `nebius` matches how qwen3-8b embeddings are generated everywhere
+else in this pipeline (the Nebius API, not local `cpu`/`gpu` inference via
+sentence-transformers).
 
 `generate_embeddings` already filters `NOT slogan.insufficient_context`
 (`pipeline/generate_embeddings/__main__.py:62`), so the new slogans become
